@@ -1,0 +1,135 @@
+#+TITLE: dotfiles
+#+PROPERTY: header-args    :tangle-mode (identity #o644)
+#+PROPERTY: header-args:sh :tangle-mode (identity #o755)
+#+PROPERTY: header-args    :mkdirp yes
+
+* abcde
+#+BEGIN_SRC conf :tangle ./.abcde.conf
+  FDKAACENCOPTS='--bitrate 256k'
+
+  OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
+#+END_SRC
+* Git
+- git ignore
+  #+BEGIN_SRC conf :tangle ./.config/git/ignore
+    #
+    # ~/.gitignote
+    #
+    ## archive ##
+    ,*.zip
+    ,*.lzh
+    ,*.tar.gz
+    ,*.tgz
+    ,*.bz2
+    ,*.dmg
+
+    ## Compiled object files ##
+    ,*.slo
+    ,*.lo
+    ,*.o
+    ,*.obj
+
+    ## Compiled Dynamic libraries ##
+    ,*.so
+    ,*.dylib
+    ,*.dll
+
+    ## Compiled Static libraries ##
+    ,*.lai
+    ,*.la
+    ,*.a
+    ,*.lib
+
+    ## Executables ##
+    ,*.exe
+    ,*.out
+    ,*.app
+
+    ## Windows ##
+    Thumbs.db
+    ehthumbs.db
+    Desktop.ini
+    $RECYCLE.BIN/
+    ,*.cab
+    ,*.msi
+    ,*.msm
+    ,*.msp
+
+    ## Mac ##
+    .DS_Store
+    .AppleDouble
+    .LSOverride
+    .Spotlight-V100
+    .Trashes
+    ._*
+
+    ## Linux ##
+    locate.db
+
+    ## version control system ##
+    .git/
+    .hg/
+    .svn/
+
+    ## backup,log ##
+    ,*~
+    ~*
+    ,*.swp
+    .swp.*
+    ,*.tmp
+    ,*.bak
+    ,*.old
+    ,*.log
+    .cache/
+    ,*.autosave
+
+    ## Emacs ##
+    ,*.elc
+
+    ## Vim ##
+    ,*.un~
+    Session.vim
+    .netrwhist
+
+    ## GNU GLOBAL ##
+    GPATH
+    GRTAGS
+    GTAGS
+
+    ## netbeans ##
+    nbproject/
+    ## intellij idea ##
+    .idea/
+    ## eclipse ##
+    .settings/
+    .project
+    .classpath
+    .buildpath
+    ## XCode ##
+    ,*.xcodeproj/*
+
+    ## Build dir ##
+    build/
+  #+END_SRC
+- git attribute
+  #+BEGIN_SRC conf :tangle ./.config/git/attribute
+    ,*.c diff=cpp
+    ,*.h diff=cpp
+    ,*.cpp diff=cpp
+    ,*.hpp diff=cpp
+    ,*.cs diff=csharp
+    ,*.m diff=objc
+    ,*.java diff=java
+    ,*.html diff=html
+    ,*.xml diff=html
+    ,*.pl diff=perl
+    ,*.pm diff=perl
+    ,*.t diff=perl
+    ,*.php diff=php
+    ,*.ptml diff=php
+    ,*.py diff=python
+    ,*.rb diff=ruby
+    ,*.js diff=java
+    ,*.csv encoding=cp932
+    ,*.json diff=json
+  #+END_SRC
