@@ -10,6 +10,55 @@
   OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
 #+END_SRC
 * Git
+- git config
+  #+BEGIN_SRC gitconfig :noweb tangle :tangle ./.config/git/config
+    [core]
+            excludesfile = ~/.config/git/info/ignore
+            attributesfile = ~/.config/git/info/attributes
+            editor = emacs
+            symlinks = true
+            # Unicode
+            precomposeunicode = true
+            quotepath = true
+            autocrlf = false
+    [push]
+            # simple,matching,upstream,current
+            default = simple
+    [color]
+            ui = auto
+            status = auto
+            diff = auto
+            branch = auto
+            interactive = auto
+            grep = auto
+    [diff]
+            patience = true
+    [diff "gpg"]
+            textconv = gpg --no-tty --decrypt
+    [help]
+            autocorrect = 0
+    [alias]
+            co = checkout
+            ca = commit -a -v
+            ce = commit -v --amend
+            st = status --branch --short
+            si = status --ignored --short
+            branches = branch -a
+            remotes = remote -v
+            tags = tag -l
+            lg = log --graph --all --decorate --abbrev-commit --branches --date=short --pretty=format:\"%C(red)%h%C(reset) %C(green)[%ad]%C(reset) %s %C(cyan)@%an%C(reset) %C(yellow)%d%C(reset)\"
+            fp = fetch --prune
+            di = diff
+            dh = diff --histogram
+            dw = diff --word-diff
+            dc = diff --cached
+            wc = whatchanged
+    [user]
+            email = 6841207+p-snow@users.noreply.github.com
+            name = Kona-Yuki-SAN
+    [credential]
+            helper = <<home-dir>>/usr/share/git/contrib/credential/netrc/git-credential-netrc
+  #+END_SRC
 - git ignore
   #+BEGIN_SRC conf :tangle ./.config/git/info/ignore
     #
@@ -134,6 +183,21 @@
     ,*.json diff=json
     ,*.gpg filter=gpg diff=gpg
   #+END_SRC
+** credentials for git password helper               :crypt:
+-----BEGIN PGP MESSAGE-----
+
+hQEMA9uWvE5LJ2ejAQf6AqyLWuYYr14TPXl9q0CW9qsibc/JT2gXK18ouHzxWMb1
+BLIrjR311XBzUq5QzNhXtljhGaGi0ZcrKuXpA5rNwUk7wI+XpzpDfF/kdTlhTmIQ
+USvKJndHma4K24UKRkMAoocYJbhyLVqnhLEa5Dwt2a213BRpsQi6THffvAHNb0yR
+c2tyyVVArDkDDCyTM34C8K7X9S218fsM9VvRQVM0fb1XAgn6MrOJOMrGY/YFsXim
+Tk3/3/X54mFya6AZl95NxpJ7wJon9CZxzViPw2AkM9RQ5XYkPmFcQtJ3BzU1ZE8V
+cQ2S4NFFuUdW9wNKKIOYz6sUHfAAhN9BrjsnvdZIVNK2AUec2/iJOXrTg7aCbJWF
+MXYgbYNzJXRQNPRlckY9TC2m+KHuu7r+NhldL4E74b9Lq1D2v/zCQeKpIRvupSyp
+kNGUOKiXY5RrQ3oESzNeiS2o/X41LQ8wJ9uG0XTc8zNQEVnUjYrXQnWQ7RfXvyUY
+ahynjvLuFKIHFf8pdmIvLI9sqnxFZsty97LtrKL8WFrrwSunUwITjuZ1r2i7BlJm
+TBmZWw2rzlhUV6thJa0RTHRfDdDmPDE=
+=6rgo
+-----END PGP MESSAGE-----
 * GCompris
 - Binary File
   execute following source block to download package file and execute it to install GCompris executable file
@@ -284,4 +348,26 @@ Nb7hBvZyvx1Dg2VscKbSoNIoTrNxluJ6BS7m3BS627jhb+pXPEI4YFWouB9fkO+X
 lREoH5BMeiXP218ddmSvwZ5qMYG93Z/P3wyWTTrAXQpv05jOLuW10S+Qgr6kb4EC
 UE/EjKTN
 =uCBa
+-----END PGP MESSAGE-----
+* pass                                               :crypt:
+-----BEGIN PGP MESSAGE-----
+
+hQEMA9uWvE5LJ2ejAQf8CpERkNn7t9XREdFwPQVKa7UU4+IIcwwYoeB0lPPlItqP
+VBriSexY3jStiOyqnJw2p7ROa2A4cH7LaCuiOop2Rcy+EsrCWlc/kfQSuHzdugvl
+BSVyNTd9xwLl6P02+uIURcIkXcvEWWk9viIyIlOKltQjkM3hjLFfa3SczTeuOczm
+78b97bpC653T0AY8rmyyMZJU+uBK+P0CWBFW42B9tix4DeLTYR0UD/KUvX7mJfvv
+AuxmBWFapYJhAY6jioVaVIIBESVgfi10YiY2k+DCmCIoCmwbk9cY4CnWbsnhG8eE
+yM2/dr5TtJtAMWl9NBctG/9jkqFRZoU/qsXfMRgSHNLpARzDaObLOwLExMDZcdBa
+RgcTsRSb5pGi9xA0kcEk/lgToal6Yu+a1dBeHW0ClnV9W+U64fsoGkRmKAHtSIWx
+N8369c1udDCSftOxUjnMj3XwchwS9MHfa1avQq4C4GCUieRpkhXc9VtoMaPJmAqD
+nLEe4wi4hIvo+MmE25oc5r8RNwyKfsaFh1+w5Qhd5WZShhNZvVyp6PTSv2mNS5O8
+yjxssYbLhpCDEFdvl0676VajY9p2JD3m/hZOIJst3TznX2gDKLQYeLc46ii4B1/J
+ZODojsyq5uDABTDvFh/QcskL9s4+n1LVzEqdQza1G42qAGaZhG9glI3eaLrm+4Rk
+H21N9r8k/qCgBwgF7mDsd4wySJBYwUTuDRq+ZveMK1SYItXxvyCBY9V9nfdNnHT0
+RU888nGWWlukiyFe4veS68+xcg4qMN51sGKrfXBkJCP6UQ9YDhuxuJHYoZXpqKOo
+MQsZWEbDg1/q/wMG7RcmfC2n5rjoBQkoUyZ2vq8Eg0J+N3Qt2pB9x280RFPTnMS1
+P2e8Ie/JKJaaK3UNwLiElfQbVBjYmz/99JJoAeVkjcAoFmc72KUH4kwMnIli3Nru
+SIgSJVhGrelZlWAX/8kVVr2U4gx6+konTH+XnU2P8nghl3CHJosF2RAy1Re7vNFd
+HAFs3bdnR/LM6BxsaseUzg8FK2swwIY=
+=JjKB
 -----END PGP MESSAGE-----
