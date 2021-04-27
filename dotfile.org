@@ -6,10 +6,11 @@
 #+STARTUP: hideblocks
 
 * User Information
-#+name: home-dir
-#+begin_src bash
+- my home directory
+  #+name: home-dir
+  #+begin_src bash
   echo ${HOME}
-#+end_src
+  #+end_src
 * abcde
 #+BEGIN_SRC conf :tangle (expand-tangle-target ".abcde.conf")
   FDKAACENCOPTS='--bitrate 256k'
@@ -141,11 +142,11 @@
     ,*.json diff=json
     ,*.gpg filter=gpg diff=gpg
   #+END_SRC
-** git config
+- git config
   #+BEGIN_SRC gitconfig :noweb tangle :tangle (expand-tangle-target ".config/git/config")
     [core]
-            excludesfile = ~/.config/git/info/ignore
-            attributesfile = ~/.config/git/info/attributes
+            excludesfile = <<home-dir()>>/.config/git/info/ignore
+            attributesfile = <<home-dir()>>/.config/git/info/attributes
             editor = emacs
             symlinks = true
             # Unicode
@@ -188,7 +189,7 @@
             email = 6841207+p-snow@users.noreply.github.com
             name = Kona-Yuki-SAN
     [credential]
-            helper = /usr/bin/pass-git-helper -m ~/.config/pass-git-helper/git-pass-mapping.ini
+            helper = /usr/bin/pass-git-helper -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
   #+END_SRC
 * GCompris
 - Download executable
@@ -214,118 +215,118 @@
     Categories=Education;
   #+END_SRC
 - Config file
-#+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/gcompris/gcompris-qt.conf")
-  [Admin]
-  cachePath=<<home-dir()>>/.cache/KDE/gcompris-qt
-  downloadServerUrl=https://cdn.kde.org/gcompris
-  renderer=auto
-  userDataPath=<<home-dir()>>/.local/share/GCompris
+  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/gcompris/gcompris-qt.conf")
+    [Admin]
+    cachePath=<<home-dir()>>/.cache/KDE/gcompris-qt
+    downloadServerUrl=https://cdn.kde.org/gcompris
+    renderer=auto
+    userDataPath=<<home-dir()>>/.local/share/GCompris
 
-  [Favorite]
-  baby_tangram\BabyTangram.qml=true
-  babyshapes\Babyshapes.qml=false
-  braille_fun\BrailleFun.qml=false
-  canal_lock\CanalLock.qml=true
-  color_mix_light\ColorMixLight.qml=true
-  colors\Colors.qml=true
-  hanoi_real\HanoiReal.qml=true
-  maze\Maze.qml=true
-  play_piano\PlayPiano.qml=true
-  railroad\Railroad.qml=true
-  traffic\Traffic.qml=true
+    [Favorite]
+    baby_tangram\BabyTangram.qml=true
+    babyshapes\Babyshapes.qml=false
+    braille_fun\BrailleFun.qml=false
+    canal_lock\CanalLock.qml=true
+    color_mix_light\ColorMixLight.qml=true
+    colors\Colors.qml=true
+    hanoi_real\HanoiReal.qml=true
+    maze\Maze.qml=true
+    play_piano\PlayPiano.qml=true
+    railroad\Railroad.qml=true
+    traffic\Traffic.qml=true
 
-  [%General]
-  audioEffectsVolume=0.7
-  backgroundMusicVolume=0.2
-  baseFontSize=0
-  defaultCursor=false
-  demo=false
-  enableAudioVoices=true
-  enableAutomaticDownloads=true
-  enableBackgroundMusic=true
-  filterLevelMax=6
-  filterLevelMin=1
-  filteredBackgroundMusic=@Invalid()
-  font=Andika-R.otf
-  fontCapitalization=0
-  fontLetterSpacing=0
-  fullscreen=false
-  isCurrentFontEmbedded=true
-  key=
-  kiosk=false
-  locale=system
-  noCursor=false
-  previousHeight=1375
-  previousWidth=2560
-  sectionVisible=true
-  showLockedActivities=false
-  useWordset=true
-  virtualKeyboard=false
-  wordset=
+    [%General]
+    audioEffectsVolume=0.7
+    backgroundMusicVolume=0.2
+    baseFontSize=0
+    defaultCursor=false
+    demo=false
+    enableAudioVoices=true
+    enableAutomaticDownloads=true
+    enableBackgroundMusic=true
+    filterLevelMax=6
+    filterLevelMin=1
+    filteredBackgroundMusic=@Invalid()
+    font=Andika-R.otf
+    fontCapitalization=0
+    fontLetterSpacing=0
+    fullscreen=false
+    isCurrentFontEmbedded=true
+    key=
+    kiosk=false
+    locale=system
+    noCursor=false
+    previousHeight=1375
+    previousWidth=2560
+    sectionVisible=true
+    showLockedActivities=false
+    useWordset=true
+    virtualKeyboard=false
+    wordset=
 
-  [Internal]
-  exeCount=138
-  lastGCVersionRan=10100
+    [Internal]
+    exeCount=138
+    lastGCVersionRan=10100
 
-  [Levels]
-  algebra_by\AlgebraBy.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  algebra_div\AlgebraDiv.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  algebra_minus\AlgebraMinus.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  algebra_plus\AlgebraPlus.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  categorization\Categorization.qml=1, 2, 3
-  chronos\Chronos.qml=1, 2
-  clockgame\Clockgame.qml=1, 2, 3, 4, 5, 6
-  crane\Crane.qml=1, 2, 3, 4
-  details\Details.qml=1, 2, 3
-  enumerate\Enumerate.qml=1, 2, 3, 4
-  geo-country\GeoCountry.qml=1, 2, 3, 4
-  gnumch-equality\GnumchEquality.qml=1, 2, 3, 4
-  gnumch-inequality\GnumchInequality.qml=1, 2, 3, 4
-  guesscount\Guesscount.qml=1, 2, 3, 4
-  guessnumber\Guessnumber.qml=1, 2, 3, 4, 5
-  land_safe\LandSafe.qml=1, 2
-  learn_additions\Learn_additions.qml=1, 2, 3
-  learn_digits\Learn_digits.qml=1, 2, 3, 4, 5, 6, 7, 8, 9
-  learn_subtractions\Learn_subtractions.qml=1, 2, 3
-  lightsoff\Lightsoff.qml=1, 2, 3, 4, 5, 6, 7, 8, 9
-  magic-hat-minus\MagicHat.qml=1, 2, 3, 4, 5, 6
-  magic-hat-plus\MagicHatPlus.qml=1, 2, 3, 4, 5, 6
-  memory-enumerate\MemoryEnumerate.qml=1, 2, 3, 4, 5, 6, 7, 8
-  memory-math-add-minus-mult-div-tux\MemoryMathAddMinusMultDivTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  memory-math-add-minus-mult-div\MemoryMathAddMinusMultDiv.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  memory-math-add-minus-tux\MemoryMathAddMinusTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  memory-math-add-minus\MemoryMathAddMinus.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  memory-math-add-tux\MemoryMathAddTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  memory-math-add\MemoryMathAdd.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  memory-math-div-tux\MemoryMathDivTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  memory-math-div\MemoryMathDiv.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  memory-math-minus-tux\MemoryMathMinusTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  memory-math-minus\MemoryMathMinus.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  memory-math-mult-div-tux\MemoryMathMultDivTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9
-  memory-math-mult-div\MemoryMathMultDiv.qml=1, 2, 3, 4, 5, 6, 7, 8, 9
-  memory-math-mult-tux\MemoryMathMultTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  memory-math-mult\MemoryMathMult.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-  money\Money.qml=1, 2, 3
-  money_back\MoneyBack.qml=1, 2, 3
-  money_back_cents\MoneyBackCents.qml=1, 2, 3
-  money_cents\MoneyCents.qml=1, 2, 3
-  mosaic\Mosaic.qml=1, 2, 3, 4
-  redraw\Redraw.qml=1, 2, 3
-  redraw_symmetrical\RedrawSymmetrical.qml=1, 2, 3
-  reversecount\Reversecount.qml=1, 2
-  scalesboard\ScaleNumber.qml=1, 2, 3, 4, 5
-  scalesboard_weight\ScalesboardWeight.qml=1, 2, 3, 4, 5, 6
-  scalesboard_weight_avoirdupois\ScalesboardWeight.qml=1, 2, 3, 4, 5, 6
-  share\Share.qml=1, 2, 3
-  smallnumbers\Smallnumbers.qml=1, 2, 3, 4, 5, 6, 7, 8
-  smallnumbers2\Smallnumbers2.qml=1, 2, 3, 4, 5, 6, 7, 8
-  sudoku\Sudoku.qml=1, 2, 3, 4
-  target\Target.qml=1, 2, 3, 4, 5
+    [Levels]
+    algebra_by\AlgebraBy.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    algebra_div\AlgebraDiv.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    algebra_minus\AlgebraMinus.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    algebra_plus\AlgebraPlus.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    categorization\Categorization.qml=1, 2, 3
+    chronos\Chronos.qml=1, 2
+    clockgame\Clockgame.qml=1, 2, 3, 4, 5, 6
+    crane\Crane.qml=1, 2, 3, 4
+    details\Details.qml=1, 2, 3
+    enumerate\Enumerate.qml=1, 2, 3, 4
+    geo-country\GeoCountry.qml=1, 2, 3, 4
+    gnumch-equality\GnumchEquality.qml=1, 2, 3, 4
+    gnumch-inequality\GnumchInequality.qml=1, 2, 3, 4
+    guesscount\Guesscount.qml=1, 2, 3, 4
+    guessnumber\Guessnumber.qml=1, 2, 3, 4, 5
+    land_safe\LandSafe.qml=1, 2
+    learn_additions\Learn_additions.qml=1, 2, 3
+    learn_digits\Learn_digits.qml=1, 2, 3, 4, 5, 6, 7, 8, 9
+    learn_subtractions\Learn_subtractions.qml=1, 2, 3
+    lightsoff\Lightsoff.qml=1, 2, 3, 4, 5, 6, 7, 8, 9
+    magic-hat-minus\MagicHat.qml=1, 2, 3, 4, 5, 6
+    magic-hat-plus\MagicHatPlus.qml=1, 2, 3, 4, 5, 6
+    memory-enumerate\MemoryEnumerate.qml=1, 2, 3, 4, 5, 6, 7, 8
+    memory-math-add-minus-mult-div-tux\MemoryMathAddMinusMultDivTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    memory-math-add-minus-mult-div\MemoryMathAddMinusMultDiv.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    memory-math-add-minus-tux\MemoryMathAddMinusTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    memory-math-add-minus\MemoryMathAddMinus.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    memory-math-add-tux\MemoryMathAddTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    memory-math-add\MemoryMathAdd.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    memory-math-div-tux\MemoryMathDivTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    memory-math-div\MemoryMathDiv.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    memory-math-minus-tux\MemoryMathMinusTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    memory-math-minus\MemoryMathMinus.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    memory-math-mult-div-tux\MemoryMathMultDivTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9
+    memory-math-mult-div\MemoryMathMultDiv.qml=1, 2, 3, 4, 5, 6, 7, 8, 9
+    memory-math-mult-tux\MemoryMathMultTux.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    memory-math-mult\MemoryMathMult.qml=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    money\Money.qml=1, 2, 3
+    money_back\MoneyBack.qml=1, 2, 3
+    money_back_cents\MoneyBackCents.qml=1, 2, 3
+    money_cents\MoneyCents.qml=1, 2, 3
+    mosaic\Mosaic.qml=1, 2, 3, 4
+    redraw\Redraw.qml=1, 2, 3
+    redraw_symmetrical\RedrawSymmetrical.qml=1, 2, 3
+    reversecount\Reversecount.qml=1, 2
+    scalesboard\ScaleNumber.qml=1, 2, 3, 4, 5
+    scalesboard_weight\ScalesboardWeight.qml=1, 2, 3, 4, 5, 6
+    scalesboard_weight_avoirdupois\ScalesboardWeight.qml=1, 2, 3, 4, 5, 6
+    share\Share.qml=1, 2, 3
+    smallnumbers\Smallnumbers.qml=1, 2, 3, 4, 5, 6, 7, 8
+    smallnumbers2\Smallnumbers2.qml=1, 2, 3, 4, 5, 6, 7, 8
+    sudoku\Sudoku.qml=1, 2, 3, 4
+    target\Target.qml=1, 2, 3, 4, 5
 
-  [balancebox]
-  filePath=qrc:/gcompris/src/activities/balancebox/resource/levels-default.json
-  levels=builtin
-  progress=12
+    [balancebox]
+    filePath=qrc:/gcompris/src/activities/balancebox/resource/levels-default.json
+    levels=builtin
+    progress=12
   #+end_src
 * Email credentials                               :crypt:
 -----BEGIN PGP MESSAGE-----
