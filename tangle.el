@@ -1,12 +1,19 @@
 (require 'org)
 (require 'org-crypt)
+(require 'ob-shell)
+
+(defun expand-tangle-target (file)
+  "docstring"
+  (let* ((target-dir (expand-file-name (org-entry-get nil "tangle-target-dir" t))))
+    (expand-file-name file target-dir)))
 
 (remove-hook 'org-babel-pre-tangle-hook
              'save-buffer)
 (setq org-crypt-key user-full-name)
 
 (let* ((dotfiles-path (expand-file-name "./"))
-       (org-files (directory-files dotfiles-path nil "\\.org\\(\\.gpg\\)?$")))
+       (org-files (directory-files dotfiles-path nil "\\.org\\(\\.gpg\\)?$"))
+       (org-confirm-babel-evaluate nil))
   (dolist (org-file org-files)
     (unless (member org-file '("README.org"))
       (with-current-buffer (find-file-noselect org-file)

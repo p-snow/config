@@ -2,16 +2,17 @@
 
 EMACS	  = emacs
 
-TANGLE_EL = ./tangle.el
+TANGLE_EL	= ./tangle.el
+STOW_DIR	= .files
 
 tangle: $(TANGLE_EL)
 	$(EMACS) --quick --script $<
 
 install:
-	stow --target=$(HOME) --verbose .
+	stow --target=$(HOME) --verbose $(STOW_DIR)
 
-uninstall:
-	stow --delete --target=$(HOME) --verbose .
+uninstall: $(STOW_DIR)
+	stow --delete --target=$(HOME) --verbose $(STOW_DIR)
 
 all: tangle install
 
