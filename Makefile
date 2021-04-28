@@ -3,9 +3,13 @@
 EMACS	  = emacs
 
 TANGLE_EL	= ./tangle.el
+DETANGLE_EL	= ./detangle.el
 STOW_DIR	= .files
 
 tangle: $(TANGLE_EL)
+	$(EMACS) --quick --script $<
+
+detangle: $(DETANGLE_EL)
 	$(EMACS) --quick --script $<
 
 install:
