@@ -191,6 +191,26 @@
     [credential]
             helper = /usr/bin/pass-git-helper -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
   #+END_SRC
+- pre-commit
+  pre-commit script is useful for checking strings to commit
+  # #+begin_src bash :noweb tangle :tangle ./.git/hooks/pre-commit :tangle-mode (identity #o775)
+    #!/usr/bin/env bash
+
+    forbiddens=(
+      <<home-dir()>>
+    )
+
+    . "$(git --exec-path)/git-sh-setup" # for die
+    for forbidden in ${forbiddens[@]}
+    do
+      if git diff-index -p -M --cached HEAD -- \
+          | grep '^+' \
+          | grep "${forbidden}"; then
+        die Blocking commit because string "${forbidden}" detected in patch
+      fi
+    done
+  #+end_src
+
 * GCompris
 - Download executable
   execute following source block to download package file and execute it to install GCompris executable file
