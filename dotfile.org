@@ -389,10 +389,477 @@ AY4RXurg
 =wgK4
 -----END PGP MESSAGE-----
 * pass
-#+begin_src conf tangle :tangle (expand-tangle-target ".config/pass-git-helper/git-pass-mapping.ini")
+#+begin_src conf :tangle (expand-tangle-target ".config/pass-git-helper/git-pass-mapping.ini")
   [github.com*]
   username_extractor=specific_line
   line_username=2
   target=github.com
   # username_extractor=entry_name
 #+end_src
+
+* mpv
+- mpv.conf
+  #+begin_src conf :tangle (expand-tangle-target ".config/mpv/mpv.conf")
+    ##################
+    # video settings #
+    ##################
+
+    # Start in fullscreen mode by default.
+    fs=yes
+
+
+    ###########
+    # General #
+    ###########
+
+    #save-position-on-quit
+    no-border                               # no window title bar
+    msg-module                              # prepend module name to log messages
+    msg-color                               # color log messages on terminal
+    term-osd-bar                            # display a progress bar on the terminal
+    use-filedir-conf                        # look for additional config files in the directory of the opened file
+    pause                                   # no autoplay
+    force-window=immediate
+    keep-open                               # keep the player open when a file's end is reached
+    autofit-larger=100%x95%                 # resize window in case it's larger than W%xH% of the screen
+    cursor-autohide-fs-only                 # don't autohide the cursor in window mode, only fullscreen
+    # input-media-keys=no                     # enable/disable OSX media keys
+    cursor-autohide=1000                    # autohide the curser after 1s
+
+    screenshot-format=png
+    screenshot-png-compression=8
+    screenshot-template='~/Desktop/%F (%P) %n'
+
+    hls-bitrate=max                         # use max quality for HLS streams
+
+
+    #########
+    # Cache #
+    #########
+
+    cache=yes
+    cache-default=5000000                   # size in KB
+    cache-backbuffer=25000                  # size in KB
+    cache-initial=0                         # start playback when your cache is filled up with x kB
+    cache-secs=10                           # how many seconds of audio/video to prefetch if the cache is active
+
+
+    #############
+    # OSD / OSC #
+    #############
+
+    osd-level=1                             # enable osd and display --osd-status-msg on interaction
+    osd-duration=2500                       # hide the osd after x ms
+    osd-status-msg='${time-pos} / ${duration}${?percent-pos: (${percent-pos}%)}${?frame-drop-count:${!frame-drop-count==0: Dropped: ${frame-drop-count}}}\n${?chapter:Chapter: ${chapter}}'
+    # osd-status-msg='${=time-pos}'         # show raw position
+
+    osd-font='Source Sans Pro'
+    osd-font-size=64
+    osd-color='#CCFFFFFF'                   # ARGB format
+    osd-border-color='#DD322640'            # ARGB format
+    #osd-shadow-offset=1                    # pixel width for osd text and progress bar
+    osd-bar-align-y=0                       # progress bar y alignment (-1 top, 0 centered, 1 bottom)
+    osd-border-size=2                       # size for osd text and progress bar
+    osd-bar-h=2                             # height of osd bar as a fractional percentage of your screen height
+    osd-bar-w=60                            # width of " " "
+
+
+    #############
+    # Subtitles #
+    #############
+
+    sub-use-margins
+    sub-ass-force-margins
+
+    demuxer-mkv-subtitle-preroll            # try to correctly show embedded subs when seeking
+    sub-auto=fuzzy                          # external subs don't have to match the file name exactly to autoload
+    embeddedfonts=yes                       # use embedded fonts for SSA/ASS subs
+    sub-fix-timing=no                       # do not try to fix gaps (which might make it worse in some cases)
+    sub-ass-force-style=Kerning=yes         # allows you to override style parameters of ASS scripts
+
+    # the following options only apply to subtitles without own styling (i.e. not ASS but e.g. SRT)
+    sub-font="Source Sans Pro Semibold"
+    sub-font-size=36
+    sub-color="#FFFFFFFF"
+    sub-border-color="#FF262626"
+    sub-border-size=3.2
+    sub-shadow-offset=1
+    sub-shadow-color="#33000000"
+    sub-spacing=0.5
+
+
+    #############
+    # Languages #
+    #############
+
+    slang=enm,en,eng,de,deu,ger             # automatically select these subtitles (decreasing priority)
+    alang=ja,jp,jpn,en,eng,de,deu,ger       # automatically select these audio tracks (decreasing priority)
+
+    #########
+    # Image #
+    #########
+
+    image-display-duration=4
+
+    #########
+    # Audio #
+    #########
+
+    audio-file-auto=fuzzy                   # external audio doesn't has to match the file name exactly to autoload
+    audio-pitch-correction=yes              # automatically insert scaletempo when playing with higher speed
+    volume-max=200                          # maximum volume in %, everything above 100 results in amplification
+    volume=100                              # default volume, 100 = unchanged
+
+
+    ################
+    # Video Output #
+    ################
+
+    # Active VOs (and some other options) are set conditionally
+    # See here for more information: https://github.com/wm4/mpv-scripts/blob/master/auto-profiles.lua
+    # The script was modified to import functions from scripts/auto-profiles-functions.lua
+
+    # Defaults for all profiles
+    tscale=catmull_rom                      # sharp: oversample <-> linear (triangle) <-> catmull_rom <-> mitchell <-> gaussian <-> bicubic : smooth
+    opengl-early-flush=no
+    opengl-pbo=yes
+
+
+    [high-quality]
+    profile-desc=cond:is_desktop() and get('width', math.huge) < 3840
+    scale=ewa_lanczossharp
+    cscale=ewa_lanczossoft
+    dscale=mitchell
+    scale-antiring=0.7
+    cscale-antiring=0.7
+    dither-depth=auto
+    correct-downscaling=yes
+    sigmoid-upscaling=yes
+    deband=yes
+    hwdec=no
+
+    [mid-quality]
+    profile-desc=cond:(is_laptop() and not on_battery() and get('width', math.huge) < 1920) or (is_desktop() and get('width', math.huge) >= 3840)
+    scale=spline36
+    cscale=bilinear
+    dscale=mitchell
+    scale-antiring=1.0
+    cscale-antiring=1.0
+    dither-depth=auto
+    correct-downscaling=yes
+    sigmoid-upscaling=yes
+    deband=yes
+    hwdec=no
+
+    [low-quality]
+    profile-desc=cond:is_laptop() and (on_battery() or get('width', math.huge) >= 1920)
+    scale=bilinear
+    cscale=bilinear
+    dscale=bilinear
+    scale-antiring=0.0
+    cscale-antiring=0.0
+    dither-depth=no
+    correct-downscaling=no
+    sigmoid-upscaling=no
+    deband=no
+    hwdec=auto
+
+    [60FPS]
+    profile-desc=cond:is_laptop() and get('container-fps', 0) >= 59
+    scale=bilinear
+    cscale=bilinear
+
+    [4K]
+    profile-desc=cond:get('width', -math.huge) >= 3840
+    vd-lavc-threads=32
+
+    [4K-inverted]
+    profile-desc=cond:get('width', -math.huge) < 3840
+    vd-lavc-threads=0
+
+
+    [default]
+
+
+    ###################################
+    # Protocol Specific Configuration #
+    ###################################
+
+    [protocol.https]
+    #cache=yes
+    #cache-default=500000                    # size in KB
+    #cache-backbuffer=250000                 # size in KB
+    cache-secs=100                          # how many seconds of audio/video to prefetch
+    user-agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:47.0) Gecko/20100101 Firefox/47.0'
+
+    [protocol.http]
+    #cache=yes
+    #cache-default=500000                    # size in KB
+    #cache-backbuffer=250000                 # size in KB
+    cache-secs=100                          # how many seconds of audio/video to prefetch
+    user-agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:47.0) Gecko/20100101 Firefox/47.0'
+
+    [extension.gif]
+    cache=no
+    no-pause
+    loop-file=yes
+
+    [extension.webm]
+    #cache=no
+    #no-pause
+    #loop-file=yes
+  #+end_src
+- input.conf
+  #+begin_src conf :tangle (expand-tangle-target ".config/mpv/input.conf")
+    # mpv keybindings
+    #
+    # Location of user-defined bindings: ~/.config/mpv/input.conf
+    #
+    # Lines starting with # are comments. Use SHARP to assign the # key.
+    # Copy this file and uncomment and edit the bindings you want to change.
+    #
+    # List of commands and further details: DOCS/man/input.rst
+    # List of special keys: --input-keylist
+    # Keybindings testing mode: mpv --input-test --force-window --idle
+    #
+    # Use 'ignore' to unbind a key fully (e.g. 'ctrl+a ignore').
+    #
+    # Strings need to be quoted and escaped:
+    #   KEY show-text "This is a single backslash: \\ and a quote: \" !"
+    #
+    # You can use modifier-key combinations like Shift+Left or Ctrl+Alt+x with
+    # the modifiers Shift, Ctrl, Alt and Meta (may not work on the terminal).
+    #
+    # The default keybindings are hardcoded into the mpv binary.
+    # You can disable them completely with: --no-input-default-bindings
+
+    # Developer note:
+    # On compilation, this file is baked into the mpv binary, and all lines are
+    # uncommented (unless '#' is followed by a space) - thus this file defines the
+    # default key bindings.
+
+    # If this is enabled, treat all the following bindings as default.
+    #default-bindings start
+
+    #MOUSE_BTN0 ignore                      # don't do anything
+    #MOUSE_BTN0_DBL cycle fullscreen        # toggle fullscreen on/off
+    #MOUSE_BTN2 cycle pause                 # toggle pause on/off
+    #MOUSE_BTN3 seek 10
+    #MOUSE_BTN4 seek -10
+    #MOUSE_BTN5 add volume -2
+    #MOUSE_BTN6 add volume 2
+
+    # Mouse wheels, touchpad or other input devices that have axes
+    # if the input devices supports precise scrolling it will also scale the
+    # numeric value accordingly
+    #AXIS_UP    seek 10
+    #AXIS_DOWN  seek -10
+    #AXIS_LEFT  seek 5
+    #AXIS_RIGHT seek -5
+
+    ## Seek units are in seconds, but note that these are limited by keyframes
+    #RIGHT seek  5
+    #LEFT  seek -5
+    #UP    seek  60
+    #DOWN  seek -60
+    RIGHT  seek  5
+    LEFT   seek -5
+    UP     seek -60
+    DOWN   seek  60
+    Ctrl+f seek  5
+    Ctrl+b seek -5
+    Ctrl+p seek -60
+    Ctrl+n seek  60
+    # Do smaller, always exact (non-keyframe-limited), seeks with shift.
+    # Don't show them on the OSD (no-osd).
+    #Shift+RIGHT no-osd seek  1 exact
+    #Shift+LEFT  no-osd seek -1 exact
+    #Shift+UP    no-osd seek  5 exact
+    #Shift+DOWN  no-osd seek -5 exact
+    # Skip to previous/next subtitle (subject to some restrictions; see manpage)
+    #Ctrl+LEFT   no-osd sub-seek -1
+    #Ctrl+RIGHT  no-osd sub-seek  1
+    #PGUP add chapter 1                     # skip to next chapter
+    #PGDWN add chapter -1                   # skip to previous chapter
+    PGUP add chapter -1                     # skip to next chapter
+    PGDWN add chapter 1                     # skip to previous chapter
+    #Shift+PGUP seek 600
+    #Shift+PGDWN seek -600
+    #[ multiply speed 0.9091                # scale playback speed
+    #] multiply speed 1.1
+    #{ multiply speed 0.5
+    #} multiply speed 2.0
+    #BS set speed 1.0                       # reset speed to normal
+    #q quit
+    #Q quit-watch-later
+    #q {encode} quit 4
+    #ESC set fullscreen no
+    #ESC {encode} quit 4
+    #p cycle pause                          # toggle pause/playback mode
+    #. frame-step                           # advance one frame and pause
+    #, frame-back-step                      # go back by one frame and pause
+    #SPACE cycle pause
+    ? playlist-shuffle                      # skip to random file
+    #> playlist-next                        # skip to next file
+    #ENTER playlist-next                    # skip to next file
+    #< playlist-prev                        # skip to previous file
+    #O no-osd cycle-values osd-level 3 1    # cycle through OSD mode
+    #o show-progress
+    #P show-progress
+    #I show-text "${filename}"              # display filename in osd
+    #z add sub-delay -0.1                   # subtract 100 ms delay from subs
+    #x add sub-delay +0.1                   # add
+    #ctrl++ add audio-delay 0.100           # this changes audio/video sync
+    #ctrl+- add audio-delay -0.100
+    #9 add volume -2
+    #/ add volume -2
+    #0 add volume 2
+    #* add volume 2
+    #m cycle mute
+    #1 add contrast -1
+    #2 add contrast 1
+    #3 add brightness -1
+    #4 add brightness 1
+    #5 add gamma -1
+    #6 add gamma 1
+    #7 add saturation -1
+    #8 add saturation 1
+    #Alt+0 set window-scale 0.5
+    #Alt+1 set window-scale 1.0
+    #Alt+2 set window-scale 2.0
+    # toggle deinterlacer (automatically inserts or removes required filter)
+    #d cycle deinterlace
+    #r add sub-pos -1                       # move subtitles up
+    #t add sub-pos +1                       #                down
+    #v cycle sub-visibility
+    # stretch SSA/ASS subtitles with anamorphic videos to match historical
+    #V cycle sub-ass-vsfilter-aspect-compat
+    # switch between applying no style overrides to SSA/ASS subtitles, and
+    # overriding them almost completely with the normal subtitle style
+    #u cycle-values sub-ass-style-override "force" "no"
+    #j cycle sub                            # cycle through subtitles
+    #J cycle sub down                       # ...backwards
+    #SHARP cycle audio                      # switch audio streams
+    #_ cycle video
+    #T cycle ontop                          # toggle video window ontop of other windows
+    #f cycle fullscreen                     # toggle fullscreen
+    #s async screenshot                     # take a screenshot
+    #S async screenshot video               # ...without subtitles
+    #Ctrl+s async screenshot window         # ...with subtitles and OSD, and scaled
+    #Alt+s screenshot each-frame            # automatically screenshot every frame
+    #w add panscan -0.1                     # zoom out with -panscan 0 -fs
+    #e add panscan +0.1                     #      in
+    # cycle video aspect ratios; "-1" is the container aspect
+    #A cycle-values video-aspect "16:9" "4:3" "2.35:1" "-1"
+    #POWER quit
+    #PLAY cycle pause
+    #PAUSE cycle pause
+    #PLAYPAUSE cycle pause
+    #STOP quit
+    #FORWARD seek 60
+    #REWIND seek -60
+    #NEXT playlist-next
+    #PREV playlist-prev
+    #VOLUME_UP add volume 2
+    #VOLUME_DOWN add volume -2
+    #MUTE cycle mute
+    #CLOSE_WIN quit
+    #CLOSE_WIN {encode} quit 4
+    #E cycle edition                        # next edition
+    #l ab-loop                              # Set/clear A-B loop points
+    #L cycle-values loop-file "inf" "no"    # toggle infinite looping
+    #ctrl+c quit 4
+
+    # Apple Remote section
+    #AR_PLAY cycle pause
+    #AR_PLAY_HOLD quit
+    #AR_CENTER cycle pause
+    #AR_CENTER_HOLD quit
+    #AR_NEXT seek 10
+    #AR_NEXT_HOLD seek 120
+    #AR_PREV seek -10
+    #AR_PREV_HOLD seek -120
+    #AR_MENU show-progress
+    #AR_MENU_HOLD cycle mute
+    #AR_VUP add volume 2
+    #AR_VUP_HOLD add chapter 1
+    #AR_VDOWN add volume -2
+    #AR_VDOWN_HOLD add chapter -1
+
+    # For tv://
+    #h cycle tv-channel -1                  # previous channel
+    #k cycle tv-channel +1                  # next channel
+
+    # For dvb://
+    #H cycle dvb-channel-name -1            # previous channel
+    #K cycle dvb-channel-name +1            # next channel
+
+    #
+    # Legacy bindings (may or may not be removed in the future)
+    #
+    #! add chapter -1                       # skip to previous chapter
+    #@ add chapter 1                        #         next
+
+    #
+    # Not assigned by default
+    # (not an exhaustive list of unbound commands)
+    #
+
+    # ? add sub-scale +0.1                  # increase subtitle font size
+    # ? add sub-scale -0.1                  # decrease subtitle font size
+    # ? sub-step -1                         # immediately display next subtitle
+    # ? sub-step +1                         #                     previous
+    # ? cycle angle                         # switch DVD/Bluray angle
+    # ? add balance -0.1                    # adjust audio balance in favor of left
+    Z add balance -0.1                    # adjust audio balance in favor of left
+    # ? add balance 0.1                     #                                  right
+    X add balance 0.1                     #                                  right
+    # ? cycle sub-forced-only               # toggle DVD forced subs
+    # ? cycle program                       # cycle transport stream programs
+    # ? stop                                # stop playback (quit or enter idle mode)
+  #+end_src
+- scripts
+  #+begin_src lua :tangle (expand-tangle-target ".config/mpv/scripts/delete_file.lua")
+    local utils = require "mp.utils"
+
+    del_list = {}
+
+    function contains_item(l, i)
+       for k, v in pairs(l) do
+          if v == i then
+             mp.osd_message("undeleting current file")
+             l[k] = nil
+             return true
+          end
+       end
+       mp.osd_message("deleting current file")
+       return false
+    end
+
+    function mark_delete()
+       local work_dir = mp.get_property_native("working-directory")
+       local file_path = mp.get_property_native("path")
+       local s = file_path:find(work_dir, 0, true)
+       local final_path
+       if s and s == 0 then
+          final_path = file_path
+       else
+          final_path = utils.join_path(work_dir, file_path)
+       end
+       if not contains_item(del_list, final_path) then
+          table.insert(del_list, final_path)
+       end
+    end
+
+    function delete(e)
+       if e.reason == "quit" then
+          for i, v in pairs(del_list) do
+             print("deleting: "..v)
+             os.remove(v)
+          end
+       end
+    end
+
+    mp.add_key_binding("ctrl+DEL", "delete_file", mark_delete)
+    mp.register_event("end-file", delete)
+  #+end_src
