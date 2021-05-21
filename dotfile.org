@@ -11,6 +11,11 @@
   #+begin_src bash
     echo "${HOME}"
   #+end_src
+- my user name on system
+  #+name: whoami
+  #+begin_src bash
+    whoami
+  #+end_src
 * abcde
 #+BEGIN_SRC conf :tangle (expand-tangle-target ".abcde.conf")
   FDKAACENCOPTS='--bitrate 256k'
@@ -862,4 +867,61 @@ AY4RXurg
 
     mp.add_key_binding("ctrl+DEL", "delete_file", mark_delete)
     mp.register_event("end-file", delete)
+  #+end_src
+
+* unison
+- music directory syncing
+  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".unison/music.prf")
+    # Roots of the synchronization
+    root = <<home-dir()>>/mnt/ruizu/Music
+    root = <<home-dir()>>/Audio
+
+    # Paths to synchronize
+    path = .
+
+    # Ruizu's file system is FAT
+    fat = true
+
+    # Overwrite by newer file on confliction
+    prefer = newer
+
+    # Show nothing
+    silent = true
+    confirmbigdel = false
+
+    # Do fast checking
+    fastcheck = true
+
+    # Log settings
+    log = true
+    logfile = <<home-dir()>>/var/log/unison/music.log
+
+  #+end_src
+- doc directory backup
+  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".unison/doc.prf")
+    # Roots of the synchronization
+    root = <<home-dir()>>/mnt/ns01
+    root = /media/<<whoami()>>/uhd01
+
+    # Paths to synchronize
+    path = doc
+
+    # Overwrite by newer file on confliction
+    prefer = newer
+
+    # Use this command for displaying diffs
+    diff = diff -y -W 79 --suppress-common-lines
+
+    # Write down synchronization activity on log file rather than show in stdout
+    auto = true
+    confirmbigdel = false
+    silent = true
+    log = true
+    logfile = <<home-dir()>>/var/log/unison/doc.log
+
+    # Use inode number to verify identity rather than ckeck whole byte sequence
+    fastcheck = true
+
+    # Abort if device is not mounted
+    mountpoint = doc
   #+end_src
