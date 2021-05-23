@@ -3,8 +3,8 @@
 #+PROPERTY: header-args       :mkdirp yes
 #+PROPERTY: tangle-target-dir .files
 
-* Tidyup
-#+begin_src python :tangle (expand-tangle-target ".local/bin/tidyup") :tangle-mode (identity #o775)
+* Local file clean-up
+#+begin_src python :tangle (expand-tangle-target ".local/bin/tidyup") :tangle-mode (identity #o755)
   #!/usr/bin/env python3
 
   import os
@@ -81,4 +81,20 @@
 
   print('{0} ends at {1}\n'.format(os.path.basename(__file__),
                                  datetime.datetime.now()))
+#+end_src
+
+* Database back-up script
+- PostgreSQL
+#+begin_src bash :tangle (expand-tangle-target ".local/bin/postgres_backup") :tangle-mode (identity #o755)
+  #!/usr/bin/env bash
+
+  # Usage: $ postgres_backup <db_name> <backup_dir>
+
+  POSTGRES_DBNAME=$1
+  BACKUP_DIR=$2
+  DATE="$(date +%Y%m%d_%H%M)"
+
+  pg_dump --format=custom ${POSTGRES_DBNAME} > ${BACKUP_DIR}/${DATE}_${POSTGRES_DBNAME}.custom || exit 1
+
+  exit 0
 #+end_src
