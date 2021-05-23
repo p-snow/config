@@ -1,0 +1,84 @@
+#+TITLE: bin
+#+PROPERTY: header-args       :tangle-mode (identity #o755)
+#+PROPERTY: header-args       :mkdirp yes
+#+PROPERTY: tangle-target-dir .files
+
+* Tidyup
+#+begin_src python :tangle (expand-tangle-target ".local/bin/tidyup") :tangle-mode (identity #o775)
+  #!/usr/bin/env python3
+
+  import os
+  import time
+  import datetime
+  import shutil
+  import glob
+  from send2trash import send2trash
+
+  TRASH_DIR = os.environ['HOME'] + '/.local/share/Trash/files/'
+  TIDY_DIRS = filter(lambda x: os.path.isdir(x),
+                     list(map(lambda x: os.path.join(os.environ['HOME'], x), ['tmp', 'Downloads']))
+                     + glob.glob(os.path.join(os.environ['HOME'], 'var/tmp/*')))
+
+  MAX_STAY_DAYS_IN_TRASH = 7
+  MAX_NEGLECTED_DAYS_IN_TIDY_DIRS = 14
+
+  suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+  def humansize(nbytes):
+      i = 0
+      while nbytes >= 1024 and i < len(suffixes)-1:
+          nbytes /= 1024.
+          i += 1
+      f = ('%.2f' % nbytes).rstrip('0').rstrip('.')
+      return '%s %s' % (f, suffixes[i])
+
+  print('{0} starts at {1}\n'.format(os.path.basename(__file__),
+                                 datetime.datetime.now()))
+
+  NOW = time.time()
+
+  print('--{0} starts to move files neglected more than {1} days to trash box.\n'
+        .format(os.path.basename(__file__),
+                MAX_NEGLECTED_DAYS_IN_TIDY_DIRS))
+
+  tidyup_lists = map(lambda x: map(lambda y: os.path.join(x, y), os.listdir(x)), TIDY_DIRS)
+  for a_file in [item for sublist in tidyup_lists for item in sublist]:
+      atime = os.lstat(a_file).st_atime
+      delta_atime = datetime.timedelta(seconds=(NOW - atime))
+      if delta_atime > datetime.timedelta(days = MAX_NEGLECTED_DAYS_IN_TIDY_DIRS):
+          send2trash(a_file)
+          print('moveed to trash: {}'.format(a_file))
+
+  print('--{0} starts to remove files staying more than {1} days in trash box.'
+        .format(os.path.basename(__file__),
+                MAX_STAY_DAYS_IN_TRASH))
+
+  rbytes_total = 0
+  for trash_file in map(lambda fname: os.path.join(TRASH_DIR, fname), os.listdir(TRASH_DIR)):
+      lstat = os.lstat(trash_file)
+      delta_time = datetime.timedelta(seconds=(NOW - max(lstat.st_atime, lstat.st_ctime)))
+      if delta_time > datetime.timedelta(days = MAX_STAY_DAYS_IN_TRASH):
+          method = 'removed'
+          fname = os.path.basename(trash_file)
+          if os.path.islink(trash_file):
+              # os.unlink(trash_file)
+              method = 'unlinked'
+              fsize = 'N/A'
+              fname += ' ->'
+          elif os.path.isfile(trash_file):
+              # os.remove(trash_file)
+              rbytes_total += lstat.st_blocks * lstat.st_blksize
+              fsize = humansize(lstat.st_blocks * lstat.st_blksize)
+          elif os.path.isdir(trash_file):
+              # shutil.rmtree(trash_file)
+              rbytes_total += lstat.st_blocks * lstat.st_blksize
+              fsize = humansize(lstat.st_blocks * lstat.st_blksize)
+              fname += '/'
+          print('{}: [{:>7}] {}'.format(method, fsize, fname))
+
+  print('--{0} removes [{1}] in total.\n'
+        .format(os.path.basename(__file__),
+                humansize(rbytes_total)))
+
+  print('{0} ends at {1}\n'.format(os.path.basename(__file__),
+                                 datetime.datetime.now()))
+#+end_src
