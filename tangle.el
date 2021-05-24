@@ -13,7 +13,8 @@
 
 (let* ((dotfiles-path (expand-file-name "./"))
        (org-files (directory-files dotfiles-path nil "\\.org\\(\\.gpg\\)?$"))
-       (org-confirm-babel-evaluate nil))
+       (org-confirm-babel-evaluate nil)
+       (python-indent-guess-indent-offset nil))
   (dolist (org-file org-files)
     (unless (member org-file '("README.org"))
       (with-current-buffer (find-file-noselect org-file)
