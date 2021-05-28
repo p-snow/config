@@ -16,6 +16,158 @@
   #+begin_src bash
     whoami
   #+end_src
+- my email address
+  #+name: email
+  #+begin_src bash
+    echo -n "${EMAIL}"
+  #+end_src
+* Bash
+- bash profile
+  #+BEGIN_SRC bash :tangle (expand-tangle-target ".bash_profile")
+    #!/usr/bin/env bash
+
+    if [ -f ~/.bashrc ]; then
+       source ~/.bashrc
+    fi
+  #+END_SRC
+- bashrc
+  #+BEGIN_SRC bash :tangle (expand-tangle-target ".bashrc")
+    #!/usr/bin/env bash
+
+    # All login settings is in ~/.bashrc because
+    # shell on Emacs does not read ~/.bash_profile
+
+    export EDITOR=~/usr/bin/emacsclient
+    export GIT_EDITOR=~/usr/bin/emacsclient
+    export VIEWER=less
+
+    USER_PATHS=(
+      "${HOME}/bin"
+      "${HOME}/usr/bin"
+      "${HOME}/usr/bin/calibre"
+      "${HOME}/usr/sbin"
+      "${HOME}/Applications"
+      "${HOME}/go/bin"
+      "${HOME}/.cask/bin"
+      "${HOME}/.local/bin"
+      "${HOME}/.cabal"
+    )
+    for path in "${USER_PATHS[@]}"; do
+      if [ -d "${path}" ]; then
+        export PATH="${path}:$PATH"
+      fi
+    done
+
+    export MANPATH="${HOME}/usr/share/man:${MANPATH}"
+    export INFOPATH="${HOME}/usr/share/info:${INFOPATH}"
+    export PKG_CONFIG_PATH="${HOME}/usr/lib/pkgconfig:${HOME}/usr/lib64/pkgconfig:${HOME}/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"
+
+    if [ -d "${HOME}/.anyenv" ]; then
+      export ANYENV_ROOT="${HOME}/.anyenv"
+      export PATH="${HOME}/.anyenv/bin:$PATH"
+    fi
+    if [ -v "ANYENV_ROOT" ] && type anyenv >/dev/null 2>&1 ; then
+      eval "$(anyenv init -)"
+    fi
+    export GOPATH=${HOME}/go
+
+    export LD_LIBRARY_PATH="${HOME}/usr/lib:${HOME}/usr/lib64:${HOME}/usr/lib/x86_64-linux-gnu:/usr/lib:/usr/local/lib:/usr/lib/x86_64-linux-gnu/"
+
+    python2_sp=${HOME}/usr/lib/python2.7/site-packages/
+    if [ -d ${python2_sp} ]; then
+      export PYTHONPATH=${python2_sp}
+    fi
+
+    for bash_src in "${HOME}"/bin/bash_*.sh; do
+      . "${bash_src}"
+    done
+
+    unset -v EMACS # for ansi-term in emacs
+    EDITOR="emacs"
+
+    case ${TERM} in
+    linux) export LANG="C";;
+    ,*)     export LANG="ja_JP.UTF-8";;
+    esac
+    export LC_MESSAGES="C"
+
+    # prompt
+    MACHINE=$(echo $(uname -n) | awk -F . '{print $1}')
+    PS1="[\u@${MACHINE}:\\W]\n\$ "
+
+    # function/variable used in libvterm/emacs
+
+    vterm_prompt_end(){
+      vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
+    }
+    PS1=$PS1'\[$(vterm_prompt_end)\]'
+
+    vterm_printf(){
+      if [ -n "$TMUX" ]; then
+        # Tell tmux to pass the escape sequences through
+        # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
+        printf "\ePtmux;\e\e]%s\007\e\\" "$1"
+      elif [ "${TERM%%-*}" = "screen" ]; then
+        # GNU screen (screen, screen-256color, screen-256color-bce)
+        printf "\eP\e]%s\007\e\\" "$1"
+      else
+        printf "\e]%s\e\\" "$1"
+      fi
+    }
+
+    PROMPT_COMMAND='echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
+
+
+    export GTAGSCONF=${HOME}/usr/share/gtags/gtags.conf
+    export GTAGSLABEL=pygments
+
+    export WINEARCH=win64
+    export WINEPREFIX=~/.wine
+  #+END_SRC
+- profile
+  #+BEGIN_SRC bash :tangle (expand-tangle-target ".profile")
+    # ~/.profile: executed by the command interpreter for login shells.
+    # This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
+    # exists.
+    # see /usr/share/doc/bash/examples/startup-files for examples.
+    # the files are located in the bash-doc package.
+
+    # the default umask is set in /etc/profile; for setting the umask
+    # for ssh logins, install and configure the libpam-umask package.
+    #umask 022
+
+    # if running bash
+    if [ -n "$BASH_VERSION" ]; then
+        # include .bashrc if it exists
+        if [ -f "$HOME/.bashrc" ]; then
+            . "$HOME/.bashrc"
+        fi
+    fi
+
+    # set PATH so it includes user's private bin if it exists
+    if [ -d "$HOME/bin" ] ; then
+        PATH="$HOME/bin:$PATH"
+    fi
+
+    # set PATH so it includes user's private bin if it exists
+    if [ -d "$HOME/.local/bin" ] ; then
+        PATH="$HOME/.local/bin:$PATH"
+    fi
+  #+END_SRC
+** secret parts                                   :crypt:
+-----BEGIN PGP MESSAGE-----
+
+hQEMA9uWvE5LJ2ejAQf/QD4VjsNhoR2lu05V6UTVi0p/oAPYbO2ad3Dn++CtA11s
+Gvj/8PeulNTrMzwKFDHnccCFjYYS2D1+OXJGS6ROSqjuTMkCVxpxqQ5t/zSQWVe4
+kAjJdgeA3LFC/DnBlaVgepW9ahVkR2vHbWtJadmJ8927NSUJB2JX8VWdKONEkHxc
+ZLibtIZaupEKlH4OE96l7mgP+Bh4pekDd9iGfWv5Z8MMSurB8bmmJ5LdILz0wr4B
+lefTDre3ClRzleedr+QgLMoWM0qztYUFHx8QpL/Xngx5Dvqk6nF1h89yMVcBcdSW
+Um6HECq+YYk0DAWILIdApeNC/rmni4YdQOxq2qWLodKeAcAYX1/pzNRxOIKsGu/z
+xwb2IR7WzEE1HE6/qBGFG3RKyw38e/4WvPdY6G1w4rVvThutBoEQBbvM1SoxgIpR
+CxtecMUzG1jVrYesiHF6g58Q7Sw4ZUA8zcOnEOC71ZvaNsEDnIRSyAsdfzaq8TAC
+c80bp1O65Yi1tZAafXM1wDlNxUoohbedpLDPpshA45TrkT31LcujSLT3vzY7oZg=
+=uhiQ
+-----END PGP MESSAGE-----
 * abcde
 #+BEGIN_SRC conf :tangle (expand-tangle-target ".abcde.conf")
   FDKAACENCOPTS='--bitrate 256k'
