@@ -9,7 +9,7 @@
 
 (remove-hook 'org-babel-pre-tangle-hook
              'save-buffer)
-(setq org-crypt-key user-full-name)
+(setq org-crypt-key user-mail-address)
 
 (let* ((dotfiles-path (expand-file-name "./"))
        (org-files (directory-files dotfiles-path nil "\\.org\\(\\.gpg\\)?$"))
