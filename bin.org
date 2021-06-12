@@ -73,18 +73,19 @@
           if os.path.islink(trash_file):
               method = 'unlinked'
               fsize = 'N/A'
-              fname += ' ->'
               os.unlink(trash_file)
           elif os.path.isfile(trash_file):
-              rbytes_total += lstat.st_blocks * lstat.st_blksize
-              fsize = humansize(os.path.getsize(trash_file))
+              rbytes = os.path.getsize(trash_file)
+              rbytes_total += rbytes
+              fsize = humansize(rbytes)
               os.remove(trash_file)
           elif os.path.isdir(trash_file):
-              rbytes_total += lstat.st_blocks * lstat.st_blksize
-              fsize = humansize(get_size(trash_file))
+              rbytes = get_size(trash_file)
+              rbytes_total += rbytes
+              fsize = humansize(rbytes)
               fname += '/'
               shutil.rmtree(trash_file)
-          print('{}: [{:>8}] {}'.format(method, fsize, fname))
+          print('{}: [{:>9}] {}'.format(method, fsize, fname))
 
   print('--{0} removes [{1}] in total.\n'
         .format(os.path.basename(__file__),
