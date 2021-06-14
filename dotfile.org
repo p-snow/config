@@ -345,7 +345,7 @@ Q7sbt0I=
             wc = whatchanged
     [user]
             email = 6841207+p-snow@users.noreply.github.com
-            name = Kona-Yuki-SAN
+            name = p-snow
     [credential]
             helper = /usr/bin/pass-git-helper -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
   #+END_SRC
@@ -507,46 +507,7 @@ Q7sbt0I=
   levels=builtin
   progress=12
 #+end_src
-* Email credentials                               :crypt:
------BEGIN PGP MESSAGE-----
-
-hQEMA9uWvE5LJ2ejAQf9HIbm4fXnkiUElAHbu8B/NYmkC58unK7BrZ/hjazdEFx5
-gEFWNVE0SbjoEPA2GDbUimGmNW55E2Kq7KK7xTvspzC+cxxvCX7A4KuYO/Mf1Ku6
-x1k2rcrXn/D/FNjKLut+cwMswA8mQPss/JOPzZGOhSsHpjYIt1UhfVmYgV+meYEQ
-mn/jg5VsFkhlR2EKtkxie9G3k1KYK1/JSZBTY/VV/WLcxIkqMyaiGZl44QqXru9n
-yhowUHof0egVWgMExFEqqnrY/vm/d8RotPq/VhRvgfsGfCtQD3Bkh2/av7sz3Sc1
-j/e18WLqLMGGS7YdkaRUq2Aor44OGXkm9hs67/nep9LA0QH/aeJ0E4Wly2GG+TtR
-x3sY1RiT0x84Y+ziIn2QxQK3HytaC7nGDUs6saQ2f9fDpx0+0JEqFCI47fQLvouJ
-Xx9rw8O3PEITUV/f8skJVYOs0rC7hbdW7lcQLNH5eiunfFAStL1DO2bD+Bl8RCrW
-p8Tqz2WuxCJMxu4acNMIGb3IRwngyeZZuqkCTLPJEGYlWRXQU6BQ8Tul/mvWLp1f
-fEMvqTn0eyR56kI9rvMp56Pqtkj3olNi/YobbUAYe1C5NRxohTTpeM9cdP8wgV/q
-Ed58AvRcpVZTH2s/5oyqwlKodyfIqT/PbSM5cnJLB0Y/gXcUIHIBJJDSjWj/sAAk
-YcPdcBI55Rn+vW+rzbpSYFBejoNCO9GXgnhSs2y5ju9WeRcf9b0XyTFuRZ9RVNgc
-MnOfxnEPg4z56D7BQdyPjttd+0unluNQwn/S6+hyrD7I/a8yqTjAj3Y8kBS+Srnc
-vMfXovDLe5DIPERdKz48V5gR+kPqeRH215V0Sp1KQzD0ih+go+QEZppXh5LIQce9
-fEVc
-=KIEm
------END PGP MESSAGE-----
-* Login information                               :crypt:
------BEGIN PGP MESSAGE-----
-
-hQEMA9uWvE5LJ2ejAQf/bGK1WHe+jkoRoV0Zc/+JdxQKe3g6v5ZEgcbJEUvoX8kp
-nDnyShR/pfajfakXzh3wD0otix5dr8xZVJJm5oiBFZaTuCeyZUoeeGVWxaXFqShQ
-UQIQcATXKp8r41lp5mEHJrMorL4iWVLCBSftQ2jzdc0wsqs1ASIX6Q96OtD5D5+g
-znX/1LAOMz3Lr3vo1M8Qxcx0ZaCtiW+gYz4pbCJdiOpIYvsc350lh67pjXYXZhq6
-zot1DO278mStxH5Nj263uK6jA6D8KfeG5ea5aB6YiM6P9snE6WU1qkZQmsudSIB/
-m0IKyj+1nJH3hHby6knyS5FUw4bOdve57jo67dg80dLApAErFvu+tcluKVs2yUeU
-VQfqyLsU2pSNx/e7STQwSwoPNhET67UJRlI3dKCiHAHfBdYzXAjoQXqefpSlrjbf
-g8zrIPUMK1MpeuWQ9HeIH6eaywFALnZExhtfXFaRDLtiNYnXMlwIdQ9CewA0Rl3m
-RlTkh4uRPd7B44/s9GzMKd9DaDjTKNoRq/et14pKsDAc0K4pJdI97B9wyW506z/A
-Ngxt3vhxeZWvZVnsAKWSAucyhaQ8BGWfKvPLjZid5mslhzJXHil5Xx+hn9STZ8Qi
-sEdKK2Vphwatv4QdVz7dSEJyQ/e+it5tUSB/X6qoDMHY6OwhGM+6kQdLc4fvRfqW
-gcckBL/R5A2WUvzaehfR6XKWe1rgESgDDGelR9CENzISbVVjo5r04/S/cGwug8Ss
-fbmrvfnFu1NzGMqWER97y3R9Db7man5ce3G9x0GQkuPccIeuOQVehJsU3yHbEyye
-AY4RXurg
-=wgK4
------END PGP MESSAGE-----
-* pass
+* Pass
 #+begin_src conf :tangle (expand-tangle-target ".config/pass-git-helper/git-pass-mapping.ini")
   [github.com*]
   username_extractor=specific_line
@@ -554,7 +515,10 @@ AY4RXurg
   target=github.com
   # username_extractor=entry_name
 #+end_src
-
+- additional environment variables
+  #+BEGIN_SRC bash :tangle (expand-tangle-target ".bashrc")
+    export PASSWORD_STORE_CLIP_TIME=25
+  #+END_SRC
 * mpv
 - mpv.conf
   #+begin_src conf :tangle (expand-tangle-target ".config/mpv/mpv.conf")
