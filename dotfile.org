@@ -1054,7 +1054,7 @@ Q7sbt0I=
     PATH=<<home-dir()>>/usr/bin:<<home-dir()>>/.local/bin:<<home-dir()>>/.anyenv/envs/pyenv/shims:/bin:/usr/bin:/usr/sbin
     HOME=<<home-dir()>>
 
-    30 0 * * 2,5 /bin/bash <<home-dir()>>/.local/bin/snapshot.sh >> $LOG_DIR/snapshot.log 2>&1
+    0 1 * * * /bin/bash <<home-dir()>>/.local/bin/snapshot.sh >> $LOG_DIR/snapshot.log 2>&1
     0 2 * * * $LOCAL_BIN_DIR/tidyup >> $LOG_DIR/tidyup.log 2>&1
     0 3,15 * * * /bin/bash $BIN_DIR/gitsync-local <<home-dir()>>/git/ >> $LOG_DIR/gitsync-local.log 2>&1
     5 3,15 * * * /bin/bash $BIN_DIR/gitsync-remote <<home-dir()>>/git/ >> $LOG_DIR/gitsync-remote.log 2>&1

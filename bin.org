@@ -110,3 +110,65 @@
 
   exit 0
 #+end_src
+
+* Snapshots taking
+- snapshot.sh
+  #+begin_src shell :tangle (expand-tangle-target ".local/bin/snapshot.sh")
+    #!/usr/bin/env bash
+
+    OPT="-aPh"
+    LINK="--link-dest=../last/"
+    DEST="ns01:~/share/backups"
+    DATETIME=`date "+%Y%m%d-%H%M"`
+    BTRFS_MNT="${HOME}/mnt/ssd01"
+
+    ssh -q -o BatchMode="yes" -o ConnectTimeout=10 ns01 "(cd ~/share/backups; mkdir -p pc01 sv04; exit)" || exit 1
+
+    # take a snapshot for pc01
+    if ssh ns01 "[ -h ~/share/backups/pc01/last ]"; then
+      rsync -aPhrv $LINK --exclude-from=${HOME}/.config/rsync/exclude_pc01.txt ${HOME}/ ${DEST}/pc01/${DATETIME}
+      ssh ns01 "(cd share/backups/pc01; unlink last; ln -s ${DATETIME} last)"
+    else
+      rsync -aAXrv --exclude-from=${HOME}/.config/rsync/exclude_pc01.txt ${HOME}/ ${DEST}/pc01/${DATETIME}
+      ssh ns01 "(cd share/backups/pc01; ln -s ${DATETIME} last)"
+    fi
+
+    # take a snapshot for sv04
+    if mountpoint ${HOME}/mnt/sv04 >/dev/null 2>&1; then
+      if ssh ns01 "[ -h ~/share/backups/sv04/last ]"; then
+        rsync -aPhrv $LINK --exclude-from=${HOME}/.config/rsync/exclude_sv04.txt ${HOME}/mnt/sv04/ ${DEST}/sv04/${DATETIME}
+        ssh ns01 "(cd share/backups/sv04; unlink last; ln -s ${DATETIME} last)"
+      else
+        rsync -aAXrv --exclude-from=${HOME}/.config/rsync/exclude_sv04.txt ${HOME}/mnt/sv04/ ${DEST}/sv04/${DATETIME}
+        ssh ns01 "(cd share/backups/sv04; ln -s ${DATETIME} last)"
+      fi
+    fi
+
+    # take btrfs subvol snapshots
+    mkdir -pv "${BTRFS_MNT}/backups/${DATETIME}"
+    subvs=($(ls -I backups ~/mnt/ssd01/))
+    for subv in "${subvs[@]}"; do
+      btrfs subvolume snapshot "${BTRFS_MNT}/${subv}" "${BTRFS_MNT}/backups/${DATETIME}/${subv}"
+    done
+  #+end_src
+- rsync exclude file for pc01
+  #+begin_src conf :tangle (expand-tangle-target ".config/rsync/exclude_pc01.txt") :tangle-mode (identity #o644)
+    + var
+    + var/log
+    + var/log/**
+    - var/lib/dash
+    + var/lib
+    + var/lib/**
+    + work
+    + work/**
+    + git
+    + git/**
+    - *
+  #+end_src
+- rsync exclude file for sv04
+  #+begin_src conf :tangle (expand-tangle-target ".config/rsync/exclude_sv04.txt") :tangle-mode (identity #o644)
+    + var
+    + var/backup
+    + var/backup/**
+    - *
+  #+end_src
