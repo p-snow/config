@@ -147,9 +147,11 @@
     # take btrfs subvol snapshots
     mkdir -pv "${BTRFS_MNT}/snapshots/${DATETIME}"
     subvs=($(ls -I snapshots ~/mnt/ssd01/))
-    for subv in "${subvs[@]}"; do
-      btrfs subvolume snapshot "${BTRFS_MNT}/${subv}" "${BTRFS_MNT}/snapshots/${DATETIME}/${subv}"
-    done
+    if [ mountpoint ~/mnt/ssd01/ >/dev/null ]; then
+      for subv in "${subvs[@]}"; do
+        btrfs subvolume snapshot "${BTRFS_MNT}/${subv}" "${BTRFS_MNT}/snapshots/${DATETIME}/${subv}"
+      done
+    fi
   #+end_src
 - rsync exclude file for pc01
   #+begin_src conf :tangle (expand-tangle-target ".config/rsync/exclude_pc01.txt") :tangle-mode (identity #o644)
