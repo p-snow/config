@@ -174,3 +174,177 @@
     + var/backup/**
     - *
   #+end_src
+
+* Exec command in background
+#+begin_src bash :noweb tangle :tangle (expand-tangle-target ".local/bin/nhp")
+  #!/usr/bin/env bash
+
+  readonly MAIL_FROM="<<email()>>"
+  readonly MAIL_TO="<<email()>>"
+
+  function usage() {
+    cat <<_EOT_
+  Usage:
+    $(basename "$0") [options] command|exefile
+
+  Description:
+    $(basename "$0") executes command(s) in back-ground process continueing after the user logs out
+
+  Options:
+    -l <logfile>  log file name
+    -p <pidfile>  process id file name
+    -h            help
+
+  _EOT_
+    exit 1
+  }
+
+  if [ "${OPTIND}" = 1 ]; then
+    while getopts l:p:h OPT
+    do
+      case ${OPT} in
+      l)
+        opt_logfile=${OPTARG}
+        ;;
+      p)
+        opt_pidfile=${OPTARG}
+        ;;
+      h)
+        usage
+        ;;
+      \?)
+        echo "Try to enter the h option." 1>&2
+        ;;
+      esac
+    done
+  else
+    echo "No installed getopts-command." 1>&2
+    exit 1
+  fi
+
+  shift $((OPTIND - 1))
+
+  function mailtome() {
+    local _command=$1
+    local _whole_command=$2
+    local _logfile_rel=$4
+
+    if [ "$3" -eq 0 ]; then
+      _result='success'
+    else
+      _result='failed'
+    fi
+    _logfile=$(type realpath >/dev/null && realpath "${_logfile_rel}" || echo "${_logfile_rel}")
+
+    mailfrom=${MAIL_FROM}
+    mailto=${MAIL_TO}
+    subject="${_result}: ${_command} @ $(uname -n)"
+    msg1="command line      : ${_whole_command}"
+    msg2="exit status(nohup): $3"
+    msg3="execution time    : $5"
+    msg4="pwd               : $(pwd)"
+    msg5="Log data (stdout/stderr) is stored in following file:"
+    msg6="${_logfile}"
+
+    {
+      echo "${msg1}"
+      echo "${msg2}"
+      echo "${msg3}"
+      echo "${msg4}"
+      echo "${msg5}"
+      echo "${msg6}"
+    } | sendmail.py -f "${mailfrom}" -s "${subject}" "${mailto}"
+  }
+  export -f mailtome
+
+  if [ $# -eq 1 ] && [ -x "$1" ]; then
+    utility="$1"
+  elif [ $# -gt 0 ] && type "$1" >/dev/null; then
+    utility="$*"
+  else
+    exit 1
+  fi
+
+  LOG_DIR=${HOME}/var/log/$(basename "$0")
+  fname_default=$(date '+%Y%m%d_%H%M%S')_$(basename "$0")-$(basename "$1")
+
+  if [ ! -d "${LOG_DIR}" ]; then
+    mkdir -p "${LOG_DIR}"
+  fi
+
+  if [ -v "opt_logfile" ]; then
+    logfile=${opt_logfile}
+  else
+    logfile="${LOG_DIR}/${fname_default}.log"
+  fi
+
+  if [ -v "opt_pidfile" ]; then
+    pidfile=${opt_pidfile}
+  else
+    pidfile="${LOG_DIR}/${fname_default}.pid"
+  fi
+
+  (
+    start_time=$(date +%s)
+    nohup nice -n 10 ${utility} >>"${logfile}" </dev/null 2>&1 &
+    PID=$!
+    echo $PID >"${pidfile}"
+    wait $PID
+    EXIT_STATUS=$?
+    end_time=$(date +%s)
+    exec_time=$((end_time-start_time))
+    ((h=exec_time/3600))
+    ((m=(exec_time%3600)/60))
+    ((s=exec_time%60))
+    exec_time_str=$(printf "%02d:%02d:%02d" $h $m $s)
+    mailtome "$1" "${utility}" $EXIT_STATUS "${logfile}" ${exec_time_str}
+  )
+  echo "$1 has finished successfully"
+
+  exit 0
+#+end_src
+
+* Utility for sendind email programatically
+#+begin_src python :noweb tangle :tangle (expand-tangle-target ".local/bin/sendmail.py")
+  #!/usr/bin/env python3
+
+  import sys
+  import argparse
+  import subprocess
+  import smtplib
+  import ssl
+  from email.mime.text import MIMEText
+  from email.utils import formatdate
+
+  def sendmail(mail_to, mail_from, subject, message):
+      smtp_host = 'smtp.daisychain.jp'
+      smtp_port = '465'
+      smtp_user = '<<email()>>'.split(sep='@')[0]
+      smtp_pass = subprocess.run(["pass {}:{}/{} | head -1".format(smtp_host, smtp_port, smtp_user)], stdout=subprocess.PIPE, shell=True).stdout.decode().strip()
+
+      mime_msg = MIMEText(message)
+      mime_msg['Subject'] = subject
+      mime_msg['From'] = mail_from
+      mime_msg['To'] = mail_to
+      mime_msg["Date"] = formatdate(None, True)
+
+      if smtp_port == '465':
+          context = ssl.create_default_context()
+          smtp = smtplib.SMTP_SSL(smtp_host, smtp_port, context=context)
+
+      if smtp is not None:
+          smtp.login(smtp_user, smtp_pass)
+          smtp.sendmail(mail_from, mail_to, mime_msg.as_string())
+          smtp.quit()
+
+
+  DESC = 'sendmail.py sends mail'
+  parser = argparse.ArgumentParser(description=DESC)
+  parser.add_argument('-s', '--subject')
+  parser.add_argument('-f', '--mailfrom')
+  parser.add_argument('to')
+  args = parser.parse_args()
+
+  message = sys.stdin.read()
+  sendmail(args.to, args.mailfrom, args.subject, message)
+#+end_src
