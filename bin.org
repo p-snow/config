@@ -144,13 +144,9 @@
       fi
     fi
 
-    # take btrfs subvol snapshots
-    mkdir -pv "${BTRFS_MNT}/snapshots/${DATETIME}"
-    subvs=($(ls -I snapshots ~/mnt/ssd01/))
+    # take a snapshot in btrfs
     if mountpoint ~/mnt/ssd01/ >/dev/null 2>&1; then
-      for subv in "${subvs[@]}"; do
-        btrfs subvolume snapshot "${BTRFS_MNT}/${subv}" "${BTRFS_MNT}/snapshots/${DATETIME}/${subv}"
-      done
+      btrfs subvolume snapshot "${BTRFS_MNT}/doc" "${BTRFS_MNT}/snapshots/doc-${DATETIME}"
     fi
   #+end_src
 - rsync exclude file for pc01
