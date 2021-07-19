@@ -122,6 +122,49 @@
     DATETIME=`date "+%Y%m%d-%H%M"`
     BTRFS_MNT="${HOME}/mnt/ssd01"
 
+    # take a snapshot in btrfs
+    if mountpoint ~/mnt/ssd01/ >/dev/null 2>&1; then
+      btrfs subvolume snapshot "${BTRFS_MNT}/doc" "${BTRFS_MNT}/snapshots/doc-${DATETIME}"
+    fi
+  #+end_src
+* backup scripts
+- back_btrfs.sh
+  #+begin_src shell :tangle (expand-tangle-target ".local/bin/back_btrfs.sh")
+    #!/usr/bin/env bash
+
+    src_dev=~/mnt/ssd01
+    src_snap_dir="${src_dev}"/snapshots
+    src_back_dir="${src_dev}"/backups
+    dst_dev=~/mnt/hdd01
+    dst_back_dir="${dst_dev}"/backups
+
+    parent=$(ls -d "${src_back_dir}"/doc-* 2>/dev/null | sort | tail -1 | xargs basename)
+    snap_earliest=$(ls -d "${src_snap_dir}"/doc-* 2>/dev/null | sort | head -1 | xargs basename)
+    snap_latest=$(ls -d "${src_snap_dir}"/doc-* 2>/dev/null | sort | tail -1 | xargs basename)
+
+    # backup root snapshot if nothing exists
+    if [ -z "${parent}" ] && [ -n "${snap_earliest}" ]; then
+      btrfs subvolume snapshot -r "${src_snap_dir}/${snap_earliest}" "${src_back_dir}/${snap_earliest}"
+      pwsudo btrfs send "${src_back_dir}/${snap_earliest}" | sudo btrfs receive "${dst_back_dir}"
+      parent="${snap_earliest}"
+    fi
+
+    # backup latest snapshot by sending differential data
+    if [ -n "${parent}" ] && [[ "${parent}" < "${snap_latest}" ]]; then
+      btrfs subvolume snapshot  -r "${src_snap_dir}/${snap_latest}" "${src_back_dir}/${snap_latest}"
+      pwsudo btrfs send -p "${src_back_dir}/${parent}" "${src_back_dir}/${snap_latest}" | sudo btrfs receive "${dst_back_dir}"
+    fi
+  #+end_src
+- snapshot.sh
+  #+begin_src shell :tangle (expand-tangle-target ".local/bin/back_rsync.sh")
+    #!/usr/bin/env bash
+
+    OPT="-aPh"
+    LINK="--link-dest=../last/"
+    DEST="ns01:~/share/backups"
+    DATETIME=`date "+%Y%m%d-%H%M"`
+    BTRFS_MNT="${HOME}/mnt/ssd01"
+
     ssh -q -o BatchMode="yes" -o ConnectTimeout=10 ns01 "(cd ~/share/backups; mkdir -p pc01 sv04; exit)" || exit 1
 
     # take a snapshot for pc01
@@ -143,33 +186,28 @@
         ssh ns01 "(cd share/backups/sv04; ln -s ${DATETIME} last)"
       fi
     fi
-
-    # take a snapshot in btrfs
-    if mountpoint ~/mnt/ssd01/ >/dev/null 2>&1; then
-      btrfs subvolume snapshot "${BTRFS_MNT}/doc" "${BTRFS_MNT}/snapshots/doc-${DATETIME}"
-    fi
-  #+end_src
-- rsync exclude file for pc01
-  #+begin_src conf :tangle (expand-tangle-target ".config/rsync/exclude_pc01.txt") :tangle-mode (identity #o644)
-    + var
-    + var/log
-    + var/log/**
-    - var/lib/dash
-    + var/lib
-    + var/lib/**
-    + work
-    + work/**
-    + git
-    + git/**
-    - *
-  #+end_src
-- rsync exclude file for sv04
-  #+begin_src conf :tangle (expand-tangle-target ".config/rsync/exclude_sv04.txt") :tangle-mode (identity #o644)
-    + var
-    + var/backup
-    + var/backup/**
-    - *
-  #+end_src
+ #+end_src
+  + rsync exclude file for pc01
+    #+begin_src conf :tangle (expand-tangle-target ".config/rsync/exclude_pc01.txt") :tangle-mode (identity #o644)
+      + var
+      + var/log
+      + var/log/**
+      - var/lib/dash
+      + var/lib
+      + var/lib/**
+      + work
+      + work/**
+      + git
+      + git/**
+      - *
+    #+end_src
+  + rsync exclude file for sv04
+    #+begin_src conf :tangle (expand-tangle-target ".config/rsync/exclude_sv04.txt") :tangle-mode (identity #o644)
+      + var
+      + var/backup
+      + var/backup/**
+      - *
+    #+end_src
 
 * Exec command in background
 #+begin_src bash :noweb tangle :tangle (expand-tangle-target ".local/bin/nhp")
@@ -343,4 +381,18 @@
 
   message = sys.stdin.read()
   sendmail(args.to, args.mailfrom, args.subject, message)
+#+end_src
+
+* pwsudo
+#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/pwsudo")
+  #!/usr/bin/env bash
+
+  _userid=$(whoami)
+  _hostname=$(hostname)
+
+  if pass show "${_hostname}/${_userid}" >/dev/null 2>&1; then
+    pass show "${_hostname}/${_userid}" | head -1 | sudo -S $*
+  else
+    sudo $*
+  fi
 #+end_src
