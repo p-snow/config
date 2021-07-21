@@ -1,0 +1,55 @@
+#+TITLE: .emacs.d files
+#+PROPERTY: header-args       :tangle-mode (identity #o644)
+#+PROPERTY: header-args+      :mkdirp yes
+#+PROPERTY: tangle-target-dir .files
+
+#+STARTUP: hideblocks
+
+* helper scripts
+** extract_headings
+#+begin_src python :tangle (expand-tangle-target ".local/bin/extract_headings") :tangle-mode (identity #o755)
+  #!/usr/bin/env python3
+
+  # This script extract most probable page heading.
+
+  import sys
+  import lxml.html as html
+  from lxml import etree
+  import difflib
+
+  if len(sys.argv) == 1:
+      INPUT_STR = sys.stdin.read()
+      ROOT = html.fromstring(INPUT_STR).getroottree()
+  else:
+      sys.exit(1)
+
+  OUT_ROOT = etree.Element("headings")
+
+  # extract title text
+  title = ''
+  title_text_arr = ROOT.xpath('//title[1]//text()')
+  if len(title_text_arr):
+      title = title_text_arr[0]
+      OUT_ROOT.set("title", title.strip())
+
+  htag_text_arr = ROOT.xpath('//*[self::h1 or self::h2 or self::h3 or self::h4 or self::h5 or self::h6]')
+  for i in range(len(htag_text_arr)):
+      text = ''
+      texts = htag_text_arr[i].xpath('.//text()')
+      if len(texts) == 1:
+          text = texts[0].strip()
+      elif len(texts) > 1:
+          text = ''.join(map(str.strip, texts))
+      else:
+          continue
+      proximity = difflib.SequenceMatcher(None, title, text).ratio()
+      heading = etree.Element(htag_text_arr[i].tag)
+      heading.text = text
+      heading.set('proximity', str(proximity))
+      OUT_ROOT.append(heading)
+
+  out_root_str = etree.tostring(OUT_ROOT, encoding='utf-8', method='xml', pretty_print=True)
+  if type(out_root_str) is bytes:
+      out_root_str = out_root_str.decode()
+  print(out_root_str)
+#+end_src
