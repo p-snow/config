@@ -116,14 +116,11 @@
   #+begin_src shell :tangle (expand-tangle-target ".local/bin/snapshot.sh")
     #!/usr/bin/env bash
 
-    OPT="-aPh"
-    LINK="--link-dest=../last/"
-    DEST="ns01:~/share/backups"
     DATETIME=`date "+%Y%m%d-%H%M"`
-    BTRFS_MNT="${HOME}/mnt/ssd01"
+    BTRFS_MNT="/mnt/ssd01"
 
     # take a snapshot in btrfs
-    if mountpoint ~/mnt/ssd01/ >/dev/null 2>&1; then
+    if mountpoint ${BTRFS_MNT} >/dev/null 2>&1; then
       btrfs subvolume snapshot "${BTRFS_MNT}/doc" "${BTRFS_MNT}/snapshots/doc-${DATETIME}"
     fi
   #+end_src
@@ -132,10 +129,10 @@
   #+begin_src shell :tangle (expand-tangle-target ".local/bin/back_btrfs.sh")
     #!/usr/bin/env bash
 
-    src_dev=~/mnt/ssd01
+    src_dev=/mnt/ssd01
     src_snap_dir="${src_dev}"/snapshots
     src_back_dir="${src_dev}"/backups
-    dst_dev=~/mnt/hdd01
+    dst_dev=/mnt/hdd01
     dst_back_dir="${dst_dev}"/backups
 
     parent=$(ls -d "${src_back_dir}"/doc-* 2>/dev/null | sort | tail -1 | xargs basename)
@@ -155,7 +152,7 @@
       pwsudo btrfs send -p "${src_back_dir}/${parent}" "${src_back_dir}/${snap_latest}" | sudo btrfs receive "${dst_back_dir}"
     fi
   #+end_src
-- snapshot.sh
+- back_rsync.sh
   #+begin_src shell :tangle (expand-tangle-target ".local/bin/back_rsync.sh")
     #!/usr/bin/env bash
 
@@ -163,7 +160,6 @@
     LINK="--link-dest=../last/"
     DEST="ns01:~/share/backups"
     DATETIME=`date "+%Y%m%d-%H%M"`
-    BTRFS_MNT="${HOME}/mnt/ssd01"
 
     ssh -q -o BatchMode="yes" -o ConnectTimeout=10 ns01 "(cd ~/share/backups; mkdir -p pc01 sv04; exit)" || exit 1
 

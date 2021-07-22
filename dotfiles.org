@@ -21,6 +21,16 @@
   #+begin_src bash
     echo -n "${EMAIL}"
   #+end_src
+- user account part of my email
+  #+name: account
+  #+begin_src bash
+    echo -n "${EMAIL}" | cut -d'@' -f1
+  #+end_src
+- network part of my email
+  #+name: network
+  #+begin_src bash
+    echo -n "${EMAIL}" | cut -d'@' -f2
+  #+end_src
 * Bash
 - bash profile
   #+BEGIN_SRC bash :tangle (expand-tangle-target ".bash_profile")
@@ -1258,3 +1268,15 @@ Extendable version manager
 2. Start systemd service for xkeysnail
    : $ systemctl --user enable xkeysnail
    : $ systemctl --user start xkeysnail
+* fstab
+- /etc/fstab file for my personal machine
+  #+begin_src conf :noweb tangle :tangle pc01.fstab
+    UUID=98422431-b089-4dc0-b326-2693c19ace4e /mnt/ssd01/ btrfs noauto,x-systemd.automount,defaults 0 2
+    UUID=98422431-b089-4dc0-b326-2693c19ace4e <<home-dir()>>/doc btrfs noauto,x-systemd.automount,relatime,space_cache,compress=zstd,subvolid=710 0 0
+    UUID=98422431-b089-4dc0-b326-2693c19ace4e <<home-dir()>>/work btrfs noauto,x-systemd.automount,relatime,space_cache,compress=zstd,subvolid=717 0 0
+
+    UUID=92a594bc-2800-48fd-a2f9-6e735ec5cfca /mnt/hdd01 btrfs noauto,x-systemd.automount,defaults,relatime,space_cache,subvolid=5,subvol=/ 0 2
+
+    sshfs#<<account()>>@ns01:/home/<<account()>>/share /mnt/ns01 fuse defaults,x-systemd.automount,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
+    sshfs#<<account()>>@sv04.<<network()>>:/home/<<account()>> /mnt/sv04 fuse defaults,x-systemd.automount,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
+  #+end_src
