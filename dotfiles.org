@@ -27,7 +27,7 @@
     echo -n "${EMAIL}" | cut -d'@' -f1
   #+end_src
 - network part of my email
-  #+name: network
+  #+name: my-network
   #+begin_src bash
     echo -n "${EMAIL}" | cut -d'@' -f2
   #+end_src
@@ -43,9 +43,6 @@
 - bashrc
   #+BEGIN_SRC bash :tangle (expand-tangle-target ".bashrc")
     #!/usr/bin/env bash
-
-    # All login settings is in ~/.bashrc because
-    # shell on Emacs does not read ~/.bash_profile
 
     export EDITOR=~/usr/bin/emacsclient
     export GIT_EDITOR=~/usr/bin/emacsclient
@@ -71,15 +68,6 @@
     export MANPATH="${HOME}/usr/share/man:${MANPATH}"
     export INFOPATH="${HOME}/usr/share/info:${INFOPATH}"
     export PKG_CONFIG_PATH="${HOME}/usr/lib/pkgconfig:${HOME}/usr/lib64/pkgconfig:${HOME}/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"
-
-    if [ -d "${HOME}/.anyenv" ]; then
-      export ANYENV_ROOT="${HOME}/.anyenv"
-      export PATH="${HOME}/.anyenv/bin:$PATH"
-    fi
-    if [ -v "ANYENV_ROOT" ] && type anyenv >/dev/null 2>&1 ; then
-      eval "$(anyenv init -)"
-    fi
-    export GOPATH=${HOME}/go
 
     export LD_LIBRARY_PATH="${HOME}/usr/lib:${HOME}/usr/lib64:${HOME}/usr/lib/x86_64-linux-gnu:/usr/lib:/usr/local/lib:/usr/lib/x86_64-linux-gnu/"
 
@@ -1053,7 +1041,7 @@ Q7sbt0I=
     mountpoint = doc
   #+end_src
 * crontab
-- crontab script for my private PC
+- crontab job definitions for my private PC
   #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/crontab/pc01")
     MAILTO="<<email()>>"
 
@@ -1065,10 +1053,13 @@ Q7sbt0I=
     HOME=<<home-dir()>>
 
     0 1 * * * /bin/bash <<home-dir()>>/.local/bin/snapshot.sh >> $LOG_DIR/snapshot.log 2>&1
-    0 2 * * * $LOCAL_BIN_DIR/tidyup >> $LOG_DIR/tidyup.log 2>&1
+    0 2 * * * /bin/bash -c "source $LOCAL_BIN_DIR/init_asdf.sh && $LOCAL_BIN_DIR/tidyup >> $LOG_DIR/tidyup.log 2>&1"
     0 3,15 * * * /bin/bash $BIN_DIR/gitsync-local <<home-dir()>>/git/ >> $LOG_DIR/gitsync-local.log 2>&1
     5 3,15 * * * /bin/bash $BIN_DIR/gitsync-remote <<home-dir()>>/git/ >> $LOG_DIR/gitsync-remote.log 2>&1
   #+end_src
+- how to activate cron jobs
+  1. load cron job definition file
+     : $ crontab ~/.config/crontab/pc01
 * Aspell
 aspell - interactive spell checker
 #+begin_src conf :tangle (expand-tangle-target ".aspell.conf")
@@ -1076,12 +1067,16 @@ aspell - interactive spell checker
 #+end_src
 * asdf-vm
 Extendable version manager
-- shell settings
-  #+begin_src bash :tangle (expand-tangle-target ".bashrc")
+- initializing script
+  #+begin_src shell :tangle (expand-tangle-target ".local/bin/init_asdf.sh") :tangle-mode (identity #o775)
     . $HOME/.asdf/asdf.sh
     . $HOME/.asdf/completions/asdf.bash
   #+end_src
-- versions
+- call for init script in bashrc
+  #+begin_src bash :tangle (expand-tangle-target ".bashrc")
+    . ${HOME}/.local/bin/init_asdf.sh
+  #+end_src
+- define versions
   #+begin_src conf :comments noweb :tangle (expand-tangle-target ".tool-versions")
     ruby 2.6.8
     python 3.8.5
@@ -1278,5 +1273,5 @@ Extendable version manager
     UUID=92a594bc-2800-48fd-a2f9-6e735ec5cfca /mnt/hdd01 btrfs noauto,x-systemd.automount,defaults,relatime,space_cache,subvolid=5,subvol=/ 0 2
 
     sshfs#<<account()>>@ns01:/home/<<account()>>/share /mnt/ns01 fuse defaults,x-systemd.automount,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
-    sshfs#<<account()>>@sv04.<<network()>>:/home/<<account()>> /mnt/sv04 fuse defaults,x-systemd.automount,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
+    sshfs#<<account()>>@sv04.<<my-network()>>:/home/<<account()>> /mnt/sv04 fuse defaults,x-systemd.automount,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
   #+end_src
