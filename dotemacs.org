@@ -53,3 +53,35 @@
       out_root_str = out_root_str.decode()
   print(out_root_str)
 #+end_src
+** strip_ruby
+A program strips all ruby tags in a HTML stream. All HTML contents are expected to be from STDIN and go out as STDOUT. This procedure is mainly for html files converted from pdf and epub files.
+Stripping rules are:
+- <ruby> tag will be stripped
+- <rt> tree for furigana tree will be removed
+- <rp> tree contains parenthes for non-ruby-support brouwser will be removed
+- <rb> tag for delimiter will be stripped
+- <rtc> tree for semantic word will be removed
+
+#+begin_src python :tangle (expand-tangle-target ".local/bin/strip_ruby") :tangle-mode (identity #o755)
+  #!/usr/bin/env python3
+
+  import sys
+  import lxml.html as html
+
+  INPUT_STR = sys.stdin.read()
+  ROOT = html.fromstring(INPUT_STR).getroottree()
+
+  for ruby in ROOT.xpath('//ruby'):
+      for rt in ruby.xpath('//rt'):
+          rt.drop_tree()
+      for rp in ruby.xpath('//rp'):
+          rp.drop_tree()
+      for rb in ruby.xpath('//rb'):
+          rb.drop_tag()
+      for rtc in ruby.xpath('//rtc'):
+          rtc.drop_tree()
+      ruby.drop_tag()
+
+  CONTENT = html.tostring(ROOT, encoding="utf-8", method='html', pretty_print=True)
+  print(CONTENT.decode())
+#+end_src
