@@ -80,9 +80,6 @@
       . "${bash_src}"
     done
 
-    unset -v EMACS # for ansi-term in emacs
-    EDITOR="emacs"
-
     case ${TERM} in
     linux) export LANG="C";;
     ,*)     export LANG="ja_JP.UTF-8";;
@@ -786,8 +783,8 @@ Q7sbt0I=
     LEFT   seek -5
     UP     seek -60
     DOWN   seek  60
-    Ctrl+f seek  5
-    Ctrl+b seek -5
+    Ctrl+f seek  1
+    Ctrl+b seek -1
     Ctrl+p seek -60
     Ctrl+n seek  60
     # Do smaller, always exact (non-keyframe-limited), seeks with shift.
@@ -1255,7 +1252,7 @@ Extendable version manager
     # WantedBy=graphical.target
     WantedBy=default.target
   #+end_src
-** how to activate xkeysnail when usb keyboard replug
+** how to make xkeysnail daemonize
 1. Install xkeysnail
    Install xkeysnail (v0.4.0) on python3 on system via pip3
    : # apt install python3-pip
