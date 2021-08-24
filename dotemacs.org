@@ -1,10 +1,234 @@
 #+TITLE: .emacs.d files
-#+PROPERTY: header-args       :tangle-mode (identity #o644)
+#+PROPERTY: header-args       :tangle-mode (identity #o444)
 #+PROPERTY: header-args+      :mkdirp yes
 #+PROPERTY: tangle-target-dir .files
 
-#+STARTUP: hideblocks
+#+STARTUP: overview
 
+* basic tweaks
+** language
+[[info:emacs#Language Environments][emacs#Language Environments]]
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  ;; language and locale
+  (set-language-environment "Japanese")
+  (setq system-time-locale "C")
+
+  ;; coding system
+  (set-default-coding-systems 'utf-8-unix)
+  (prefer-coding-system 'utf-8-unix)
+  (set-selection-coding-system 'utf-8-unix)
+
+  ;; prefer-coding-system take effect equally to follows
+  (set-buffer-file-coding-system 'utf-8-unix)
+  (set-file-name-coding-system 'utf-8-unix)
+  (set-terminal-coding-system 'utf-8-unix)
+  (set-keyboard-coding-system 'utf-8-unix)
+  (setq locale-coding-system 'utf-8-unix)
+#+end_src
+** visual facets
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  ;; do not use basic GUI facets
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+  (tooltip-mode -1)
+
+  ;; fringe is preferably as thin as possible
+  (set-fringe-mode 10)
+
+  ;; do not use visual bell
+  (setf visible-bell nil)
+
+  ;; conceal distractions at startup
+  (setf initial-scratch-message "")
+  (setf inhibit-startup-screen t)
+#+end_src
+** file hnadling
+File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of Files]].
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (use-package files
+    :custom
+    (mode-require-final-newline 'visit-save)
+    (make-backup-files nil)
+    (delete-auto-save-files t)
+    (enable-remote-dir-locals t)
+    :config
+    (setq delete-by-moving-to-trash t))
+
+  (use-package saveplace
+    :custom
+    (save-place-version-control t)
+    :config
+    (save-place-mode 1))
+
+  (auto-compression-mode 1)
+
+  (setq auto-save-interval 100)
+  (setq auto-save-timeout 10)
+#+end_src
+** modifier keys
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (cond
+   ((string= window-system "x")
+    (setf x-alt-keysym  'alt
+          x-meta-keysym 'meta))
+   ((string= window-system "ns")
+    ;; IME inline patch
+    (setf mac-use-input-method-on-system nil)
+    (setf mac-control-modifier       'control
+          mac-command-modifier       'meta
+          mac-option-modifier        'super
+          mac-right-option-modifier  'alt
+          mac-right-control-modifier 'super
+          mac-function-modifier      'hyper)))
+#+end_src
+** mark/region
+Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  ;; (setq set-mark-command-repeat-pop t)
+  (setf mark-ring-max 32)
+  (setf highlight-nonselected-windows t)
+
+  ;; text in region will be deleted
+  (delete-selection-mode t)
+#+end_src
+
+** minibuffer
+[[help:savehist-mode][savehist-mode]] saves minibuffer history and additionals.
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (savehist-mode 1)
+
+  (setf history-length 1500)
+  (setf history-delete-duplicates t)
+
+  ;; allow y/n answer for an either-or selection
+  (fset 'yes-or-no-p 'y-or-n-p)
+
+  (add-hook 'minibuffer-setup-hook 'my/minibuffer-setup-function)
+
+  (defun my/minibuffer-setup-function ()
+    ;; disable input method in mini buffer
+    (when current-input-method
+      (deactivate-input-method))
+    ;; decrease font size to 90% in minibuffer
+    (setq-local face-remapping-alist '((default :height 0.9))))
+
+  (bind-keys :map minibuffer-local-map
+             ("C-r" . counsel-minibuffer-history)
+             ("C-M-y" . counsel-yank-pop))
+
+  (setf enable-recursive-minibuffers t)
+  (minibuffer-depth-indicate-mode 1)
+#+end_src
+
+** displaying
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (setf scroll-step 1)
+
+  (setf text-scale-mode-step 1.0625)
+
+  ;; let the cursor blinking
+  (setf blink-cursor-blinks 15)
+  (setf blink-cursor-delay 0.7)
+  (setf blink-cursor-interval 0.35)
+  (blink-cursor-mode 1)
+
+  ;; use emacs in full screen mode
+  (when (member (window-system) '(x ns w32))
+    (set-frame-parameter nil 'fullscreen 'fullboth))
+#+end_src
+
+** text handling
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (setq-default fill-column 80)
+
+  ;; avoid curved quote in docstring (emacs25)
+  (setf text-quoting-style 'straight)
+
+  ;; use spaces instead of a horizontal tab
+  (setq-default indent-tabs-mode nil)
+
+  (add-hook 'before-save-hook #'delete-trailing-whitespace)
+#+end_src
+
+** performance
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (setq gc-cons-threshold (* 10 gc-cons-threshold))
+  (setq message-log-max 10000)
+  (setq shell-command-switch "-c")
+  (setq undo-outer-limit 64000000)
+
+  (setq-default bidi-display-reordering nil)
+
+  (setq next-screen-context-lines 2)
+#+end_src
+
+** customization
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (setf custom-file
+        (expand-file-name "custom.el" user-emacs-directory))
+#+end_src
+* built-in package
+** auto revert
+[[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (use-package autorevert
+    :diminish (global-auto-revert-mode auto-revert-mode)
+    :custom
+    (auto-revert-verbose nil)
+    (global-auto-revert-non-file-buffers t)
+    :config
+    (global-auto-revert-mode 1))
+#+end_src
+** uniquify
+[[info:emacs#Uniquify][Uniquify]] makes buffer names unique.
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (use-package uniquify
+    :custom
+    (uniquify-buffer-name-style 'forward)
+    ;; (uniquify-ignore-buffers-re "*[^*]+*")
+    )
+#+end_src
+** recentf
+[[info:emacs#File Conveniences][emacs#File Conveniences]]
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (use-package recentf
+    :custom
+    (recentf-exclude '(".gz" ".xz" ".zip"))
+    (recentf-max-saved-items 200)
+    (recentf-max-menu-items 15)
+    (recentf-auto-cleanup "1:23am")
+    :config
+    ;; (recentf-load-list)
+    (recentf-mode 1))
+#+end_src
+
+* external packages
+** ivy
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (use-package ivy
+    :straight t
+    :config
+    (bind-keys :map ivy-minibuffer-map
+               ("M-y" . ivy-next-line)
+               ;; ("M-w" . ivy-kill-ring-save)
+               )
+    )
+#+end_src
 * helper scripts
 ** extract_headings
 #+begin_src python :tangle (expand-tangle-target ".local/bin/extract_headings") :tangle-mode (identity #o755)
