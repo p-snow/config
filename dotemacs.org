@@ -178,7 +178,7 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
   (setf custom-file
         (expand-file-name "custom.el" user-emacs-directory))
 #+end_src
-* built-in package
+* built-in packages
 ** auto revert
 [[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
 
@@ -228,6 +228,146 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
                ;; ("M-w" . ivy-kill-ring-save)
                )
     )
+#+end_src
+
+* original package
+** org-password-store
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org-password-store.el")
+  (use-package password-store
+    :straight t
+    :custom
+    (password-store-time-before-clipboard-restore 25))
+
+  (defcustom my/org-password-store-property "PASSWORD_STORE"
+    "Property used in my/password-store feature to get password-store entry name attached to current org entry.")
+
+  (defmacro with-password-store-entry (entry &rest body)
+    "Eval BODY which can refer password-store ENTRY.."
+    (declare (indent defun))
+    `(let ((entry (or ,entry
+                      (when (derived-mode-p 'org-mode) (org-entry-get (point) my/org-password-store-property))
+                      (password-store--completing-read t))))
+       ,@body))
+
+  (defmacro with-password-store-entry-field (entry field &rest body)
+    "Eval BODY which can refer password-store ENTRY and FIELD..
+
+  Plus, OBDY can refer value of FIELD named field-value."
+    (declare (indent defun))
+    `(let* ((entry (or ,entry
+                       (when (derived-mode-p 'org-mode) (org-entry-get (point) my/org-password-store-property))
+                       (password-store--completing-read t)))
+            (field (or ,field
+                       (password-store-read-field entry)))
+            (field-value (password-store-get-field entry field)))
+       ,@body))
+
+  (defun my/password-store-copy ()
+    "Add password for ENTRY into the kill ring.
+
+  `password-store-copy' is responsible for managing the kill ring."
+    (interactive)
+    (with-password-store-entry nil
+      (password-store-copy entry)))
+
+  (defun my/password-store-copy-field ()
+    "Add field for entry into the kill ring.
+
+  entry and field is determined by appropriate manner."
+    (interactive)
+    (with-password-store-entry-field nil nil
+      (password-store-copy-field entry field)))
+
+  (defun my/password-store-url (&optional arg)
+    "Browse url stored in entry by appropriate manner determined by ARG."
+    (interactive "P")
+    (with-password-store-entry-field nil "url"
+      (cl-case (prefix-numeric-value arg)
+        (16 (browse-url field-value))
+        (4 (eww-browse-url field-value))
+        (t (open-url field-value)))))
+
+  (defun my/password-store-show-field ()
+    "Show a field value in the minibuffer.
+
+  Password-store entry and field used to derive this value are from org property
+  or selected by user."
+    (interactive)
+    (with-password-store-entry-field nil nil
+      (message "%s: %s" field field-value)))
+
+  (defun my/password-store-create ()
+    (interactive)
+    (let* ((input (read-string "Entry-name or URL: "))
+           (domain (when (string-match-p browse-url-button-regexp input)
+                     (string-trim-right
+                      (shell-command-to-string (format "echo %s | awk -F[/:] '{print $4}'"
+                                                       (shell-quote-argument input)))))))
+      (with-password-store-entry (cond
+                                  ((> (length domain) 0) domain)
+                                  (input))
+        (when (derived-mode-p 'org-mode)
+          (org-entry-put (point) my/org-password-store-property entry))
+        (password-store-edit entry))))
+
+  (defun my/password-store-edit ()
+    (interactive)
+    (with-password-store-entry nil
+      (password-store-edit entry)))
+
+  ;; TODO: make my/password-store-insert as soon after
+  ;;     : password-store--run-insert has been implemented
+
+  (defun my/password-store-remove ()
+    (interactive)
+    (with-password-store-entry nil
+      (password-store-remove entry)
+      (when (derived-mode-p 'org-mode)
+        (org-entry-delete (point) my/org-password-store-property))))
+
+  (defun my/password-store-web-login ()
+    (interactive)
+    (with-password-store-entry-field nil "username"
+      (password-store-copy entry)
+      (sleep-for 0.2) ; work around for overlapping message
+      (if field-value
+          (message "%s: %s" field field-value)
+        (message (string-trim-right
+                  (concat
+                   (when-let ((email (assoc "email" (password-store-parse-entry entry))))
+                     (format "%s: %s\n" (car email) (cdr email)))
+                   (when-let ((second (nth 1 (password-store-parse-entry entry))))
+                     (format "%s: %s\n" (car second) (cdr second)))))))
+      (sleep-for 3)
+      (funcall-interactively #'my/password-store-url '(16))))
+
+  (advice-add #'password-store-clear :before #'my/password-store-clear)
+
+  (defun my/password-store-clear (&optional field)
+    "Overwrite clipboard data so that password once saved in clipboard is deleted
+   for security risk.
+
+  FIELD originally for messaging is ignored in this function."
+    (interactive)
+    (when password-store-kill-ring-pointer
+      (kill-new "")
+      (setcar kill-ring-yank-pointer "")))
+
+  (with-eval-after-load 'hydra
+    (defhydra hydra-password-store (global-map "C-o p"
+                                               :color teal)
+      "Password store"
+      ("cc" my/password-store-copy)
+      ("cf" my/password-store-copy-field)
+      ("s" my/password-store-show-field)
+      ("w" my/password-store-url)
+      ("l" my/password-store-web-login)
+      ("n" my/password-store-create)
+      ("e" my/password-store-edit)
+      ("v" my/password-store-edit)
+      ("k" my/password-store-remove)
+      ("q" nil "quit")))
 #+end_src
 * helper scripts
 ** extract_headings
