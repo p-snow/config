@@ -120,7 +120,7 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
     (setq-local face-remapping-alist '((default :height 0.9))))
 
   (bind-keys :map minibuffer-local-map
-             ("C-r" . counsel-minibuffer-history)
+             ("C-M-n" . counsel-minibuffer-history)
              ("C-M-y" . counsel-yank-pop))
 
   (setf enable-recursive-minibuffers t)
@@ -150,13 +150,41 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
   (setq-default fill-column 80)
 
-  ;; avoid curved quote in docstring (emacs25)
+  ;; suppress curved quotes in docstring (for emacs25)
   (setf text-quoting-style 'straight)
+#+end_src
 
+** indent
+customization for [[info:emacs#Indentation][indentation]]
+See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
   ;; use spaces instead of a horizontal tab
   (setq-default indent-tabs-mode nil)
 
+  (custom-set-variables '(tab-always-indent 'complete))
+  (electric-indent-mode 1)
+#+end_src
+
+** whitespace
+[[info:emacs#Useless Whitespace][emacs#Useless Whitespace]]
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
   (add-hook 'before-save-hook #'delete-trailing-whitespace)
+
+  (use-package whitespace
+    :diminish ((global-whitespace-mode . "Ws")
+               (whitespace-mode . "ws"))
+    :custom
+    (whitespace-style
+     '(face trailing tabs tab-mark spaces space-mark empty))
+    (whitespace-space-regexp "\\(\x3000+\\)")
+    (whitespace-trailing-regexp "\\([ \t\u00A0]+\\)$")
+    (whitespace-display-mappings
+     '((space-mark ?\x3000 [?\u2423])
+       (tab-mark   ?\t   [?\u00BB ?\t])))
+    :config
+    (global-whitespace-mode -1))
 #+end_src
 
 ** performance
@@ -184,6 +212,38 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
   (custom-set-variables '(yank-pop-change-selection t))
 #+end_src
+
+** mouse
+I prefer to rid my emacs experience of mouse as least as possible.
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (use-package mouse
+    :custom
+    (mouse-1-click-follows-link nil)
+    (mouse-highlight nil)
+    :config
+    (mouse-wheel-mode 0))
+#+end_src
+** key (re)bindings
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (substitute-key-definition 'upcase-region
+                             'upcase-dwim
+                             global-map)
+
+  (substitute-key-definition 'downcase-region
+                             'downcase-dwim
+                             global-map)
+
+  (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
+
+  ;; suppress the occurence of prompt in (up|down)case-region prompt in
+  (put 'upcase-region 'disabled nil)
+  (put 'downcase-region 'disabled nil)
+
+  (global-set-key (kbd "C-z") #'repeat)
+#+end_src
+
 * built-in packages
 ** auto revert
 [[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
@@ -221,9 +281,12 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
     ;; (recentf-load-list)
     (recentf-mode 1))
 #+end_src
+* external packages            :elfeed:soft_update:prime:
+#+CALL: release-feed(github-url="https://github.com/abo-abo/swiper/tree/7cdde66c95d5205287e88010bc7a3a978c931db0")
 
-* external packages
-** ivy
+#+RESULTS:
+** [[https://github.com/abo-abo/swiper/releases.atom][swiper/ivy]]
+Read [[info:ivy#Top][this manual]]
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
   (use-package ivy
@@ -231,12 +294,30 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
     :config
     (bind-keys :map ivy-minibuffer-map
                ("M-y" . ivy-next-line)
-               ;; ("M-w" . ivy-kill-ring-save)
-               )
-    )
+               ("M-w" . ivy-kill-ring-save)))
 #+end_src
+** [[https://github.com/nflath/hungry-delete/releases.atom][hungry-delete]]
+Aggressively delete successive white spaces.
 
-* original packages
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (use-package hungry-delete
+    :straight t
+    :diminish
+    :config
+    (global-hungry-delete-mode 1))
+#+end_src
+** [[https://github.com/Malabarba/aggressive-indent-mode/releases.atom][aggressive-indent-mode]]
+:PROPERTIES:
+:ID:       4a58219c-74dd-4135-b56d-876b0db2cd83
+:END:
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (use-package aggressive-indent
+    :straight t
+    :diminish (aggressive-indent-mode . "ai")
+    :hook (emacs-lisp-mode . aggressive-indent-mode))
+#+end_src
+* original features
 ** org-password-store
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org-password-store.el")
