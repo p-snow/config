@@ -243,7 +243,6 @@ I prefer to rid my emacs experience of mouse as least as possible.
 
   (global-set-key (kbd "C-z") #'repeat)
 #+end_src
-
 * built-in packages
 ** auto revert
 [[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
@@ -281,14 +280,40 @@ I prefer to rid my emacs experience of mouse as least as possible.
     ;; (recentf-load-list)
     (recentf-mode 1))
 #+end_src
+* handy functions
+** power management
+Shut down emacs automatically when remaining power of laptop PC lower than [[help:battery-load-low][battery-load-low]]
+to avoid accidental data loss.
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (require 'battery)
+
+  (run-with-timer 60 60 #'kill-emacs-auto)
+
+  (defun kill-emacs-auto ()
+    "Kill Emacs if remaining machine power lower than `battery-load-low'."
+    (let* ((data (and battery-status-function (funcall battery-status-function)))
+           (percentage (car (read-from-string (cdr (assq ?p data)))))
+           (power (cdr (assq ?L data))))
+      (when (and (< percentage battery-load-low)
+                 (string= power "BAT"))
+        (save-buffers-kill-emacs t))))
+#+end_src
 * external packages            :elfeed:soft_update:prime:
-#+CALL: release-feed(github-url="https://github.com/abo-abo/swiper/tree/7cdde66c95d5205287e88010bc7a3a978c931db0")
+#+CALL: release-feed(github-url="https://github.com/iqbalansari/restart-emacs")
 
 #+RESULTS:
+** [[https://github.com/iqbalansari/restart-emacs/releases.atom][restart-emacs]]
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/restart-emacs.el")
+  (use-package restart-emacs
+    :straight t
+    :bind ("C-M-<delete>" . restart-emacs))
+#+end_src
 ** [[https://github.com/abo-abo/swiper/releases.atom][swiper/ivy]]
 Read [[info:ivy#Top][this manual]]
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/swiper.el")
   (use-package ivy
     :straight t
     :config
@@ -299,7 +324,7 @@ Read [[info:ivy#Top][this manual]]
 ** [[https://github.com/nflath/hungry-delete/releases.atom][hungry-delete]]
 Aggressively delete successive white spaces.
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/hungry-delete.el")
   (use-package hungry-delete
     :straight t
     :diminish
@@ -311,7 +336,7 @@ Aggressively delete successive white spaces.
 :ID:       4a58219c-74dd-4135-b56d-876b0db2cd83
 :END:
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/aggressive-indent.el")
   (use-package aggressive-indent
     :straight t
     :diminish (aggressive-indent-mode . "ai")
