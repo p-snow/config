@@ -6,6 +6,11 @@
 #+STARTUP: overview
 
 * basic tweaks
+** include libraries
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (require 'cl-lib)
+#+end_src
 ** language
 [[info:emacs#Language Environments][emacs#Language Environments]]
 
@@ -481,7 +486,7 @@ Aggressively delete successive white spaces.
       ("k" my/password-store-remove)
       ("q" nil "quit")))
 #+end_src
-* helper scripts
+* helper programs
 ** extract_headings
 #+begin_src python :tangle (expand-tangle-target ".local/bin/extract_headings") :tangle-mode (identity #o755)
   #!/usr/bin/env python3
