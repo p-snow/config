@@ -5,12 +5,44 @@
 
 #+STARTUP: overview
 
-* basic tweaks
+* init process
+These process must be evaluated beforehand.
+
+** use-package
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/00-early-init.el")
+  ;; install straight.el
+  (setq straight-recipes-gnu-elpa-use-mirror t)
+  (let ((bootstrap-file
+         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+        (bootstrap-version 4))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously
+           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+           'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
+
+  ;; install use-package via straight.el
+  (straight-use-package 'use-package)
+
+  (use-package use-package
+    :custom
+    (use-package-ensure-function 'straight-use-package-ensure-function))
+
+  ;; install dependency packages for use-package using straight.el
+  (use-package diminish :straight t)
+  (use-package delight :straight t)
+  (use-package use-package-ensure-system-package :straight t)
+#+end_src
 ** include libraries
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/00-early-init.el")
   (require 'cl-lib)
 #+end_src
+* basic tweaks
 ** language
 [[info:emacs#Language Environments][emacs#Language Environments]]
 
@@ -485,6 +517,134 @@ Aggressively delete successive white spaces.
       ("v" my/password-store-edit)
       ("k" my/password-store-remove)
       ("q" nil "quit")))
+#+end_src
+** narrow-dwim
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/narrow-dwim.el")
+  (add-hook 'post-command-hook 'highlight-narrowed-buffer)
+  (defun highlight-narrowed-buffer ()
+    "Highlight narrowed buffer.
+
+  Narrowed buffer have a fringe with highlighting color.
+  Plus text size in the buffer becomes a little bit larger."
+    (unless (or (member last-command
+                        '(text-scale-adjust))
+                (eq major-mode 'Info-mode)
+                (string-match-p (rx (seq line-start "CAPTURE-" (one-or-more ascii) line-end))
+                                (buffer-name)))
+      (let ((hl-fringe-color "purple2")
+            (hl-text-scale (sqrt 2)))
+        (set-face-attribute
+         'fringe nil :background (if (buffer-narrowed-p)
+                                     (progn
+                                       (text-scale-set hl-text-scale)
+                                       hl-fringe-color)
+                                   (progn
+                                     (when (= text-scale-mode-amount hl-text-scale)
+                                       (text-scale-set 0))
+                                     nil))))))
+
+  (bind-key* "C-x n" 'my/toggle-narrow-dwim)
+
+  (defun my/toggle-narrow-dwim (arg)
+    "If the buffer is narrowed, it widens. Otherwise, it narrows intelligently.
+  Intelligently means: region, org-src-block, org-subtree, or defun,
+  whichever applies first.
+  Narrowing to org-src-block actually calls `org-edit-src-code'.
+
+  With prefix ARG, don't widen, just narrow even if buffer is already narrowed."
+    (interactive "P")
+    (declare (interactive-only))
+    (cond ((and (buffer-narrowed-p) (not arg))
+           (when (org-buffer-narrowed-p)
+             (when org-startup-indented
+               (org-indent-mode 1))
+             (visual-line-mode -1))
+           (widen)
+           (setq-local truncate-lines t))
+          ((region-active-p)
+           (narrow-to-region (region-beginning) (region-end)))
+          ((and (boundp 'org-src-mode) org-src-mode (not arg))
+           (org-edit-src-exit))
+          ((condition-case err
+               (org-edit-src-code)
+             (user-error nil)))
+          ((derived-mode-p 'org-mode)
+           (cond ((org-at-block-p)
+                  (org-narrow-to-block))
+                 ((org-at-heading-p)
+                  (org-narrow-to-subtree))
+                 (t (org-narrow-to-element)))
+           (org-indent-mode -1)
+           (visual-line-mode 1))
+          (t (narrow-to-defun))))
+#+end_src
+** weather
+
+#+begin_src emacs-lisp
+  ;; 気象庁配信の天気情報を加工して表示
+
+  (require 'request)
+  (require 'cl)
+
+  (defvar weather-areas
+    '(((url . "http://www.drk7.jp/weather/xml/14.xml")
+       (pref . "神奈川県")
+       (area . "西部"))
+      ((url . "http://www.drk7.jp/weather/xml/22.xml")
+       (pref . "静岡県")
+       (area . "中部"))))
+
+  (defun weather-area-show (weather-area-alist weather-buffer)
+    (lexical-let ((url (assoc-default 'url weather-area-alist))
+                  (pref (assoc-default 'pref weather-area-alist))
+                  (area (assoc-default 'area weather-area-alist))
+                  (buffer weather-buffer))
+      (request
+        url
+        :parser
+        (lambda ()
+          (let ((xml-string (string-as-multibyte (string-as-unibyte (buffer-string)))))
+            (with-temp-buffer
+              (erase-buffer)
+              (insert xml-string)
+              (libxml-parse-xml-region (point-min) (point-max)))))
+        :success
+        (cl-function
+         (lambda (&key data &allow-other-keys)
+           (when data
+             (with-current-buffer buffer
+               (insert (format "%s %s\n" pref area))
+               (mapcar
+                (lambda (info-node)
+                  (insert
+                   (format "%s %s %s %s\n"
+                           (dom-attr info-node 'date)
+                           (apply (lambda (max-temp-node min-temp-node)
+                                    (format "%2d/%2d℃"
+                                            (string-to-number (dom-text min-temp-node))
+                                            (string-to-number (dom-text max-temp-node))))
+                                  (dom-by-tag (dom-child-by-tag info-node 'temperature) 'range))
+                           (apply (lambda (node-1 node-2 node-3 node-4)
+                                    (format "%2d-%2d-%2d-%2d％"
+                                            (string-to-number (dom-text node-1))
+                                            (string-to-number (dom-text node-2))
+                                            (string-to-number (dom-text node-3))
+                                            (string-to-number (dom-text node-4))))
+                                  (dom-by-tag (dom-child-by-tag info-node 'rainfallchance) 'period))
+                           (dom-text (dom-child-by-tag info-node 'weather)))))
+                (dom-by-tag (dom-by-id data area) 'info))
+               (insert "\n"))))))))
+
+  (defun weather ()
+    (interactive)
+    (let ((buffer (get-buffer-create "weather")))
+      (mapcar (lambda (weather-area)
+                (weather-area-show weather-area buffer))
+              weather-areas)
+      (switch-to-buffer buffer)))
+
+  (provide 'weather)
 #+end_src
 * helper programs
 ** extract_headings
