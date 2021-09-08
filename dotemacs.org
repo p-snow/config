@@ -337,9 +337,42 @@ to avoid accidental data loss.
         (save-buffers-kill-emacs t))))
 #+end_src
 * external packages            :elfeed:soft_update:prime:
-#+CALL: release-feed(github-url="https://github.com/iqbalansari/restart-emacs")
+#+CALL: release-feed(github-url="https://github.com/org-roam/org-roam")
 
-#+RESULTS:
+** [[https://github.com/org-roam/org-roam/releases.atom][org-roam]]
+org-roam v2
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org-roam.el")
+  (use-package org-roam
+    :straight t
+    :after org
+    :bind (("C-c n l" . org-roam-buffer-toggle-display)
+           ("C-c n D" . org-roam-find-directory)
+           ("C-c n f" . org-roam-find-file)
+           ("C-c n i" . org-roam-insert))
+    :custom
+    (org-roam-directory (expand-file-name "roam" org-directory))
+    ;; DB does not have to be with org files since it is derived from org files uniquely
+    (org-roam-db-location (expand-file-name "org-roam.db" "~/var/lib/org-roam"))
+    (org-roam-buffer-position 'bottom))
+#+end_src
+** [[https://gitlab.com/phillord/org-drill/-/tags?format=atom][org-drill]]
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org-drill.el")
+  (use-package org-drill
+    :init (straight-use-package 'persist)
+    :after (org persist)
+    :straight t
+    :custom
+    (org-drill-spaced-repetition-algorithm 'sm5)
+    (org-drill-sm5-initial-interval 10.0)
+    (org-drill-add-random-noise-to-intervals-p t)
+    (org-drill-adjust-intervals-for-early-and-late-repetitions-p t)
+    (org-drill-days-before-old 20)
+    (org-drill-learn-fraction 0.65)
+    (org-drill-overdue-interval-factor 1.6))
+
+#+end_src
 ** [[https://github.com/iqbalansari/restart-emacs/releases.atom][restart-emacs]]
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/restart-emacs.el")
