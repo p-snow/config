@@ -339,17 +339,322 @@ to avoid accidental data loss.
 * external packages            :elfeed:soft_update:prime:
 #+CALL: release-feed(github-url="https://github.com/org-roam/org-roam")
 
+** org-agenda
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org.el")
+  (use-package org-agenda
+    :after (org org-ql)
+    :bind (:map org-agenda-mode-map
+                ("C-j" . org-agenda-switch-to)
+                ("T" . counsel-org-tag-agenda)
+                ("M" . org-agenda-month-view))
+    :hook
+    (org-agenda-mode . (lambda ()
+                         (buffer-face-set 'org-buffer)
+                         (delete-other-windows)
+                         (org-agenda-to-appt t '((category "appt")))))
+    :custom
+    (org-agenda-start-on-weekday 1)
+    (org-agenda-skip-deadline-if-done t)
+    (org-agenda-include-diary t)
+    ;; following three are for fast agenda view building
+    (org-agenda-inhibit-startup t)
+    (org-agenda-dim-blocked-tasks nil)
+    (org-agenda-use-tag-inheritance nil)
+    (org-agenda-files (directory-files (expand-file-name "agenda" org-directory) t "\.org$"))
+    (org-agenda-prefix-format '((agenda   . "%?-12t% s")
+                                (timeline . "  %s")
+                                (todo     . " ")
+                                (tags     . " ")
+                                (search   . " ")))
+    (org-agenda-custom-commands
+     `(("a" "Week-agenda"
+        agenda ""
+        ((org-agenda-skip-function
+          (lambda ()
+            ;; skip entry which has 'web' tag even if it has deadline
+            (and (save-excursion
+                   (let ((tags (org-get-tags)))
+                     (member "web" tags)))
+                 (progn (outline-next-heading) (point)))))))
+       ("r" . "Search for all record files")
+       ("rs" "Entries containing search words entry or headline."
+        search ""
+        ((org-agenda-files my/org-archive-files)
+         (org-agenda-sorting-strategy '(time-down))))
+       ("rm" "Match a TAGS/PROP/TODO query in record file"
+        tags ""
+        ((org-agenda-files my/org-archive-files)
+         (org-agenda-sorting-strategy '(time-down))))
+       ("o" . "someday list")
+       ("om" "someday to craft"
+        ((org-ql-search-block `(and (todo ,org-todo-keyword-4)
+                                    (tags-expanded "AC_CRAFT"))
+                              ((org-ql-block-header "Someday to craft"))))
+        ((org-agenda-files my/org-archive-files)
+         (org-agenda-sorting-strategy '(priority-down))))
+       ("op" "someday to purchase"
+        ((org-ql-search-block `(and (todo ,org-todo-keyword-4)
+                                    (tags "ac_purchase"))
+                              ((org-ql-block-header "Someday to purchase"))))
+        ((org-agenda-files my/org-archive-files)
+         (org-agenda-sorting-strategy '(priority-down))))
+       ("oc" "someday to cook"
+        ((org-ql-search-block `(and (todo ,org-todo-keyword-4)
+                                    (tags "ac_cook"))
+                              ((org-ql-block-header "Someday to cook"))))
+        ((org-agenda-files my/org-archive-files)
+         (org-agenda-sorting-strategy '(priority-down))))
+       ("O" "all someday entries"
+        ((org-ql-search-block `(and (todo ,org-todo-keyword-4)
+                                    (tags-expanded "AC_CRAFT"))
+                              ((org-ql-block-header "Someday to craft")))
+         (org-ql-search-block `(and (todo ,org-todo-keyword-4)
+                                    (tags "ac_purchase"))
+                              ((org-ql-block-header "Someday to purchase")))
+         (org-ql-search-block `(and (todo ,org-todo-keyword-4)
+                                    (tags "ac_cook"))
+                              ((org-ql-block-header "Someday to cook")))
+         (org-ql-search-block `(and (todo ,org-todo-keyword-4)
+                                    (not (tags-expanded "ac_purchase" "ac_cook" "AC_CRAFT")))
+                              ((org-ql-block-header "Someday things"))))
+        ((org-agenda-files my/org-archive-files)))
+       ("l" "Log entries in a week"
+        agenda ""
+        ((org-agenda-span (if (equal current-prefix-arg '(4))
+                              'day 'week))
+         (org-agenda-start-with-log-mode t)
+         (org-agenda-include-inactive-timestamps nil)
+         (org-agenda-include-diary t)
+         (org-agenda-sorting-strategy
+          '(time-up
+            deadline-up
+            todo-state-up
+            priority-down))))
+       ("L" "Log entry timeline on today with default org-agenda-prefix-format"
+        agenda ""
+        ((org-agenda-prefix-format (eval (car (get 'org-agenda-prefix-format 'standard-value))))
+         (org-agenda-span (if (equal current-prefix-arg '(4))
+                              'day 'week))
+         (org-agenda-start-with-log-mode t)
+         (org-agenda-include-inactive-timestamps nil)
+         (org-agenda-include-diary t)
+         (org-agenda-sorting-strategy
+          '(time-up
+            deadline-up
+            todo-state-up
+            priority-down))))
+       ;; KEEP IN MIND
+       ;; invoking `org-clock-sum-all' is required before showing effort table
+       ("e" . "Effort table")
+       ("ei" "today"
+        ((org-ql-search-block `(or (todo ,org-warning-keyword-0)
+                                   (todo ,org-todo-keyword-2)
+                                   (and (clocked :on today)
+                                        (or (todo) (done))
+                                        (not (habit))
+                                        (not (tags "web"))))
+                              ((org-ql-block-header "Today's task"))))
+        ((org-agenda-overriding-header "Today's Task")
+         (org-overriding-columns-format "%26ITEM(Task) %Effort(Effort){:} %CLOCKSUM_T(Today){:} %CLOCKSUM(Total)")
+         (org-agenda-view-columns-initially t)
+         (org-agenda-sorting-strategy '(todo-state-up priority-down deadline-up))))
+       ("eg" "this week"
+        ((org-ql-search-block `(or (todo ,org-warning-keyword-0)
+                                   (todo ,org-todo-keyword-1)
+                                   (todo ,org-todo-keyword-2))
+                              ((org-ql-block-header "This Week's task"))))
+        ((org-agenda-overriding-header "This Week's Task")
+         (org-overriding-columns-format "%26ITEM(Task) %Effort(Effort){:} %CLOCKSUM_T(Today){:} %CLOCKSUM(Total)")
+         (org-agenda-view-columns-initially t)
+         (org-agenda-sorting-strategy '(todo-state-up priority-down deadline-up))))
+       ("ed" "done task"
+        ((org-ql-search-block `(or (todo ,org-done-keyword-0)
+                                   (todo ,org-done-keyword-1)
+                                   (todo ,org-done-keyword-2))
+                              ((org-ql-block-header "Done task"))))
+        ((org-agenda-overriding-header "Done Task")
+         (org-overriding-columns-format "%26ITEM(Task) %Effort(Effort){:} %CLOCKSUM(Total){:}")
+         (org-agenda-view-columns-initially t)
+         (org-agenda-sorting-strategy '(todo-state-up priority-down deadline-up))))
+       ("i" "Today's agenda"
+        ((todo "Today's agenda"
+               ((org-agenda-sorting-strategy '(priority-up))))
+         (org-ql-search-block `(heading ,(format-time-string "%Y-%m-%d %A"))
+                              ((org-agenda-files `(,(my/org-archive-file)))
+                               (org-ql-block-header "Today's tree node")))
+         (org-ql-search-block `(or (todo ,org-warning-keyword-0)
+                                   (todo ,org-todo-keyword-2))
+                              ((org-ql-block-header "Today's task")))
+         (org-ql-search-block `(and (planning :on today)
+                                    (not (todo ,org-todo-keyword-2
+                                               ,org-done-keyword-0
+                                               ,org-done-keyword-1
+                                               ,org-done-keyword-2))
+                                    (not (tags "web"))
+                                    (not (habit)))
+                              ((org-ql-block-header "Scheduled/Deadlined on today")))
+         (org-ql-search-block `(and (habit)
+                                    (todo ,org-todo-keyword-0)
+                                    (scheduled :to today)
+                                    (not (tags "bad_habit"))
+                                    (not (tags-inherited "ARCHIVE")))
+                              ((org-ql-block-header "Habits to take")))
+         (org-ql-search-block `(and (ts-active :on today)
+                                    (not (or (todo ,org-todo-keyword-2)
+                                             (habit) (done))))
+                              ((org-ql-block-header "Today's common event")))
+         (org-ql-search-block '(and (done)
+                                    (closed :on today))
+                              ((org-ql-block-header "Completed tasks on today")))))
+       ("g" "This Week's agenda"
+        ((org-ql-search-block `(heading ,(format-time-string "%G-W%V"))
+                              ((org-agenda-files `(,(my/org-archive-file)))
+                               (org-ql-block-header "This week's tree")))
+         (org-ql-search-block `(or (todo ,org-todo-keyword-1))
+                              ((org-ql-block-header "This week's tasks")))
+         (org-ql-search-block `(or (todo ,org-warning-keyword-0)
+                                   (todo ,org-todo-keyword-2))
+                              ((org-ql-block-header "Today's tasks")))
+         (org-ql-search-block `(and (planning :from 0 :to 6)
+                                    (not (todo ,org-todo-keyword-2
+                                               ,org-done-keyword-0
+                                               ,org-done-keyword-1
+                                               ,org-done-keyword-2))
+                                    (not (tags "web"))
+                                    (not (habit)))
+                              ((org-ql-block-header "Scheduled/Deadlined this week")))
+         (org-ql-search-block `(and (and (ts-active :from 0 :to 6)
+                                         (not (deadline))
+                                         (not (scheduled))
+                                         (not (closed)))
+                                    (not (or (todo ,org-todo-keyword-1
+                                                   ,org-todo-keyword-2)
+                                             (done))))
+                              ((org-ql-block-header "This week's common event"))))
+        ((org-agenda-sorting-strategy
+          '(todo-state-up priority-down deadline-up))))
+       ("c" "actionable thing list"
+        ((org-ql-search-block `(and (todo ,org-todo-keyword-3)
+                                    (not (deadline :to -1)))
+                              ((org-ql-block-header "Doable things"))))
+        ((org-agenda-sorting-strategy
+          '(todo-state-up priority-down deadline-up))))
+       ("n" "Anniversary"
+        ((org-ql-search-block `(heading ,(let ((week-ago (decode-time)))
+                                           (cl-incf (nth 3 week-ago) -7)
+                                           (format-time-string "%Y-%m-%d %A"
+                                                               (apply #'encode-time
+                                                                      week-ago))))
+                              ((org-ql-block-header "One week ago")))
+         (org-ql-search-block `(heading ,(let ((month-ago (decode-time)))
+                                           (cl-incf (nth 4 month-ago) -1)
+                                           (format-time-string "%Y-%m-%d %A"
+                                                               (apply #'encode-time
+                                                                      month-ago))))
+                              ((org-ql-block-header "One month ago")))
+         (org-ql-search-block `(heading ,(let ((half-a-year-ago (decode-time)))
+                                           (cl-incf (nth 4 half-a-year-ago) -6)
+                                           (format-time-string "%Y-%m-%d %A"
+                                                               (apply #'encode-time
+                                                                      half-a-year-ago))))
+                              ((org-ql-block-header "Half a year ago")))
+         (org-ql-search-block `(heading ,(let ((year-ago (decode-time)))
+                                           (cl-incf (nth 5 year-ago) -1)
+                                           (format-time-string "%Y-%m-%d %A"
+                                                               (apply #'encode-time
+                                                                      year-ago))))
+                              ((org-ql-block-header "One year ago"))))
+        ((org-agenda-files `,(my/org-archive-files))))
+       ("t" "All tasks"
+        ((org-ql-search-block `(todo ,org-warning-keyword-0)
+                              ((org-ql-block-header "Urgent task")))
+         (org-ql-search-block `(todo ,org-todo-keyword-2)
+                              ((org-ql-block-header "Today's task")))
+         (org-ql-search-block `(todo ,org-todo-keyword-1)
+                              ((org-ql-block-header "This week's task")))
+         (org-ql-search-block `(todo ,org-todo-keyword-4)
+                              ((org-ql-block-header "Someday's entries on agenda files")))
+         (org-ql-search-block `(and (todo ,org-todo-keyword-0)
+                                    (not (habit)))
+                              ((org-ql-block-header "Remaining task")))))
+       ("d" "Done tasks"
+        ((org-ql-search-block '(done)
+                              ((org-ql-block-header "Done/Canceled/Pending task")))))
+       ("#" "stuck project"
+        ((org-ql-search-block `(and (tags "project")
+                                    ;; exclude projects
+                                    (not (children (todo ,org-todo-keyword-0
+                                                         ,org-todo-keyword-1
+                                                         ,org-todo-keyword-2
+                                                         ,org-todo-keyword-3))))
+                              ((org-ql-block-header "Stuck projects")))))
+       ("p" "Projects" tags "+project")
+       ("h" "Habits in consistency graph"
+        agenda ""
+        ((org-agenda-span 'day)
+         (org-agenda-use-time-grid nil)
+         (org-agenda-prefix-format '((agenda . "")))
+         (org-habit-show-all-today t)
+         (org-habit-graph-column 32)
+         (org-habit-preceding-days 14)
+         (org-habit-following-days 21)
+         (org-agenda-sorting-strategy '(scheduled-up))
+         ;; display habits only
+         (org-agenda-skip-function
+          (lambda ()
+            (and (save-excursion
+                   (not (org-is-habit-p)))
+                 (progn (outline-next-heading) (point)))))))
+       ("H" "show all habits"
+        ((org-ql-search-block '(habit)
+                              ((org-ql-block-header "All Habits"))))
+        ((org-agenda-sorting-strategy '(scheduled-up))))))
+    :config
+    (dolist (dir '("archive" "index" "wiki"))
+      (mapc (lambda (org-file)
+              (add-to-list 'org-agenda-text-search-extra-files
+                           org-file))
+            (directory-files (expand-file-name dir org-directory)
+                             t
+                             (rx (one-or-more not-newline)
+                                 (or ".org" ".org.gpg")
+                                 line-end)))))
+
+  (defun org-agenda-cmp-latest-clock-log (a b)
+    "Compare two org entry A and B in terms of clock log.
+
+  This function can be used as `org-agenda-cmp-user-defined' in `org-agenda-sorting-strategy'."
+    (let* ((marker-a (get-text-property 1 'org-marker a))
+           (time-a (org-get-latest-clock-log-time marker-a))
+           (marker-b (get-text-property 1 'org-marker b))
+           (time-b (org-get-latest-clock-log-time marker-b)))
+      (if (time-less-p time-a time-b) -1 +1)))
+
+  (defun org-clock-sum-all ()
+    "Sum the times for all agenda files."
+    (interactive)
+    (save-excursion
+      (mapc (lambda (file)
+              (with-current-buffer (or (org-find-base-buffer-visiting file)
+                                       (find-file-noselect file))
+                (org-clock-sum)
+                (org-clock-sum-today)))
+            (org-agenda-files))))
+#+end_src
 ** [[https://github.com/org-roam/org-roam/releases.atom][org-roam]]
 org-roam v2
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org-roam.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org.el")
   (use-package org-roam
     :straight t
     :after org
     :bind (("C-c n l" . org-roam-buffer-toggle-display)
            ("C-c n D" . org-roam-find-directory)
            ("C-c n f" . org-roam-find-file)
-           ("C-c n i" . org-roam-insert))
+           ("C-c n i" . org-roam-insert)
+           :map org-mode-map
+           ("C-M-i" . completion-at-point))
     :custom
     (org-roam-directory (expand-file-name "roam" org-directory))
     ;; DB does not have to be with org files since it is derived from org files uniquely
@@ -358,7 +663,7 @@ org-roam v2
 #+end_src
 ** [[https://gitlab.com/phillord/org-drill/-/tags?format=atom][org-drill]]
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org-drill.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org.el")
   (use-package org-drill
     :init (straight-use-package 'persist)
     :after (org persist)
