@@ -280,6 +280,58 @@ I prefer to rid my emacs experience of mouse as least as possible.
 
   (global-set-key (kbd "C-z") #'repeat)
 #+end_src
+** display
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+  (defvar my-default-pixel-width 2560 "Default display width in pixel.")
+  (defmacro my-adjust-font-size (original)
+    "Adjust original font size to fit in display."
+    `(truncate (* ,original (/ (float (x-display-pixel-width))
+                               ,my-default-pixel-width))))
+
+
+  (create-fontset-from-ascii-font "TakaoGothic" nil "default")
+  (create-fontset-from-ascii-font "TakaoExGothic" nil "variable")
+  (create-fontset-from-ascii-font "Gen Shin Gothic Monospace Light" nil "dense")
+
+  (set-face-attribute 'default
+                      nil
+                      :font "fontset-default"
+                      :height (my-adjust-font-size 660))
+  (set-face-attribute 'variable-pitch
+                      nil
+                      :font "fontset-variable"
+                      :height (my-adjust-font-size 660))
+
+  (use-package face-remap
+    :diminish buffer-face-mode
+    :config
+    (buffer-face-mode 1))
+
+  (use-package modus-themes
+    :straight (modus-themes
+               :host github
+               :repo "protesilaos/modus-themes"
+               :branch "main")
+    :init
+    ;; Add all your customizations prior to loading the themes
+    (setq modus-themes-slanted-constructs t
+          modus-themes-bold-constructs nil
+          modus-themes-region 'no-extend)
+    ;; Load the theme files before enabling a theme
+    (modus-themes-load-themes)
+    :config
+    (modus-themes-load-vivendi))
+
+  (with-eval-after-load 'elfeed
+    (set-face-foreground
+     'elfeed-search-title-face "#4D4D4D")
+    (set-face-foreground
+     'elfeed-search-unchecked-title-face "cornflowerblue")
+    (set-face-foreground
+     'elfeed-search-checked-title-face "darkblue"))
+#+end_src
+
 * built-in packages
 ** auto revert
 [[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
@@ -339,11 +391,258 @@ to avoid accidental data loss.
 * external packages            :elfeed:soft_update:prime:
 #+CALL: release-feed(github-url="https://github.com/org-roam/org-roam")
 
+** org-mode
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org.el")
+  (use-package org
+    :straight t
+    :defer t
+    :diminish ((org-src-mode . "os"))
+    :mode (("\\.org$" . org-mode))
+    :interpreter (("org" . org-mode))
+    :init
+    (add-to-list 'load-path (concat (file-name-as-directory user-emacs-directory) "straight/repos/org/lisp"))
+    (add-to-list 'load-path (concat (file-name-as-directory user-emacs-directory) "straight/repos/org/contrib/lisp"))
+    (defface org-buffer `((t . (:font "fontset-default"
+                                      :height ,(my-adjust-font-size 655))))
+      "Default face in org mode."
+      :group 'org-faces)
+    (defvar org-warning-keyword-0 "UG" "TODO keyword acronym standing for 'UrGent'")
+    (defvar org-todo-keyword-0 "TD" "TODO keyword acronym standing for 'To Do'")
+    (defvar org-todo-keyword-1 "GO" "TODO keyword acronym standing for 'Get On'")
+    (defvar org-todo-keyword-2 "IP" "TODO keyword acronym standing for 'In Progressn'")
+    (defvar org-todo-keyword-3 "AC" "TODO keyword acronym standing for 'doABle'")
+    (defvar org-todo-keyword-4 "SD" "TODO keyword acronym standing for 'SomeDay'")
+    (defvar org-done-keyword-0 "DN" "TODO keyword acronym standing for 'DoNe'")
+    (defvar org-done-keyword-1 "CX" "TODO keyword acronym standing for 'Cancel'")
+    (defvar org-done-keyword-2 "PD" "TODO keyword acronym standing for 'PenDing'")
+    :custom
+    (org-directory (expand-file-name "~/org"))
+    (org-special-ctrl-a/e t)
+    (org-adapt-indentation nil)
+    (org-hide-emphasis-markers t)
+    (org-bookmark-names-plist nil)
+    ;; inline image
+    (org-startup-with-inline-images t)
+    (org-display-remote-inline-images 'cache)
+    ;; do not split line at point
+    (org-M-RET-may-split-line '((default . nil)))
+    :config
+    (require 'org-habit)
+    (require 'org-mu4e)
+
+    ;; local key bindings
+    (bind-keys :map org-mode-map
+               ("C-j"     . org-return)
+               ("C-m"     . org-return-indent)
+               ("M-j"     . org-meta-return)
+               ("C-S-p"   . org-previous-item)
+               ("C-S-n"   . org-next-item)
+               ("C-S-u"   . org-up-element)
+               ("C-$"     . org-down-element)
+               ("C-<"     . org-previous-link)
+               ("C->"     . org-next-link)
+               ("C-c @"   . org-mark-element)
+               ("C-c C-SPC" . org-mark-subtree)
+               ("C-c D v" . org-download-video-link-at-point)
+               ("C-c D a" . org-download-audio-link-at-point)
+               ("C-c D =" . org-show-media-duration-at-point)
+               ("C-c !"   . org-readable)
+               ("C-c C-a" . nil)
+               ("C-,"     . nil)
+               ("M-h"     . nil)
+               ("C-M-m"   . hydra-lazy-control/body))
+
+    ;; attach
+    (setq org-attach-preferred-new-method nil)
+
+    ;; link
+    (setq org-confirm-elisp-link-function nil) ; do not confirm when execute elisp
+    (org-link-set-parameters
+     "src" :follow #'org-babel-ref-resolve)
+    (defun org-open-at-point-link ()
+      "This function is responsible for org links when user calls `org-open-at-point'."
+      (let* ((context (org-element-lineage
+                       (org-element-context)
+                       '(link)
+                       t))
+             (type (org-element-property :type context))
+             (path (org-element-property :path context))
+             (app (org-element-property :application context))
+             (search-option (org-element-property :search-option context)))
+        (if (stringp type)
+            (cond
+             ((string-match-p "https?" type)
+              (let ((url-pos (split-location-uri (org-link-unescape (concat type ":" path)))))
+                (cl-case (prefix-numeric-value current-prefix-arg)
+                  (16 (browse-url-default-browser (car url-pos)))
+                  (4 (eww-browse-url (car url-pos)))
+                  (t (open-url (car url-pos) (cadr url-pos))))
+                t))
+             ((string= type "file")
+              (let ((line-search (cond ((not search-option) nil)
+                                       ((string-match-p "\\`[0-9]+\\'" search-option)
+                                        (list (string-to-number search-option)))
+                                       (t (list nil search-option)))))
+                (apply #'my/org-open-file
+                       path
+                       (cond
+                        ((equal app "sys") 'system)
+                        ((equal app "emacs") 'emacs)
+                        (t nil))
+                       line-search))
+              t))
+          (open-thing-at-point))))
+    (add-to-list 'org-open-at-point-functions 'org-open-at-point-link)
+    (setq org-file-apps
+          '((t . (lambda (file-path link-string)
+                   (my/view-file file-path)))))
+    (org-add-link-type
+     "sudo"
+     (lambda (cmd)
+       "Run CMD with sudo."
+       (shell-command
+        (concat "echo " (shell-quote-argument (read-passwd "Password? "))
+                " | sudo -S " cmd))))
+
+    ;; basic
+    (setq org-hide-leading-stars t)
+    (setq org-comment-string "####")
+    (setq org-pretty-entities t)
+    (setq org-use-sub-superscripts '{}) ; use _{}/^{} for sub/super script
+
+    ;; display
+    (add-hook 'org-mode-hook
+              (lambda ()
+                (whitespace-mode 1)
+                (buffer-face-set 'org-buffer)
+                (setq-local truncate-lines t)))
+
+    ;; tag/property
+    (setq org-use-tag-inheritance "ARCHIVE")
+    (setq org-tags-column -57)
+    (setq org-global-properties
+          '(("Effort_ALL". "0 0:10 0:20 0:30 1:00 1:30 2:00 3:00 4:00 6:00 8:00")))
+    (setq org-use-property-inheritance "TIMELIMIT.*")
+    (setq org-highest-priority ?A)
+    (setq org-lowest-priority ?Z)
+    (setq org-default-priority ?E)
+
+    ;; todo
+    (setq org-enforce-todo-dependencies t)
+    (setq org-todo-keywords
+          `((sequence ,(format "%s(t/!)" org-todo-keyword-0)
+                      ,(format "%s(u/!)" org-warning-keyword-0)
+                      ,(format "%s(g/!)" org-todo-keyword-1)
+                      ,(format "%s(i/!)" org-todo-keyword-2)
+                      "|"
+                      ,(format "%s(d/@)" org-done-keyword-0)
+                      ,(format "%s(x/@)" org-done-keyword-1)
+                      ,(format "%s(p/@)" org-done-keyword-2))
+            (sequence ,(format "%s(a/!)" org-todo-keyword-3)
+                      "|"
+                      ,(format "%s(d/@)" org-done-keyword-0)
+                      ,(format "%s(x/@)" org-done-keyword-1)
+                      ,(format "%s(p/@)" org-done-keyword-2))
+            (sequence ,(format "%s(t/!)" org-todo-keyword-0)
+                      ,(format "%s(s/!)" org-todo-keyword-4)
+                      "|"
+                      ,(format "%s(x/@)" org-done-keyword-1)
+                      ,(format "%s(p/@)" org-done-keyword-2))))
+    (setq org-todo-keyword-faces
+          `((,org-warning-keyword-0 . "red1")
+            (,org-todo-keyword-0    . "green1")
+            (,org-todo-keyword-1    . "DeepPink1")
+            (,org-todo-keyword-2    . "DodgerBlue1")
+            (,org-todo-keyword-3    . "chocolate")
+            (,org-todo-keyword-4    . "SpringGreen")
+            (,org-done-keyword-0    . "gray30")
+            (,org-done-keyword-1    . "dark gray")
+            (,org-done-keyword-2    . "sea green")))
+    (add-hook  'org-after-todo-state-change-hook
+               (lambda ()
+                 (save-excursion
+                   (let* ((element (org-element-at-point))
+                          (todo-state (org-get-todo-state))
+                          (tags (org-get-tags))
+                          (priority (org-element-property :priority element))
+                          (category (org-entry-get (point) "CATEGORY"))
+                          (style (org-entry-get (point) "STYLE")))
+                     ;; remove priority level when the to-do state is changed to DN|CX|PD
+                     (when (and
+                            (s-matches? (format "%1$s\\|%2$s\\|%3$s"
+                                                org-done-keyword-0
+                                                org-done-keyword-1
+                                                org-done-keyword-2)
+                                        todo-state)
+                            (bound-and-true-p priority))
+                       (org-priority ? ))
+                     ;; remove DN state if CATEGORY of the entry is "Cyclic"
+                     (when (and (string= category "Cyclic")
+                                (string= todo-state org-done-keyword-0)
+                                (not (member "web" tags))
+                                (not (string= style "habit")))
+                       (org-todo ""))))))
+    (add-hook 'org-after-todo-statistics-hook
+              (lambda (n-done n-not-done)
+                "Switch project entry to DONE when all subentries are done, to empty otherwise."
+                (when (member "project" (org-get-tags))
+                  (org-todo (if (= n-not-done 0)
+                                (prog1 org-done-keyword-0
+                                  (org-add-planning-info 'closed "now"))
+                              "")))))
+
+    ;; time
+    (setq org-duration-format
+          '(("d" . nil)
+            (special . h:mm)))
+
+    ;; time-stamp
+    (setq org-time-stamp-custom-formats
+          '("<%m-%d %a>" . "<%H:%M>"))
+    (defun org-display-iso-week-at-point ()
+      "Display ISO 8601 week number correspoinds to time stamp at point."
+      (interactive)
+      (let ((ts (org-timestamp-at-point)))
+        (when ts
+          (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil))))))
+    (defun org-timestamp-at-point ()
+      "Return time stamp string at point."
+      (let ((ts-bound (org-in-regexp (org-re-timestamp 'all))))
+        (when ts-bound
+          (buffer-substring (car ts-bound) (cdr ts-bound)))))
+
+    ;; logging
+    (setq org-log-done 'time)
+    (setq org-log-into-drawer t)
+    (setq org-log-states-order-reversed t)
+    (setq org-reverse-note-order nil)
+    (add-hook 'org-log-buffer-setup-hook
+              (lambda ()
+                (setq skk-dcomp-activate 'eolp)
+                (setq skk-dcomp-multiple-activate nil)))
+
+    ;; clock table
+    ;;; work around for the bug in emacs 25
+    (defalias 'calendar-absolute-from-iso 'calendar-iso-to-absolute)
+
+    ;; image
+    (setq org-image-actual-width 100)
+
+    ;; structure template
+    (add-to-list 'org-structure-template-alist (cons "sh" "src shell"))
+    (add-to-list 'org-structure-template-alist (cons "el" "src emacs-lisp"))
+    (add-to-list 'org-structure-template-alist (cons "py" "src python"))
+
+    ;; src
+    (setq org-src-window-setup 'current-window))
+#+end_src
+
 ** org-agenda
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org.el")
   (use-package org-agenda
-    :after (org org-ql)
+    :after (org org-ql my/org-archive)
     :bind (:map org-agenda-mode-map
                 ("C-j" . org-agenda-switch-to)
                 ("T" . counsel-org-tag-agenda)
@@ -642,6 +941,118 @@ to avoid accidental data loss.
                 (org-clock-sum-today)))
             (org-agenda-files))))
 #+end_src
+
+** org-capture
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org.el")
+  (use-package org-capture
+    :after (org my/org-archive)
+    :hook
+    (org-capture-mode . (lambda ()
+                          (skk-mode 1)
+                          (delete-other-windows)))
+    :custom
+    (org-capture-bookmark nil)
+    (org-capture-templates
+     `(("t" "Task"
+        entry (id "adcd63ea-f81a-4909-b659-6e5794052fcc")
+        ,(format "* %s %%?\n %%U\n"
+                 org-todo-keyword-0))
+       ("p" "Project"
+        entry (id "adcd63ea-f81a-4909-b659-6e5794052fcc")
+        "* %? [/] :project:\n %U\n  - [ ] insert ID property if necessary"
+        :prepend t :jump-to-captured t)
+       ("m" "Memo"
+        entry (file+datetree ,my/org-archive-file)
+        "* %? %^g\n %U\n" :tree-type week)
+       ("j" "Jotting down"
+        entry (file "~/org/note/memo.org")
+        "* %^{Title: }\n%U\n%?")
+       ("s" "Someday memo")
+       ("ss" "any"
+        entry (file+datetree ,my/org-archive-file)
+        ,(format "* %s %%?\n %%U\n  %%a"
+                 org-todo-keyword-4)
+        :tree-type week)
+       ("sr" "purchase book"
+        entry (file+datetree ,my/org-archive-file)
+        ,(format "* %s %%? :ac_purchase:book:\n   %%U\n  %%a"
+                 org-todo-keyword-4)
+        :tree-type week)
+       ("sc" "cook"
+        entry (file+datetree ,my/org-archive-file)
+        ,(format "* %s %%? :ac_cook:\n   %%U\n  %%a"
+                 org-todo-keyword-4)
+        :tree-type week)
+       ("sp" "purchase"
+        entry (file+datetree ,my/org-archive-file)
+        ,(format "* %s %%? :ac_purchase:\n   %%U\n  %%a"
+                 org-todo-keyword-4)
+        :tree-type week)
+       ("D" "Drill")
+       ("Dd" "Drill entry in currently clocking or today's entry."
+        entry (function org-goto-clocking-or-today)
+        "* %i :drill:\n[%?]")
+       ("De" "English drill entry in currently clocking or today's entry."
+        entry (function org-goto-clocking-or-today)
+        "* %i :drill:fd_en:\n[%^C%?]\n- %a")
+       ("M" "Append memo to clocking task"
+        item (clock)
+        "- %i%?"))))
+
+  (defun org-goto-clocking-or-today ()
+    "Go to currently clocking entry.
+
+  If no entry is clocked or CATEGORY on clocking entry is \"Cyclic\",
+  go to today's entry in record file."
+    (if (and (org-clocking-p)
+             (save-excursion
+               (with-current-buffer (org-clocking-buffer)
+                 (org-clock-jump-to-current-clock)
+                 (org-back-to-heading)
+                 (not (string=
+                       (org-entry-get (point) "CATEGORY" t)
+                       "Cyclic")))))
+        (org-clock-goto)
+      (let* ((now (decode-time (current-time)))
+             (day (nth 3 now))
+             (month (nth 4 now))
+             (year (nth 5 now))
+             (org-refile-targets
+              `((,my/org-archive-file :regexp . ,(format "%04d-%02d-%02d" year month day)))))
+        (find-file my/org-archive-file)
+        (org-datetree-find-iso-week-create `(,month ,day ,year) nil))))
+#+end_src
+
+** org-ql
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org.el")
+  (use-package org-ql
+    :straight t
+    :after org
+    :custom
+    (org-ql-search-directories-files-recursive t)
+    :config
+    (require 'org-ql-search)
+    (org-ql-defpred (tags-expanded expanded-tags tags-x xtags) (&rest tags)
+      "Return non-nil if current heading has one or more of TAGS.
+  If TAGS contains a group tag, all tags in the group is used to match.
+  Both inherited and local tags is tested."
+      :normalizers ((`(,predicate-names . ,tags)
+                     `(tags-expanded ,@tags)))
+      :body (apply #'org-ql--predicate-tags
+                   (seq-uniq (--mapcat (org-tags-expand it t)
+                                       tags))))
+    (org-ql-defpred (category-inherited) (&rest categories)
+      "Return non-nil if current heading has CATEGORY.
+  Ancestors are looked up If current heading has no CATEGORY."
+      :body (when-let ((category (or (org-get-category (point))
+                                     (org-entry-get (point) "CATEGORY" t))))
+              (cl-typecase categories
+                (null t)
+                (otherwise (member category categories))))))
+#+end_src
+
 ** [[https://github.com/org-roam/org-roam/releases.atom][org-roam]]
 org-roam v2
 
