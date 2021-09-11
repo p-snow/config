@@ -5,10 +5,15 @@
 
 #+STARTUP: overview
 
-* init process
+* init lisp code               :elfeed:soft_update:prime:
+#+CALL: release-feed(github-url="https://github.com/dfeich/org-clock-convenience")
+
+** early processing
 These process must be evaluated beforehand.
 
-** use-package
+*** [[https://github.com/jwiegley/use-package/releases.atom][use-package]] installation
+
+[[https://jwiegley.github.io/use-package/][Official manual]] is handy especially when you look up [[https://jwiegley.github.io/use-package/keywords/][Keywords]].
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/00-early-init.el")
   ;; install straight.el
@@ -37,16 +42,20 @@ These process must be evaluated beforehand.
   (use-package delight :straight t)
   (use-package use-package-ensure-system-package :straight t)
 #+end_src
-** include libraries
+*** library including
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/00-early-init.el")
   (require 'cl-lib)
 #+end_src
-* basic tweaks
-** language
+** basic tweaks
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".config/emacs/init.el")
+:END:
+
+*** language
 [[info:emacs#Language Environments][emacs#Language Environments]]
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+#+begin_src emacs-lisp
   ;; language and locale
   (set-language-environment "Japanese")
   (setq system-time-locale "C")
@@ -63,7 +72,7 @@ These process must be evaluated beforehand.
   (set-keyboard-coding-system 'utf-8-unix)
   (setq locale-coding-system 'utf-8-unix)
 #+end_src
-** visual facets
+*** visual facets
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
   ;; do not use basic GUI facets
@@ -82,7 +91,7 @@ These process must be evaluated beforehand.
   (setf initial-scratch-message "")
   (setf inhibit-startup-screen t)
 #+end_src
-** file hnadling
+*** file handling
 File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of Files]].
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
@@ -106,7 +115,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (setq auto-save-interval 100)
   (setq auto-save-timeout 10)
 #+end_src
-** modifier keys
+*** modifier keys
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
   (cond
@@ -123,7 +132,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
           mac-right-control-modifier 'super
           mac-function-modifier      'hyper)))
 #+end_src
-** mark/region
+*** mark/region
 Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
@@ -135,7 +144,7 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
   (delete-selection-mode t)
 #+end_src
 
-** minibuffer
+*** minibuffer
 [[help:savehist-mode][savehist-mode]] saves minibuffer history and additionals.
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
@@ -164,7 +173,7 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
   (minibuffer-depth-indicate-mode 1)
 #+end_src
 
-** displaying
+*** displaying
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
   (setf scroll-step 1)
@@ -182,7 +191,7 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
     (set-frame-parameter nil 'fullscreen 'fullboth))
 #+end_src
 
-** text handling
+*** text handling
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
   (setq-default fill-column 80)
@@ -191,7 +200,7 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
   (setf text-quoting-style 'straight)
 #+end_src
 
-** indent
+*** indent
 customization for [[info:emacs#Indentation][indentation]]
 See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
 
@@ -203,7 +212,7 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
   (electric-indent-mode 1)
 #+end_src
 
-** whitespace
+*** whitespace
 [[info:emacs#Useless Whitespace][emacs#Useless Whitespace]]
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
@@ -224,7 +233,7 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
     (global-whitespace-mode -1))
 #+end_src
 
-** performance
+*** performance
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
   (setq gc-cons-threshold (* 10 gc-cons-threshold))
@@ -237,20 +246,20 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
   (setq next-screen-context-lines 2)
 #+end_src
 
-** customization
+*** customize buffer
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  (setf custom-file
-        (expand-file-name "custom.el" user-emacs-directory))
+  (custom-set-variables
+   '(custom-file (expand-file-name "custom.el" user-emacs-directory)))
 #+end_src
 
-** killing
+*** killing
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
   (custom-set-variables '(yank-pop-change-selection t))
 #+end_src
 
-** mouse
+*** mouse
 I prefer to rid my emacs experience of mouse as least as possible.
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
@@ -261,7 +270,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :config
     (mouse-wheel-mode 0))
 #+end_src
-** key (re)bindings
+*** key (re)bindings
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
   (substitute-key-definition 'upcase-region
@@ -280,7 +289,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
 
   (global-set-key (kbd "C-z") #'repeat)
 #+end_src
-** display
+*** display
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
   (defvar my-default-pixel-width 2560 "Default display width in pixel.")
@@ -332,11 +341,10 @@ I prefer to rid my emacs experience of mouse as least as possible.
      'elfeed-search-checked-title-face "darkblue"))
 #+end_src
 
-* built-in packages
-** auto revert
+*** auto revert
 [[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+#+begin_src emacs-lisp
   (use-package autorevert
     :diminish (global-auto-revert-mode auto-revert-mode)
     :custom
@@ -345,20 +353,20 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :config
     (global-auto-revert-mode 1))
 #+end_src
-** uniquify
+*** uniquify
 [[info:emacs#Uniquify][Uniquify]] makes buffer names unique.
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+#+begin_src emacs-lisp
   (use-package uniquify
     :custom
     (uniquify-buffer-name-style 'forward)
     ;; (uniquify-ignore-buffers-re "*[^*]+*")
     )
 #+end_src
-** recentf
+*** recentf
 [[info:emacs#File Conveniences][emacs#File Conveniences]]
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+#+begin_src emacs-lisp
   (use-package recentf
     :custom
     (recentf-exclude '(".gz" ".xz" ".zip"))
@@ -369,31 +377,14 @@ I prefer to rid my emacs experience of mouse as least as possible.
     ;; (recentf-load-list)
     (recentf-mode 1))
 #+end_src
-* handy functions
-** power management
-Shut down emacs automatically when remaining power of laptop PC lower than [[help:battery-load-low][battery-load-low]]
-to avoid accidental data loss.
+** org mode
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".config/emacs/org.el")
+:END:
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  (require 'battery)
+*** org
 
-  (run-with-timer 60 60 #'kill-emacs-auto)
-
-  (defun kill-emacs-auto ()
-    "Kill Emacs if remaining machine power lower than `battery-load-low'."
-    (let* ((data (and battery-status-function (funcall battery-status-function)))
-           (percentage (car (read-from-string (cdr (assq ?p data)))))
-           (power (cdr (assq ?L data))))
-      (when (and (< percentage battery-load-low)
-                 (string= power "BAT"))
-        (save-buffers-kill-emacs t))))
-#+end_src
-* external packages            :elfeed:soft_update:prime:
-#+CALL: release-feed(github-url="https://github.com/org-roam/org-roam")
-
-** org-mode
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org.el")
+#+begin_src emacs-lisp
   (use-package org
     :straight t
     :defer t
@@ -638,9 +629,9 @@ to avoid accidental data loss.
     (setq org-src-window-setup 'current-window))
 #+end_src
 
-** org-agenda
+*** org-agenda
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org.el")
+#+begin_src emacs-lisp
   (use-package org-agenda
     :after (org org-ql my/org-archive)
     :bind (:map org-agenda-mode-map
@@ -940,11 +931,35 @@ to avoid accidental data loss.
                 (org-clock-sum)
                 (org-clock-sum-today)))
             (org-agenda-files))))
+
+  (defun org-get-latest-clock-log-time (pom)
+    "Get the latest clock log time stamp in org entry at POM as a time object.
+
+  If entry at POM has no clock log time stamp, this function returns 0."
+    (org-with-point-at pom
+      (save-excursion
+        (setq end-of-subtree (org-end-of-subtree))
+        (setq latest-time 0)
+        (org-back-to-heading t)
+        (org-show-all)
+        (while (re-search-forward org-drawer-regexp end-of-subtree t)
+          (when (string= (match-string 1) (org-clock-drawer-name))
+            (while (progn
+                     (forward-line 1)
+                     (when (org-match-line org-clock-ts-line-re)
+                       (setq match-ts
+                             (if (match-string 3)
+                                 (match-string 3) (match-string 1)))
+                       (when (time-less-p latest-time
+                                          (apply 'encode-time (parse-time-string match-ts)))
+                         (setq latest-time (apply 'encode-time (parse-time-string match-ts)))))
+                     (not (org-match-line org-clock-drawer-end-re))))))))
+    latest-time)
 #+end_src
 
-** org-capture
+*** org-capture
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org.el")
+#+begin_src emacs-lisp
   (use-package org-capture
     :after (org my/org-archive)
     :hook
@@ -1024,9 +1039,298 @@ to avoid accidental data loss.
         (org-datetree-find-iso-week-create `(,month ,day ,year) nil))))
 #+end_src
 
-** org-ql
+*** org-timer and org-clock
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org.el")
+#+begin_src emacs-lisp
+  (use-package org-timer
+    :after org
+    :hook
+    (org-timer-done . (lambda ()
+                        (when (and (org-clocking-p)
+                                   org-clock-marker)
+                          (let ((alert (org-entry-get org-clock-marker
+                                                      "ALERT")))
+                            (if (and (stringp alert)
+                                     (string= alert "alarm"))
+                                (alert "Timer Done!" :style 'alarm)
+                              (alert "Timer Done!" :style 'fringe :mode 'org-mode :buffer (org-clocking-buffer) :severity 'trivial)))))))
+
+  (use-package org-clock
+    :after org
+    :hook
+    ((org-clock-in org-clock-out org-clock-cancel) . save-buffer)
+    (org-clock-in . my/org-clock-in-set-timer)
+    (org-clock-out . my/org-clock-out-have-a-break)
+    ((org-clock-out org-clock-cancel) .
+     (lambda () (and org-timer-countdown-timer
+                     (org-timer-stop))))
+    :custom
+    (org-clock-out-when-done t)
+    (org-clock-persist t)
+    (org-clock-persist-query-resume nil)
+    (org-clock-string-limit 20)
+    (org-clock-continuously t)
+    (org-clock-ask-before-exiting nil)
+    :config
+    (org-clock-persistence-insinuate)
+    (defconst org-clock-ts-line-re
+      (concat "^[ \t]*" org-clock-string "[ \t]*" org-tsr-regexp-both)
+      "Matches a line with clock time stamp."))
+
+  ;;;###autoload
+  (defun my/org-clock-in-set-timer ()
+    "Start count down timer for a clocked in entry.
+
+  If the entry has ATTENTION_SPAN property, use it for `org-timer-default-timer'.
+  Otherwise count down time is Effort property value.
+  In neither case, count down time is 25 min which is suggested in the Pomodoro-technique."
+    (let ((todo (org-get-todo-state))
+          (attention-span (org-entry-get (point) "ATTENTION_SPAN" 'selective))
+          (effort (org-entry-get (point) "Effort" 'selective)))
+      (cond
+       ((stringp attention-span)
+        (let ((org-timer-default-timer attention-span))
+          (org-timer-set-timer '(64))))
+       ((and (stringp effort)
+             (ts< (ts-parse effort) (ts-parse "01:40")))
+        (org-timer-set-timer '(16)))
+       (todo
+        (let ((org-timer-default-timer "25"))
+          (org-timer-set-timer '(64)))))))
+
+  ;;;###autoload
+  (defun my/org-clock-out-have-a-break ()
+    (when (org-get-todo-state)
+      (org-id-goto "d49d97de-58ec-4e41-b58c-491a9e216e1c")
+      (org-clock-in)
+      (org-save-all-org-buffers)))
+#+end_src
+
+*** org-refile
+
+#+begin_src emacs-lisp
+  (use-package org-refile
+    :after org
+    :custom
+    (org-refile-targets
+     `((org-agenda-files :tag . "project")
+       (,(directory-files-recursively org-directory "\\.org$") :tag . "refile"))))
+#+end_src
+
+*** org-plot
+
+#+begin_src emacs-lisp
+  (use-package org-plot
+    :straight gnuplot gnuplot-mode
+    :after org)
+#+end_src
+
+*** org-id
+
+#+begin_src emacs-lisp
+  (use-package org-id
+    :after org
+    :custom
+    (org-id-locations-file
+     (expand-file-name ".org-id-locations" org-directory))
+    (org-id-track-globally t)
+    (org-id-extra-files
+     (append org-agenda-text-search-extra-files))
+    (org-id-link-to-org-use-id 'create-if-interactive))
+#+end_src
+
+*** org-archive
+
+#+begin_src emacs-lisp
+  (use-package org-archive
+    :after org
+    :custom
+    (org-archive-default-command 'org-archive-set-tag)
+    (org-cycle-open-archived-trees t))
+#+end_src
+
+*** org-list
+
+#+begin_src emacs-lisp
+  (use-package org-list
+    :after org
+    :custom
+    (org-list-demote-modify-bullet '(("-" . "+") ("+" . "-") ("*" . "-")
+                                     ("1." . "1)") ("1)" . "1.") ("*" . "1.")))
+    (org-cycle-include-plain-lists 'integrate)
+    (org-list-use-circular-motion t)
+    (org-list-allow-alphabetical t)
+    :config
+    (setf org-list-forbidden-blocks nil))
+#+end_src
+
+*** org-indent
+
+#+begin_src emacs-lisp
+  (use-package org-indent
+    :after org
+    :hook (org-mode . org-indent-mode)
+    :custom
+    (org-startup-indented t))
+#+end_src
+
+*** org-crypt
+
+#+begin_src emacs-lisp
+  (use-package org-crypt
+    :after org
+    :custom
+    (org-crypt-key user-mail-address)
+    (org-tags-exclude-from-inheritance '("crypt"))
+    (auto-save-default nil)
+    :config
+    (org-crypt-use-before-save-magic))
+#+end_src
+
+*** org-babel
+
+#+begin_src emacs-lisp
+  (use-package ob-core
+    :after org
+    :custom
+    (org-confirm-babel-evaluate nil)
+    :config
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((C        . t)
+       (java     . t)
+       (R        . t)
+       (shell    . t)
+       (ruby     . t)
+       (python   . t)
+       (org      . t)
+       (lua      . t)
+       (gnuplot  . t)
+       (dot      . t)
+       (plantuml . t)
+       (lilypond . t)))
+    (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
+    (cond
+     ((string= system-type "gnu/linux")
+      (custom-set-variables '(org-plantuml-jar-path "~/var/lib/plantuml/plantuml.jar")))
+     ((string= system-type "darwin")
+      (custom-set-variables '(org-plantuml-jar-path "/usr/local/Cellar/plantuml/8041/plantuml.8041.jar")))))
+#+end_src
+
+**** [[https://github.com/astahlman/ob-async/releases.atom][ob-async]]
+
+#+begin_src emacs-lisp
+  (use-package ob-async
+    :straight t
+    :after ob-core)
+#+end_src
+
+*** org-export
+
+#+begin_src emacs-lisp
+  (use-package ox
+    :defer t
+    :after org
+    :custom
+    (org-export-with-smart-quotes t)
+    (org-export-with-emphasize t)
+    (org-export-with-special-strings t)
+    (org-export-with-fixed-width t)
+    (org-export-with-timestamps t)
+    (org-export-preserve-breaks nil)
+    (org-export-with-sub-superscripts nil)
+    (org-export-with-archived-trees 'headline)
+    (org-export-with-author nil)
+    (org-export-with-broken-links 'mark)
+    (org-export-with-clocks nil)
+    (org-export-with-creator nil)
+    (org-export-with-drawers '(not "LOGBOOK"))
+    (org-export-with-date nil)
+    (org-export-with-entities t)
+    (org-export-with-email nil)
+    (org-export-with-footnotes t)
+    (org-export-headline-levels 5)
+    (org-export-with-inlinetasks t)
+    (org-export-with-section-numbers nil)
+    (org-export-with-planning nil)
+    (org-export-with-priority nil)
+    (org-export-with-properties nil)
+    (org-export-with-statistics-cookies t)
+    (org-export-with-tags nil)
+    (org-export-with-tasks t)
+    (org-export-with-latex t)
+    (org-export-time-stamp-file nil)
+    (org-export-with-title t)
+    (org-export-with-toc nil)
+    (org-export-with-todo-keywords nil)
+    (org-export-with-tables t)
+    (org-export-default-language "ja")
+    (org-export-dispatch-use-expert-ui nil))
+
+  (use-package ox-html
+    :defer t
+    :after ox
+    :custom
+    (org-html-preamble t)
+    (org-html-postamble 'auto)
+    (org-html-with-latex t)
+    (org-html-container-element "div")
+    (org-html-doctype "xhtml-strict"))
+
+  (use-package ox-latex
+    :defer t
+    :after ox
+    :custom
+    (org-latex-pdf-process '("platex %f"
+                             "platex %f"
+                             "bibtex %b"
+                             "platex %f"
+                             "platex %f"
+                             "dvipdfmx %b.dvi"))
+    (org-latex-default-class "jsarticle")
+    :config
+    (add-to-list 'org-latex-classes
+                 '("jsarticle"
+                   "\\documentclass[dvipdfmx,12pt]{jsarticle}"
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+    (add-to-list 'org-latex-classes
+                 `("beamer"
+                   "\\documentclass[presentation,dvipdfmx,18pt]{beamer}\n"
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))))
+
+
+#+end_src
+
+*** org-contrib
+org-contrib is a set of 3rd party add-ons for org-mode.
+
+**** org-contacts
+
+#+begin_src emacs-lisp
+  (use-package org-contacts
+    :after org
+    :straight org-contrib
+    :custom
+    (org-contacts-files `(,(expand-file-name "index/contacts.org.gpg" org-directory))))
+#+end_src
+
+*** [[https://github.com/yjwen/org-reveal/releases.atom][org-reveal]]
+
+#+begin_src emacs-lisp
+  (use-package ox-reveal
+    :straight t
+    :after ox)
+#+end_src
+
+*** [[https://github.com/alphapapa/org-ql/releases.atom][org-ql]]
+
+#+begin_src emacs-lisp
   (use-package org-ql
     :straight t
     :after org
@@ -1053,10 +1357,18 @@ to avoid accidental data loss.
                 (otherwise (member category categories))))))
 #+end_src
 
-** [[https://github.com/org-roam/org-roam/releases.atom][org-roam]]
+*** [[https://github.com/ndwarshuis/org-ml/releases.atom][org-ml]]
+
+#+begin_src emacs-lisp
+  (use-package org-ml
+    :straight t
+    :after org)
+#+end_src
+
+*** [[https://github.com/org-roam/org-roam/releases.atom][org-roam]]
 org-roam v2
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org.el")
+#+begin_src emacs-lisp
   (use-package org-roam
     :straight t
     :after org
@@ -1072,9 +1384,9 @@ org-roam v2
     (org-roam-db-location (expand-file-name "org-roam.db" "~/var/lib/org-roam"))
     (org-roam-buffer-position 'bottom))
 #+end_src
-** [[https://gitlab.com/phillord/org-drill/-/tags?format=atom][org-drill]]
+*** [[https://gitlab.com/phillord/org-drill/-/tags?format=atom][org-drill]]
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org.el")
+#+begin_src emacs-lisp
   (use-package org-drill
     :init (straight-use-package 'persist)
     :after (org persist)
@@ -1089,17 +1401,343 @@ org-roam v2
     (org-drill-overdue-interval-factor 1.6))
 
 #+end_src
-** [[https://github.com/iqbalansari/restart-emacs/releases.atom][restart-emacs]]
+*** [[https://github.com/org-mime/org-mime/releases.atom][org-mime]]
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/restart-emacs.el")
-  (use-package restart-emacs
+#+begin_src emacs-lisp
+  (use-package org-mime
     :straight t
-    :bind ("C-M-<delete>" . restart-emacs))
+    :after org
+    :config
+    (setf (map-elt org-speed-commands "M") #'org-send-email)
+    (push '("Send An Email") org-speed-commands))
 #+end_src
-** [[https://github.com/abo-abo/swiper/releases.atom][swiper/ivy]]
+
+*** [[https://github.com/alphapapa/org-web-tools/releases.atom][org-web-tools]]
+
+#+begin_src emacs-lisp
+  (use-package org-web-tools
+    :straight t
+    :after org
+    :demand t
+    :bind (("C-c C-;" . org-web-tools-insert-link-for-url)))
+#+end_src
+
+*** [[https://github.com/dfeich/org-clock-convenience/releases.atom][org-clock-convenience]]
+
+#+begin_src emacs-lisp
+  (use-package org-clock-convenience
+    :straight t
+    :after (org)
+    :bind (:map org-agenda-mode-map
+                ("@"   . org-clock-convenience-fill-gap)
+                ("C-@" . org-clock-convenience-fill-gap-both)))
+#+end_src
+
+*** custom functions
+
+#+begin_src emacs-lisp
+  (defun my/org-open-file (path &optional in-emacs line search)
+    "docstring"
+    (cl-case (prefix-numeric-value current-prefix-arg)
+      (16 (my/view-file path t))
+      (4 (org-open-file path t line search))
+      (t (cond
+          ((member in-emacs '((16) system))
+           (my/view-file path t))
+          ((member in-emacs '((4) emacs))
+           (org-open-file path t line search))
+          (t (my/view-file path)
+             (when (or line search)
+               (goto-pos (or line search))))))))
+
+  (defun my/org-babel-lob-ingest-batch ()
+    (interactive)
+    (mapc (lambda (dir)
+            (dolist (f (directory-files (expand-file-name dir org-directory) "\.org$"))
+              (org-babel-lob-ingest f)))
+          '("agenda" "index" "wiki")))
+
+  (defvar org-readable-directory "~/var/tmp/readable"
+    "A directory where generated html files are located in org-readable.")
+
+  (defun org-readable ()
+    "Show current org subtree in EWW."
+    (interactive)
+    (let* ((heading (org-get-heading t t t t))
+           (org-export-show-temporary-export-buffer nil)
+           (export-buf-name "*Org HTML Export*")
+           (org-export-with-broken-links 'mark)
+           (id (org-id-get))
+           (uuid (downcase (if id id (org-id-uuid))))
+           (org-readable-file (format "%s/%s.html" org-readable-directory uuid)))
+      (org-html-export-as-html nil t nil)
+      (with-current-buffer export-buf-name
+        (write-file org-readable-file)
+        (eww-open-file org-readable-file))
+      (kill-buffer export-buf-name)))
+
+  (defun org-property-copy-as-kill ()
+    "Prompt user to select property to append to the kill ring.
+
+  If property's value matches $(...) format, ... is interpreted as shell command and execute it."
+    (interactive)
+    (let* ((properties (org-entry-properties))
+           (prop-key-to-copy
+            (completing-read "Property name: "
+                             (mapcar #'(lambda (var) (car var)) properties))))
+      (when (stringp prop-key-to-copy)
+        (let* ((prop-value (cdr (assoc prop-key-to-copy properties)))
+               (str-to-copy
+                (cond
+                 ((string-match "$(\\(.+\\))" prop-value)
+                  (shell-command-to-string (match-string 1 prop-value)))
+                 (t prop-value))))
+          (kill-new str-to-copy)))))
+
+  (defun my/org-reset-dwim ()
+    "Do reset procedure in each context."
+    (interactive)
+    (cond
+     ((org-at-table-p) (org-table-blank-field))
+     ((org-in-subtree-not-table-p)
+      (org-save-outline-visibility t
+        (org-reset-checkbox-state-subtree)))))
+
+  ;; WARN: This function does not work correctly
+  ;;       Wait until library org-ml get mature
+  (defun org-gc-drawer-subtree ()
+    "Remove all clocks and items in drawer of subtrees older than a month before."
+    (interactive)
+    (let* ((month-before (->> (decode-time (current-time))
+                              (--map-indexed (if (= it-index 4)
+                                                 (- it 1) it))
+                              (encode-time)))
+           (config (list :log-into-drawer t
+                         :clock-into-drawer t))
+           (gc-clock-fun (lambda (headline)
+                           (org-ml-update*
+                             (org-ml-headline-map-logbook-clocks* config
+                               (--filter
+                                (time-less-p month-before
+                                             (org-ml-time-to-unixtime
+                                              (org-ml-timestamp-get-end-time
+                                               (org-ml-get-property :value it))))
+                                it)
+                               it)
+                             headline)))
+           (gc-item-fun (lambda (headline)
+                          (org-ml-update*
+                            (org-ml-headline-map-logbook-items* config
+                              (--filter
+                               (time-less-p month-before
+                                            (org-ml-logbook-item-get-timestamp it))
+                               it)
+                              it)
+                            headline))))
+      (->> (org-ml-parse-this-headline)
+           (funcall gc-clock-fun))
+      (->> (org-ml-parse-this-headline)
+           (funcall gc-item-fun))
+      (->> (org-ml-parse-this-subtree)
+           (org-ml-headline-get-subheadlines)
+           (-map gc-clock-fun))
+      (->> (org-ml-parse-this-subtree)
+           (org-ml-headline-get-subheadlines)
+           (-map gc-item-fun))))
+
+  (defun org-download-video-link-at-point (&optional playlistp)
+    "Download video file at point.
+  With `C-u' prefix arg, try to download all videos in playlist.
+
+  Video file is expected to appear in org-link."
+    (interactive "P")
+    (org-link-at-point-map (lambda (url title)
+                             (download-video url title playlistp))))
+
+  (defun org-download-audio-link-at-point ()
+    "Download audio file at point.
+
+  Audio file is expected to appear in org-link."
+    (interactive)
+    (org-link-at-point-map (lambda (url title)
+                             (download-audio url title))))
+
+  (defun org-show-media-duration-at-point ()
+    "Show duration of media at point."
+    (interactive)
+    (org-link-at-point-map (lambda (url title)
+                             (show-media-duration url))))
+
+  (defun org-link-at-point-map (function)
+    "Call `FUNCTION' with url and title obtained from org-link at point."
+    (let* ((context (org-element-lineage
+                     (org-element-context)
+                     '(link)
+                     t))
+           (type (org-element-property :type context))
+           (path (org-element-property :path context))
+           (desc (when-let ((begin (org-element-property :contents-begin context))
+                            (end (org-element-property :contents-end context)))
+                   (buffer-substring begin end))))
+      (cond
+       ((string-match-p "https?" type)
+        (funcall function (org-link-unescape (concat type ":" path)) desc))
+       ((string-match-p "elfeed" type)
+        (save-excursion
+          (org-open-at-point)
+          (when (eq major-mode 'elfeed-show-mode)
+            (when-let ((url (or (caar (elfeed-entry-enclosures elfeed-show-entry))
+                                (elfeed-entry-link elfeed-show-entry)))
+                       (title (elfeed-entry-title elfeed-show-entry)))
+              (funcall function url title))
+            (quit-window)))))))
+
+  (defun org-send-email (&optional arg)
+    "Send a html email extracted from current org entry.
+
+  Given a `\\[universal-argument]' prefix `ARG', send an ascii email instead."
+    (interactive "P")
+    (cond
+     ((equal arg '(4))
+      (call-interactively #'org-send-email-ascii))
+     (t
+      (let ((org-mime-use-property-inheritance t))
+        (call-interactively #'org-mime-org-subtree-htmlize)))))
+
+  (defun org-send-email-ascii ()
+    "Send a mail whose contents converted from current org entry.
+
+  Format of mail contents is plain text."
+    (interactive)
+    (let ((heading (org-get-heading t t t t))
+          (org-export-show-temporary-export-buffer nil)
+          (export-buf-name "*Org ASCII Export*")
+          (org-export-with-toc nil)
+          (org-export-with-author nil))
+      (org-ascii-export-as-ascii nil t t t)
+      (mail-simple-send (or (org-entry-get (point) "MAIL_TO" t)
+                            (read-string "MAIL_TO: "))
+                        heading
+                        (with-current-buffer export-buf-name
+                          (buffer-string)))
+      (kill-buffer export-buf-name)))
+
+#+end_src
+
+*** key bindings
+speed commands and hydra-org.
+
+#+begin_src emacs-lisp
+  (use-package org-keys
+    :after org
+    :custom
+    (org-use-speed-commands
+     (lambda () (and (looking-at org-outline-regexp) (looking-back "^\**"))))
+    (org-speed-commands
+     '(("Outline Navigation")
+       ("n" . (org-speed-move-safe 'org-next-visible-heading))
+       ("p" . (org-speed-move-safe 'org-previous-visible-heading))
+       ("f" . (org-speed-move-safe 'org-forward-heading-same-level))
+       ("b" . (org-speed-move-safe 'org-backward-heading-same-level))
+       ("F" . org-next-block)
+       ("B" . org-previous-block)
+       ("u" . (org-speed-move-safe 'outline-up-heading))
+       ("j" . org-goto)
+       ("g" . (org-refile t))
+       ("Outline Visibility")
+       ("c" . org-cycle)
+       ("C" . org-shifttab)
+       (" " . org-display-outline-path)
+       ("N" . my/toggle-narrow-dwim)
+       ("z" . org-toggle-narrow-to-subtree)
+       ("=" . org-columns)
+       ("/" . org-sparse-tree)
+       ("Outline Structure Editing")
+       ("U" . org-metaup)
+       ("D" . org-metadown)
+       ("r" . org-metaright)
+       ("l" . org-metaleft)
+       ("R" . org-shiftmetaright)
+       ("L" . org-shiftmetaleft)
+       ("i" . (progn (forward-char 1) (call-interactively 'org-insert-heading-respect-content)))
+       ("^" . org-sort)
+       ("w" . org-refile)
+       ("a" . org-archive-subtree-default-with-confirmation)
+       ("@" . org-mark-subtree)
+       ("#" . org-toggle-comment)
+       ("Clock Commands")
+       ("I" . org-clock-in)
+       ("O" . org-clock-out)
+       ("Q" . org-clock-cancel)
+       ("Meta Data Editing")
+       ("t" . org-todo)
+       ("," . (org-priority))
+       ("0" . (org-priority ?\ ))
+       (":" . org-set-tags-command)
+       ("P" . org-set-property)
+       ("e" . org-set-effort)
+       ("E" . org-inc-effort)
+       ("s" . org-schedule)
+       ("d" . org-deadline)
+       ("v" . org-property-copy-as-kill)
+       ("W" . (lambda (m) (interactive "sMinutes before warning: ") (org-entry-put (point) "APPT_WARNTIME" m)))
+       ("Org Capture")
+       ("X" . org-capture-derived)
+       ("Misc")
+       ("$" . my/org-archive-subtree)
+       ("!" . org-readable)
+       ("o" . org-open-at-point)
+       ("?" . org-speed-command-help)
+       ("<" . (org-agenda-set-restriction-lock 'subtree))
+       (">" . (org-agenda-remove-restriction-lock)))))
+
+  (with-eval-after-load 'hydra
+    (defhydra hydra-org (global-map "C-o"
+                                    :color teal)
+      "Org Search"
+      ("a" org-agenda)
+      ("c" counsel-org-capture)
+      ("C" org-capture)
+      ("t" org-set-tags-command)
+      ("j" org-clock-goto)
+      ("h" counsel-org-agenda-headlines)
+      ("g" counsel-org-goto)
+      ("G" counsel-org-goto-all)
+      ("ee" my/org-english-capture)
+      ("ed" my/org-english-drill)
+      ("eD" my/org-english-drill-resume)
+      ("et" my/org-english-drill-test-display)
+      ("s" org-store-link)
+      ("C-s" org-save-all-org-buffers)
+      ("X" org-capture-derived)
+      ("TAB" org-indent-mode)
+      ("i" org-info-find-node)
+      ("&" org-mark-ring-goto)
+      ("I" org-clock-in)
+      ("O" org-clock-out)
+      ("Q" org-clock-cancel)
+      ("qq" org-ql-search)
+      ("qv" org-ql-view)
+      ("qr" my/org-archive-search)
+      ("r" my/org-archive-find-date)
+      ("l" my/lookup-org-archive)
+      ("bi" my/org-babel-lob-ingest-batch)
+      ("@" org-mark-subtree)
+      ("=" org-clock-sum-all)
+      ("SPC" my/org-reset-dwim)
+      ("C-g" nil "quit")))
+#+end_src
+
+** programming languages
+** other packages
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".config/emacs/packages.el")
+:END:
+
+*** [[https://github.com/abo-abo/swiper/releases.atom][swiper/ivy]]
 Read [[info:ivy#Top][this manual]]
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/swiper.el")
+#+begin_src emacs-lisp
   (use-package ivy
     :straight t
     :config
@@ -1107,29 +1745,60 @@ Read [[info:ivy#Top][this manual]]
                ("M-y" . ivy-next-line)
                ("M-w" . ivy-kill-ring-save)))
 #+end_src
-** [[https://github.com/nflath/hungry-delete/releases.atom][hungry-delete]]
+*** [[https://github.com/nflath/hungry-delete/releases.atom][hungry-delete]]
 Aggressively delete successive white spaces.
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/hungry-delete.el")
+#+begin_src emacs-lisp
   (use-package hungry-delete
     :straight t
     :diminish
     :config
     (global-hungry-delete-mode 1))
 #+end_src
-** [[https://github.com/Malabarba/aggressive-indent-mode/releases.atom][aggressive-indent-mode]]
+*** [[https://github.com/Malabarba/aggressive-indent-mode/releases.atom][aggressive-indent-mode]]
 :PROPERTIES:
 :ID:       4a58219c-74dd-4135-b56d-876b0db2cd83
 :END:
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/aggressive-indent.el")
+#+begin_src emacs-lisp
   (use-package aggressive-indent
     :straight t
     :diminish (aggressive-indent-mode . "ai")
     :hook (emacs-lisp-mode . aggressive-indent-mode))
 #+end_src
-* original features
-** org-password-store
+*** [[https://github.com/iqbalansari/restart-emacs/releases.atom][restart-emacs]]
+
+#+begin_src emacs-lisp
+  (use-package restart-emacs
+    :straight t
+    :bind (("C-M-<delete>"   . restart-emacs)
+           ("C-M-S-<delete>" . save-buffers-kill-emacs)))
+#+end_src
+** handy extensions
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".config/emacs/extensions.el")
+:END:
+
+*** power management
+Shut down emacs automatically when remaining power of laptop PC lower than [[help:battery-load-low][battery-load-low]]
+to avoid accidental data loss.
+
+#+begin_src emacs-lisp
+  (require 'battery)
+
+  (run-with-timer 60 60 #'kill-emacs-auto)
+
+  (defun kill-emacs-auto ()
+    "Kill Emacs if remaining machine power lower than `battery-load-low'."
+    (let* ((data (and battery-status-function (funcall battery-status-function)))
+           (percentage (car (read-from-string (cdr (assq ?p data)))))
+           (power (cdr (assq ?L data))))
+      (when (and (< percentage battery-load-low)
+                 (string= power "BAT"))
+        (save-buffers-kill-emacs t))))
+#+end_src
+** original features
+*** org-password-store
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org-password-store.el")
   (use-package password-store
@@ -1267,7 +1936,7 @@ Aggressively delete successive white spaces.
       ("k" my/password-store-remove)
       ("q" nil "quit")))
 #+end_src
-** narrow-dwim
+*** narrow-dwim
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/narrow-dwim.el")
   (add-hook 'post-command-hook 'highlight-narrowed-buffer)
@@ -1328,7 +1997,7 @@ Aggressively delete successive white spaces.
            (visual-line-mode 1))
           (t (narrow-to-defun))))
 #+end_src
-** weather
+*** weather
 
 #+begin_src emacs-lisp
   ;; 気象庁配信の天気情報を加工して表示
