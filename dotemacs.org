@@ -1801,6 +1801,118 @@ to avoid accidental data loss.
         (save-buffers-kill-emacs t))))
 #+end_src
 ** original features
+*** org-english
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/late/org-english.el")
+  (defun my/org-english-capture (word)
+    "Capture an english WORD as a org-mode entry suitable for org-drill.
+
+  Capture URL or file currently visiting as well as a sentence at point."
+    (interactive (list (if (use-region-p)
+                           (buffer-substring (region-beginning) (region-end))
+                         (read-string "Phrase: "))))
+    (let* ((sentence-end-double-space nil)
+           (org-english-word word)
+           (match-entry (org-ql-select
+                          (my/org-archive-files)
+                          `(and (heading ,(format "%s" word))
+                                (tags "drill"))
+                          :action 'element-with-markers)))
+      (kill-new (replace-regexp-in-string word (format "[%s]" word)
+                                          (sentence-at-point)))
+      (cond
+       (match-entry (org-capture nil "!1"))
+       (t (org-capture nil "!0")))))
+
+  (with-eval-after-load 'org-ql-view
+    (push '("English phrase list"
+            :buffers-files my/org-archive-files
+            :query (and (tags "drill")
+                        (tags "fd_en")))
+          org-ql-views))
+
+  (with-eval-after-load 'org-capture
+    (add-to-list 'org-capture-templates
+                 '("!0" "drill entry for english word"
+                   entry (function org-goto-clocking-or-today)
+                   "* %i :drill:fd_en:
+    [%(my/org-english-insert-japanese-translation)]
+    %(my/org-english-insert-english-translation)
+    - %a
+      %c"))
+    (add-to-list 'org-capture-templates
+                 '("!1" "drill entry for english word"
+                   item(function my/org-english-goto-match)
+                   "- %a\n  %c")))
+
+  (defun my/org-english-goto-match ()
+    "Goto function for org-capture-template designed to insert an edditional example
+  to existing english word entry."
+    (org-goto-marker-or-bmk
+     (plist-get (cadar match-entry) :org-marker)))
+
+  (defun my/org-english-insert-english-translation ()
+    "Insert English translation into org capture entry."
+    (let* ((url (format "http://wordnik.com/words/%s" (downcase org-english-word)))
+           (buffer (url-retrieve-synchronously url t t)))
+      (with-temp-buffer
+        (url-insert-buffer-contents buffer url)
+        (ivy-read "match" (split-string (funcall 'my/define-word--parse-wordnik) "\n")))))
+
+  (defun my/org-english-insert-japanese-translation ()
+    "Insert Japanese translation into org capture entry."
+    (let* ((url (format "https://ejje.weblio.jp/content/%s" (downcase org-english-word)))
+           (buffer (url-retrieve-synchronously url t t)))
+      (with-temp-buffer
+        (url-insert-buffer-contents buffer url)
+        (funcall 'my/define-word--parse-weblio))))
+
+  (defmacro with-org-drill-english-config (&rest body)
+    "Evaluate BODY with config for Org-Drill for english words review."
+    `(progn
+       (let ((org-drill-scope '("~/org/agenda/life.org"
+                                "~/org/archive/archive_2021.org"
+                                "~/org/archive/archive_2020.org"
+                                "~/org/archive/archive_2019.org"))
+             (org-drill-question-tag "drill")
+             (org-drill-maximum-items-per-session 20)
+             (org-drill-hide-item-headings-p t))
+         (global-visual-line-mode 1)
+         ,@body)
+       (toggle-truncate-lines 1)
+       (setq-default truncate-lines t)
+       (global-visual-line-mode 0)))
+
+  (defun my/org-english-drill ()
+    "Invoke Org-Drill for English word review."
+    (interactive)
+    (with-org-drill-english-config (org-drill)))
+
+  (defun my/org-english-drill-resume ()
+    "Resume Org-Drill session for english word review."
+    (interactive)
+    (with-org-drill-english-config (org-drill-resume)))
+
+  (defun my/org-english-drill-nontrivial ()
+    ""
+    (interactive)
+    (let ((org-drill-match "-trivial"))
+      (with-org-drill-english-config (org-drill))))
+
+  (defun my/org-english-drill-new ()
+    ""
+    (interactive)
+    (let ((org-drill-match "-DRILL_TOTAL_REPEATS>0"))
+      (with-org-drill-english-config (org-drill))))
+
+  (defun my/org-english-drill-test-display ()
+    "Show Org-Drill entry in the same way as english drill session."
+    (interactive)
+    (with-org-drill-english-config (org-drill-test-display)))
+
+  (provide 'my/org-english)
+#+end_src
+
 *** org-password-store
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org-password-store.el")
@@ -1939,6 +2051,7 @@ to avoid accidental data loss.
       ("k" my/password-store-remove)
       ("q" nil "quit")))
 #+end_src
+
 *** narrow-dwim
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/narrow-dwim.el")
