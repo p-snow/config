@@ -1062,7 +1062,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :after org
     :hook
     ((org-clock-in org-clock-out org-clock-cancel) . save-buffer)
-    (org-clock-in . my/org-clock-in-set-timer)
+    (org-clock-in-prepare . my/org-clock-in-set-timer)
     (org-clock-out . my/org-clock-out-have-a-break)
     ((org-clock-out org-clock-cancel) .
      (lambda () (and org-timer-countdown-timer
@@ -1080,7 +1080,6 @@ I prefer to rid my emacs experience of mouse as least as possible.
       (concat "^[ \t]*" org-clock-string "[ \t]*" org-tsr-regexp-both)
       "Matches a line with clock time stamp."))
 
-  ;;;###autoload
   (defun my/org-clock-in-set-timer ()
     "Start count down timer for a clocked in entry.
 
@@ -1090,6 +1089,8 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (let ((todo (org-get-todo-state))
           (attention-span (org-entry-get (point) "ATTENTION_SPAN" 'selective))
           (effort (org-entry-get (point) "Effort" 'selective)))
+      (when org-clock-clocking-in
+        (org-clock-out))
       (cond
        ((stringp attention-span)
         (let ((org-timer-default-timer attention-span))
@@ -1101,7 +1102,6 @@ I prefer to rid my emacs experience of mouse as least as possible.
         (let ((org-timer-default-timer "25"))
           (org-timer-set-timer '(64)))))))
 
-  ;;;###autoload
   (defun my/org-clock-out-have-a-break ()
     (when (org-get-todo-state)
       (org-id-goto "d49d97de-58ec-4e41-b58c-491a9e216e1c")
