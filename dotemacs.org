@@ -6,16 +6,40 @@
 #+STARTUP: overview
 
 * init lisp code               :elfeed:soft_update:prime:
-#+CALL: release-feed(github-url="https://github.com/dfeich/org-clock-convenience")
+#+CALL: release-feed(github-url="")
+
+CAUTION: There are some face customization specifying an extra large font since I am [[https://en.wikipedia.org/wiki/Visual_impairment][visually impaired]].
 
 ** early processing
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".config/emacs/00-early-init.el")
+:END:
+
 These process must be evaluated beforehand.
+
+*** package.el
+
+#+begin_src emacs-lisp
+  (require 'package)
+  (setq package-archives
+        '(("gnu" . "http://elpa.gnu.org/packages/")
+          ("melpa" . "http://melpa.org/packages/")
+          ("org" . "http://orgmode.org/elpa/")))
+  (setq package-enable-at-startup nil)
+  (package-initialize t)
+
+  (let ((pkg-emacs-ver-dir
+         (locate-user-emacs-file
+          (concat "package/" emacs-version))))
+    (add-to-list 'load-path (setq package-user-dir (expand-file-name "elpa" pkg-emacs-ver-dir)))
+    (add-to-list 'load-path (expand-file-name "elisp" pkg-emacs-ver-dir)))
+#+end_src
 
 *** [[https://github.com/jwiegley/use-package/releases.atom][use-package]] installation
 
 [[https://jwiegley.github.io/use-package/][Official manual]] is handy especially when you look up [[https://jwiegley.github.io/use-package/keywords/][Keywords]].
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/00-early-init.el")
+#+begin_src emacs-lisp
   ;; install straight.el
   (setq straight-recipes-gnu-elpa-use-mirror t)
   (let ((bootstrap-file
@@ -42,9 +66,11 @@ These process must be evaluated beforehand.
   (use-package delight :straight t)
   (use-package use-package-ensure-system-package :straight t)
 #+end_src
+
+
 *** library including
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/00-early-init.el")
+#+begin_src emacs-lisp
   (require 'cl-lib)
 #+end_src
 ** basic tweaks
