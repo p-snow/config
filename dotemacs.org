@@ -10,7 +10,7 @@
 
 CAUTION: There are some face customization specifying an extra large font since I am [[https://en.wikipedia.org/wiki/Visual_impairment][visually impaired]].
 
-** early processing
+** early initialization
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/00-early-init.el")
 :END:
@@ -66,7 +66,6 @@ These process must be evaluated beforehand.
   (use-package delight :straight t)
   (use-package use-package-ensure-system-package :straight t)
 #+end_src
-
 
 *** library including
 
@@ -523,6 +522,12 @@ I prefer to rid my emacs experience of mouse as least as possible.
 
   (global-set-key (kbd "C-z") #'repeat)
 #+end_src
+
+** built-in features
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".config/emacs/features.el")
+:END:
+
 *** auto revert
 [[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
 
@@ -535,6 +540,46 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :config
     (global-auto-revert-mode 1))
 #+end_src
+
+*** abbrev
+
+#+begin_src emacs-lisp
+  (use-package abbrev
+    :diminish abbrev-mode
+    :custom
+    (save-abbrevs t)
+    :config
+    (quietly-read-abbrev-file))
+#+end_src
+
+*** hippie-exp
+
+#+begin_src emacs-lisp
+  (use-package hippie-exp
+    :bind ("M-/" . hippie-expand)
+    :custom
+    (hippie-expand-try-functions-list
+     '(try-complete-file-name-partially
+       try-complete-file-name
+       try-expand-dabbrev
+       try-expand-dabbrev-all-buffers
+       try-expand-dabbrev-from-kill
+       try-complete-lisp-symbol-partially
+       try-complete-lisp-symbol)))
+#+end_src
+
+*** bookmark
+
+#+begin_src emacs-lisp
+  (use-package bookmark
+    :custom
+    (bookmark-default-file
+     (expand-file-name ".bookmarks.gpg" user-emacs-directory))
+    (bookmark-watch-bookmark-file 'silent)
+    :config
+    (delight 'bookmark-bmenu-mode " BB"))
+#+end_src
+
 *** uniquify
 [[info:emacs#Uniquify][Uniquify]] makes buffer names unique.
 
@@ -559,6 +604,48 @@ I prefer to rid my emacs experience of mouse as least as possible.
     ;; (recentf-load-list)
     (recentf-mode 1))
 #+end_src
+*** server
+
+#+begin_src emacs-lisp
+  (use-package server
+    :config
+    (unless (server-running-p)
+      (server-start)))
+#+end_src
+*** calc
+
+#+begin_src emacs-lisp
+  (use-package calc
+    :bind (("<f5>" . calc))
+    :config
+    (setf calc-display-trail nil))
+#+end_src
+*** proced
+
+#+begin_src emacs-lisp
+  (use-package proced
+    :no-require t
+    :custom
+    (proced-auto-update-flag t)
+    (proced-auto-update-interval 3))
+#+end_src
+*** imenu
+
+#+begin_src emacs-lisp
+  (use-package imenu
+    :custom
+    (imenu-auto-rescan t))
+#+end_src
+*** ediff
+
+#+begin_src emacs-lisp
+  (use-package ediff
+    :commands ediff-files
+    :custom
+    (ediff-window-setup-function 'ediff-setup-windows-default)
+    (ediff-split-window-function 'split-window-horizontally))
+#+end_src
+
 ** org mode
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/org.el")
@@ -1909,8 +1996,27 @@ speed commands and hydra-org.
       ("SPC" my/org-reset-dwim)
       ("C-g" nil "quit")))
 #+end_src
+** programming/editing
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".config/emacs/edit.el")
+:END:
 
-** programming languages
+*** emacs lisp
+
+#+begin_src emacs-lisp
+  (use-package elisp-mode
+    :commands emacs-lisp-mode
+    :delight
+    (emacs-lisp-mode " EL")
+    (lisp-interaction-mode " LispInt")
+    :hook (emacs-lisp-mode . (lambda ()
+                               (setq-local tab-width 4)
+                               (setq-local counsel-dash-docsets '("Emacs Lisp" "Common Lisp"))
+                               (eldoc-mode 1)))
+    :config
+    (require 'eldoc))
+#+end_src
+
 ** other packages
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/packages.el")
