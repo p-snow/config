@@ -70,6 +70,8 @@ These process must be evaluated beforehand.
 
 *** library including
 
+Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah-checkouts/gnu/emacs/news/NEWS.27.1][officially deprecated]].
+
 #+begin_src emacs-lisp
   (require 'cl-lib)
 #+end_src
@@ -100,7 +102,7 @@ These process must be evaluated beforehand.
 #+end_src
 *** visual facets
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+#+begin_src emacs-lisp
   ;; do not use basic GUI facets
   (tool-bar-mode -1)
   (menu-bar-mode -1)
@@ -117,210 +119,9 @@ These process must be evaluated beforehand.
   (setf initial-scratch-message "")
   (setf inhibit-startup-screen t)
 #+end_src
-*** file handling
-File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of Files]].
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  (use-package files
-    :custom
-    (mode-require-final-newline 'visit-save)
-    (make-backup-files nil)
-    (delete-auto-save-files t)
-    (enable-remote-dir-locals t)
-    :config
-    (setq delete-by-moving-to-trash t))
-
-  (use-package saveplace
-    :custom
-    (save-place-version-control t)
-    :config
-    (save-place-mode 1))
-
-  (auto-compression-mode 1)
-
-  (setq auto-save-interval 100)
-  (setq auto-save-timeout 10)
-#+end_src
-*** modifier keys
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  (cond
-   ((string= window-system "x")
-    (setf x-alt-keysym  'alt
-          x-meta-keysym 'meta))
-   ((string= window-system "ns")
-    ;; IME inline patch
-    (setf mac-use-input-method-on-system nil)
-    (setf mac-control-modifier       'control
-          mac-command-modifier       'meta
-          mac-option-modifier        'super
-          mac-right-option-modifier  'alt
-          mac-right-control-modifier 'super
-          mac-function-modifier      'hyper)))
-#+end_src
-*** mark/region
-Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  ;; (setq set-mark-command-repeat-pop t)
-  (setf mark-ring-max 32)
-  (setf highlight-nonselected-windows t)
-
-  ;; text in region will be deleted
-  (delete-selection-mode t)
-#+end_src
-
-*** minibuffer
-[[help:savehist-mode][savehist-mode]] saves minibuffer history and additionals.
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  (savehist-mode 1)
-
-  (setf history-length 1500)
-  (setf history-delete-duplicates t)
-
-  ;; allow y/n answer for an either-or selection
-  (fset 'yes-or-no-p 'y-or-n-p)
-
-  (add-hook 'minibuffer-setup-hook 'my/minibuffer-setup-function)
-
-  (defun my/minibuffer-setup-function ()
-    ;; disable input method in mini buffer
-    (when current-input-method
-      (deactivate-input-method))
-    ;; decrease font size to 90% in minibuffer
-    (setq-local face-remapping-alist '((default :height 0.9))))
-
-  (bind-keys :map minibuffer-local-map
-             ("C-M-n" . counsel-minibuffer-history)
-             ("C-M-y" . counsel-yank-pop))
-
-  (setf enable-recursive-minibuffers t)
-  (minibuffer-depth-indicate-mode 1)
-#+end_src
-
-*** displaying
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  (setf scroll-step 1)
-
-  (setf text-scale-mode-step 1.0625)
-
-  ;; let the cursor blinking
-  (setf blink-cursor-blinks 15)
-  (setf blink-cursor-delay 0.7)
-  (setf blink-cursor-interval 0.35)
-  (blink-cursor-mode 1)
-
-  ;; use emacs in full screen mode
-  (when (member (window-system) '(x ns w32))
-    (set-frame-parameter nil 'fullscreen 'fullboth))
-#+end_src
-
-*** text handling
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  (setq-default fill-column 80)
-
-  ;; suppress curved quotes in docstring (for emacs25)
-  (setf text-quoting-style 'straight)
-
-  (global-visual-line-mode 0)
-  (setq-default truncate-lines nil)
-#+end_src
-
-*** indent
-customization for [[info:emacs#Indentation][indentation]]
-See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  ;; use spaces instead of a horizontal tab
-  (setq-default indent-tabs-mode nil)
-
-  (custom-set-variables '(tab-always-indent 'complete))
-  (electric-indent-mode 1)
-#+end_src
-
-*** whitespace
-[[info:emacs#Useless Whitespace][emacs#Useless Whitespace]]
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  (add-hook 'before-save-hook #'delete-trailing-whitespace)
-
-  (use-package whitespace
-    :diminish ((global-whitespace-mode . "Ws")
-               (whitespace-mode . "ws"))
-    :custom
-    (whitespace-style
-     '(face trailing tabs tab-mark spaces space-mark empty))
-    (whitespace-space-regexp "\\(\x3000+\\)")
-    (whitespace-trailing-regexp "\\([ \t\u00A0]+\\)$")
-    (whitespace-display-mappings
-     '((space-mark ?\x3000 [?\u2423])
-       (tab-mark   ?\t   [?\u00BB ?\t])))
-    :config
-    (global-whitespace-mode -1))
-#+end_src
-
-*** performance
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  (setq gc-cons-threshold (* 10 gc-cons-threshold))
-  (setq message-log-max 10000)
-  (setq shell-command-switch "-c")
-  (setq undo-outer-limit 64000000)
-
-  (setq-default bidi-display-reordering nil)
-
-  (setq next-screen-context-lines 2)
-#+end_src
-
-*** customize buffer
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  (custom-set-variables
-   '(custom-file (expand-file-name "custom.el" user-emacs-directory)))
-#+end_src
-
-*** killing
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  (custom-set-variables '(yank-pop-change-selection t))
-#+end_src
-
-*** mouse
-I prefer to rid my emacs experience of mouse as least as possible.
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  (use-package mouse
-    :custom
-    (mouse-1-click-follows-link nil)
-    (mouse-highlight nil)
-    :config
-    (mouse-wheel-mode 0))
-#+end_src
-*** key (re)bindings
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
-  (substitute-key-definition 'upcase-region
-                             'upcase-dwim
-                             global-map)
-
-  (substitute-key-definition 'downcase-region
-                             'downcase-dwim
-                             global-map)
-
-  (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
-
-  ;; suppress the occurence of prompt in (up|down)case-region prompt in
-  (put 'upcase-region 'disabled nil)
-  (put 'downcase-region 'disabled nil)
-
-  (global-set-key (kbd "C-z") #'repeat)
-#+end_src
 *** display
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/init.el")
+#+begin_src emacs-lisp
   (defvar my-default-pixel-width 2560 "Default display width in pixel.")
   (defmacro my-adjust-font-size (original)
     "Adjust original font size to fit in display."
@@ -370,6 +171,358 @@ I prefer to rid my emacs experience of mouse as least as possible.
      'elfeed-search-checked-title-face "darkblue"))
 #+end_src
 
+*** file handling
+File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of Files]].
+
+#+begin_src emacs-lisp
+  (use-package files
+    :custom
+    (mode-require-final-newline 'visit-save)
+    (make-backup-files nil)
+    (delete-auto-save-files t)
+    (enable-remote-dir-locals t)
+    :config
+    (setq delete-by-moving-to-trash t))
+
+  (use-package saveplace
+    :custom
+    (save-place-version-control t)
+    :config
+    (save-place-mode 1))
+
+  (auto-compression-mode 1)
+
+  (setq auto-save-interval 100)
+  (setq auto-save-timeout 10)
+#+end_src
+*** modifier keys
+
+#+begin_src emacs-lisp
+  (cond
+   ((string= window-system "x")
+    (setf x-alt-keysym  'alt
+          x-meta-keysym 'meta))
+   ((string= window-system "ns")
+    ;; IME inline patch
+    (setf mac-use-input-method-on-system nil)
+    (setf mac-control-modifier       'control
+          mac-command-modifier       'meta
+          mac-option-modifier        'super
+          mac-right-option-modifier  'alt
+          mac-right-control-modifier 'super
+          mac-function-modifier      'hyper)))
+#+end_src
+*** mark/region
+Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
+
+#+begin_src emacs-lisp
+  ;; (setq set-mark-command-repeat-pop t)
+  (setf mark-ring-max 32)
+  (setf highlight-nonselected-windows t)
+
+  ;; text in region will be deleted
+  (delete-selection-mode t)
+#+end_src
+
+*** minibuffer
+[[help:savehist-mode][savehist-mode]] saves minibuffer history and additionals.
+
+#+begin_src emacs-lisp
+  (savehist-mode 1)
+
+  (setf history-length 1500)
+  (setf history-delete-duplicates t)
+
+  ;; allow y/n answer for an either-or selection
+  (fset 'yes-or-no-p 'y-or-n-p)
+
+  (add-hook 'minibuffer-setup-hook 'my/minibuffer-setup-function)
+
+  (defun my/minibuffer-setup-function ()
+    ;; disable input method in mini buffer
+    (when current-input-method
+      (deactivate-input-method))
+    ;; decrease font size to 90% in minibuffer
+    (setq-local face-remapping-alist '((default :height 0.9))))
+
+  (bind-keys :map minibuffer-local-map
+             ("C-M-n" . counsel-minibuffer-history)
+             ("C-M-y" . counsel-yank-pop))
+
+  (setf enable-recursive-minibuffers t)
+  (minibuffer-depth-indicate-mode 1)
+#+end_src
+
+*** displaying
+
+#+begin_src emacs-lisp
+  (setf scroll-step 1)
+
+  (setf text-scale-mode-step 1.0625)
+
+  ;; let the cursor blinking
+  (setf blink-cursor-blinks 15)
+  (setf blink-cursor-delay 0.7)
+  (setf blink-cursor-interval 0.35)
+  (blink-cursor-mode 1)
+
+  ;; use emacs in full screen mode
+  (when (member (window-system) '(x ns w32))
+    (set-frame-parameter nil 'fullscreen 'fullboth))
+#+end_src
+
+*** text handling
+
+#+begin_src emacs-lisp
+  (setq-default fill-column 80)
+
+  ;; suppress curved quotes in docstring (for emacs25)
+  (setf text-quoting-style 'straight)
+
+  (global-visual-line-mode 0)
+  (setq-default truncate-lines nil)
+#+end_src
+
+*** indent
+customization for [[info:emacs#Indentation][indentation]]
+See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
+
+#+begin_src emacs-lisp
+  ;; use spaces instead of a horizontal tab
+  (setq-default indent-tabs-mode nil)
+
+  (custom-set-variables '(tab-always-indent 'complete))
+  (electric-indent-mode 1)
+#+end_src
+
+*** whitespace
+[[info:emacs#Useless Whitespace][emacs#Useless Whitespace]]
+
+#+begin_src emacs-lisp
+  (add-hook 'before-save-hook #'delete-trailing-whitespace)
+
+  (use-package whitespace
+    :diminish ((global-whitespace-mode . "Ws")
+               (whitespace-mode . "ws"))
+    :custom
+    (whitespace-style
+     '(face trailing tabs tab-mark spaces space-mark empty))
+    (whitespace-space-regexp "\\(\x3000+\\)")
+    (whitespace-trailing-regexp "\\([ \t\u00A0]+\\)$")
+    (whitespace-display-mappings
+     '((space-mark ?\x3000 [?\u2423])
+       (tab-mark   ?\t   [?\u00BB ?\t])))
+    :config
+    (global-whitespace-mode -1))
+#+end_src
+
+*** performance
+
+#+begin_src emacs-lisp
+  (setq gc-cons-threshold (* 10 gc-cons-threshold))
+  (setq message-log-max 10000)
+  (setq shell-command-switch "-c")
+  (setq undo-outer-limit 64000000)
+
+  (setq-default bidi-display-reordering nil)
+
+  (setq next-screen-context-lines 2)
+#+end_src
+
+*** customize buffer
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(custom-file (expand-file-name "custom.el" user-emacs-directory)))
+#+end_src
+
+*** killing
+
+#+begin_src emacs-lisp
+  (custom-set-variables '(yank-pop-change-selection t))
+#+end_src
+
+*** mouse
+I prefer to rid my emacs experience of mouse as least as possible.
+
+#+begin_src emacs-lisp
+  (use-package mouse
+    :custom
+    (mouse-1-click-follows-link nil)
+    (mouse-highlight nil)
+    :config
+    (mouse-wheel-mode 0))
+#+end_src
+
+*** input method ([[https://github.com/skk-dev/ddskk/releases.atom][ddskk]])
+
+#+begin_src emacs-lisp
+  (defvar skk-data-dir (expand-file-name "~/var/lib/skk"))
+
+  (use-package ddskk
+    :straight t
+    :defer t
+    :bind (("C-x C-j" . skk-mode)
+           ("C-x j" . skk-mode)
+           ("C-c j" . skk-mode))
+    :init
+    (defface skk-candidate `((t . (:font "fontset-default"
+                                         :height ,(my-adjust-font-size 860))))
+      "Default face for ddskk candidates."
+      :group 'skk-dcomp)
+    :custom
+    (default-input-method "japanese-skk")
+    (skk-kakutei-key (kbd "C-m"))
+    (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
+    (skk-init-file "~/.config/emacs/ddskk/init.el")
+    (skk-byte-compile-init-file t)
+    (skk-tut-file
+     (expand-file-name "etc/SKK.tut" (straight--repos-dir "ddskk")))
+    ;; cursor color
+    (skk-use-color-cursor t)
+    (skk-cursor-hiragana-color "orange")
+    (skk-cursor-katakana-color "SpringGreen3")
+    (skk-cursor-latin-color "DodgerBlue3")
+    (skk-cursor-jisx0201-color "purple3")
+    ;; mode line string
+    (skk-latin-mode-string "A")
+    (skk-hiragana-mode-string "あ")
+    (skk-katakana-mode-string "ア")
+    (skk-jisx0201-mode-string "ｱ")
+    (skk-jisx0208-latin-mode-string "Ａ")
+    ;; AZIK
+    (skk-use-azik t)
+    (skk-azik-keyboard-type 'us101)
+    ;; conversion
+    (skk-egg-like-newline t)
+    (skk-henkan-strict-okuri-precedence t)
+    (skk-check-okurigana-on-touroku t)
+    (skk-show-annotation nil)
+    ;; how candidates behave
+    (skk-show-candidates-always-pop-to-buffer t)
+    (skk-henkan-number-to-display-candidates 10)
+    (skk-show-candidates-nth-henkan-char 3)
+    (skk-henkan-show-candidates-keys
+     '(?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?0))
+    ;; set face for candidates list
+    (skk-treat-candidate-appearance-function
+     (lambda (candidate listing-p)
+       (cond
+        ((string-match ";" candidate)
+         (put-text-property 0 (match-beginning 0)
+                            'face 'skk-candidate
+                            candidate)
+         (put-text-property (match-beginning 0)
+                            (length candidate) 'face 'shadow candidate))
+        (t
+         (put-text-property 0 (length candidate)
+                            'face 'skk-candidate
+                            candidate)))
+       candidate))
+    ;; C-q for hankaku-kana input mode
+    (skk-use-jisx0201-input-method t)
+    ;; dynamic conversion
+    (skk-dcomp-activate nil)
+    (skk-dcomp-multiple-activate nil)
+    ;; config file
+    (skk-record-file (expand-file-name "record" skk-data-dir))
+    (skk-emacs-id-file (expand-file-name "emacs-id" skk-data-dir))
+    ;; jisyo
+    (skk-share-private-jisyo t)
+    (skk-compare-jisyo-size-when-saving nil)
+    (skk-save-jisyo-instantly t)
+    ;; jisyo file/directory
+    (skk-jisyo (expand-file-name "jisyo" skk-data-dir))
+    (skk-backup-jisyo (expand-file-name "jisyo.bak" skk-data-dir))
+    (skk-large-jisyo (expand-file-name "large-jisyo" skk-data-dir))
+    ;; jisyo server
+    (skk-server-host "localhost")
+    (skk-server-portnum 1178)
+    (skk-server-inhibit-startup-server t)
+    ;; study
+    (skk-study-file (expand-file-name "study" skk-data-dir))
+    (skk-study-backup-file (expand-file-name "study.bak" skk-data-dir)))
+#+end_src
+
+**** skk-init-file
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/ddskk/init.el")
+  ;; -*- mode:emacs-lisp; -*-
+  (setq skk-rom-kana-rule-list
+        (append skk-rom-kana-rule-list
+                '(("xka" nil ("ヵ" . "ヵ"))
+                  ("xke" nil ("ヶ" . "ヶ"))
+                  ("n" nil nil)
+                  ("nn" nil ("ナノ" . "なの"))
+                  ("nm" nil ("ノミ" . "のみ"))
+                  ("ks" nil ("コソ" . "こそ"))
+                  ("ym" nil ("ヤマ" . "やま"))
+                  ("tga" nil ("タガ" . "たが"))
+                  ("vj" nil ("ヴン" . "ぶん"))
+                  ;; followings are for preventing from changing to zenkaku eisu mode by pressing 'L'
+                  ("bL" nil ("ボン" . "ぼん"))
+                  ("byL" nil ("ビョン" . "びょん"))
+                  ("cL" nil ("チョン" . "ちょん"))
+                  ("dL" nil ("ドン" . "どん"))
+                  ("fL" nil ("フォン" . "ふぉん"))
+                  ("gL" nil ("ゴン" . "ごん"))
+                  ("gyL" nil ("ギョン" . "ぎょん"))
+                  ("hL" nil ("ホン" . "ほん"))
+                  ("hgL" nil ("ヒョン" . "ひょん"))
+                  ("hyL" nil ("ヒョン" . "ひょん"))
+                  ("jL" nil ("ジョン" . "じょん"))
+                  ("kL" nil ("コン" . "こん"))
+                  ("kgL" nil ("キョン" . "きょん"))
+                  ("kyL" nil ("キョン" . "きょん"))
+                  ("mL" nil ("モン" . "もん"))
+                  ("mgL" nil ("ミョン" . "みょん"))
+                  ("myL" nil ("ミョン" . "みょん"))
+                  ("nL" nil ("ノン" . "のん"))
+                  ("ngL" nil ("ニョン" . "にょん"))
+                  ("nyL" nil ("ニョン" . "にょん"))
+                  ("pL" nil ("ポン" . "ぽん"))
+                  ("pgL" nil ("ピョン" . "ぴょん"))
+                  ("pyL" nil ("ピョン" . "ぴょん"))
+                  ("rL" nil ("ロン" . "ろん"))
+                  ("ryL" nil ("リョン" . "りょん"))
+                  ("sL" nil ("ソン" . "そん"))
+                  ("syL" nil ("ション" . "しょん"))
+                  ("tL" nil ("トン" . "とん"))
+                  ("tyL" nil ("チョン" . "ちょん"))
+                  ("vL" nil ("ヴォン" . "う゛ぉん"))
+                  ("wL" nil ("ウォン" . "うぉん"))
+                  ("xL" nil ("ション" . "しょん"))
+                  ("xxL" nil ("→" . "→"))
+                  ("yL" nil ("ヨン" . "よん"))
+                  ("zL" nil ("ゾン" . "ぞん"))
+                  ("zyL" nil ("ジョン" . "じょん")))))
+
+  (add-hook 'skk-azik-load-hook
+            (lambda ()
+              (dolist (key '("kA" "kE" "tU" "wA"))
+                (setq skk-rom-kana-rule-list
+                      (skk-del-alist key skk-rom-kana-rule-list)))))
+#+end_src
+
+*** key (re)bindings
+
+#+begin_src emacs-lisp
+  (substitute-key-definition 'upcase-region
+                             'upcase-dwim
+                             global-map)
+
+  (substitute-key-definition 'downcase-region
+                             'downcase-dwim
+                             global-map)
+
+  (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
+
+  ;; suppress the occurence of prompt in (up|down)case-region prompt in
+  (put 'upcase-region 'disabled nil)
+  (put 'downcase-region 'disabled nil)
+
+  (global-set-key (kbd "C-z") #'repeat)
+#+end_src
 *** auto revert
 [[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
 
