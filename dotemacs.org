@@ -1737,6 +1737,130 @@ speed commands and hydra-org.
 :header-args+: :tangle (expand-tangle-target ".config/emacs/packages.el")
 :END:
 
+*** [[https://github.com/abo-abo/define-word/releases.atom][define-word]]
+
+#+begin_src emacs-lisp
+  (use-package define-word
+    :straight t
+    :custom
+    (define-word-displayfn-alist
+      '((wordnik . my/define-word--display-in-buffer)
+        (openthesaurus . my/define-word--display-in-buffer)
+        (webster . my/define-word--display-in-buffer)
+        (weblio . my/define-word--display-in-buffer)))
+    (define-word-default-service 'wordnik)
+    :config
+    (setf (cdr (assoc 'wordnik define-word-services))
+          '("http://wordnik.com/words/%s" my/define-word--parse-wordnik-all))
+    (push '(weblio "https://ejje.weblio.jp/content/%s"
+                   my/define-word--parse-weblio)
+          define-word-services)
+    (push '("<b>\\(.*?\\)</b>" bold)
+          define-word--tag-faces))
+
+  (defun my/define-word ()
+    "docstring"
+    (interactive)
+    (if (use-region-p)
+        (call-interactively #'define-word-at-point)
+      (call-interactively #'define-word)))
+
+  (defun my/define-word--display-in-buffer (definition)
+    "docstring"
+    (let* ((buf-name "*DEFINE WORD*")
+           (buffer (get-buffer-create buf-name))
+           (display-buffer-alist
+            `((,buf-name
+               (display-buffer-same-window)))))
+      (with-current-buffer buffer
+        (read-only-mode -1)
+        (erase-buffer)
+        (insert definition)
+        (goto-char (point-min))
+        (save-excursion (xml-parse-string))
+        (read-only-mode 1)
+        (buffer-face-set 'woman-buffer))
+      (display-buffer buffer)))
+
+  (defun my/define-word--parse-wordnik-example ()
+    (save-excursion
+      (let (beg
+            results
+            (define-word-limit 10))
+        (re-search-forward "<h2>Examples" nil t)
+        (save-excursion
+          (setq beg (re-search-forward "<div class=\"relatedWords-module\">" nil t)))
+        (while (re-search-forward "<p class=\"text\">\\(.*\\)</p>" beg t)
+          (push "---" results)
+          (push (match-string 1) results))
+        (when (setq results (nreverse results))
+          (define-word--convert-html-tag-to-face (define-word--join-results results))))))
+
+  (defvar my/define-word-part-map-alist '(("adjective" "adj.")
+                                          ("adverb" "adv.")
+                                          ("intransitive verb" "v.i.")
+                                          ("transitive verb" "v.t.")))
+
+
+  (defun my/define-word--parse-wordnik ()
+    (let ((str (define-word--parse-wordnik)))
+      (with-temp-buffer
+        (insert str)
+        (mapc (lambda (abbrev-map)
+                (goto-char (point-min))
+                (while (re-search-forward (format "\\(%s\\)" (car abbrev-map)) nil t)
+                  (let ((match (match-string 1)))
+                    (replace-match
+                     (propertize (cadr abbrev-map) 'face (text-properties-at (point)))))))
+              my/define-word-part-map-alist)
+        (buffer-string))))
+
+  (defun my/define-word--parse-wordnik-related-word ()
+    "docstring"
+    (save-excursion
+      (save-match-data
+        (seq-reduce
+         (lambda (accum group)
+           (let (results
+                 (define-word-limit 20))
+             (if (re-search-forward (format "<h3>%s" group) nil t)
+                 (progn (save-excursion
+                          (setq beg (re-search-forward "<div class=\"related-group-header clearfix\">" nil t)))
+                        (push (concat group ":") results)
+                        (while (re-search-forward "<span data-definition-for=\"\\([^\"]*\\)\"" beg t)
+                          (push (concat "- " (match-string 1)) results)
+                          (re-search-forward "</span>"))
+                        (concat (when accum (concat accum "\n\n"))
+                                (when (setq results (nreverse results))
+                                  (define-word--convert-html-tag-to-face (define-word--join-results results)))))
+               accum)))
+         '("antonym" "equivalents" "hypernyms" "hyponyms" "same context")
+         nil))))
+
+  (defun my/define-word--parse-wordnik-all ()
+    ""
+    (let* ((def (funcall #'my/define-word--parse-wordnik))
+           (rel (funcall #'my/define-word--parse-wordnik-related-word))
+           (exp (funcall #'my/define-word--parse-wordnik-example)))
+      (concat ;; "Definitions:\n" (funcall #'define-word--parse-wordnik) "\n\n"
+       (when def (format "Definitions:\n%s\n\n" def))
+       (when rel (format "%s\n\n" rel))
+       (when exp (format "Examples:\n%s\n" exp)))))
+
+  (defun my/define-word--parse-weblio ()
+    (save-excursion
+      (let (beg
+            results
+            (define-word-limit 10))
+        (re-search-forward "<td><b class=\"squareCircle description\">主な意味</b></td>" nil t)
+        (save-excursion
+          (setq beg (re-search-forward "<div " nil t)))
+        (while (re-search-forward "<td[^>]*>\\([^<]*\\)</td>" beg t)
+          (push (match-string 1) results))
+        (when (setq results (nreverse results))
+          (define-word--convert-html-tag-to-face (define-word--join-results results))))))
+#+end_src
+
 *** [[https://github.com/abo-abo/swiper/releases.atom][swiper/ivy]]
 Read [[info:ivy#Top][this manual]]
 
@@ -1748,6 +1872,7 @@ Read [[info:ivy#Top][this manual]]
                ("M-y" . ivy-next-line)
                ("M-w" . ivy-kill-ring-save)))
 #+end_src
+
 *** [[https://github.com/nflath/hungry-delete/releases.atom][hungry-delete]]
 Aggressively delete successive white spaces.
 
@@ -1777,7 +1902,7 @@ Aggressively delete successive white spaces.
     :bind (("C-M-<delete>"   . restart-emacs)
            ("C-M-S-<delete>" . save-buffers-kill-emacs)))
 #+end_src
-** handy extensions
+** handy customization
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/extensions.el")
 :END:
