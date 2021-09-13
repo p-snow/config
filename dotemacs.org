@@ -5,10 +5,12 @@
 
 #+STARTUP: overview
 
+#+TAGS: [ fixit ]
+
 * init lisp code               :elfeed:soft_update:prime:
 #+CALL: release-feed(github-url="")
 
-CAUTION: There are some face customization specifying an extra large font since I am [[https://en.wikipedia.org/wiki/Visual_impairment][visually impaired]].
+CAUTION: There are a handful of face customization specifying an extra large font since I am [[https://en.wikipedia.org/wiki/Visual_impairment][visually impaired]].
 
 ** early initialization
 :PROPERTIES:
@@ -279,7 +281,7 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
   (setf text-quoting-style 'straight)
 
   (global-visual-line-mode 0)
-  (setq-default truncate-lines nil)
+  (setq-default truncate-lines t)
 #+end_src
 
 *** indent
@@ -580,6 +582,14 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (delight 'bookmark-bmenu-mode " BB"))
 #+end_src
 
+*** hideshow
+
+#+begin_src emacs-lisp
+  (use-package hideshow
+    :diminish "hs"
+    :bind (("C-c TAB" . hs-toggle-hiding)))
+#+end_src
+
 *** uniquify
 [[info:emacs#Uniquify][Uniquify]] makes buffer names unique.
 
@@ -644,6 +654,38 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :custom
     (ediff-window-setup-function 'ediff-setup-windows-default)
     (ediff-split-window-function 'split-window-horizontally))
+#+end_src
+*** flyspell                                    :fixit:
+
+#+begin_src emacs-lisp
+  (use-package flyspell
+    :diminish "fs"
+    :if (executable-find "aspell")
+    :after (hydra)
+    :custom
+    (ispell-program-name "aspell")
+    (flyspell-issue-message-flag nil)
+    :config
+    ;; avoid checking for Japanese characters
+    (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
+    (setq-default ispell-extra-args '("--sug-mode=ultra"
+                                      "--lang=en_US"))
+    (when (string-match-p "--camel-case"
+                          (shell-command-to-string (concat ispell-program-name " --help")))
+      (push "--camel-case" ispell-extra-args))
+    (bind-keys :map flyspell-mode-map
+               ("C-,"   . nil)
+               ("C-."   . nil)
+               ("C-;"   . nil)
+               ("C-c $" . nil)
+               ("C-M-i" . nil))
+    (defhydra hydra-flyspell (flyspell-mode-map "C-c $"
+                                                :color red)
+      "Flyspell"
+      ("c" flyspell-buffer)
+      ("n" flyspell-goto-next-error)
+      ("." flyspell-auto-correct-word)
+      ("q" nil "quit")))
 #+end_src
 
 ** org mode
@@ -2017,6 +2059,52 @@ speed commands and hydra-org.
     (require 'eldoc))
 #+end_src
 
+*** ruby-mode
+
+#+begin_src emacs-lisp
+  (use-package ruby-mode
+    :delight " RB"
+    :mode (("\\.rb$"   . ruby-mode)
+           ("Capfile$" . ruby-mode)
+           ("Gemfile$" . ruby-mode))
+    :interpreter (("ruby"    . ruby-mode)
+                  ("rbx"     . ruby-mode)
+                  ("jruby"   . ruby-mode))
+    :config
+    (setq ruby-indent-level 2)
+    (setq ruby-insert-encoding-magic-comment nil)
+    (add-hook 'ruby-mode-hook
+              '(lambda ()
+                 (setq-local flycheck-checker 'ruby-rubocop)
+                 (setq-local counsel-dash-docsets '("Ruby"))))
+    (add-to-list 'hs-special-modes-alist
+                 `(ruby-mode
+                   ,(rx (or "def" "class" "module" "do" "if" "{" "[")) ; Block start
+                   ,(rx (or "}" "]" "end"))                       ; Block end
+                   ,(rx (or "#" "=begin"))                        ; Comment start
+                   ruby-forward-sexp nil)))
+#+end_src
+
+*** inf-ruby
+
+#+begin_src emacs-lisp
+  (use-package inf-ruby
+    :straight t
+    :config
+    (setq inf-ruby-default-implementation "pry")
+    (add-to-list 'inf-ruby-implementations '("pry" . "pry"))
+    (setq inf-ruby-eval-binding "Pry.toplevel_binding")
+    (setq inf-ruby-first-prompt-pattern "^\\[[0-9]+\\] pry\\((.*)\\)> *")
+    (setq inf-ruby-prompt-pattern "^\\[[0-9]+\\] pry\\((.*)\\)[>*\"'] *"))
+#+end_src
+
+*** yaml-mode
+
+#+begin_src emacs-lisp
+  (use-package yaml-mode
+    :straight t)
+#+end_src
+
 ** other packages
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/packages.el")
@@ -2219,6 +2307,22 @@ Aggressively delete successive white spaces.
     :bind (("C-M-<delete>"   . restart-emacs)
            ("C-M-S-<delete>" . save-buffers-kill-emacs)))
 #+end_src
+*** [[https://github.com/coldnew/pangu-spacing/releases.atom][pangu-spacing]]
+
+#+begin_src emacs-lisp
+  (use-package pangu-spacing
+    :straight t
+    :diminish pangu-spacing-mode
+    :config
+    (setq pangu-spacing-chinese-before-english-regexp
+          (rx (group-n 1 (category japanese))
+              (group-n 2 (in "a-zA-Z0-9"))))
+    (setq pangu-spacing-chinese-after-english-regexp
+          (rx (group-n 1 (in "a-zA-Z0-9"))
+              (group-n 2 (category japanese))))
+    (setq pangu-spacing-real-insert-separtor t))
+#+end_src
+
 ** handy customization
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/extensions.el")
