@@ -270,6 +270,21 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
   ;; use emacs in full screen mode
   (when (member (window-system) '(x ns w32))
     (set-frame-parameter nil 'fullscreen 'fullboth))
+
+  (global-visual-line-mode 0)
+  (setq-default truncate-lines t)
+#+end_src
+
+**** [[https://github.com/emacsmirror/adaptive-wrap/releases.atom][adaptive-wrap]]
+
+#+begin_src emacs-lisp
+  (use-package adaptive-wrap
+    :straight t
+    :hook
+    (((eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode) .
+      visual-line-mode)
+     ((eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode) .
+      adaptive-wrap-prefix-mode)))
 #+end_src
 
 *** text handling
@@ -279,9 +294,6 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
 
   ;; suppress curved quotes in docstring (for emacs25)
   (setf text-quoting-style 'straight)
-
-  (global-visual-line-mode 0)
-  (setq-default truncate-lines t)
 #+end_src
 
 *** indent
