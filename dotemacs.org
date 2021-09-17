@@ -5,10 +5,10 @@
 
 #+STARTUP: overview
 
-#+TAGS: [ fixit ]
+#+TAGS: [ fixit help maintaining programs mark ]
 
 * init lisp code               :elfeed:soft_update:prime:
-#+CALL: release-feed(github-url="")
+#+CALL: release-feed(github-url="https://github.com/magnars/expand-region.el")
 
 CAUTION: There are a handful of face customization specifying an extra large font since I am [[https://en.wikipedia.org/wiki/Visual_impairment][visually impaired]].
 
@@ -78,7 +78,7 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 #+end_src
 ** basic tweaks
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/init.el")
+:header-args+: :tangle (expand-tangle-target ".config/emacs/01-init.el")
 :END:
 
 *** language
@@ -120,7 +120,7 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
   (setf initial-scratch-message "")
   (setf inhibit-startup-screen t)
 #+end_src
-*** display
+*** face
 
 #+begin_src emacs-lisp
   (defvar my-default-pixel-width 2560 "Default display width in pixel.")
@@ -276,6 +276,8 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
 #+end_src
 
 **** [[https://github.com/emacsmirror/adaptive-wrap/releases.atom][adaptive-wrap]]
+
+adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major modes.
 
 #+begin_src emacs-lisp
   (use-package adaptive-wrap
@@ -651,14 +653,14 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (proced-auto-update-flag t)
     (proced-auto-update-interval 3))
 #+end_src
-*** imenu
+*** imenu                                    :programs:
 
 #+begin_src emacs-lisp
   (use-package imenu
     :custom
     (imenu-auto-rescan t))
 #+end_src
-*** ediff
+*** ediff                                 :maintaining:
 
 #+begin_src emacs-lisp
   (use-package ediff
@@ -698,6 +700,46 @@ I prefer to rid my emacs experience of mouse as least as possible.
       ("n" flyspell-goto-next-error)
       ("." flyspell-auto-correct-word)
       ("q" nil "quit")))
+#+end_src
+*** help                                         :help:
+:PROPERTIES:
+:ID:       a55da7a2-6525-4788-ba56-085eb61928d4
+:END:
+
+#+begin_src emacs-lisp
+  (use-package help-mode
+    :delight " HE"
+    :bind (:map help-mode-map
+                ("C-M-m" . hydra-lazy-control/body))
+    :init
+    (defface help-buffer `((t . (:font "fontset-default"
+                                       :height ,(my-adjust-font-size 835))))
+      "Default face for help mode."
+      :group 'help)
+    :config
+    (setq-default default-directory (expand-file-name "inits/" user-emacs-directory)))
+#+end_src
+*** info                                         :help:
+
+#+begin_src emacs-lisp
+  (use-package Info
+    :defer t
+    :bind (:map Info-mode-map
+                ("C-j" . Info-follow-nearest-node)
+                ("C-c C-o" . Info-follow-nearest-node)
+                ("a"   . info-apropos))
+    :init
+    (defface info-buffer `((t . (:font "fontset-default"
+                                       :height ,(my-adjust-font-size 835))))
+      "Default face for info mode."
+      :group 'info)
+    :hook (Info-mode . (lambda ()
+                         (buffer-face-set 'info-buffer)))
+    :custom
+    (Info-use-header-line nil)
+    :config
+    (require 'info-look)
+    (autoload 'info-lookup-add-help "info-look"))
 #+end_src
 
 ** org mode
@@ -2121,6 +2163,76 @@ speed commands and hydra-org.
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/packages.el")
 :END:
+
+*** [[https://github.com/magit/magit/releases.atom][Magit]]
+
+#+begin_src emacs-lisp
+  (use-package magit
+    :straight t
+    :delight
+    (magit-status-mode " MG")
+    (magit-revision-mode " MG")
+    :bind (:map magit-status-mode-map
+                ("C-j" . magit-visit-thing)
+                :map magit-log-mode-map
+                ("C-j" . magit-visit-thing)))
+#+end_src
+
+**** [[https://github.com/magit/git-modes/releases.atom][git-modes]]
+
+#+begin_src emacs-lisp
+  (use-package git-modes
+    :straight t)
+#+end_src
+
+****
+
+**** [[https://github.com/magit/orgit/releases.atom][orgit]]
+
+#+begin_src emacs-lisp
+  (use-package orgit
+    :straight t
+    :after (magit org)
+    :custom
+    (orgit-remote "github"))
+#+end_src
+
+*** [[https://github.com/magnars/expand-region.el/releases.atom][expand-region.el]]                             :mark:
+
+#+begin_src emacs-lisp
+  (use-package expand-region
+    :straight t
+    :bind (("C-,"   . er/expand-region)
+           ("C-M-," . er/contract-region))
+    :config
+    (push 'er/mark-outside-pairs er/try-expand-list))
+#+end_src
+
+*** [[https://github.com/Wilfred/helpful/releases.atom][helpful]]                                      :help:
+
+helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
+
+#+begin_src emacs-lisp
+  (use-package helpful
+    :straight t
+    :hook ((help-mode helpful-mode) .
+           (lambda ()
+             (buffer-face-set 'help-buffer)))
+    :bind (:map helpful-mode-map
+                ("w" . helpful-push-symbol-onto-kill-ring))
+    :custom
+    (counsel-describe-function-function #'helpful-callable)
+    (counsel-describe-variable-function #'helpful-variable)
+    (counsel-describe-symbol-function #'helpful-symbol)
+    (counsel-descbinds-function #'helpful-key))
+
+  (defun helpful-push-symbol-onto-kill-ring ()
+    "Push symbol name to kill ring."
+    (interactive)
+    (let ((symbol (symbol-name helpful--sym)))
+      (kill-new (symbol-name helpful--sym))
+      (message "COPY: %s" symbol)))
+#+end_src
 
 *** [[https://github.com/abo-abo/define-word/releases.atom][define-word]]
 
