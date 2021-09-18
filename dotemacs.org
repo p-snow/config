@@ -7,8 +7,9 @@
 
 #+TAGS: [ fixit help maintaining programs mark ]
 
-* init lisp code               :elfeed:soft_update:prime:
 #+CALL: release-feed(github-url="")
+
+* init lisp code               :elfeed:soft_update:prime:
 
 CAUTION: There are a handful of face customization specifying an extra large font since I am [[https://en.wikipedia.org/wiki/Visual_impairment][visually impaired]].
 
@@ -740,6 +741,21 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :config
     (require 'info-look)
     (autoload 'info-lookup-add-help "info-look"))
+#+end_src
+*** woman                                    :programs:
+
+#+begin_src emacs-lisp
+  (use-package woman
+    :delight " WM"
+    :after hydra
+    :bind (:map woman-mode-map
+                ("C-M-m" . hydra-lazy-control/body))
+    :init
+    (defface woman-buffer `((t . (:font "fontset-default"
+                                        :height ,(my-adjust-font-size 835))))
+      "Default face in woman mode.")
+    :hook (woman-mode . (lambda ()
+                          (buffer-face-set 'woman-buffer))))
 #+end_src
 
 ** org mode
@@ -2216,6 +2232,58 @@ speed commands and hydra-org.
                        (arglist-cont-nonempty . c-lineup-arglist))))))
 #+end_src
 
+*** python-mode
+
+#+begin_src emacs-lisp
+  (use-package python
+    :mode "\\.py\\'"
+    :interpreter "python"
+    :delight " PY"
+    :hook
+    ((python-mode inferior-python-mode) . my-python-mode-hook)
+    (lsp-mode . (lambda ()
+                  (add-to-list 'lsp-disabled-clients 'jedi)
+                  (add-to-list 'lsp-enabled-clients 'pyls))))
+
+  (defvar python-mode-initialized nil)
+
+  (defun my-python-mode-hook ()
+    (setq-local flycheck-checker 'python-pylint)
+    (jedi:setup)
+    (jedi-mode 1)
+    (setq-local counsel-dash-docsets
+                '("Python 3" "Pandas" "NumPy" "Matplotlib" "Scrapy" "PEPs" "lxml"))
+    (unless python-mode-initialized
+      (setq python-mode-initialized t)
+      (info-lookup-add-help
+       :mode 'python-mode
+       :regexp "[a-zA-Z_0-9.]+"
+       :doc-spec
+       '(("(python)Python Module Index" )
+         ("(python)Index"
+          (lambda
+            (item)
+            (cond
+             ((string-match
+               "\\([A-Za-z0-9_]+\\)() (in module \\([A-Za-z0-9_.]+\\))" item)
+              (format "%s.%s" (match-string 2 item)
+                      (match-string 1 item))))))))))
+#+end_src
+
+**** [[https://github.com/emacsorphanage/company-jedi/releases.atom][company-jedi]]
+
+#+begin_src emacs-lisp
+  (use-package company-jedi
+    :straight t
+    :after python
+    :hook (python-mode . my/python-mode-hook)
+    :custom
+    (jedi:tooltip-method nil)
+    :config
+    (defun my/python-mode-hook ()
+      (add-to-list 'company-backends 'company-jedi)))
+#+end_src
+
 *** ruby-mode
 
 #+begin_src emacs-lisp
@@ -2464,6 +2532,24 @@ speed commands and hydra-org.
     :after (magit org)
     :custom
     (orgit-remote "github"))
+#+end_src
+
+*** [[https://github.com/emacs-lsp/lsp-mode/releases.atom][lsp-mode]]
+
+#+begin_src emacs-lisp
+  (use-package lsp-mode
+    :straight t
+    :commands (lsp lsp-deferred)
+    :hook ((python-mode) . lsp-deferred))
+#+end_src
+
+**** [[https://github.com/emacs-lsp/lsp-ivy/releases.atom][lsp-ivy]]
+
+#+begin_src emacs-lisp
+  (use-package lsp-ivy
+    :straight t
+    :after lsp
+    :hook (lsp-mode . lsp-ivy-mode))
 #+end_src
 
 *** [[https://github.com/remyferre/comment-dwim-2/releases.atom][comment-dwim-2]]                           :programs:
