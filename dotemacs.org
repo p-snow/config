@@ -2110,7 +2110,7 @@ speed commands and hydra-org.
       ("SPC" my/org-reset-dwim)
       ("C-g" nil "quit")))
 #+end_src
-** main modes for programming/editing         :programs:
+** main modes for programming / scripting     :programs:
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/edit.el")
 :END:
@@ -2163,6 +2163,57 @@ speed commands and hydra-org.
                                (eldoc-mode 1)))
     :config
     (require 'eldoc))
+#+end_src
+
+*** cc-mode
+
+#+begin_src emacs-lisp
+  (use-package cc-mode
+    :hook (c-mode-common . (lambda ()
+                             (setq-local counsel-dash-docsets '("C"))))
+    :custom
+    (c-tab-always-indent t)
+    (c-auto-align-backslashes nil)
+    (c-echo-syntactic-information-p t)
+    (c-default-style "my/c-style")
+    :config
+    (c-toggle-auto-newline 1)
+    (c-add-style "my/c-style"
+                 '((c-basic-offset . 4)
+                   (c-comment-only-line-offset . 0)
+                   (c-hanging-braces-alist
+                    . ((brace-if-brace before after)
+                       (substatement-open before after)))
+                   (c-hanging-colons-alist
+                    . ((case-label after)))
+                   (c-cleanup-list
+                    . (brace-else-brace
+                       brace-elseif-brace
+                       empty-defun-braces
+                       defun-close-semi
+                       list-close-comma
+                       scope-operator))
+                   (c-offsets-alist
+                    . ((arglist-intro . +)
+                       (arglist-cont-nonempty . c-lineup-arglist)))))
+    (c-add-style "my/objc-style"
+                 '((c-basic-offset . 2)
+                   (c-comment-only-line-offset . 0)
+                   (c-hanging-braces-alist
+                    . ((brace-if-brace before after)
+                       (substatement-open before after)))
+                   (c-hanging-colons-alist
+                    . ((case-label after)))
+                   (c-cleanup-list
+                    . (brace-else-brace
+                       brace-elseif-brace
+                       empty-defun-braces
+                       defun-close-semi
+                       list-close-comma
+                       scope-operator))
+                   (c-offsets-alist
+                    . ((arglist-intro . +)
+                       (arglist-cont-nonempty . c-lineup-arglist))))))
 #+end_src
 
 *** ruby-mode
@@ -2315,6 +2366,31 @@ speed commands and hydra-org.
                        "<!--"
                        'nxml-forward-element
                        nil)))
+#+end_src
+
+*** sql-mode
+
+#+begin_src emacs-lisp
+  (use-package sql
+    :delight " SQ"
+    :commands (sql-mode)
+    :mode (("\\.sql$" . sql-mode))
+    :bind (:map sql-interactive-mode-map
+                ("C-j" . comint-send-input))
+    :hook (sql-mode . (lambda ()
+                        (setq-local flycheck-checker 'sql-sqlint)
+                        (setq-local counsel-dash-docsets '("MySQL")))))
+#+end_src
+
+*** log-view
+
+#+begin_src emacs-lisp
+  (use-package log-view
+    :delight
+    (log-view-mode " LV")
+    :mode ("\\.log$" . log-view-mode)
+    :hook ((log-view-mode . my/prog-mode-hook-function )
+           (log-view-mode . auto-revert-tail-mode)))
 #+end_src
 
 *** [[https://github.com/skuro/plantuml-mode/releases.atom][plantuml-mode]]
