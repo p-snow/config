@@ -1436,6 +1436,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (org-clock-string-limit 20)
     (org-clock-continuously t)
     (org-clock-ask-before-exiting nil)
+    (org-clock-out-remove-zero-time-clocks t)
     :config
     (org-clock-persistence-insinuate)
     (defconst org-clock-ts-line-re
@@ -1463,6 +1464,12 @@ I prefer to rid my emacs experience of mouse as least as possible.
        (todo
         (let ((org-timer-default-timer "25"))
           (org-timer-set-timer '(64)))))))
+
+  (defun my/org-clock-out-without-remove ()
+    "Clock out and save record even if clock time is zero."
+    (interactive)
+    (let ((org-clock-out-remove-zero-time-clocks nil))
+      (org-clock-out nil t)))
 
   (defun my/org-clock-out-have-a-break ()
     (when (org-get-todo-state)
@@ -2031,7 +2038,7 @@ speed commands and hydra-org.
        ("#" . org-toggle-comment)
        ("Clock Commands")
        ("I" . org-clock-in)
-       ("O" . org-clock-out)
+       ("O" . my/org-clock-out-without-remove)
        ("Q" . org-clock-cancel)
        ("Meta Data Editing")
        ("t" . org-todo)
@@ -2079,7 +2086,7 @@ speed commands and hydra-org.
       ("i" org-info-find-node)
       ("&" org-mark-ring-goto)
       ("I" org-clock-in)
-      ("O" org-clock-out)
+      ("O" my/org-clock-out-without-remove)
       ("Q" org-clock-cancel)
       ("qq" org-ql-search)
       ("qv" org-ql-view)
