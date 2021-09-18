@@ -8,7 +8,7 @@
 #+TAGS: [ fixit help maintaining programs mark ]
 
 * init lisp code               :elfeed:soft_update:prime:
-#+CALL: release-feed(github-url="https://github.com/magnars/expand-region.el")
+#+CALL: release-feed(github-url="")
 
 CAUTION: There are a handful of face customization specifying an extra large font since I am [[https://en.wikipedia.org/wiki/Visual_impairment][visually impaired]].
 
@@ -1597,6 +1597,17 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :after ob-core)
 #+end_src
 
+**** ob-lilypond
+
+#+begin_src emacs-lisp
+  (use-package ob-lilypond
+    :after (org lilypond-mode)
+    :custom
+    ;; (org-babel-lilypond-commands '("lilypond" "firefox" "fluidsynth -a alsa -m alsa_seq -l"))
+    (org-babel-lilypond-commands '("lilypond" "firefox" "xdg-open"))
+    (org-babel-lilypond-arrange-mode t))
+#+end_src
+
 *** org-export
 
 #+begin_src emacs-lisp
@@ -2099,10 +2110,44 @@ speed commands and hydra-org.
       ("SPC" my/org-reset-dwim)
       ("C-g" nil "quit")))
 #+end_src
-** programming/editing
+** programming/editing                        :programs:
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/edit.el")
 :END:
+
+*** prog
+
+#+begin_src emacs-lisp
+  (use-package prog-mode
+    :init
+    (defface prog-buffer `((t . (:font "fontset-default"
+                                       :height ,(my-adjust-font-size 570))))
+      "Default face for coding.")
+    :hook (prog-mode . my/prog-mode-hook-function))
+
+  (defun my/prog-mode-hook-function ()
+    (buffer-face-set 'prog-buffer)
+    (whitespace-mode)
+    (hl-line-mode -1)
+    (hs-minor-mode -1)
+    (flyspell-prog-mode)
+    (display-fill-column-indicator-mode))
+#+end_src
+
+*** sh
+
+#+begin_src emacs-lisp
+  (use-package sh-script
+    :delight " SH"
+    :commands sh-mode
+    :mode ("\\.sh$" . sh-mode)
+    ;; :dash "Bash"
+    :custom
+    (sh-basic-offset 2)
+    (sh-indent-after-if '+)
+    (sh-indent-for-case-label 0)
+    (sh-indent-for-case-alt '+))
+#+end_src
 
 *** emacs lisp
 
@@ -2146,7 +2191,7 @@ speed commands and hydra-org.
                    ruby-forward-sexp nil)))
 #+end_src
 
-*** inf-ruby
+*** [[https://github.com/nonsequitur/inf-ruby/releases.atom][inf-ruby]]
 
 #+begin_src emacs-lisp
   (use-package inf-ruby
@@ -2159,11 +2204,69 @@ speed commands and hydra-org.
     (setq inf-ruby-prompt-pattern "^\\[[0-9]+\\] pry\\((.*)\\)[>*\"'] *"))
 #+end_src
 
-*** yaml-mode
+*** [[https://github.com/yoshiki/yaml-mode/releases.atom][yaml-mode]]
 
 #+begin_src emacs-lisp
   (use-package yaml-mode
     :straight t)
+#+end_src
+
+*** [[https://github.com/immerrr/lua-mode/releases.atom][lua-mode]]
+
+#+begin_src emacs-lisp
+  (use-package lua-mode
+    :straight t)
+#+end_src
+
+*** perl-mode
+
+#+begin_src emacs-lisp
+  (use-package perl-mode
+    :delight " PL")
+#+end_src
+
+*** tex-mode
+
+#+begin_src emacs-lisp
+  (use-package tex-mode
+    :mode ("\\.tex$" . latex-mode)
+    :hook (latex-mode . (lambda ()
+                          (setq-local counsel-dash-docsets '("LaTeX")))))
+#+end_src
+
+*** [[https://github.com/skuro/plantuml-mode/releases.atom][plantuml-mode]]
+
+#+begin_src emacs-lisp
+  (use-package plantuml-mode
+    :straight t
+    :delight " UM"
+    :hook
+    (plantuml-mode . (lambda ()
+                       (setq-local counsel-dash-docsets '("PlantUML"))))
+    :custom
+    (plantuml-jar-path "/usr/share/plantuml/plantuml.jar"))
+#+end_src
+
+*** conf
+
+#+begin_src emacs-lisp
+  (use-package conf-mode
+    :delight " CF")
+#+end_src
+
+*** generic-x
+
+#+begin_src emacs-lisp
+  (use-package generic-x
+    :mode (("\\.conf$"     . apache-conf-generic-mode)
+           ("\\.htaccess$" . apache-conf-generic-mode)))
+#+end_src
+
+*** fundamental mode
+
+#+begin_src emacs-lisp
+  (use-package emacs
+    :delight (fundamental-mode " FU"))
 #+end_src
 
 ** other packages
@@ -2171,7 +2274,7 @@ speed commands and hydra-org.
 :header-args+: :tangle (expand-tangle-target ".config/emacs/packages.el")
 :END:
 
-*** [[https://github.com/magit/magit/releases.atom][Magit]]
+*** [[https://github.com/magit/magit/releases.atom][Magit]]                                 :maintaining:
 
 #+begin_src emacs-lisp
   (use-package magit
@@ -2202,6 +2305,25 @@ speed commands and hydra-org.
     :after (magit org)
     :custom
     (orgit-remote "github"))
+#+end_src
+
+*** [[https://github.com/remyferre/comment-dwim-2/releases.atom][comment-dwim-2]]                           :programs:
+
+#+begin_src emacs-lisp
+  (use-package comment-dwim-2
+    :straight t
+    :defer 1
+    :bind ("M-;" . comment-dwim-2)
+    :config
+    (setf comment-dwim-2--inline-comment-behavior 'reindent-comment
+          cd2/region-command 'cd2/comment-or-uncomment-region))
+#+end_src
+
+*** [[https://github.com/emacsorphanage/quickrun/releases.atom][quickrun]]                                 :programs:
+
+#+begin_src emacs-lisp
+  (use-package quickrun
+    :straight t)
 #+end_src
 
 *** [[https://github.com/magnars/expand-region.el/releases.atom][expand-region.el]]                             :mark:
@@ -2444,14 +2566,15 @@ Aggressively delete successive white spaces.
   (use-package pangu-spacing
     :straight t
     :diminish pangu-spacing-mode
+    :custom
+    (pangu-spacing-real-insert-separtor t)
     :config
     (setq pangu-spacing-chinese-before-english-regexp
           (rx (group-n 1 (category japanese))
               (group-n 2 (in "a-zA-Z0-9"))))
     (setq pangu-spacing-chinese-after-english-regexp
           (rx (group-n 1 (in "a-zA-Z0-9"))
-              (group-n 2 (category japanese))))
-    (setq pangu-spacing-real-insert-separtor t))
+              (group-n 2 (category japanese)))))
 #+end_src
 
 ** handy customization
