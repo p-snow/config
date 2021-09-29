@@ -149,6 +149,15 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
     :config
     (buffer-face-mode 1))
 
+  (use-package face
+    :no-require t
+    :init
+    (defface my/large-font-face `((t . (:font "fontset-default"
+                                              :height ,(my-adjust-font-size 900))))
+      "A face with large font.")
+    :hook
+    (twittering-mode . (lambda () (buffer-face-set 'my/large-font-face))))
+
   (use-package modus-themes
     :straight (modus-themes
                :host github
@@ -788,6 +797,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (defvar org-done-keyword-0 "DN" "TODO keyword acronym standing for 'DoNe'")
     (defvar org-done-keyword-1 "CX" "TODO keyword acronym standing for 'Cancel'")
     (defvar org-done-keyword-2 "PD" "TODO keyword acronym standing for 'PenDing'")
+    :hook (org-after-todo-state-change . save-buffer)
     :custom
     (org-directory (expand-file-name "~/org"))
     (org-special-ctrl-a/e t)
@@ -2513,6 +2523,7 @@ speed commands and hydra-org.
     (magit-revision-mode " MG")
     :bind (:map magit-status-mode-map
                 ("C-j" . magit-visit-thing)
+                ("/"   . magit-file-checkout)
                 :map magit-log-mode-map
                 ("C-j" . magit-visit-thing)))
 #+end_src
@@ -2550,6 +2561,162 @@ speed commands and hydra-org.
     :straight t
     :after lsp
     :hook (lsp-mode . lsp-ivy-mode))
+#+end_src
+
+*** [[https://github.com/hayamiz/twittering-mode/releases.atom][twittering-mode]]
+
+useful tips:
+- invoke twittering-toggle-show-replied-statuses on "in reply to" state to show replied messages
+- invoke twittering-view-user-page (C-c C-v) on user name to jump to user profile page in default browser
+
+#+begin_src emacs-lisp
+  (use-package twittering-mode
+    :straight (twittering-mode
+               :host github
+               :repo "hayamiz/twittering-mode"
+               :fork (:host github
+                            :repo "daisychain-jp/twittering-mode"))
+    :delight " TW"
+    :after hydra
+    :commands twit
+    :init
+    (defvar my/twittering-resource-dir "~/var/lib/twmode")
+    :custom
+    (twittering-private-info-file
+     (expand-file-name "twittering-mode.gpg" my/twittering-resource-dir))
+    (twittering-user-id-db-file
+     (expand-file-name "user-info.gz" my/twittering-resource-dir))
+    (twittering-use-master-password t)
+    (twittering-use-ssl t)
+    (twittering-number-of-tweets-on-retrieval 50)
+    (twittering-use-icon-storage t)
+    (twittering-icon-storage-file
+     (expand-file-name "icons.gz" my/twittering-resource-dir))
+    (twittering-icon-storage-limit 1000)
+    (twittering-convert-fix-size 24)
+    (twittering-initial-timeline-spec-string '(":home" ":mentions"))
+    (twittering-edit-skeleton 'inherit-any)
+    (twittering-display-remaining t)
+    (twittering-timeline-header "")
+    (twittering-timeline-footer "")
+    (twittering-status-format
+     (concat "%RT{%FACE[bold]{RT by %S\n}}"
+             "%i %S,"
+             "%FACE[font-lock-constant-face]{%FIELD-IF-NONZERO[ ↺%d]{retweet_count}}"
+             "%FACE[font-lock-warning-face]{%FIELD-IF-NONZERO[ ♡%d]{favorite_count}}"
+             " %@{}:\n"
+             "%T %r%QT{\n+----\n%i %S, %@{}:\n%T %r%R\n+----}\n "))
+    :config
+    (twittering-icon-mode 1)
+    (bind-keys :map twittering-mode-map
+               ;; move cursor
+               ("w" . my/twittering-previous-status-and-top)
+               ("W" . my/twittering-previous-status-of-user-and-top)
+               ("a" . twittering-goto-first-status)
+               ("SPC" . my/twittering-next-status-and-top)
+               ("S-SPC" . my/twittering-next-status-of-user-and-top)
+               ("v" . twittering-goto-last-status)
+               ("f" . scroll-up-line)
+               ("e" . scroll-down-line)
+               ("TAB" . twittering-goto-next-thing)
+               ("<backtab>" . twittering-goto-previous-thing)
+               ;; create/delete tweets(messages)
+               ("j" . twittering-update-status-interactive)
+               ("J" . twittering-reply-to-user)
+               ("RET" . twittering-enter)
+               ("o" . my/twittering-open)
+               ("C-c C-o" . my/twittering-open)
+               ("d" . twittering-direct-message)
+               ("k" . twittering-delete-status)
+               ("y" . twittering-push-uri-onto-kill-ring)
+               ("Y" . twittering-push-tweet-onto-kill-ring)
+               ;; response to tweets
+               ("r" . twittering-native-retweet)
+               ("R" . my/twittering-quote-retweet)
+               ("b" . twittering-favorite)
+               ("B" . twittering-unfavorite)
+               ("l" . twittering-follow)
+               ("L" . twittering-unfollow)
+               ("t" . twittering-toggle-show-replied-statuses)
+               ("T" . twittering-toggle-or-retrieve-replied-statuses)
+               ;; switch between timelines
+               ("n" . twittering-switch-to-next-timeline)
+               ("p" . twittering-switch-to-previous-timeline)
+               ("." . twittering-visit-timeline)
+               ("@" . twittering-other-user-timeline)
+               ("/" . my/twittering-search)
+               ("?" . twittering-search)
+               ("1" . twittering-home-timeline)
+               ("2" . (lambda ()
+                        (interactive)
+                        (twittering-visit-timeline ":mentions")))
+               ("3" . (lambda ()
+                        (interactive)
+                        (twittering-visit-timeline ":retweets_of_me")))
+               ("4" . (lambda ()
+                        (interactive)
+                        (twittering-visit-timeline ":favorites")))
+               ("5" . (lambda ()
+                        (interactive)
+                        (twittering-visit-timeline ":direct_message_events")))))
+
+  (defun my/twittering-next-status-and-top ()
+    "docstring"
+    (interactive)
+    (twittering-goto-next-status)
+    (recenter-top-bottom 0))
+
+  (defun my/twittering-previous-status-and-top ()
+    "docstring"
+    (interactive)
+    (twittering-goto-previous-status)
+    (recenter-top-bottom 0))
+
+  (defun my/twittering-next-status-of-user-and-top ()
+    "docstring"
+    (interactive)
+    (twittering-goto-next-status-of-user)
+    (recenter-top-bottom 0))
+
+  (defun my/twittering-previous-status-of-user-and-top ()
+    "docstring"
+    (interactive)
+    (twittering-goto-previous-status-of-user)
+    (recenter-top-bottom 0))
+
+  (defun my/twittering-quote-retweet ()
+    "docstring"
+    (interactive)
+    (let ((orig-tweet-uri (twittering-push-uri-onto-kill-ring)))
+      (twittering-update-status (format "\n%s" orig-tweet-uri))
+      (next-line -1 t)))
+
+  (defun my/twittering-search (&optional arg)
+    ""
+    (interactive "P")
+    (let* ((spec (get-text-property (point) 'goto-spec))
+           (username (get-text-property (point) 'username))
+           (word (cond
+                  ((use-region-p) (buffer-substring (region-beginning) (region-end)))
+                  ((stringp spec) spec)
+                  ((eq (car spec) 'user) (format "@%s" (cadr spec)))
+                  ((stringp username) username))))
+      (twittering-search (and (not arg) word))))
+
+  (defun my/twittering-open (&optional arg)
+    ""
+    (interactive "P")
+    (unless (open-thing-at-point)
+      (let ((uri (or (get-text-property (point) 'uri)
+                     (if (get-text-property (point) 'field)
+                         (let* ((id (get-text-property (point) 'id))
+                                (status (twittering-find-status id)))
+                           (twittering-get-status-url-from-alist status))
+                       nil))))
+        (cl-case (prefix-numeric-value arg)
+          (16 (browse-url-default-browser uri))
+          (4 (eww-browse-url uri))
+          (t (open-url uri))))))
 #+end_src
 
 *** [[https://github.com/remyferre/comment-dwim-2/releases.atom][comment-dwim-2]]                           :programs:
@@ -3138,7 +3305,8 @@ to avoid accidental data loss.
            (when (org-buffer-narrowed-p)
              (when org-startup-indented
                (org-indent-mode 1))
-             (visual-line-mode -1))
+             (visual-line-mode -1)
+             (adaptive-wrap-prefix-mode -1))
            (widen)
            (setq-local truncate-lines t))
           ((region-active-p)
@@ -3152,7 +3320,8 @@ to avoid accidental data loss.
            (cond ((org-at-block-p)
                   (org-narrow-to-block))
                  ((org-at-heading-p)
-                  (org-narrow-to-subtree))
+                  (org-narrow-to-subtree)
+                  (adaptive-wrap-prefix-mode))
                  (t (org-narrow-to-element)))
            (org-indent-mode -1)
            (visual-line-mode 1))
