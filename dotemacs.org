@@ -2798,7 +2798,15 @@ helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
                    my/define-word--parse-weblio)
           define-word-services)
     (push '("<b>\\(.*?\\)</b>" bold)
-          define-word--tag-faces))
+          define-word--tag-faces)
+    ;; fix issue #31 temporally
+    (defun my/define-word--fix-31 (define-word-orig &rest args)
+      "Fix `define-word' backends that require a user agent (like wordnik)."
+      (let ((url-request-extra-headers
+             '(("User-Agent" .
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_5_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36"))))
+        (apply define-word-orig args)))
+    (advice-add #'define-word :around #'my/define-word--fix-31))
 
   (defun my/define-word ()
     "docstring"
@@ -3052,10 +3060,10 @@ to avoid accidental data loss.
                  '("!0" "drill entry for english word"
                    entry (function org-goto-clocking-or-today)
                    "* %i :drill:fd_en:
-    [%(my/org-english-insert-japanese-translation)]
-    %(my/org-english-insert-english-translation)
-    - %a
-      %c"))
+  [%(my/org-english-insert-japanese-translation)]
+  %(my/org-english-insert-english-translation)
+  - %a
+    %c"))
     (add-to-list 'org-capture-templates
                  '("!1" "drill entry for english word"
                    item(function my/org-english-goto-match)
@@ -3074,6 +3082,8 @@ to avoid accidental data loss.
       (with-temp-buffer
         (url-insert-buffer-contents buffer url)
         (ivy-read "match" (split-string (funcall 'my/define-word--parse-wordnik) "\n")))))
+
+  (advice-add #'my/org-english-insert-english-translation :around #'my/define-word--fix-31)
 
   (defun my/org-english-insert-japanese-translation ()
     "Insert Japanese translation into org capture entry."
