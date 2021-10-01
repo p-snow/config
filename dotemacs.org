@@ -3027,6 +3027,10 @@ to avoid accidental data loss.
 ** original features
 *** org-english
 
+Learning Workflow for English words:
+1. Capture an word to study by invoking my/org-english-capture
+2. Review words periodically with my/org-english-drill-test-display or its variants
+
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/late/org-english.el")
   (defun my/org-english-capture (word)
     "Capture an english WORD as a org-mode entry suitable for org-drill.
@@ -3041,9 +3045,13 @@ to avoid accidental data loss.
                           (my/org-archive-files)
                           `(and (heading ,(format "%s" word))
                                 (tags "drill"))
-                          :action 'element-with-markers)))
-      (kill-new (replace-regexp-in-string word (format "[%s]" word)
-                                          (sentence-at-point)))
+                          :action 'element-with-markers))
+           (sentence (sentence-at-point)))
+      (kill-new (if (and (stringp sentence)
+                         (stringp word))
+                    (replace-regexp-in-string word (format "[%s]" word)
+                                              sentence)
+                  ""))
       (cond
        (match-entry (org-capture nil "!1"))
        (t (org-capture nil "!0")))))
