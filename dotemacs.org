@@ -555,7 +555,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
 :header-args+: :tangle (expand-tangle-target ".config/emacs/features.el")
 :END:
 
-*** auto revert
+*** Auto Revert
 [[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
 
 #+begin_src emacs-lisp
@@ -568,7 +568,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (global-auto-revert-mode 1))
 #+end_src
 
-*** abbrev
+*** Abbrev
 
 #+begin_src emacs-lisp
   (use-package abbrev
@@ -577,6 +577,14 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (save-abbrevs t)
     :config
     (quietly-read-abbrev-file))
+#+end_src
+
+*** EasyPG (epg)
+
+#+begin_src emacs-lisp
+  (use-package epg
+    :custom
+    (epg-pinentry-mode 'loopback))
 #+end_src
 
 *** hippie-exp
@@ -2917,6 +2925,17 @@ helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
           (push (match-string 1) results))
         (when (setq results (nreverse results))
           (define-word--convert-html-tag-to-face (define-word--join-results results))))))
+#+end_src
+
+*** [[https://github.com/purcell/exec-path-from-shell/releases.atom][exec-path-from-shell]]
+A GNU Emacs library to ensure environment variables inside Emacs look the same as in the user's shell.
+
+#+begin_src emacs-lisp
+  (use-package exec-path-from-shell
+    :straight t
+    :config
+    (when (memq window-system '(mac))
+      (exec-path-from-shell-initialize)))
 #+end_src
 
 *** [[https://github.com/emacs-jp/migemo/releases.atom][migemo]]
