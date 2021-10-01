@@ -767,6 +767,14 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :hook (woman-mode . (lambda ()
                           (buffer-face-set 'woman-buffer))))
 #+end_src
+*** executable
+This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/][this advice]]
+
+#+begin_src emacs-lisp
+  (use-package executable
+    :hook (after-save
+           . executable-make-buffer-file-executable-if-script-p))
+#+end_src
 
 ** org mode
 :PROPERTIES:
