@@ -1,4 +1,4 @@
-#+TITLE: .emacs.d files
+#+TITLE: Emacs init file
 #+PROPERTY: header-args       :tangle-mode (identity #o444)
 #+PROPERTY: header-args+      :mkdirp yes
 #+PROPERTY: tangle-target-dir .files
@@ -156,7 +156,7 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
                                               :height ,(my-adjust-font-size 900))))
       "A face with large font.")
     :hook
-    (twittering-mode . (lambda () (buffer-face-set 'my/large-font-face))))
+    ((eww-mode twittering-mode) . (lambda () (buffer-face-set 'my/large-font-face))))
 
   (use-package modus-themes
     :straight (modus-themes
@@ -554,7 +554,6 @@ I prefer to rid my emacs experience of mouse as least as possible.
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/features.el")
 :END:
-
 *** Auto Revert
 [[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
 
@@ -782,6 +781,139 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
   (use-package executable
     :hook (after-save
            . executable-make-buffer-file-executable-if-script-p))
+#+end_src
+
+** EWW
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".config/emacs/eww.el")
+:END:
+
+#+begin_src emacs-lisp
+  (use-package eww
+    :delight " EW"
+    :hook
+    (eww-mode . (lambda () (whitespace-mode -1)))
+    (eww-after-render . my/eww-rename-buffer)
+    :custom
+    ;; set enough large column number to prevent from inserting line break
+    (shr-width 10000)
+    (shr-use-fonts nil)
+    (shr-image-animate t)
+    (eww-header-line-format nil)
+    (shr-max-image-proportion 0.3)
+    :config
+    (bind-keys :map eww-mode-map
+               ("f" . scroll-up-line)
+               ("e" . scroll-down-line)
+               ("SPC" . my/forward-paragraph)
+               ("E" . my/backward-paragraph)
+               ("C" . eww-set-character-encoding)
+               ("1" . eww-back-url)
+               ("2" . shr-next-link)
+               ("4" . eww-follow-link)
+               ("C-j" . eww-follow-link)
+               ("T" . eww-goto-title-heading)
+               ("L" . my/eww-goto-heading)
+               ("O" . my/eww-convert-to-org)
+               :map eww-bookmark-mode-map
+               ("C-j" . eww-bookmark-browse)))
+
+  (defun my/eww-rename-buffer ()
+    "Rename the name of current EWW buffer.
+
+  If associated HTML file have a title tag, use title as a buffer name.
+  Otherwise, use a current URL."
+    (let ((title (plist-get eww-data :title))
+          (url (file-name-base (eww-current-url))))
+      (rename-buffer (format "eww: %s" (or (if (and title (> (length title) 0))
+                                               title nil)
+                                           url "")) t)))
+
+  (defun my/eww-convert-to-org ()
+    "Convert current html page into one org file and show it.
+
+  This is handy if you would like to check a page index comfortably."
+    (interactive)
+    (let ((source (plist-get eww-data :source))
+          (src-html (make-temp-file "source-"))
+          (dst-org (expand-file-name (format "%s.org" (org-id-uuid)) "~/var/tmp/eww"))
+          (coding-system-for-write 'utf-8-unix)
+          (org-startup-folded t))
+      (with-temp-buffer
+        (insert source)
+        (write-region (point-min) (point-max) src-html nil)
+        (call-process-shell-command (format "pandoc %s -f html -t org -o %s"
+                                            (shell-quote-argument src-html)
+                                            (shell-quote-argument dst-org)))
+        (delete-file src-html))
+      (find-file dst-org t)
+      (goto-char (point-min))
+      (org-ctrl-c-tab)))
+
+  (defun eww-headings-dom ()
+    "Return heading list as a dom from xml."
+    (let ((source (plist-get eww-data :source))
+          (dom nil))
+      (with-temp-buffer
+        (let ((source-file (make-temp-file "source-"))
+              (coding-system-for-write 'utf-8-unix))
+          (insert source)
+          (write-region (point-min) (point-max) source-file nil)
+          (erase-buffer)
+          (call-process "extract_headings" source-file t)
+          (delete-file source-file)
+          (libxml-parse-xml-region (point-min) (point-max))))))
+
+  (defun eww-goto-title-heading ()
+    "Set point to a line which contaings the possible heading."
+    (interactive)
+    (when-let* ((headings-dom (eww-headings-dom))
+                (possible-heading (cl-reduce (lambda (node-a node-b)
+                                               (if (not (bound-and-true-p node-a))
+                                                   (if (not (bound-and-true-p node-b))
+                                                       nil
+                                                     node-b)
+                                                 (if (>= (string-to-number (dom-attr node-a 'proximity))
+                                                         (string-to-number (dom-attr node-b 'proximity)))
+                                                     node-a node-b)))
+                                             (dom-children headings-dom)
+                                             :initial-value nil))
+                (possible-text (dom-text possible-heading))
+                (match-pos (or (re-search-forward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1)
+                               (re-search-backward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1))))
+      (beginning-of-line)
+      (recenter-top-bottom 0)))
+
+  (defun my/eww-goto-heading ()
+    "Go to selected heading line."
+    (interactive)
+    (setq lexical-binding t)
+    (let ((headings-root (eww-headings-dom))
+          (cur-buf (current-buffer)))
+      (ivy-read "Heading : "
+                (mapcar (lambda (heading-node)
+                          (when-let* ((heading (dom-text heading-node))
+                                      (tag (symbol-name (dom-tag heading-node)))
+                                      (match-pos (string-match "h\\([1-6]\\{1\\}\\)" tag))
+                                      (indent (- (string-to-number (match-string 1 tag)) 1)))
+                            (format "%s%s"
+                                    (apply 'concat (make-list indent "  "))
+                                    heading)))
+                        (dom-children headings-root))
+                :action (lambda (candidate)
+                          (when-let ((match (string-match "\\(?:  \\)*\\(.*\\)" candidate))
+                                     (heading (match-string 1 candidate))
+                                     (match-pos (or (re-search-forward (build-regex heading) nil t 1)
+                                                    (re-search-backward (build-regex heading) nil t 1))))
+                            (with-current-buffer cur-buf
+                              (switch-to-buffer cur-buf)
+                              (beginning-of-line)
+                              (recenter-top-bottom 0)))))))
+
+  (defun build-regex (str)
+    "Return a regexp representation for `STR'."
+    (format "^[[:blank:]SVG Image]*%s[[:blank:]]*$"
+            (ivy--regex str)))
 #+end_src
 
 ** org mode
@@ -2927,6 +3059,15 @@ helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
           (define-word--convert-html-tag-to-face (define-word--join-results results))))))
 #+end_src
 
+*** [[https://github.com/hpdeifel/synosaurus/releases.atom][synosaurus]]
+
+#+begin_src emacs-lisp
+  (use-package synosaurus
+    :straight t
+    :custom
+    (synosaurus-choose-method 'ivy))
+#+end_src
+
 *** [[https://github.com/purcell/exec-path-from-shell/releases.atom][exec-path-from-shell]]
 A GNU Emacs library to ensure environment variables inside Emacs look the same as in the user's shell.
 
@@ -3050,6 +3191,81 @@ to avoid accidental data loss.
       (when (and (< percentage battery-load-low)
                  (string= power "BAT"))
         (save-buffers-kill-emacs t))))
+#+end_src
+
+*** cursor movement
+
+#+begin_src emacs-lisp
+  (defun my/forward-paragraph ()
+    "docstring"
+    (interactive)
+    (interactive)
+    (forward-paragraph 2)
+    (backward-paragraph 1)
+    (forward-line 1)
+    (recenter-top-bottom 0))
+
+  (defun my/backward-paragraph ()
+    (interactive)
+    (backward-paragraph 2)
+    (forward-paragraph 1)
+    (backward-paragraph 1)
+    (forward-line 1)
+    (recenter-top-bottom 0))
+#+end_src
+
+*** lookup functions
+
+#+begin_src emacs-lisp
+  (defmacro define-lookup-function (fun search-prefix &optional word-fixed &rest post-process)
+    "Create lookup function named FUN using SEARCH-PREFIX for querying.
+
+  if WORD-FIXED is given, use it as a search word."
+    (declare (indent 1))
+    `(defun ,fun (word)
+       (interactive (list (cond
+                           (,word-fixed)
+                           ((use-region-p)
+                            (buffer-substring (region-beginning) (region-end)))
+                           (t (read-string "Enter URL or keywords: ")))))
+       (let ((current-prefix-arg '(4))
+             (eww-search-prefix ,search-prefix))
+         (eww word)
+         ,@post-process)))
+
+  (define-lookup-function lookup-google "https://www.google.com/search?q=")
+  (define-lookup-function lookup-wikipedia-en "https://en.wikipedia.org/wiki/")
+  (define-lookup-function lookup-wikipedia-ja "https://ja.wikipedia.org/wiki/")
+  (define-lookup-function lookup-amazon "https://www.amazon.co.jp/gp/search/?field-keywords=")
+  (define-lookup-function lookup-duckduckgo "https://duckduckgo.com/html/?kl=jp-jp&k1=-1&kc=1&kf=-1&q=")
+  (define-lookup-function lookup-eijiro "https://eow.alc.co.jp/search?q=")
+  (define-lookup-function lookup-weblio "https://www.weblio.jp/content/")
+  (define-lookup-function lookup-youtube "https://www.youtube.com/results?search_query="
+                          nil (eww-browse-with-external-browser))
+
+  (with-eval-after-load 'hydra
+    (defhydra hydra-lookup (global-map "C-c l"
+                                       :color blue)
+      "Lookup"
+      ("g" lookup-google)
+      ("w" lookup-wikipedia-ja)
+      ("W" lookup-wikipedia-en)
+      ("a" lookup-amazon "amazon.co.jp")
+      ("d" lookup-duckduckgo "duckduckgo")
+      ("l" lookup-weblio "weblio")
+      ("y" lookup-youtube "youtube")
+      ("e" my/define-word)
+      ("j" (lambda ()
+             (interactive)
+             (let ((define-word-default-service 'weblio))
+               (my/define-word)))
+       "japanese translation")
+      ("J" lookup-eijiro)
+      ("s" synosaurus-lookup "synosaurus-lookup")
+      ("S" synosaurus-choose-and-replace "synosaurus-replace")
+      ("o" my/lookup-org-archive)
+      ("'" utl-say)
+      ("q" nil "quit")))
 #+end_src
 ** original features
 *** org-english
