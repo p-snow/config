@@ -2741,7 +2741,7 @@ useful tips:
     (twittering-use-icon-storage t)
     (twittering-icon-storage-file
      (expand-file-name "icons.gz" my/twittering-resource-dir))
-    (twittering-icon-storage-limit 1000)
+    (twittering-icon-storage-limit 2000)
     (twittering-convert-fix-size 24)
     (twittering-initial-timeline-spec-string '(":home" ":mentions"))
     (twittering-edit-skeleton 'inherit-any)
@@ -2759,14 +2759,12 @@ useful tips:
     (twittering-icon-mode 1)
     (bind-keys :map twittering-mode-map
                ;; move cursor
-               ("w" . my/twittering-previous-status-and-top)
-               ("W" . my/twittering-previous-status-of-user-and-top)
-               ("a" . twittering-goto-first-status)
-               ("SPC" . my/twittering-next-status-and-top)
-               ("S-SPC" . my/twittering-next-status-of-user-and-top)
-               ("v" . twittering-goto-last-status)
                ("f" . scroll-up-line)
                ("e" . scroll-down-line)
+               ("E" . my/twittering-previous-status-and-top)
+               ("SPC" . my/twittering-next-status-and-top)
+               ("<" . twittering-goto-first-status)
+               (">" . twittering-goto-last-status)
                ("TAB" . twittering-goto-next-thing)
                ("<backtab>" . twittering-goto-previous-thing)
                ;; create/delete tweets(messages)
@@ -2822,18 +2820,6 @@ useful tips:
     "docstring"
     (interactive)
     (twittering-goto-previous-status)
-    (recenter-top-bottom 0))
-
-  (defun my/twittering-next-status-of-user-and-top ()
-    "docstring"
-    (interactive)
-    (twittering-goto-next-status-of-user)
-    (recenter-top-bottom 0))
-
-  (defun my/twittering-previous-status-of-user-and-top ()
-    "docstring"
-    (interactive)
-    (twittering-goto-previous-status-of-user)
     (recenter-top-bottom 0))
 
   (defun my/twittering-quote-retweet ()
