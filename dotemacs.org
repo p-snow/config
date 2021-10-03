@@ -5,7 +5,7 @@
 
 #+STARTUP: overview
 
-#+TAGS: [ fixit help maintaining programs mark ]
+#+TAGS: [ fixit help maintaining programs mark kill ]
 
 #+CALL: release-feed(github-url="")
 
@@ -376,7 +376,7 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
    '(custom-file (expand-file-name "custom.el" user-emacs-directory)))
 #+end_src
 
-*** killing
+*** killing                                      :kill:
 
 #+begin_src emacs-lisp
   (custom-set-variables '(yank-pop-change-selection t))
@@ -815,7 +815,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     (shr-use-fonts nil)
     (shr-image-animate t)
     (eww-header-line-format nil)
-    (shr-max-image-proportion 0.3)
+    (shr-max-image-proportion 0.4)
     :config
     (bind-keys :map eww-mode-map
                ("f" . scroll-up-line)
@@ -2709,6 +2709,8 @@ speed commands and hydra-org.
     (orgit-remote "github"))
 #+end_src
 
+*** [[https://github.com/bbatsov/projectile/releases.atom][projectile]]                            :maintaining:
+
 *** [[https://github.com/emacs-lsp/lsp-mode/releases.atom][lsp-mode]]
 
 #+begin_src emacs-lisp
@@ -2739,7 +2741,7 @@ useful tips:
                :host github
                :repo "hayamiz/twittering-mode"
                :fork (:host github
-                            :repo "daisychain-jp/twittering-mode"))
+                            :repo "p-snow/twittering-mode"))
     :delight " TW"
     :after hydra
     :commands twit
@@ -2882,6 +2884,14 @@ useful tips:
     :config
     (setf comment-dwim-2--inline-comment-behavior 'reindent-comment
           cd2/region-command 'cd2/comment-or-uncomment-region))
+#+end_src
+
+*** [[https://github.com/leoliu/easy-kill/releases.atom][easy-kill]]                                    :kill:
+
+#+begin_src emacs-lisp
+  (use-package easy-kill
+    :straight t
+    :bind ("M-w" . easy-kill))
 #+end_src
 
 *** [[https://github.com/emacsorphanage/quickrun/releases.atom][quickrun]]                                 :programs:
