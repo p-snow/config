@@ -38,13 +38,11 @@ These process must be evaluated beforehand.
     (add-to-list 'load-path (expand-file-name "elisp" pkg-emacs-ver-dir)))
 #+end_src
 
-*** [[https://github.com/jwiegley/use-package/releases.atom][use-package]] installation
-
-[[https://jwiegley.github.io/use-package/][Official manual]] is handy especially when you look up [[https://jwiegley.github.io/use-package/keywords/][Keywords]].
+*** install [[https://github.com/raxod502/straight.el/releases.atom][straight.el]]
 
 #+begin_src emacs-lisp
-  ;; install straight.el
   (setq straight-recipes-gnu-elpa-use-mirror t)
+
   (let ((bootstrap-file
          (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
         (bootstrap-version 4))
@@ -56,7 +54,13 @@ These process must be evaluated beforehand.
         (goto-char (point-max))
         (eval-print-last-sexp)))
     (load bootstrap-file nil 'nomessage))
+#+end_src
 
+*** install [[https://github.com/jwiegley/use-package/releases.atom][use-package]]
+
+[[https://jwiegley.github.io/use-package/][Official manual]] is handy especially when you look up [[https://jwiegley.github.io/use-package/keywords/][Keywords]].
+
+#+begin_src emacs-lisp
   ;; install use-package via straight.el
   (straight-use-package 'use-package)
 
@@ -64,13 +68,24 @@ These process must be evaluated beforehand.
     :custom
     (use-package-ensure-function 'straight-use-package-ensure-function))
 
-  ;; install dependency packages for use-package using straight.el
-  (use-package diminish :straight t)
-  (use-package delight :straight t)
   (use-package use-package-ensure-system-package :straight t)
 #+end_src
 
-*** library including
+use-package depends on following packages internally
+
+**** [[https://github.com/myrjola/diminish.el/releases.atom][diminish.el]]
+
+#+begin_src emacs-lisp
+  (use-package diminish :straight t)
+#+end_src
+
+**** [[https://github.com/emacs-straight/delight/releases.atom][delight]]
+
+#+begin_src emacs-lisp
+  (use-package delight :straight t)
+#+end_src
+
+*** load cl-lib
 
 Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah-checkouts/gnu/emacs/news/NEWS.27.1][officially deprecated]].
 
