@@ -1740,7 +1740,6 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+begin_src emacs-lisp
   (use-package org-indent
     :after org
-    :hook (org-mode . org-indent-mode)
     :custom
     (org-startup-indented t))
 #+end_src
@@ -3408,11 +3407,16 @@ Learning Workflow for English words:
   [%(my/org-english-insert-japanese-translation)]
   %(my/org-english-insert-english-translation)
   - %a
-    %c"))
+    ,#+begin_quote
+  %c
+    ,#+end_quote"))
     (add-to-list 'org-capture-templates
                  '("!1" "drill entry for english word"
                    item(function my/org-english-goto-match)
-                   "- %a\n  %c")))
+                   "- %a
+    ,#+begin_quote
+  %c
+    ,#+end_quote")))
 
   (defun my/org-english-goto-match ()
     "Goto function for org-capture-template designed to insert an edditional example
@@ -3447,12 +3451,16 @@ Learning Workflow for English words:
                                 "~/org/archive/archive_2019.org"))
              (org-drill-question-tag "drill")
              (org-drill-maximum-items-per-session 20)
-             (org-drill-hide-item-headings-p t))
+             (org-drill-hide-item-headings-p t)
+             (org-startup-indented nil))
          (global-visual-line-mode 1)
+         (org-indent-mode -1)
          ,@body)
        (toggle-truncate-lines 1)
        (setq-default truncate-lines t)
-       (global-visual-line-mode 0)))
+       (global-visual-line-mode 0)
+       (org-indent-mode 1)
+       (org-save-all-org-buffers)))
 
   (defun my/org-english-drill ()
     "Invoke Org-Drill for English word review."
