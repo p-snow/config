@@ -2817,6 +2817,8 @@ useful tips:
 - invoke twittering-toggle-show-replied-statuses on "in reply to" state to show replied messages
 - invoke twittering-view-user-page (C-c C-v) on user name to jump to user profile page in default browser
 
+CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at :config section of use-package
+
 #+begin_src emacs-lisp
   (use-package twittering-mode
     :straight (twittering-mode
@@ -2829,6 +2831,8 @@ useful tips:
     :commands twit
     :init
     (defvar my/twittering-resource-dir "~/var/lib/twmode")
+    :hook
+    (twittering-mode . twittering-icon-mode)
     :custom
     (twittering-private-info-file
      (expand-file-name "twittering-mode.gpg" my/twittering-resource-dir))
@@ -2855,7 +2859,6 @@ useful tips:
              " %@{}:\n"
              "%T %r%QT{\n+----\n%i %S, %@{}:\n%T %r%R\n+----}\n "))
     :config
-    (twittering-icon-mode 1)
     (bind-keys :map twittering-mode-map
                ;; move cursor
                ("f" . scroll-up-line)
