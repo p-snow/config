@@ -9,7 +9,7 @@
 
 #+TAGS: [ fixit help maintaining programs mark kill ]
 
-* init lisp code               :elfeed:soft_update:prime:
+* configuration                :elfeed:soft_update:prime:
 
 CAUTION: There are a handful of face customization specifying an extra large font since I am [[https://en.wikipedia.org/wiki/Visual_impairment][visually impaired]].
 
@@ -944,6 +944,54 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
             (ivy--regex str)))
 #+end_src
 
+*** extract_headings
+#+begin_src python :tangle (expand-tangle-target ".local/bin/extract_headings") :tangle-mode (identity #o755)
+  #!/usr/bin/env python3
+
+  # This script extract most probable page heading.
+
+  import sys
+  import lxml.html as html
+  from lxml import etree
+  import difflib
+
+  if len(sys.argv) == 1:
+      INPUT_STR = sys.stdin.read()
+      ROOT = html.fromstring(INPUT_STR).getroottree()
+  else:
+      sys.exit(1)
+
+  OUT_ROOT = etree.Element("headings")
+
+  # extract title text
+  title = ''
+  title_text_arr = ROOT.xpath('//title[1]//text()')
+  if len(title_text_arr):
+      title = title_text_arr[0]
+      OUT_ROOT.set("title", title.strip())
+
+  htag_text_arr = ROOT.xpath('//*[self::h1 or self::h2 or self::h3 or self::h4 or self::h5 or self::h6]')
+  for i in range(len(htag_text_arr)):
+      text = ''
+      texts = htag_text_arr[i].xpath('.//text()')
+      if len(texts) == 1:
+          text = texts[0].strip()
+      elif len(texts) > 1:
+          text = ''.join(map(str.strip, texts))
+      else:
+          continue
+      proximity = difflib.SequenceMatcher(None, title, text).ratio()
+      heading = etree.Element(htag_text_arr[i].tag)
+      heading.text = text
+      heading.set('proximity', str(proximity))
+      OUT_ROOT.append(heading)
+
+  out_root_str = etree.tostring(OUT_ROOT, encoding='utf-8', method='xml', pretty_print=True)
+  if type(out_root_str) is bytes:
+      out_root_str = out_root_str.decode()
+      print(out_root_str)
+#+end_src
+
 ** org mode
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/org.el")
@@ -1078,7 +1126,8 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
                 (setq-local truncate-lines t)))
 
     ;; tag/property
-    (setq org-use-tag-inheritance "ARCHIVE")
+    ;; (setq org-use-tag-inheritance "ARCHIVE")
+    (setq org-use-tag-inheritance t)
     (setq org-tags-column -57)
     (setq org-global-properties
           '(("Effort_ALL". "0 0:10 0:20 0:30 1:00 1:30 2:00 3:00 4:00 6:00 8:00")))
@@ -2688,7 +2737,7 @@ speed commands and hydra-org.
 :header-args+: :tangle (expand-tangle-target ".config/emacs/packages.el")
 :END:
 
-*** [[https://github.com/magit/magit/releases.atom][Magit]]                                 :maintaining:
+*** [[https://github.com/magit/magit/releases.atom][Magit]] :maintaining:
 
 #+begin_src emacs-lisp
   (use-package magit
@@ -2720,7 +2769,7 @@ speed commands and hydra-org.
     (orgit-remote "github"))
 #+end_src
 
-*** [[https://github.com/bbatsov/projectile/releases.atom][projectile]]                            :maintaining:
+*** [[https://github.com/bbatsov/projectile/releases.atom][projectile]] :maintaining:
 
 #+begin_src emacs-lisp
   (use-package projectile
@@ -2757,19 +2806,19 @@ speed commands and hydra-org.
 
 following packages are required by projectile in case of searching string in projects
 
-**** [[https://github.com/Wilfred/ag.el/releases.atom][ag.el]]                                  :programs:
+**** [[https://github.com/Wilfred/ag.el/releases.atom][ag.el]] :programs:
 
 #+begin_src emacs-lisp
   (use-package ag :straight t)
 #+end_src
 
-**** [[https://github.com/nlamirault/ripgrep.el/releases.atom][ripgrep.el]]                             :programs:
+**** [[https://github.com/nlamirault/ripgrep.el/releases.atom][ripgrep.el]] :programs:
 
 #+begin_src emacs-lisp
   (use-package ripgrep :straight t)
 #+end_src
 
-*** [[https://github.com/ericdanan/counsel-projectile/releases.atom][counsel-projectile]]                    :maintaining:
+*** [[https://github.com/ericdanan/counsel-projectile/releases.atom][counsel-projectile]] :maintaining:
 
 #+begin_src emacs-lisp
   (use-package counsel-projectile
@@ -2783,7 +2832,7 @@ following packages are required by projectile in case of searching string in pro
                ("sR" . counsel-projectile-rg)
                ("si" . counsel-projectile-git-grep)))
 #+end_src
-*** [[https://github.com/jacktasia/dumb-jump/releases.atom][dumb-jump]]                                :programs:
+*** [[https://github.com/jacktasia/dumb-jump/releases.atom][dumb-jump]] :programs:
 
 #+begin_src emacs-lisp
   (use-package dumb-jump
@@ -2965,7 +3014,7 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
           (t (open-url uri))))))
 #+end_src
 
-*** [[https://github.com/remyferre/comment-dwim-2/releases.atom][comment-dwim-2]]                           :programs:
+*** [[https://github.com/remyferre/comment-dwim-2/releases.atom][comment-dwim-2]] :programs:
 
 #+begin_src emacs-lisp
   (use-package comment-dwim-2
@@ -2977,7 +3026,7 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
           cd2/region-command 'cd2/comment-or-uncomment-region))
 #+end_src
 
-*** [[https://github.com/leoliu/easy-kill/releases.atom][easy-kill]]                                    :kill:
+*** [[https://github.com/leoliu/easy-kill/releases.atom][easy-kill]] :kill:
 
 #+begin_src emacs-lisp
   (use-package easy-kill
@@ -2985,14 +3034,14 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
     :bind ("M-w" . easy-kill))
 #+end_src
 
-*** [[https://github.com/emacsorphanage/quickrun/releases.atom][quickrun]]                                 :programs:
+*** [[https://github.com/emacsorphanage/quickrun/releases.atom][quickrun]] :programs:
 
 #+begin_src emacs-lisp
   (use-package quickrun
     :straight t)
 #+end_src
 
-*** [[https://github.com/magnars/expand-region.el/releases.atom][expand-region.el]]                             :mark:
+*** [[https://github.com/magnars/expand-region.el/releases.atom][expand-region.el]] :mark:
 
 #+begin_src emacs-lisp
   (use-package expand-region
@@ -3003,7 +3052,7 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
     (push 'er/mark-outside-pairs er/try-expand-list))
 #+end_src
 
-*** [[https://github.com/Wilfred/helpful/releases.atom][helpful]]                                      :help:
+*** [[https://github.com/Wilfred/helpful/releases.atom][helpful]] :help:
 
 helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
 
@@ -3270,8 +3319,10 @@ Aggressively delete successive white spaces.
           (rx (group-n 1 (in "a-zA-Z0-9"))
               (group-n 2 (category japanese)))))
 #+end_src
+*** [[https://github.com/justbur/emacs-which-key/releases.atom][emacs-which-key]]
 
-** handy customization
+* customization
+** handy functionality
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/extensions.el")
 :END:
@@ -3369,6 +3420,7 @@ to avoid accidental data loss.
       ("'" utl-say)
       ("q" nil "quit")))
 #+end_src
+
 ** original features
 *** org-english
 
@@ -3376,7 +3428,7 @@ Learning Workflow for English words:
 1. Capture an word to study by invoking my/org-english-capture
 2. Review words periodically with my/org-english-drill-test-display or its variants
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/late/org-english.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/org-english.el")
   (defun my/org-english-capture (word)
     "Capture an english WORD as a org-mode entry suitable for org-drill.
 
@@ -3503,7 +3555,7 @@ Learning Workflow for English words:
 
 *** org-password-store
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/org-password-store.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/org-password-store.el")
   (use-package password-store
     :straight t
     :custom
@@ -3642,7 +3694,7 @@ Learning Workflow for English words:
 
 *** narrow-dwim
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/narrow-dwim.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/narrow-dwim.el")
   (add-hook 'post-command-hook 'highlight-narrowed-buffer)
   (defun highlight-narrowed-buffer ()
     "Highlight narrowed buffer.
@@ -3705,7 +3757,7 @@ Learning Workflow for English words:
 #+end_src
 *** weather
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/weather.el")
   ;; 気象庁配信の天気情報を加工して表示
 
   (require 'request)
@@ -3770,55 +3822,169 @@ Learning Workflow for English words:
 
   (provide 'weather)
 #+end_src
-* helper programs
-** extract_headings
-#+begin_src python :tangle (expand-tangle-target ".local/bin/extract_headings") :tangle-mode (identity #o755)
-  #!/usr/bin/env python3
+*** view-file
 
-  # This script extract most probable page heading.
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/view-file.el")
+  (defcustom my/view-file--temp-dir "~/var/tmp/view-file"
+    "Directory in which we will work for uncompresssing, decrypting and htmlize.")
+  (defvar my/view-file--open-file nil
+    "Target file which we will actually open.
+  User should not change this value.")
+  (defvar my/view-file--remove-files nil
+    "List of files which we will remove afterward.
+  User should not change this value.")
 
-  import sys
-  import lxml.html as html
-  from lxml import etree
-  import difflib
+  ;; TODO: support line/search args to jump to the desired position
+  (defun my/view-file (file &optional system)
+    "Open FILE in my preferable way.
 
-  if len(sys.argv) == 1:
-      INPUT_STR = sys.stdin.read()
-      ROOT = html.fromstring(INPUT_STR).getroottree()
-  else:
-      sys.exit(1)
+  if SYSTEM is non-nii open FILE using preferable application in system."
+    (setq my/view-file--open-file (expand-file-name file))
+    (make-directory my/view-file--temp-dir t)
 
-  OUT_ROOT = etree.Element("headings")
+    ;; decrypt file if it is encrypted
+    (when-let* ((match (string-match "\\(.+\\)\.gpg$" my/view-file--open-file))
+                (decrypt-file (expand-file-name (file-name-base my/view-file--open-file)
+                                                (expand-file-name my/view-file--temp-dir)))
+                (context (epg-make-context epa-protocol)))
+      (epg-context-set-passphrase-callback context
+                                           #'epa-passphrase-callback-function)
+      (epg-decrypt-file context my/view-file--open-file decrypt-file)
+      (setq my/view-file--open-file decrypt-file)
+      (add-to-list 'my/view-file--remove-files decrypt-file))
 
-  # extract title text
-  title = ''
-  title_text_arr = ROOT.xpath('//title[1]//text()')
-  if len(title_text_arr):
-      title = title_text_arr[0]
-      OUT_ROOT.set("title", title.strip())
+    ;; uncompress file if it is tarball
+    (let* (uncompress-file
+           (uncompress-command
+            (cond
+             ((string-match "\\(.+\\)\\.t\\(ar\\.\\)?gz$" my/view-file--open-file)
+              (setq uncompress-file (expand-file-name (file-name-base (match-string 1 my/view-file--open-file))
+                                                      my/view-file--temp-dir))
+              (format "gzip -dc %s | tar -xf - -C %s"
+                      (shell-quote-argument my/view-file--open-file)
+                      (shell-quote-argument uncompress-file)))
+             ((string-match "\\(.+\\)\\.t\\(ar\\.\\)?zst$" my/view-file--open-file)
+              (setq uncompress-file (expand-file-name (file-name-base (match-string 1 my/view-file--open-file))
+                                                      my/view-file--temp-dir))
+              (format "unzstd -c %s | tar -xf - -C %s"
+                      (shell-quote-argument my/view-file--open-file)
+                      (shell-quote-argument uncompress-file)))
+             ((string-match "\\(.+\\)\\.zip$" my/view-file--open-file)
+              (setq uncompress-file (expand-file-name (file-name-base (match-string 1 my/view-file--open-file))
+                                                      my/view-file--temp-dir))
+              (format "unzip -o -d %s %s"
+                      (shell-quote-argument uncompress-file)
+                      (shell-quote-argument my/view-file--open-file))))))
+      (when (and (stringp uncompress-file)
+                 (stringp uncompress-command))
+        (make-directory uncompress-file t)
+        (call-process-shell-command
+         uncompress-command)
+        (add-to-list 'my/view-file--remove-files uncompress-file)
+        (setq my/view-file--open-file uncompress-file)))
 
-  htag_text_arr = ROOT.xpath('//*[self::h1 or self::h2 or self::h3 or self::h4 or self::h5 or self::h6]')
-  for i in range(len(htag_text_arr)):
-      text = ''
-      texts = htag_text_arr[i].xpath('.//text()')
-      if len(texts) == 1:
-          text = texts[0].strip()
-      elif len(texts) > 1:
-          text = ''.join(map(str.strip, texts))
-      else:
-          continue
-      proximity = difflib.SequenceMatcher(None, title, text).ratio()
-      heading = etree.Element(htag_text_arr[i].tag)
-      heading.text = text
-      heading.set('proximity', str(proximity))
-      OUT_ROOT.append(heading)
+    ;; convert pdf/epub to html
+    (let* ((dirname-html
+            (expand-file-name (file-relative-name my/view-file--open-file "~")
+                              (expand-file-name my/view-file--temp-dir)))
+           (filename-html
+            (concat (file-name-as-directory dirname-html)
+                    "index.html"))
+           (command
+            (cond
+             ((= (call-process-shell-command (format "filetype-cli check --type pdf %s" (shell-quote-argument my/view-file--open-file))) 0)
+              (format "cat %s 2>/dev/null | pdftohtml -p -s -noframes -nomerge -nodrm - %s"
+                      (shell-quote-argument my/view-file--open-file)
+                      (shell-quote-argument filename-html)))
+             ((= (call-process-shell-command (format "filetype-cli check --type epub %s" (shell-quote-argument my/view-file--open-file))) 0)
+              (format "cat %s 2>/dev/null | pandoc --from=epub --to=html --extract-media=%s - | strip_ruby > %s"
+                      (shell-quote-argument my/view-file--open-file)
+                      (shell-quote-argument dirname-html)
+                      (shell-quote-argument filename-html))))))
+      (when (and (null system)
+                 (stringp command))
+        (unless (file-exists-p filename-html)
+          (make-directory dirname-html t)
+          (call-process-shell-command command)
+          ;; reuse html only if pdf/epub file is not ecrypted
+          (when (member my/view-file--open-file my/view-file--remove-files)
+            (add-to-list 'my/view-file--remove-files dirname-html)))
+        (setq my/view-file--open-file filename-html)))
 
-  out_root_str = etree.tostring(OUT_ROOT, encoding='utf-8', method='xml', pretty_print=True)
-  if type(out_root_str) is bytes:
-      out_root_str = out_root_str.decode()
-  print(out_root_str)
+    ;; open file
+    (cond
+     ((or system
+          (string-match-p "\\.midi?$" my/view-file--open-file)
+          (= (call-process-shell-command (format "filetype-cli check --type pdf %s" (shell-quote-argument my/view-file--open-file))) 0)
+          (= (call-process-shell-command (format "filetype-cli check --type epub %s" (shell-quote-argument my/view-file--open-file))) 0))
+      (let ((process-connection-type nil))
+        (call-process-shell-command (format "xdg-open %s" (shell-quote-argument my/view-file--open-file)))
+        (sleep-for 3)
+        (funcall 'my/view-file--finalize-function)))
+     ((or (= (call-process-shell-command (format "filetype-cli check --type playable %s" (shell-quote-argument my/view-file--open-file))) 0)
+          (seq-some (lambda (suffix)
+                      (string-suffix-p suffix my/view-file--open-file t))
+                    '(".m3u" ".mts" ".m2ts")))
+      (when-let ((mpv-proc (start-process-shell-command
+                            "mpv" nil
+                            (format "nohup mpv --force-window %s >/dev/null 2>&1" (shell-quote-argument my/view-file--open-file)))))
+        (set-process-sentinel
+         mpv-proc
+         (lambda (process desc)
+           (when (eq (process-status process) 'exit)
+             (funcall 'my/view-file--finalize-function))))))
+     ((= (call-process-shell-command
+          (format "filetype-cli check --type html %s"
+                  (shell-quote-argument my/view-file--open-file))) 0)
+      (add-hook 'eww-after-render-hook 'my/view-file--eww-finalize-function)
+      (eww-open-file my/view-file--open-file))
+     ((file-directory-p my/view-file--open-file)
+      (dired my/view-file--open-file)
+      (funcall 'my/view-file--finalize-function))
+     (t
+      (find-file my/view-file--open-file)
+      (funcall 'my/view-file--finalize-function))))
+
+  (defun my/view-file--finalize-function ()
+    "Remove files and initialize variables."
+    (mapc (lambda (file)
+            (when (stringp file)
+              (cond
+               ((file-directory-p file)
+                (delete-directory file t nil))
+               ((file-exists-p file)
+                (let ((delete-by-moving-to-trash t))
+                  (delete-file file))))))
+          my/view-file--remove-files)
+    (setq my/view-file--open-file nil
+          my/view-file--remove-files nil))
+
+  (defun my/view-file--eww-finalize-function ()
+    "Finalize function for `EWW'."
+    (remove-hook 'eww-after-render-hook 'my/view-file--eww-finalize-function)
+    (funcall 'my/view-file--finalize-function))
+
+  (defun my/view-file-filter-org-link-store-props (&rest plist-orig)
+    "Filter PLIST-ORIG to original file name if value of `eww-current-url'
+   is in `my/view-file--temp-dir'."
+    (let ((plist-filtered (car plist-orig)))
+      (if (plist-member plist-filtered :link)
+          (plist-put plist-filtered
+                     :link
+                     (replace-regexp-in-string (format "%s\\(.*\\)/index.html"
+                                                       (expand-file-name my/view-file--temp-dir))
+                                               (format "%s\\1"
+                                                       (expand-file-name "~"))
+                                               (plist-get plist-filtered
+                                                          :link))))
+      (car plist-orig)))
+
+  (advice-add #'org-link-store-props :filter-args
+              #'my/view-file-filter-org-link-store-props)
+
+  (provide 'my/view-file)
 #+end_src
-** strip_ruby
+**** strip_ruby
 A program strips all ruby tags in a HTML stream. All HTML contents are expected to be from STDIN and go out as STDOUT. This procedure is mainly for html files converted from pdf and epub files.
 Stripping rules are:
 - <ruby> tag will be stripped
