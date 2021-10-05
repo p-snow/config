@@ -4,6 +4,7 @@ EMACS	  = emacs
 
 TANGLE_EL	= ./tangle.el
 DETANGLE_EL	= ./detangle.el
+EXPORT_EL	= ./export.el
 STOW_DIR	= .files
 
 tangle: $(TANGLE_EL)
@@ -17,6 +18,9 @@ install:
 
 uninstall: $(STOW_DIR)
 	stow --delete --target=$(HOME) --verbose $(STOW_DIR)
+
+export: $(EXPORT_EL)
+	$(EMACS) --quick --script $<
 
 all: tangle install
 
