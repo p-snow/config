@@ -3325,9 +3325,9 @@ to avoid accidental data loss.
                            ((use-region-p)
                             (buffer-substring (region-beginning) (region-end)))
                            (t (read-string "Enter URL or keywords: ")))))
-       (let ((current-prefix-arg '(4))
-             (eww-search-prefix ,search-prefix))
-         (eww word)
+       (let ((eww-search-prefix ,search-prefix))
+         (eww word 4)
+         (call-interactively)
          ,@post-process)))
 
   (define-lookup-function lookup-google "https://www.google.com/search?q=")
