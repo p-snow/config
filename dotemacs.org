@@ -3321,6 +3321,82 @@ Aggressively delete successive white spaces.
 #+end_src
 *** [[https://github.com/justbur/emacs-which-key/releases.atom][emacs-which-key]]
 
+#+begin_src emacs-lisp
+  (use-package which-key
+    :straight t
+    :diminish which-key-mode
+    :custom
+    (which-key-use-C-h-commands t)
+    (which-key-max-description-length 43)
+    (which-key-idle-delay 0.7)
+    (which-key-separator " : ")
+    (which-key-side-window-max-height 0.5)
+    :config
+    (which-key-mode 1)
+    (which-key-setup-side-window-bottom))
+#+end_src
+*** nov.el
+
+#+begin_src emacs-lisp
+  (use-package nov
+    :straight t
+    :demand t
+    :mode ("\\.epub$" . nov-mode)
+    :hook (nov-mode . nov-abbreviate-file-name)
+    :custom
+    (nov-variable-pitch nil)
+    (nov-text-width t)
+    :config
+    (bind-keys :map nov-mode-map
+               ("f" . scroll-up-line)
+               ("e" . scroll-down-line)
+               ("SPC" . my/forward-paragraph)
+               ("E" . my/backward-paragraph)
+               ("2" . shr-next-link)
+               ("4" . nov-browse-url)
+               ("C-j" . nov-browse-url)))
+
+  (defun nov-abbreviate-file-name ()
+    "Shorten `nov-file-name' using `directory-abbrev-alist'."
+    (setq nov-file-name (abbreviate-file-name nov-file-name)))
+#+end_src
+*** [[https://github.com/joaotavora/yasnippet/releases.atom][yasnippet]]
+
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :straight t
+    :delight (snippet-mode " SN")
+    :diminish (yas-minor-mode . "ys")
+    :hook
+    ((prog-mode org-mode shell-mode) . yas-minor-mode-on)
+    :custom
+    (yas-triggers-in-field t)
+    :config
+    ;; work around code
+    (yas-reload-all))
+#+end_src
+**** [[https://github.com/AndreaCrotti/yasnippet-snippets/releases.atom][yasnippet-snippets]]
+
+#+begin_src emacs-lisp
+  (use-package yasnippet-snippets
+    :straight t
+    :after yasnippet)
+#+end_src
+*** [[https://github.com/emacs-straight/rainbow-mode/releases.atom][rainbow-mode]]
+
+#+begin_src emacs-lisp
+  (use-package rainbow-mode
+    :straight t
+    :diminish
+    (rainbow-mode . "rb")
+    :hook
+    ((css-mode scss-mode php-mode html-mode) . rainbow-mode)
+    :custom
+    (rainbow-html-colors t)
+    (rainbow-x-colors t)
+    (rainbow-latex-colors t)
+    (rainbow-ansi-colors t))
+#+end_src
 * customization
 ** handy functionality
 :PROPERTIES:
