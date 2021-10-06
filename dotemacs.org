@@ -992,6 +992,161 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
       print(out_root_str)
 #+end_src
 
+** [[https://github.com/djcb/mu/releases.atom][mu4e]]
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".config/emacs/mu4e.el")
+:END:
+
+You need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-message-store.html][issue 'mu init' command]] after changing either maildir, email address or home-dir for mu.
+
+#+begin_src emacs-lisp
+  (use-package mu4e-utils
+    :after org-contacts
+    :delight
+    (mu4e-main-mode    " MU")
+    (mu4e-headers-mode " MU")
+    (mu4e-view-mode    " MU")
+    (mu4e-compose-mode " MU")
+    :hook (after-init . mu4e~start)
+    :custom
+    (mu4e-mu-binary (expand-file-name "mu" "~/usr/bin"))
+    (mail-user-agent 'mu4e-user-agent)
+    (mu4e-hide-index-messages t)
+    (mu4e-context-policy 'pick-first)
+    (mu4e-compose-context-policy 'ask)
+    (mu4e-update-interval 300)
+    (mu4e-split-view t)
+    (mu4e-headers-date-format "%y%m%d")
+    (mu4e-headers-time-format " %R")
+    (mu4e-headers-fields
+     '((:human-date . 6)
+       (:flags      . 3)
+       (:from       . 16)
+       (:subject)))
+    (mu4e-headers-results-limit 1000)
+    (mu4e-headers-advance-after-mark t)
+    (mu4e-change-filenames-when-moving t)
+    (mu4e-view-show-images t)
+    (mu4e-html2text-command (lambda (msg)
+                              (plist-put msg :body-html
+                                         (with-temp-buffer
+                                           (insert (or (mu4e-message-field msg :body-html) ""))
+                                           (shell-command-on-region (point-min) (point-max) "nkf -w -Lu" (current-buffer) t)
+                                           (or (buffer-string) "")))
+                              (mu4e-shr2text msg)))
+    (message-send-mail-function 'smtpmail-send-it)
+    (mm-sign-option nil)
+    (mml-secure-openpgp-sign-with-sender t)
+    (mml-default-sign-method 'pgpmime)
+    :config
+    (require 'mu4e)
+    (bind-keys :map mu4e-headers-mode-map
+               ("f" . scroll-up-line)
+               ("e" . scroll-down-line)
+               ("4" . mu4e-headers-view-message)
+               ("C-j" . mu4e-headers-view-message)
+               :map mu4e-view-mode-map
+               ("f" . scroll-up-line)
+               ("e" . scroll-down-line)
+               ("SPC" . my/forward-paragraph)
+               ("E" . my/backward-paragraph)
+               ("TAB" . shr-next-link)
+               ("<backtab>" . shr-previous-link)
+               ("3" . shr-next-link)
+               ("4" . open-thing-at-point)
+               ("C-c C-a" . mu4e-view-attachment-action)
+               :map mu4e-compose-mode-map
+               ("C-x C-o" . org-mu4e-compose-org-mode))
+    (add-to-list 'mu4e-view-actions
+                 '("external browser" . mu4e-action-view-in-browser) t)
+    (add-to-list 'mu4e-view-actions
+                 '("XWidget View" . mu4e-action-view-with-xwidget) t)
+    (when (fboundp 'imagemagick-register-types)
+      (imagemagick-register-types)))
+#+end_src
+
+*** [[https://github.com/iqbalansari/mu4e-alert/releases.atom][mu4e-alert]]
+
+#+begin_src emacs-lisp
+  (use-package mu4e-alert
+    :straight t
+    :hook (after-init . (lambda ()
+                          (mu4e-alert-enable-notifications)
+                          (mu4e-alert-enable-mode-line-display)))
+    :after mu4e
+    :custom
+    (mu4e-alert-modeline-formatter
+     (lambda (count)
+       (if (> count 0)
+           (format " M:%d" count)
+         "")))
+    :config
+    (mu4e-alert-set-default-style 'fringe))
+#+end_src
+
+*** additional tweaks
+
+- file attachment in dired ([[https://www.djcbsoftware.nl/code/mu/mu4e/Dired.html][source]])
+  : gnus-dired-attach (C-c RET C-a)
+
+  #+begin_src emacs-lisp
+    (use-package gnus-dired
+      :after mu4e-compose
+      :hook
+      (dired-mode . turn-on-gnus-dired-mode)
+      :custom
+      (gnus-dired-mail-mode 'mu4e-user-agent))
+  #+end_src
+
+- use contact info from org-contacts
+
+  #+begin_src emacs-lisp
+    (use-package mu4e-actions
+      :after org-contacts
+      :config
+      (setq mu4e-org-contacts-file (car org-contacts-files))
+      (add-to-list 'mu4e-headers-actions
+                   '("Contact to add" . mu4e-action-add-org-contact) t)
+      (add-to-list 'mu4e-view-actions
+                   '("Contact to add" . mu4e-action-add-org-contact) t))
+  #+end_src
+
+*** personal settings                           :crypt:
+
+-----BEGIN PGP MESSAGE-----
+
+hQEMA9uWvE5LJ2ejAQf/SAyyJGi3rfr2CpSC9cqiUy4CszLD4lNAuYDKZ0Zcsu1a
+K7EEA/zfEgd8AZIvCLJoE5TU7HFtAWtuVJRxYUFhGX5uttQE7ukrmIZsKh1gHrqD
+9hlY070RAQ8D/L4rbROJVsoYhg+E9owco6kX9MppTTJlu146UmvV09lrIp33bJFG
+UaUKiNVItSX8pzuBKyHolLqTEP11cR8wzBIYjyO7DvMvj6Lgk1vQph1X9Lfqk35e
+bI1Unf1H/t2Z6WuDOvfpbVh5x8n9oIXl0lLjDkuiyNET3xIdAgbgJGlixLcKwqBX
+8BycC4r7FV2fpqRkcNvWCWOjt2Do/a/caSLBZjeSu9LqAbEuo9wiCAqLBuW3V0tH
+/9lI7P8t6dUYI8K4VWU/u3egfLe5fbbM68VDT+ZEYMyunF4clw/LROx3SYHqh3Ye
+aFTl5g0V5bhG6XOPNfD8WSIlx0FVxvBKHTuq9dms1rTBf+hO48zvl2hlkyeXTkC0
+PL6JeDjiWOaUGwKFfFBG/em/mayuUrdltrFgTi7wdZ01Ydv0RfDKdPRe3GiX2XMY
+e+qVnCNDQ6GGMrc5dnqA+qQC5rSyxP81Jb6rCDl4Py5/TCzRdrVmqRL9Rmqxynf8
+badHyHyOcd0kXaphqxR4t2l1Ppbp5maaxjOxcBXcsrc4dVla97gpC1AkHns0GMEL
+ZXjAUGJjdQJ9xbnMSCC9r871576WbZybkldXzr9YMUAUc04z98mxes678ooV0qbk
+u+SJOv6uBH2OoLbuD8PMs7FAhvl/c0qcuLfAMaqoKH4xgjzEqiurZ5wtnqgisKEr
+1jc1mM6J3R003fEDyi4RMza/be4anYIz5hH5uz6CWqSVp5EA36stQdENmkmzM31I
+JzCLZcI1XlbRoVRDspyq48CArHEMqxDUn9wil5tgLGRq15gANcu+7MSeQ2gcOTG+
+mP5EQmpnDOLCKepwltIm8WQtkIT7RDLJE260DkwXWuAlW/CtQO5TGgaTqRVv1A/3
+5OgTGDhXSWSejyA2XuSbiJtyjW+8HSrDv0CZSzo8N0m5WBbM6xqoQAfAZ2m6T0X6
+lyilVyRmOj72oy0tIApX0+vt+QvrTvD9iPt8LOnNR2YyEPei4GipOVx9yeBrLSQk
+RlMGC+rFLgbkwaEBDx4vZS29bsl3o8MucdwcnK7ow4fXd2jAqndT8NRLK9QIhXwg
+pPMU2xsxcgZCXkhAc66sWOP/vLoL3Cn74OXVACb8nT8fC4mWyefLguSnmsiX3vyI
+OX4Qtz2KxxygRDa13bNdg/zk/k6KkHKAy6lCKiPfr+AWRnQKbXVtRRdPVd6yADuq
+bW2BUZEpehu3Gw9pZ9UxdKNqCT5coHLlND32Su+1VyTuZrTOIfTxS39GOV93uSzY
+pS8N2sKgC9UJ0bCaaJ1JaWaFcNb7rygSjYSrMZ+BSnX1K9RTl/ENrovVxP73/+v1
+tAkBojuhvhYIyNYXUCGc9NU2pQxbOeIjhqaNOzmyRzpwuYEmFWUS/Y/Eyqt5XzSD
+U/kx+2Wzd97YgjGpMwJmWdk2bBNSIQ5gCeU2QGeLNnMbr4mLP0frfHWkuo61iN2W
+EcpcEillBEzi38UWA14cj5ASCkSQpn2WZUcozCv2cbSYT4n/sy55wl6t0YDJVWTZ
+fbaJxAK0C8ziZYenirZvaroVRDXyvj1kkICkJGcnLidp0W2Y6G3OUmnOtk60bLF/
+YjnaKMBLOLN1k5wMmUcWCPQzX8FCskFJoaiGzDbXeyZ/UnDqJpKSGxMG9yLZzyid
+lDAmxVslTY94qV4=
+=1X9o
+-----END PGP MESSAGE-----
+
 ** org mode
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/org.el")
