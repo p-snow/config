@@ -353,11 +353,13 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
 [[info:emacs#Useless Whitespace][emacs#Useless Whitespace]]
 
 #+begin_src emacs-lisp
-  (add-hook 'before-save-hook #'delete-trailing-whitespace)
-
   (use-package whitespace
     :diminish ((global-whitespace-mode . "Ws")
                (whitespace-mode . "ws"))
+    :hook
+    ((org-mode prog-mode) . whitespace-mode)
+    (eww-mode . whitespace-turn-off)
+    (before-save . delete-trailing-whitespace)
     :custom
     (whitespace-style
      '(face trailing tabs tab-mark spaces space-mark empty))
@@ -828,7 +830,6 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
   (use-package eww
     :delight " EW"
     :hook
-    (eww-mode . (lambda () (whitespace-mode -1)))
     (eww-after-render . my/eww-rename-buffer)
     :custom
     ;; set enough large column number to prevent from inserting line break
@@ -1166,7 +1167,6 @@ lDAmxVslTY94qV4=
   (use-package org
     :straight t
     :defer t
-    :diminish ((org-src-mode . "os"))
     :mode (("\\.org$" . org-mode))
     :interpreter (("org" . org-mode))
     :init
@@ -1397,10 +1397,7 @@ lDAmxVslTY94qV4=
     ;; structure template
     (add-to-list 'org-structure-template-alist (cons "sh" "src shell"))
     (add-to-list 'org-structure-template-alist (cons "el" "src emacs-lisp"))
-    (add-to-list 'org-structure-template-alist (cons "py" "src python"))
-
-    ;; src
-    (setq org-src-window-setup 'current-window))
+    (add-to-list 'org-structure-template-alist (cons "py" "src python")))
 #+end_src
 
 *** org-agenda
@@ -2018,6 +2015,22 @@ lDAmxVslTY94qV4=
     (org-babel-lilypond-arrange-mode t))
 #+end_src
 
+*** org-src
+
+#+begin_src emacs-lisp
+  (use-package org-src
+    :diminish (org-src-mode . "os")
+    :custom
+    (org-src-window-setup 'current-window)
+    :config
+    (advice-add #'org-edit-src-save
+                :before
+                #'my/delete-trailing-whitespace))
+
+  (defun my/delete-trailing-whitespace ()
+    (delete-trailing-whitespace))
+#+end_src
+
 *** org-export
 
 #+begin_src emacs-lisp
@@ -2537,7 +2550,6 @@ speed commands and hydra-org.
 
   (defun my/prog-mode-hook-function ()
     (buffer-face-set 'prog-buffer)
-    (whitespace-mode)
     (hl-line-mode -1)
     (hs-minor-mode -1)
     (flyspell-prog-mode)
