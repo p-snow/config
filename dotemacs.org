@@ -11,8 +11,6 @@
 
 * configuration                :elfeed:soft_update:prime:
 
-CAUTION: There are some face definitions which use an extra large font since I am [[https://en.wikipedia.org/wiki/Visual_impairment][visually impaired]].
-
 ** early initialization
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/00-early-init.el")
@@ -138,6 +136,8 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 #+end_src
 *** face
 
+CAUTION: There are some face definitions which use an extra large font since I am [[https://en.wikipedia.org/wiki/Visual_impairment][visually impaired]].
+
 #+begin_src emacs-lisp
   (defvar my-default-pixel-width 2560 "Default display width in pixel.")
   (defmacro my-adjust-font-size (original)
@@ -171,12 +171,20 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
     (defface my/large-gothic-face `((t . (:font "fontset-default"
                                                 :height ,(my-adjust-font-size 900))))
       "A face with large font.")
+    (defface my/medium-gothic-face `((t . (:font "fontset-default"
+                                                 :height ,(my-adjust-font-size 655))))
+      "A face with medium font.")
     (defface my/large-mincho-face `((t . (:font "fontset-mincho"
-                                                :height ,(my-adjust-font-size 830))))
+                                                :height ,(my-adjust-font-size 840))))
       "A face with large mincho font.")
+    (defface my/medium-mincho-face `((t . (:font "fontset-mincho"
+                                                 :height ,(my-adjust-font-size 780))))
+      "A face with medium mincho font.")
     :hook
     ((eww-mode twittering-mode) . (lambda () (buffer-face-set 'my/large-gothic-face)))
-    (mu4e-view-mode . (lambda () (buffer-face-set 'my/large-mincho-face))))
+    ((org-mode mu4e-headers-mode mu4e-compose-mode) . (lambda () (buffer-face-set 'my/medium-gothic-face)))
+    ((mu4e-view-mode nov-mode elfeed-show-mode) . (lambda () (buffer-face-set 'my/large-mincho-face)))
+    (elfeed-search-update . (lambda () (buffer-face-set 'my/medium-mincho-face))))
 
   (use-package modus-themes
     :straight (modus-themes
@@ -314,9 +322,9 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
   (use-package adaptive-wrap
     :straight t
     :hook
-    (((eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode) .
+    (((elfeed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode) .
       visual-line-mode)
-     ((eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode) .
+     ((elfeed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode) .
       adaptive-wrap-prefix-mode)))
 #+end_src
 
@@ -400,7 +408,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (mouse-wheel-mode 0))
 #+end_src
 
-*** input method ([[https://github.com/skk-dev/ddskk/releases.atom][ddskk]])
+*** [[https://github.com/skk-dev/ddskk/releases.atom][ddskk]]
 
 #+begin_src emacs-lisp
   (defvar skk-data-dir (expand-file-name "~/var/lib/skk"))
@@ -1164,10 +1172,6 @@ lDAmxVslTY94qV4=
     :init
     (add-to-list 'load-path (concat (file-name-as-directory user-emacs-directory) "straight/repos/org/lisp"))
     (add-to-list 'load-path (concat (file-name-as-directory user-emacs-directory) "straight/repos/org/contrib/lisp"))
-    (defface org-buffer `((t . (:font "fontset-default"
-                                      :height ,(my-adjust-font-size 655))))
-      "Default face in org mode."
-      :group 'org-faces)
     (defvar org-warning-keyword-0 "UG" "TODO keyword acronym standing for 'UrGent'")
     (defvar org-todo-keyword-0 "TD" "TODO keyword acronym standing for 'To Do'")
     (defvar org-todo-keyword-1 "GO" "TODO keyword acronym standing for 'Get On'")
@@ -1276,8 +1280,6 @@ lDAmxVslTY94qV4=
     ;; display
     (add-hook 'org-mode-hook
               (lambda ()
-                (whitespace-mode 1)
-                (buffer-face-set 'org-buffer)
                 (setq-local truncate-lines t)))
 
     ;; tag/property
@@ -1412,7 +1414,6 @@ lDAmxVslTY94qV4=
                 ("M" . org-agenda-month-view))
     :hook
     (org-agenda-mode . (lambda ()
-                         (buffer-face-set 'org-buffer)
                          (delete-other-windows)
                          (org-agenda-to-appt t '((category "appt")))))
     :custom
