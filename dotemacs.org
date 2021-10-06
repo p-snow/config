@@ -189,29 +189,6 @@ CAUTION: There are some face definitions which use an extra large font since I a
     (prog-mode . (lambda () (buffer-face-set 'my/small-gothic-face)))
     ((mu4e-view-mode nov-mode elfeed-show-mode) . (lambda () (buffer-face-set 'my/large-mincho-face)))
     (elfeed-search-update . (lambda () (buffer-face-set 'my/medium-mincho-face))))
-
-  (use-package modus-themes
-    :straight (modus-themes
-               :host github
-               :repo "protesilaos/modus-themes"
-               :branch "main")
-    :init
-    ;; Add all your customizations prior to loading the themes
-    (setq modus-themes-slanted-constructs t
-          modus-themes-bold-constructs nil
-          modus-themes-region 'no-extend)
-    ;; Load the theme files before enabling a theme
-    (modus-themes-load-themes)
-    :config
-    (modus-themes-load-vivendi))
-
-  (with-eval-after-load 'elfeed
-    (set-face-foreground
-     'elfeed-search-title-face "#4D4D4D")
-    (set-face-foreground
-     'elfeed-search-unchecked-title-face "cornflowerblue")
-    (set-face-foreground
-     'elfeed-search-checked-title-face "darkblue"))
 #+end_src
 
 *** file handling
@@ -351,29 +328,6 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
 
   (custom-set-variables '(tab-always-indent 'complete))
   (electric-indent-mode 1)
-#+end_src
-
-*** whitespace
-[[info:emacs#Useless Whitespace][emacs#Useless Whitespace]]
-
-#+begin_src emacs-lisp
-  (use-package whitespace
-    :diminish ((global-whitespace-mode . "Ws")
-               (whitespace-mode . "ws"))
-    :hook
-    ((org-mode prog-mode) . whitespace-mode)
-    (eww-mode . whitespace-turn-off)
-    (before-save . delete-trailing-whitespace)
-    :custom
-    (whitespace-style
-     '(face trailing tabs tab-mark spaces space-mark empty))
-    (whitespace-space-regexp "\\(\x3000+\\)")
-    (whitespace-trailing-regexp "\\([ \t\u00A0]+\\)$")
-    (whitespace-display-mappings
-     '((space-mark ?\x3000 [?\u2423])
-       (tab-mark   ?\t   [?\u00BB ?\t])))
-    :config
-    (global-whitespace-mode -1))
 #+end_src
 
 *** performance
@@ -619,6 +573,29 @@ I prefer to rid my emacs experience of mouse as least as possible.
   (use-package epg
     :custom
     (epg-pinentry-mode 'loopback))
+#+end_src
+
+*** whitespace
+[[info:emacs#Useless Whitespace][emacs#Useless Whitespace]]
+
+#+begin_src emacs-lisp
+  (use-package whitespace
+    :diminish ((global-whitespace-mode . "Ws")
+               (whitespace-mode . "ws"))
+    :hook
+    ((org-mode prog-mode) . whitespace-mode)
+    (eww-mode . whitespace-turn-off)
+    (before-save . delete-trailing-whitespace)
+    :custom
+    (whitespace-style
+     '(face trailing tabs tab-mark spaces space-mark empty))
+    (whitespace-space-regexp "\\(\x3000+\\)")
+    (whitespace-trailing-regexp "\\([ \t\u00A0]+\\)$")
+    (whitespace-display-mappings
+     '((space-mark ?\x3000 [?\u2423])
+       (tab-mark   ?\t   [?\u00BB ?\t])))
+    :config
+    (global-whitespace-mode -1))
 #+end_src
 
 *** hippie-exp
@@ -2537,7 +2514,7 @@ speed commands and hydra-org.
       ("SPC" my/org-reset-dwim)
       ("C-g" nil "quit")))
 #+end_src
-** main modes for programming / scripting     :programs:
+** main modes for programming/editing       :programs:
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/edit.el")
 :END:
@@ -3566,6 +3543,24 @@ Aggressively delete successive white spaces.
     (rainbow-x-colors t)
     (rainbow-latex-colors t)
     (rainbow-ansi-colors t))
+#+end_src
+*** [[https://github.com/protesilaos/modus-themes/releases.atom][modus-themes]]
+
+#+begin_src emacs-lisp
+  (use-package modus-themes
+    :straight (modus-themes
+               :host github
+               :repo "protesilaos/modus-themes"
+               :branch "main")
+    :init
+    ;; Add all your customizations prior to loading the themes
+    (setq modus-themes-slanted-constructs t
+          modus-themes-bold-constructs nil
+          modus-themes-region 'no-extend)
+    ;; Load the theme files before enabling a theme
+    (modus-themes-load-themes)
+    :config
+    (modus-themes-load-vivendi))
 #+end_src
 * customization
 ** handy functionality
