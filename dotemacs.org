@@ -9,7 +9,7 @@
 
 #+TAGS: [ fixit help maintaining programs mark kill ]
 
-* configuration                :elfeed:soft_update:prime:
+* general configuration        :elfeed:soft_update:prime:
 
 ** early initialization
 :PROPERTIES:
@@ -171,6 +171,9 @@ CAUTION: There are some face definitions which use an extra large font since I a
     (defface my/large-gothic-face `((t . (:font "fontset-default"
                                                 :height ,(my-adjust-font-size 900))))
       "A face with large font.")
+    (defface my/medium-large-gothic-face `((t . (:font "fontset-default"
+                                                       :height ,(my-adjust-font-size 835))))
+      "A face with medium-large font.")
     (defface my/medium-gothic-face `((t . (:font "fontset-default"
                                                  :height ,(my-adjust-font-size 655))))
       "A face with medium font.")
@@ -185,7 +188,8 @@ CAUTION: There are some face definitions which use an extra large font since I a
       "A face with medium mincho font.")
     :hook
     ((eww-mode twittering-mode) . (lambda () (buffer-face-set 'my/large-gothic-face)))
-    ((org-mode mu4e-headers-mode mu4e-compose-mode) . (lambda () (buffer-face-set 'my/medium-gothic-face)))
+    ((Info-mode help-mode helpful-mode woman-mode) . (lambda () (buffer-face-set 'my/medium-large-gothic-face)))
+    ((org-mode text-mode mu4e-headers-mode mu4e-compose-mode) . (lambda () (buffer-face-set 'my/medium-gothic-face)))
     (prog-mode . (lambda () (buffer-face-set 'my/small-gothic-face)))
     ((mu4e-view-mode nov-mode elfeed-show-mode) . (lambda () (buffer-face-set 'my/large-mincho-face)))
     (elfeed-search-update . (lambda () (buffer-face-set 'my/medium-mincho-face))))
@@ -303,7 +307,7 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
   (use-package adaptive-wrap
     :straight t
     :hook
-    (((elfeed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode) .
+    (((elfeed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode text-mode) .
       visual-line-mode)
      ((elfeed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode) .
       adaptive-wrap-prefix-mode)))
@@ -746,15 +750,16 @@ I prefer to rid my emacs experience of mouse as least as possible.
 #+begin_src emacs-lisp
   (use-package help-mode
     :delight " HE"
-    :bind (:map help-mode-map
-                ("C-M-m" . hydra-lazy-control/body))
-    :init
-    (defface help-buffer `((t . (:font "fontset-default"
-                                       :height ,(my-adjust-font-size 835))))
-      "Default face for help mode."
-      :group 'help)
     :config
-    (setq-default default-directory (expand-file-name "inits/" user-emacs-directory)))
+    ;; (setq-default default-directory (expand-file-name "inits/" user-emacs-directory))
+    (bind-keys :map help-mode-map
+               ("f" . scroll-up-line)
+               ("e" . scroll-down-line)
+               ("SPC" . my/forward-paragraph)
+               ("E" . my/backward-paragraph)
+               ("2" . backward-button)
+               ("3" . forward-button)
+               ("4" . push-button)))
 #+end_src
 *** info                                         :help:
 
@@ -764,34 +769,44 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :bind (:map Info-mode-map
                 ("C-j" . Info-follow-nearest-node)
                 ("C-c C-o" . Info-follow-nearest-node)
-                ("a"   . info-apropos))
-    :init
-    (defface info-buffer `((t . (:font "fontset-default"
-                                       :height ,(my-adjust-font-size 835))))
-      "Default face for info mode."
-      :group 'info)
-    :hook (Info-mode . (lambda ()
-                         (buffer-face-set 'info-buffer)))
+                ("a"   . info-apropos)
+                ;; lazy control
+                ("f" . scroll-up-line)
+                ("e" . scroll-down-line)
+                ("SPC" . my/forward-paragraph)
+                ("E" . my/backward-paragraph)
+                ("1" . Info-history-back)
+                ("2" . Info-prev-reference)
+                ("3" . Info-next-reference)
+                ("4" . Info-follow-nearest-node)
+                ("5" . Info-history-forward))
     :custom
     (Info-use-header-line nil)
     :config
     (require 'info-look)
     (autoload 'info-lookup-add-help "info-look"))
 #+end_src
+*** view
+
+#+begin_src emacs-lisp
+  (use-package view
+    :diminish view-mode "vw")
+#+end_src
 *** woman                                    :programs:
 
 #+begin_src emacs-lisp
   (use-package woman
+    :defer t
     :delight " WM"
-    :after hydra
-    :bind (:map woman-mode-map
-                ("C-M-m" . hydra-lazy-control/body))
-    :init
-    (defface woman-buffer `((t . (:font "fontset-default"
-                                        :height ,(my-adjust-font-size 835))))
-      "Default face in woman mode.")
-    :hook (woman-mode . (lambda ()
-                          (buffer-face-set 'woman-buffer))))
+    :config
+    (bind-keys :map woman-mode-map
+               ("f" . scroll-up-line)
+               ("e" . scroll-down-line)
+               ("SPC" . my/forward-paragraph)
+               ("E" . my/backward-paragraph)
+               ("2" . backward-button)
+               ("3" . forward-button)
+               ("4" . push-button)))
 #+end_src
 *** executable
 This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/][this advice]]
@@ -1432,8 +1447,7 @@ dMv+byk5Rw==
                ("C-c !"   . org-readable)
                ("C-c C-a" . nil)
                ("C-,"     . nil)
-               ("M-h"     . nil)
-               ("C-M-m"   . hydra-lazy-control/body))
+               ("M-h"     . nil))
 
     ;; attach
     (setq org-attach-preferred-new-method nil)
@@ -2751,7 +2765,7 @@ speed commands and hydra-org.
       ("SPC" my/org-reset-dwim)
       ("C-g" nil "quit")))
 #+end_src
-** main modes for programming/editing       :programs:
+** major modes for programming/editing        :programs:
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/edit.el")
 :END:
@@ -3028,6 +3042,13 @@ speed commands and hydra-org.
     (js-indent-level 2))
 #+end_src
 
+*** text-mode
+
+#+begin_src emacs-lisp
+  (use-package text-mode
+    :mode ("\\.txt$" . text-mode)
+    :delight " TX")
+#+end_src
 *** nxml
 
 #+begin_src emacs-lisp
@@ -3306,6 +3327,9 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
                (">" . twittering-goto-last-status)
                ("TAB" . twittering-goto-next-thing)
                ("<backtab>" . twittering-goto-previous-thing)
+               ("2" . twittering-goto-previous-thing)
+               ("3" . twittering-goto-next-thing)
+               ("4" . my/twittering-open)
                ;; create/delete tweets(messages)
                ("u" . twittering-update-status-interactive)
                ("j" . twittering-enter)
@@ -3333,22 +3357,22 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
                ("@" . twittering-other-user-timeline)
                ("/" . my/twittering-search)
                ("?" . twittering-search)
-               ("1" . twittering-home-timeline)
-               ("2" . (lambda ()
-                        (interactive)
-                        (twittering-visit-timeline ":mentions")))
-               ("3" . (lambda ()
-                        (interactive)
-                        (twittering-visit-timeline ":retweets_of_me")))
-               ("4" . (lambda ()
-                        (interactive)
-                        (twittering-search "from:_p_snow")))
-               ("5" . (lambda ()
-                        (interactive)
-                        (twittering-visit-timeline ":favorites")))
-               ("6" . (lambda ()
-                        (interactive)
-                        (twittering-visit-timeline ":direct_message_events")))))
+               ("c1" . twittering-home-timeline)
+               ("c2" . (lambda ()
+                         (interactive)
+                         (twittering-visit-timeline ":mentions")))
+               ("c3" . (lambda ()
+                         (interactive)
+                         (twittering-visit-timeline ":retweets_of_me")))
+               ("c4" . (lambda ()
+                         (interactive)
+                         (twittering-search "from:_p_snow")))
+               ("c5" . (lambda ()
+                         (interactive)
+                         (twittering-visit-timeline ":favorites")))
+               ("c6" . (lambda ()
+                         (interactive)
+                         (twittering-visit-timeline ":direct_message_events")))))
 
   (defun my/twittering-next-status-and-top ()
     "docstring"
@@ -3442,16 +3466,22 @@ helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
 #+begin_src emacs-lisp
   (use-package helpful
     :straight t
-    :hook ((help-mode helpful-mode) .
-           (lambda ()
-             (buffer-face-set 'help-buffer)))
     :bind (:map helpful-mode-map
                 ("w" . helpful-push-symbol-onto-kill-ring))
     :custom
     (counsel-describe-function-function #'helpful-callable)
     (counsel-describe-variable-function #'helpful-variable)
     (counsel-describe-symbol-function #'helpful-symbol)
-    (counsel-descbinds-function #'helpful-key))
+    (counsel-descbinds-function #'helpful-key)
+    :config
+    (bind-keys :map helpful-mode-map
+               ("f" . scroll-up-line)
+               ("e" . scroll-down-line)
+               ("SPC" . my/forward-paragraph)
+               ("E" . my/backward-paragraph)
+               ("2" . backward-button)
+               ("3" . forward-button)
+               ("4" . push-button)))
 
   (defun helpful-push-symbol-onto-kill-ring ()
     "Push symbol name to kill ring."
@@ -3511,7 +3541,7 @@ helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
         (goto-char (point-min))
         (save-excursion (xml-parse-string))
         (read-only-mode 1)
-        (buffer-face-set 'woman-buffer))
+        (buffer-face-set 'my/medium-large-gothic-face))
       (display-buffer buffer)))
 
   (defun my/define-word--parse-wordnik-example ()
@@ -3800,7 +3830,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
     :config
     (modus-themes-load-vivendi))
 #+end_src
-* customization
+* further customization
 ** handy functionality
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/extensions.el")
