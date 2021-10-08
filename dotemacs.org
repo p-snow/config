@@ -816,6 +816,14 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     :hook (after-save
            . executable-make-buffer-file-executable-if-script-p))
 #+end_src
+*** paren
+
+#+begin_src emacs-lisp
+  (use-package paren
+    :custom
+    (show-paren-style 'mixed)
+    (show-paren-delay 0.25))
+#+end_src
 
 ** EWW
 :PROPERTIES:
@@ -3250,6 +3258,60 @@ following packages are required by projectile in case of searching string in pro
     :custom
     (dumb-jump-selector 'ivy))
 #+end_src
+*** paredit
+
+Handy commands
+- press '(' to insert '()' pair
+- C-<left/right> to barf and slurp s-expressions
+- call paredit-splice-sexp to strip embracing parenthes
+- press M-<up> or M-r to delete upper sexp except pointing one
+- DEL, C-d, C-k act like originals but care for parenthes
+- press DEL to remedy unbalanced parenthes
+- press C-q ( to insert ( char manually
+
+
+#+begin_src emacs-lisp
+  (use-package paredit
+    :straight t
+    :bind (:map paredit-mode-map
+                ("C-h" . paredit-backward-delete)
+                ("C-M-g" .  paredit-splice-sexp)
+                ("M-s" . nil)
+                ("C-M-;" . paredit-comment-dwim)
+                ("M-;" . nil))
+    :hook ((emacs-lisp-mode . enable-paredit-mode)
+           (paredit-mode . show-paren-mode)))
+#+end_src
+
+- bug fix
+  Thanks to [[https://andreyorst.gitlab.io/posts/2021-09-30-why-is-paredit-is-so-un-emacsy/][this blog post]], a couple of commands in paredit.el are fixed with transient-mark-mode
+
+  #+begin_src emacs-lisp
+    (defvar my/paredit-delete-region-functions
+      '(paredit-forward-delete
+        paredit-backward-delete)
+      "List of `paredit-mode' functions that should support tmm region deletion.")
+
+    (defvar my/paredit-kill-region-functions
+      '(paredit-forward-kill-word
+        paredit-backward-kill-word)
+      "List of `paredit-mode' functions that should support tmm region killing.")
+
+    (defun my/paredit-fix-transient-mark-mode (orig-fn &rest args)
+      "Allow deleting/killing a region if expression is balanced."
+      (if (and transient-mark-mode
+               mark-active)
+          (cond ((memq this-command my/paredit-delete-region-functions)
+                 (paredit-delete-region (region-beginning) (region-end)))
+                ((memq this-command my/paredit-kill-region-functions)
+                 (paredit-kill-region (region-beginning) (region-end)))
+                (t (apply orig-fn args)))
+        (apply orig-fn args)))
+
+    (dolist (fun (append my/paredit-delete-region-functions
+                         my/paredit-kill-region-functions))
+      (advice-add fun :around #'my/paredit-fix-transient-mark-mode))
+  #+end_src
 
 *** [[https://github.com/emacs-lsp/lsp-mode/releases.atom][lsp-mode]]
 
