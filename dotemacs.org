@@ -3930,6 +3930,40 @@ to avoid accidental data loss.
       ("q" nil "quit")))
 #+end_src
 
+*** perspective control
+
+This hydra definition enalbes the user to focus on changing font size, moving window to display.
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'hydra
+    (defhydra hydra-perspective
+      (global-map "C-&"
+                  :foreign-keys warn
+                  :pre (set-face-attribute 'fringe nil :background "LightSeaGreen")
+                  :post (set-face-attribute 'fringe nil :background nil))
+      "Hydra perspective"
+      ("f" scroll-up-line)
+      ("e" scroll-down-line)
+      ("<" (scroll-left 1))
+      (">" (scroll-right 1))
+      ("+" text-scale-adjust)
+      ("=" text-scale-adjust)
+      ("-" text-scale-adjust)
+      ("0" text-scale-adjust)
+      ("C-f" forward-char)
+      ("M-f" forward-word)
+      ("C-b" backward-char)
+      ("M-b" backward-word)
+      ("C-n" next-line)
+      ("C-p" previous-line)
+      ("C-v" scroll-up-command)
+      ("M-v" scroll-down-command)
+      ("C-a" move-beginning-of-line)
+      ("C-e" move-end-of-line)
+      ("C-g" keyboard-quit :exit t)
+      ("q" nil :exit t)))
+#+end_src
+
 ** original features
 *** org-english
 
@@ -4204,29 +4238,6 @@ Learning Workflow for English words:
 *** narrow-dwim
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/narrow-dwim.el")
-  (add-hook 'post-command-hook 'highlight-narrowed-buffer)
-  (defun highlight-narrowed-buffer ()
-    "Highlight narrowed buffer.
-
-  Narrowed buffer have a fringe with highlighting color.
-  Plus text size in the buffer becomes a little bit larger."
-    (unless (or (member last-command
-                        '(text-scale-adjust))
-                (eq major-mode 'Info-mode)
-                (string-match-p (rx (seq line-start "CAPTURE-" (one-or-more ascii) line-end))
-                                (buffer-name)))
-      (let ((hl-fringe-color "purple2")
-            (hl-text-scale (sqrt 2)))
-        (set-face-attribute
-         'fringe nil :background (if (buffer-narrowed-p)
-                                     (progn
-                                       (text-scale-set hl-text-scale)
-                                       hl-fringe-color)
-                                   (progn
-                                     (when (= text-scale-mode-amount hl-text-scale)
-                                       (text-scale-set 0))
-                                     nil))))))
-
   (bind-key* "C-x n" 'my/toggle-narrow-dwim)
 
   (defun my/toggle-narrow-dwim (arg)
@@ -4263,6 +4274,29 @@ Learning Workflow for English words:
            (org-indent-mode -1)
            (visual-line-mode 1))
           (t (narrow-to-defun))))
+
+  ;; (add-hook 'post-command-hook 'highlight-narrowed-buffer)
+  ;; (defun highlight-narrowed-buffer ()
+  ;;   "Highlight narrowed buffer.
+
+  ;; Narrowed buffer have a fringe with highlighting color.
+  ;; Plus text size in the buffer becomes a little bit larger."
+  ;;   (unless (or (member last-command
+  ;;                       '(text-scale-adjust))
+  ;;               (eq major-mode 'Info-mode)
+  ;;               (string-match-p (rx (seq line-start "CAPTURE-" (one-or-more ascii) line-end))
+  ;;                               (buffer-name)))
+  ;;     (let ((hl-fringe-color "purple2")
+  ;;           (hl-text-scale (sqrt 2)))
+  ;;       (set-face-attribute
+  ;;        'fringe nil :background (if (buffer-narrowed-p)
+  ;;                                    (progn
+  ;;                                      (text-scale-set hl-text-scale)
+  ;;                                      hl-fringe-color)
+  ;;                                  (progn
+  ;;                                    (when (= text-scale-mode-amount hl-text-scale)
+  ;;                                      (text-scale-set 0))
+  ;;                                    nil))))))
 #+end_src
 *** weather
 
