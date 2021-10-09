@@ -295,22 +295,22 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
   (when (member (window-system) '(x ns w32))
     (set-frame-parameter nil 'fullscreen 'fullboth))
 
-  (global-visual-line-mode 0)
   (setq-default truncate-lines t)
-#+end_src
 
-**** [[https://github.com/emacsmirror/adaptive-wrap/releases.atom][adaptive-wrap]]
-
-adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major modes.
-
-#+begin_src emacs-lisp
-  (use-package adaptive-wrap
-    :straight t
+  (use-package visual-line
+    :no-require t
+    :after adaptive-wrap
     :hook
-    (((elfeed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode text-mode) .
-      visual-line-mode)
-     ((elfeed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode) .
-      adaptive-wrap-prefix-mode)))
+    ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode)
+     . visual-line-mode)
+    ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode)
+     . adaptive-wrap-prefix-mode)
+    ;; major modes inherited from text-mode, like org-mode, is not desired to enable visual-line-mode
+    (text-mode . (lambda ()
+                   (when (eq major-mode 'text-mode)
+                     (visual-line-mode))))
+    :config
+    (global-visual-line-mode 0))
 #+end_src
 
 *** text handling
@@ -3770,6 +3770,16 @@ Aggressively delete successive white spaces.
     :diminish (aggressive-indent-mode . "ai")
     :hook (emacs-lisp-mode . aggressive-indent-mode))
 #+end_src
+*** [[https://github.com/emacsmirror/adaptive-wrap/releases.atom][adaptive-wrap]]
+
+adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major modes.
+
+#+begin_src emacs-lisp
+  (use-package adaptive-wrap
+    :straight t)
+#+end_src
+
+
 *** [[https://github.com/iqbalansari/restart-emacs/releases.atom][restart-emacs]]
 
 #+begin_src emacs-lisp
