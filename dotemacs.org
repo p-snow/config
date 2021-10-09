@@ -3780,7 +3780,6 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
     :straight t)
 #+end_src
 
-
 *** [[https://github.com/iqbalansari/restart-emacs/releases.atom][restart-emacs]]
 
 #+begin_src emacs-lisp
@@ -3902,6 +3901,47 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
     (modus-themes-load-themes)
     :config
     (modus-themes-load-vivendi))
+#+end_src
+*** [[https://github.com/jwiegley/alert/releases.atom][alert]]
+
+#+begin_src emacs-lisp
+  (use-package alert
+    :straight t
+    :config
+    (set-face-background 'alert-saved-fringe-face nil)
+    (alert-add-rule :status '(buried)
+                    :mode   'mu4e-alert
+                    :style  'fringe)
+    (alert-add-rule :status '(buried)
+                    :mode   'dired-mode
+                    :style  'fringe)
+    (alert-add-rule :status '(buried)
+                    :mode   'org-mode
+                    :style  'libnotify))
+
+  (defvar alarm-sound (expand-file-name "~/Music/levelup.mp3"))
+  (alert-define-style 'alarm
+                      :title "alarm"
+                      :notifier
+                      (lambda (info)
+                        (let ((message (plist-get info :message))
+                              (severity (plist-get info :severity))
+                              (title (plist-get info :title))
+                              (icon (plist-get info :icon))
+                              (category (plist-get info :category))
+                              (buffer (plist-get info :buffer))
+                              (mode (plist-get info :mode))
+                              (data (plist-get info :data))
+                              (style (plist-get info :style))
+                              (persistent (plist-get info :persistent))
+                              (id (plist-get info :id))
+                              (system-volume (string-trim (shell-command-to-string "volget"))))
+                          (if (string= system-volume "0")
+                              (alert message :severity severity :title title :icon icon :category category :buffer buffer :mode mode :data data :style 'fringe :persistent persistent :id id)
+                            (start-process-shell-command "system-alarm" nil
+                                                         (mapconcat #'shell-quote-argument
+                                                                    (list "mpg321" alarm-sound)
+                                                                    " "))))))
 #+end_src
 * further customization
 ** handy functionality
