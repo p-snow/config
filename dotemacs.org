@@ -189,7 +189,7 @@ CAUTION: There are some face definitions which use an extra large font since I a
     :hook
     ((eww-mode twittering-mode) . (lambda () (buffer-face-set 'my/large-gothic-face)))
     ((Info-mode help-mode helpful-mode woman-mode) . (lambda () (buffer-face-set 'my/medium-large-gothic-face)))
-    ((org-mode text-mode mu4e-headers-mode mu4e-compose-mode) . (lambda () (buffer-face-set 'my/medium-gothic-face)))
+    ((org-mode text-mode dired-mode mu4e-headers-mode mu4e-compose-mode) . (lambda () (buffer-face-set 'my/medium-gothic-face)))
     (prog-mode . (lambda () (buffer-face-set 'my/small-gothic-face)))
     ((mu4e-view-mode nov-mode elfeed-show-mode) . (lambda () (buffer-face-set 'my/large-mincho-face)))
     (elfeed-search-update . (lambda () (buffer-face-set 'my/medium-mincho-face))))
@@ -587,7 +587,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :diminish ((global-whitespace-mode . "Ws")
                (whitespace-mode . "ws"))
     :hook
-    ((org-mode prog-mode) . whitespace-mode)
+    ((org-mode prog-mode dired-mode) . whitespace-mode)
     (eww-mode . whitespace-turn-off)
     (before-save . delete-trailing-whitespace)
     :custom
@@ -821,8 +821,10 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+begin_src emacs-lisp
   (use-package paren
     :custom
-    (show-paren-style 'mixed)
-    (show-paren-delay 0.25))
+    (show-paren-style 'parenthesis)
+    (show-paren-delay 0.25)
+    :config
+    (show-paren-mode -1))
 #+end_src
 
 ** EWW
@@ -1395,6 +1397,139 @@ pj33Rl7Q056/4kDd+noyNSNmT5noMs0btG1iqO+6SCkOsPEtHsDJIacDinFbEShu
 dMv+byk5Rw==
 =bWDq
 -----END PGP MESSAGE-----
+
+** Dired
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".config/emacs/dired.el")
+:END:
+
+#+begin_src emacs-lisp
+  (use-package dired
+    :bind (:map dired-mode-map
+                ("(" . dired-hide-details-mode)
+                (")" . dired-hide-details-mode)
+                ("E" . dired-create-empty-file)
+                ("Y" . dired-do-relsymlink)
+                ("r" . wdired-change-to-wdired-mode)
+                ("C-o" . nil)
+                ("o" . my/dired-open)
+                ("C-c C-o" . my/dired-open)
+                ("C-c C-s" . my/dired-share))
+    :hook (dired-mode . dired-hide-details-mode)
+    :custom
+    (dired-recursive-copies 'always)
+    (dired-recursive-deletes 'top)
+    (dired-listing-switches "-ahgG --time-style=iso --group-directories-first")
+    (dired-dwim-target 'dired-dwim-target-recent)
+    (dired-hide-details-hide-information-lines nil)
+    :config
+    (put 'dired-find-alternate-file 'disabled nil)
+    (setq dired-isearch-filenames t)
+    (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
+    (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion))
+
+  (defun my/advice-dired-control-deletion (oldfun &rest r)
+    "Enable file deleting functions to control deleting procedure
+  whether files are going to be in trash box."
+    (let ((delete-by-moving-to-trash
+           (if (equal current-prefix-arg '(4))
+               nil t)))
+      (apply oldfun (cdr r))))
+
+  (defun my/dired-open (&optional arg)
+    "Open file in Dired.
+
+  File is either on current line or marked targets.
+  Optional argument `ARG' is passed to `my/view-file'."
+    (interactive "P")
+    (let ((files (dired-get-marked-files nil nil)))
+      (mapc (lambda (file)
+              (if (equal arg '(4))
+                  (find-file file)
+                (my/view-file file arg)))
+            files)))
+
+  (defun my/dired-share ()
+    "Share file with remote device via KDE Connect."
+    (interactive)
+    (let ((files (dired-get-marked-files nil nil)))
+      (mapc (lambda (file)
+              (shell-command
+               (mapconcat 'identity
+                          (list "kdeconnect-cli" "-d" "a30587ededf4c2d2"
+                                "--share" (shell-quote-argument
+                                           file)) " ")))
+            files)))
+#+end_src
+
+*** [[https://github.com/stsquad/dired-rsync/releases.atom][dired-rsync]]
+
+#+begin_src emacs-lisp
+  (use-package dired-rsync
+    :straight t
+    :after dired
+    :bind (:map dired-mode-map
+                ("C-c C-r" . dired-rsync))
+    :custom
+    (dired-rsync-options "-auz --info=progress2"))
+#+end_src
+
+*** [[https://github.com/crocket/dired-single/releases.atom][dired-single]]
+
+#+begin_src emacs-lisp
+  (use-package dired-single
+    :straight t
+    :after dired
+    :bind (:map dired-mode-map
+                ("C-j" . dired-single-buffer)
+                ("^" . dired-single-up-directory)))
+#+end_src
+
+*** [[https://github.com/Fuco1/dired-hacks/releases.atom][dired-hacks]]
+
+#+begin_src emacs-lisp
+  (use-package dired-subtree
+    :straight t
+    :after dired
+    :bind (:map dired-mode-map
+                ("TAB" . dired-subtree-cycle)))
+
+  (use-package dired-narrow
+    :straight t
+    :after dired
+    :bind
+    (:map dired-mode-map
+          ("z" . dired-narrow))
+    (:map dired-narrow-map
+          ("C-j" . exit-minibuffer)))
+#+end_src
+
+*** [[https://github.com/mattiasb/dired-hide-dotfiles/releases.atom][dired-hide-dotfiles]]
+
+#+begin_src emacs-lisp
+  (use-package dired-hide-dotfiles
+    :straight t
+    :after dired
+    :bind (:map dired-mode-map
+                ("," . dired-clean-directory)
+                ("." . dired-hide-dotfiles-mode))
+    :config
+    (dired-hide-dotfiles-mode -1))
+#+end_src
+
+*** [[https://github.com/emacs-straight/dired-du/releases.atom][dired-du]]
+
+#+begin_src emacs-lisp
+  (use-package dired-du
+    :straight t
+    :after dired
+    :diminish ((dired-du-mode . "du"))
+    :bind (:map dired-mode-map
+                ("C-M-S-u" . dired-du-mode))
+    :custom
+    (dired-du-size-format t))
+#+end_src
+
 ** org mode
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/org.el")
@@ -4387,6 +4522,8 @@ Learning Workflow for English words:
                  (t (org-narrow-to-element)))
            (org-indent-mode -1)
            (visual-line-mode 1))
+          ((eq major-mode 'dired-mode)
+           (dired-subtree-narrow))
           (t (narrow-to-defun))))
 
   ;; (add-hook 'post-command-hook 'highlight-narrowed-buffer)
