@@ -552,8 +552,6 @@ I prefer to rid my emacs experience of mouse as least as possible.
   ;; suppress the occurence of prompt in (up|down)case-region prompt in
   (put 'upcase-region 'disabled nil)
   (put 'downcase-region 'disabled nil)
-
-  (global-set-key (kbd "C-z") #'repeat)
 #+end_src
 
 ** built-in features
@@ -707,6 +705,18 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :custom
     (vc-follow-symlinks t))
 #+end_src
+*** winner
+
+Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit-function.
+
+#+begin_src emacs-lisp
+  (winner-mode)
+  (global-set-key (kbd "C-z") 'winner-undo)
+  (global-set-key (kbd "C-M-z") 'winner-redo)
+
+  (setq buffer-quit-function 'winner-undo)
+#+end_src
+
 *** imenu                                    :programs:
 
 #+begin_src emacs-lisp
