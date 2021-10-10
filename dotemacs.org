@@ -313,6 +313,19 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
     (global-visual-line-mode 0))
 #+end_src
 
+*** display buffer
+:PROPERTIES:
+:ID:       a504f06e-02d3-4dcd-b80b-566a55cca2c7
+:END:
+
+#+begin_src emacs-lisp
+  (setq display-buffer-base-action
+        '((display-buffer-same-window
+           display-buffer-reuse-window
+           display-buffer-reuse-mode-window
+           display-buffer-in-previous-window)))
+#+end_src
+
 *** text handling
 
 #+begin_src emacs-lisp
@@ -3467,6 +3480,48 @@ Handy commands
     :hook (lsp-mode . lsp-ivy-mode))
 #+end_src
 
+*** [[https://github.com/flycheck/flycheck/releases.atom][flycheck]]
+
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :straight t
+    :diminish
+    :hook ((c-mode sh-mode emacs-lisp-mode ruby-mode python-mode js2-mode sql-mode) . flycheck-mode)
+    :custom
+    (flycheck-check-syntax-automatically
+     '(save new-line idle-change))
+    (flycheck-display-errors-delay 10.0)
+    (flycheck-checker-error-threshold 1000)
+    :config
+    (add-to-list 'display-buffer-alist
+                 `(,flycheck-error-message-buffer
+                   . (display-buffer-reuse-window
+                      display-buffer-in-previous-window
+                      display-buffer-pop-up-window
+                      . ((window-height . 5)))))
+    (with-eval-after-load 'hydra
+      (defhydra hydra-flycheck (flycheck-mode-map "C-c !"
+                                                  :color red)
+        "Flycheck"
+        ("C-c" flycheck-compile)
+        ("C-w" flycheck-copy-errors-as-kill)
+        ("?" flycheck-describe-checker)
+        ("C" flycheck-clear)
+        ("H" display-local-help)
+        ("V" flycheck-version)
+        ("c" flycheck-buffer)
+        ("e" flycheck-explain-error-at-point)
+        ("d" flycheck-display-error-at-point)
+        ("i" flycheck-manual)
+        ("l" flycheck-list-errors)
+        ("n" flycheck-next-error)
+        ("p" flycheck-previous-error)
+        ("s" flycheck-select-checker)
+        ("v" flycheck-verify-setup)
+        ("x" flycheck-disable-checker)
+        ("q" nil "quit"))))
+#+end_src
+
 *** [[https://github.com/hayamiz/twittering-mode/releases.atom][twittering-mode]]
 
 useful tips:
@@ -3637,6 +3692,24 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
   (use-package easy-kill
     :straight t
     :bind ("M-w" . easy-kill))
+#+end_src
+
+*** undo-tree
+
+#+begin_src emacs-lisp
+  (use-package undo-tree
+    :straight t
+    :diminish undo-tree-mode
+    :hook
+    (after-init . global-undo-tree-mode)
+    :custom
+    (undo-tree-enable-undo-in-region t)
+    :config
+    (setq undo-tree-visualizer-buffer-name "*undo tree*")
+    (add-to-list 'display-buffer-alist
+                 `(,undo-tree-visualizer-buffer-name . (display-buffer-in-side-window
+                                                        . ((side . right)
+                                                           (window-width . 15))))))
 #+end_src
 
 *** [[https://github.com/emacsorphanage/quickrun/releases.atom][quickrun]]                                 :programs:
@@ -4211,6 +4284,64 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
       ("C-e" move-end-of-line)
       ("C-g" keyboard-quit :exit t)
       ("q" nil :exit t)))
+#+end_src
+
+*** tldr
+
+#+begin_src emacs-lisp
+  (defun my/tldr (command)
+    "Show the output of tldr for COMMAND in a dedicated buffer."
+    (interactive (list (read-string "Coomand: ")))
+    (let* ((buf-name "*TL;DR*")
+           (buffer (get-buffer-create buf-name)))
+      (with-current-buffer buffer
+        (read-only-mode -1)
+        (erase-buffer)
+        (insert (shell-command-to-string (format "tldr %s"
+                                                 (shell-quote-argument command))))
+        (ansi-color-apply-on-region (point-min) (point-max))
+        (goto-char (point-min))
+        (read-only-mode 1))
+      (display-buffer buffer '((display-buffer-pop-up-window)
+                               . ((window-height . 8))))
+      (switch-to-buffer-other-window buffer)))
+#+end_src
+
+*** hydra definitions
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'hydra
+    (defhydra hydra-launcher (global-map "M-l"
+                                         :color blue)
+      "Launch"
+      ("xe" eshell)
+      ("xg" gdb)
+      ("xi" ielm)
+      ("xs" shell)
+      ("xt" term)
+      ("xv" vterm)
+      ("s" shell-switcher)
+      ("S" shell)
+      ("e" (eshell t))
+      ("D" dired-jump)
+      ("=" ediff)
+      ("@" twit)
+      ("v" magit-status)
+      ("r" re-builder)
+      ("a" counsel-linux-app)
+      ("w" lookup-google)
+      ("W" eww-switch-to-buffer)
+      ("m" mu4e)
+      ("M" mu4e-alert-view-unread-mails)
+      ("f" elfeed)
+      ("p" proced)
+      ("P" list-processes)
+      ("b" battery)
+      ("c" calendar)
+      ("?" woman)
+      (";" my/tldr)
+      ("q" quickrun)
+      ("C-g" nil "cancel")))
 #+end_src
 
 ** original features
