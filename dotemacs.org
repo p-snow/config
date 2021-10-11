@@ -724,10 +724,20 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (proced-auto-update-flag t)
     (proced-auto-update-interval 3))
 #+end_src
-*** version control                       :maintaining:
+*** vc (version control)                  :maintaining:
+**** ediff
 
 #+begin_src emacs-lisp
-  (use-package vc
+  (use-package ediff
+    :commands ediff-files
+    :custom
+    (ediff-window-setup-function 'ediff-setup-windows-default)
+    (ediff-split-window-function 'split-window-horizontally))
+#+end_src
+**** vc-hooks
+
+#+begin_src emacs-lisp
+  (use-package vc-hooks
     :custom
     (vc-follow-symlinks t))
 #+end_src
@@ -749,15 +759,6 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
   (use-package imenu
     :custom
     (imenu-auto-rescan t))
-#+end_src
-*** ediff                                 :maintaining:
-
-#+begin_src emacs-lisp
-  (use-package ediff
-    :commands ediff-files
-    :custom
-    (ediff-window-setup-function 'ediff-setup-windows-default)
-    (ediff-split-window-function 'split-window-horizontally))
 #+end_src
 *** flyspell                                    :fixit:
 
