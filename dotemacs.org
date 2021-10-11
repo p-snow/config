@@ -4736,6 +4736,39 @@ MvHkcNaUqgU+pTSh/vqm38/pmqk1BE6mPp1dNMllXv1QUW4=
       ("q" nil "cancel" :exit t)))
 #+end_src
 
+*** utilities
+
+#+begin_src emacs-lisp
+  (defun my/copy-line-number ()
+    "Copy the line number of current point into the kill ring."
+    (interactive)
+    (let ((line-number (number-to-string (line-number-at-pos))))
+      (message "Line number: %s" line-number)
+      (kill-new line-number)))
+
+  (global-set-key (kbd "C-M-S-w") 'my/copy-line-number)
+
+  (defun my/insert-time-stamp (&optional arg)
+    "Insert date string with format derived in deterministic way with ARG."
+    (interactive "P")
+    (let* ((simple-fmt "%Y%m%d")
+           (concise-fmt "%Y-%m-%d")
+           (verbose-fmt "%Y-%m-%d %H:%M:%S")
+           (fmt-in-use (cond
+                        ((equal arg '(16))
+                         (read-string "time format: "
+                                      "%Y-%m-%d %H:%M:%S"))
+                        ((equal arg '(4))
+                         verbose-fmt)
+                        (t (cond
+                            ((eq major-mode 'text-mode) concise-fmt)
+                            ((eq major-mode 'dired-mode) simple-fmt)
+                            (t simple-fmt))))))
+      (insert (format-time-string fmt-in-use))))
+
+  (global-set-key (kbd "C-c .") 'my/insert-time-stamp)
+#+end_src
+
 ** original features
 *** org-english
 
