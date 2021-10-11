@@ -1152,7 +1152,7 @@ You need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-message-
                ("TAB" . shr-next-link)
                ("<backtab>" . shr-previous-link)
                ("3" . shr-next-link)
-               ("4" . open-thing-at-point)
+               ("4" . my/enter-thing-at-point)
                ("C-c C-a" . mu4e-view-attachment-action)
                :map mu4e-compose-mode-map
                ("C-x C-o" . org-mu4e-compose-org-mode))
@@ -1330,7 +1330,7 @@ lDAmxVslTY94qV4=
                ("e" . scroll-down-line)
                ("SPC" . my/forward-paragraph)
                ("E" . my/backward-paragraph)
-               ("4" . open-thing-at-point)
+               ("4" . my/enter-thing-at-point)
                ("TAB" . shr-next-link))
     (add-to-list 'elfeed-search-face-alist '(unchecked elfeed-search-unchecked-title-face))
     (add-to-list 'elfeed-search-face-alist '(checked elfeed-search-checked-title-face)))
@@ -1715,7 +1715,7 @@ dMv+byk5Rw==
                         (t nil))
                        line-search))
               t))
-          (open-thing-at-point))))
+          (my/enter-thing-at-point))))
     (add-to-list 'org-open-at-point-functions 'org-open-at-point-link)
     (setq org-file-apps
           '((t . (lambda (file-path link-string)
@@ -3732,7 +3732,7 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
   (defun my/twittering-open (&optional arg)
     ""
     (interactive "P")
-    (unless (open-thing-at-point)
+    (unless (my/enter-thing-at-point)
       (let ((uri (or (get-text-property (point) 'uri)
                      (if (get-text-property (point) 'field)
                          (let* ((id (get-text-property (point) 'id))
@@ -4458,6 +4458,67 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
     (transpose-lines 1)
     (previous-line 1))
   (global-set-key (kbd "M-S-<down>") 'my/drag-line-forward)
+#+end_src
+
+*** enter thing
+
+#+begin_src emacs-lisp
+  (require 'thingatpt)
+
+  (global-set-key (kbd "C-c C-o") 'my/enter-thing-at-point)
+
+  (defun my/enter-thing-at-point ()
+    "Enter thing in appropriate manner."
+    (interactive)
+    (let* ((thing nil)
+           (region-thing (when (use-region-p)
+                           (buffer-substring (region-beginning) (region-end)))))
+      (cond
+       ((setq thing
+              (if region-thing
+                  (when (string-match thing-at-point-email-regexp
+                                      region-thing)
+                    (match-string 0 region-thing))
+                (thing-at-point 'email t)))
+        (mu4e~compose-mail thing)
+        t)
+       ((setq thing (car (eww-links-at-point)))
+        (cl-case (prefix-numeric-value current-prefix-arg)
+          (16 (browse-url-default-browser thing))
+          (4 (eww-browse-url thing))
+          (t (open-url thing)))
+        t)
+       ((setq thing
+              (if region-thing
+                  (when (string-match browse-url-button-regexp
+                                      region-thing)
+                    (match-string 0 region-thing))
+                (thing-at-point 'url t)))
+        (let ((url-pos (split-location-uri thing)))
+          (cl-case (prefix-numeric-value current-prefix-arg)
+            (16 (browse-url-default-browser (car url-pos)))
+            (4 (eww-browse-url (car url-pos)))
+            (t (open-url (car url-pos) (cadr url-pos))))
+          t))
+       ((and (setq thing
+                   (if region-thing
+                       (when (string-match (format "[%s].+" thing-at-point-file-name-chars)
+                                           region-thing)
+                         (match-string 0 region-thing))
+                     (thing-at-point 'filename t)))
+             (file-exists-p thing))
+        (let ((url-pos (split-location-uri thing))
+              (prefix-arg current-prefix-arg))
+          (if (equal prefix-arg '(4))
+              (find-file (car url-pos))
+            (my/view-file (car url-pos) prefix-arg)
+            (unless prefix-arg
+              (goto-pos (cadr url-pos))))
+          t))
+       ;; this clause must be last in cond
+       ((setq thing (button-at (point)))
+        (push-button)
+        t))))
 #+end_src
 
 *** hydra definitions
