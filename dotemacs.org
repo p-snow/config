@@ -36,7 +36,7 @@ These process must be evaluated beforehand.
     (add-to-list 'load-path (expand-file-name "elisp" pkg-emacs-ver-dir)))
 #+end_src
 
-*** install [[https://github.com/raxod502/straight.el/releases.atom][straight.el]]
+*** [[https://github.com/raxod502/straight.el/releases.atom][straight.el]]
 
 #+begin_src emacs-lisp
   (setq straight-recipes-gnu-elpa-use-mirror t)
@@ -52,9 +52,35 @@ These process must be evaluated beforehand.
         (goto-char (point-max))
         (eval-print-last-sexp)))
     (load bootstrap-file nil 'nomessage))
+
+  (with-eval-after-load 'hydra
+    (defhydra hydra-straight (global-map "C-x -"
+                                         :color blue)
+      "Straight"
+      ("c" straight-check-package)
+      ("C" straight-check-all)
+      ("r" straight-rebuild-package)
+      ("R" straight-rebuild-all)
+      ("f" straight-fetch-package)
+      ("F" straight-fetch-all)
+      ("p" straight-pull-package-and-deps)
+      ("P" straight-pull-all)
+      ("m" straight-merge-package)
+      ("M" straight-merge-all)
+      ("n" straight-normalize-package)
+      ("N" straight-normalize-all)
+      ("u" straight-push-package)
+      ("U" straight-push-all)
+      ("v" straight-freeze-versions)
+      ("V" straight-thaw-versions)
+      ("w" straight-watcher-start)
+      ("W" straight-watcher-quit)
+      ("g" straight-get-recipe)
+      ("e" straight-prune-build)
+      ("q" nil)))
 #+end_src
 
-*** install [[https://github.com/jwiegley/use-package/releases.atom][use-package]]
+*** [[https://github.com/jwiegley/use-package/releases.atom][use-package]]
 
 [[https://jwiegley.github.io/use-package/][Official manual]] is handy especially when you look up [[https://jwiegley.github.io/use-package/keywords/][Keywords]].
 
@@ -4351,7 +4377,28 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
       ("?" woman)
       (";" my/tldr)
       ("q" quickrun)
-      ("C-g" nil "cancel")))
+      ("C-g" nil "cancel"))
+
+    (defhydra hydra-toggle
+      (global-map "C-c t"
+                  :color pink
+                  :pre (set-face-background 'mode-line "DarkOrange4")
+                  :post (set-face-background 'mode-line "gray10"))
+      "Toggle"
+      ("t" visual-line-mode)
+      ("T" toggle-truncate-lines)
+      ("i" adaptive-wrap-prefix-mode)
+      ("p" variable-pitch-mode)
+      ("w" whitespace-mode)
+      ("l" display-line-numbers-mode)
+      ("L" line-number-mode)
+      ("C" column-number-mode)
+      ("v" view-mode)
+      ("r" rainbow-mode)
+      ("\\" toggle-input-method)
+      ("F" toggle-frame-fullscreen)
+      ("SPC" pangu-spacing-mode)
+      ("q" nil "quit")))
 #+end_src
 
 ** original features
