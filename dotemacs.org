@@ -4736,6 +4736,52 @@ MvHkcNaUqgU+pTSh/vqm38/pmqk1BE6mPp1dNMllXv1QUW4=
 =ZjCr
 -----END PGP MESSAGE-----
 
+*** using speech synthesis
+
+#+begin_src emacs-lisp
+  (defun utl-say ()
+    "read out using open-jtalk"
+    (interactive)
+    (let* ((read-text-raw (buffer-substring (region-beginning) (region-end)))
+           (read-text (replace-regexp-in-string "[ \t\r\n\v\f]+" "" read-text-raw))
+           (say-cmd (if (string-match
+                         (format "\\`[%s]+\\'" "[:ascii:]’“”–")
+                         read-text)
+                        "esay" "jsay")))
+      (call-process-shell-command (format "echo %s | %s &" read-text say-cmd))))
+#+end_src
+
+**** jsay
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/jsay") :tangle-mode (identity #o755)
+  #!/usr/bin/env bash
+
+  readonly DIC="${HOME}/usr/share/hts/dic"
+  readonly VOICE="${HOME}/usr/share/hts/voice/mei_normal.htsvoice"
+  readonly AUDIO_FILE=`mktemp ${HOME}/var/tmp/jsay_XXXXXXXX.wav`
+
+  open_jtalk -x ${DIC} -m ${VOICE} -ow ${AUDIO_FILE}
+  aplay --quiet ${AUDIO_FILE}
+  rm -f ${AUDIO_FILE}
+
+  exit 0
+#+end_src
+
+**** esay
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/esay") :tangle-mode (identity #o755)
+  #!/usr/bin/env bash
+
+  readonly VOICE="${HOME}/usr/share/hts/voice/cmu_us_arctic_slt.htsvoice"
+  readonly AUDIO_FILE=`mktemp ${HOME}/var/tmp/esay_XXXXXXXX.wav`
+
+  flite_hts_engine -m ${VOICE} -o ${AUDIO_FILE}
+  aplay --quiet ${AUDIO_FILE}
+  rm -f ${AUDIO_FILE}
+
+  exit 0
+#+end_src
+
 *** hydra definitions
 
 #+begin_src emacs-lisp
