@@ -116,7 +116,7 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 #+begin_src emacs-lisp
   (require 'cl-lib)
 #+end_src
-** basic tweaks
+** basic config
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/01-init.el")
 :END:
@@ -410,6 +410,25 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :config
     (mouse-wheel-mode 0))
 #+end_src
+
+*** email                                       :crypt:
+
+-----BEGIN PGP MESSAGE-----
+
+hQEMA9uWvE5LJ2ejAQgAr5AMxzAs2N2TZ/ULgiWI9OS1PQ3cR5OjlXy6statO/xh
+G8x8yvioZV4aJORGOc9u9tkzO4gizLmHbX7BrwXExaICNoVgf6sw1xu9pvWAo4m7
+J6cfKoBEuN0qYJ8K+/7H/JgvucZlYKLMxncoo5jDABbEjieXQBRQWar7xm9unHGs
+r+b6tAD6LDdHFRwNTBorduF0nkP56on+zISt8BD+pXMyts3iYEUnyzGaGPxc17WL
+msjgOcP1on34ymsCukOy0qDT2yI7+TF366aWuV+ppYBTgBFIwZ7xixm+AVYJLkIE
+HPxzNDzb8OjVxt67qkrLzf4bxYubBfoAYeVak2t2p9LASQEuZeGIWVPxozDXtQbz
+/mkstGWFiSdY20jSIC+aXe2CpekSyR0KQdB/r27wigMTx5IpSF9fKI6D63F0aIgW
+w4cXPowPej2QbHxtWrj//Vn41VZgyk57626wtZbNnJ91OQe7h5IzLaYDVSFO9E4d
+HeiXj/4G7POAoatTBd7DUWjSvsELqCrQvNHoSAorWuthwJ3Pz4UQrkGlvM1ljKiX
+X6ZcttmYDN6lOUgHrrwW7nUBxm7qXRocRr9SVWz2+Qsg5/Hu18/gJ73J5xW4/Q9Y
+/ZbVvSxVgtjLIgHXYiM2WnHDn35RlDfXB2RPDL7G7LUaYi1sX4KqwkdA6PWuUcdy
+fDDHS5Vq5UvYutk=
+=3/h5
+-----END PGP MESSAGE-----
 
 *** [[https://github.com/skk-dev/ddskk/releases.atom][ddskk]]
 
@@ -4342,6 +4361,29 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
       (display-buffer buffer '((display-buffer-pop-up-window)
                                . ((window-height . 8))))
       (switch-to-buffer-other-window buffer)))
+#+end_src
+
+*** sending email
+
+#+begin_src emacs-lisp
+  (defun mail-simple-send (mailto subject body)
+    "Default function to send a mail with SUBJECT and BODY to myself."
+    (save-excursion
+      (let ((message-kill-buffer-on-exit t))
+        (message-mail mailto subject)
+        (message-goto-body)
+        (insert body)
+        (message-send-and-exit))))
+
+  (defun mail-buffer (mailto)
+    "Send the current buffer contents as a email.
+
+  If region is active, send the string in the region instead."
+    (let ((mail-subj (buffer-name))
+          (mail-body (if (use-region-p)
+                         (buffer-substring (region-beginning) (region-end))
+                       (buffer-string))))
+      (mail-simple-send mailto mail-subj mail-body)))
 #+end_src
 
 *** hydra definitions
