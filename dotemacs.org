@@ -4426,6 +4426,40 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
       (mail-simple-send mailto mail-subj mail-body)))
 #+end_src
 
+*** transposing
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'hydra
+    (defhydra hydra-transpose (global-map "C-t"
+                                          :color blue)
+      "Transpose"
+      ("c" transpose-chars "chars")
+      ("w" transpose-words "words")
+      ("l" transpose-lines "lines")
+      ("S" transpose-sentences "sentences")
+      ("p" transpose-paragraphs "paragraphs")
+      ("s" transpose-sexps "sexp")
+      ("ow" org-transpose-words "Org mode words")
+      ("oe" org-transpose-elements "Org mode elements")
+      ("ot" org-table-transpose-table-at-point "Org mode table")
+      ("q" nil "cancel" :exit t)))
+
+  (defun my/drag-line-backward ()
+    "Drag up current line for one."
+    (interactive "P")
+    (transpose-lines 1)
+    (previous-line 2))
+  (global-set-key (kbd "M-S-<up>") 'my/drag-line-backward)
+
+  (defun my/drag-line-forward ()
+    "Drag down current line for one."
+    (interactive "P")
+    (next-line 1)
+    (transpose-lines 1)
+    (previous-line 1))
+  (global-set-key (kbd "M-S-<down>") 'my/drag-line-forward)
+#+end_src
+
 *** hydra definitions
 
 #+begin_src emacs-lisp
