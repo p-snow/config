@@ -275,6 +275,25 @@ Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
   (delete-selection-mode t)
 #+end_src
 
+*** window
+
+Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit-function.
+
+#+begin_src emacs-lisp
+  (winner-mode)
+  (global-set-key (kbd "C-z") 'winner-undo)
+  (global-set-key (kbd "C-M-z") 'winner-redo)
+
+  (setq buffer-quit-function 'winner-undo)
+
+  (defun my/next-window-expand ()
+    "Expand next window."
+    (interactive)
+    (other-window 1)
+    (delete-other-windows))
+  (global-set-key (kbd "C-x O") 'my/next-window-expand)
+#+end_src
+
 *** minibuffer
 [[help:savehist-mode][savehist-mode]] saves minibuffer history and additionals.
 
@@ -760,18 +779,6 @@ fDDHS5Vq5UvYutk=
     :custom
     (vc-follow-symlinks t))
 #+end_src
-*** winner
-
-Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit-function.
-
-#+begin_src emacs-lisp
-  (winner-mode)
-  (global-set-key (kbd "C-z") 'winner-undo)
-  (global-set-key (kbd "C-M-z") 'winner-redo)
-
-  (setq buffer-quit-function 'winner-undo)
-#+end_src
-
 *** imenu                                    :programs:
 
 #+begin_src emacs-lisp
