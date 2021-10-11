@@ -4131,6 +4131,22 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
     :straight t
     :after yasnippet)
 #+end_src
+*** [[https://github.com/politza/pdf-tools/releases.atom][pdf-tools]]
+
+#+begin_src emacs-lisp
+  (use-package pdf-tools
+    :straight t
+    :delight
+    (pdf-view-mode " PV")
+    :mode ("\\.pdf$" . pdf-view-mode)
+    :hook
+    (pdf-view-mode . pdf-view-midnight-minor-mode)
+    (pdf-view-mode . pdf-view-fit-page-to-window)
+    :custom
+    (pdf-info-epdfinfo-program "/usr/bin/epdfinfo")
+    (pdf-view-display-size 'fit-width))
+#+end_src
+
 *** [[https://github.com/emacs-straight/rainbow-mode/releases.atom][rainbow-mode]]
 
 #+begin_src emacs-lisp
