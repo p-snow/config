@@ -600,22 +600,30 @@ fDDHS5Vq5UvYutk=
                       (skk-del-alist key skk-rom-kana-rule-list)))))
 #+end_src
 
-*** key (re)bindings
+*** fundamental key bindings
 
 #+begin_src emacs-lisp
+  ;; to be capable of distinguishing TAB and C-i
+  (setq local-function-key-map (delq '(kp-tab . [9]) local-function-key-map))
+
   (substitute-key-definition 'upcase-region
                              'upcase-dwim
                              global-map)
-
   (substitute-key-definition 'downcase-region
                              'downcase-dwim
                              global-map)
-
   (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
 
-  ;; suppress the occurence of prompt in (up|down)case-region prompt in
+  ;; suppress prompting in (up/down)case-region
   (put 'upcase-region 'disabled nil)
   (put 'downcase-region 'disabled nil)
+
+  (global-set-key (kbd "C-j") 'newline)
+  (global-set-key (kbd "C-h") 'backward-delete-char-untabify)
+  (global-set-key (kbd "M-h") 'backward-kill-word)
+  (global-set-key (kbd "M-SPC") 'cycle-spacing)
+  (global-set-key (kbd "M-k") 'kill-whole-line)
+  (global-set-key (kbd "C-c k") 'kill-this-buffer)
 #+end_src
 
 ** built-in features
