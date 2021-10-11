@@ -4441,7 +4441,7 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
       (mail-simple-send mailto mail-subj mail-body)))
 #+end_src
 
-*** enter thing
+*** open url or something
 
 #+begin_src emacs-lisp
   (require 'thingatpt)
@@ -4500,6 +4500,76 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
        ((setq thing (button-at (point)))
         (push-button)
         t))))
+
+  (defun split-location-uri (location-uri)
+    "Split LOCATION-URI into normal uri and location specifier.
+
+  Location specifier is either line number or string.
+  If splitting is successful, this function returns a list containing uri and location specifier."
+    (cond
+     ((string-match "\\(.+\\)::\\([[:digit:]]+\\)$" location-uri)
+      (list (match-string 1 location-uri) (string-to-number (match-string 2 location-uri))))
+     ((string-match "\\(.+\\)::\\([[:graph:][:blank:]]+\\)$" location-uri)
+      (list (match-string 1 location-uri) (match-string 2 location-uri)))
+     (t (list location-uri))))
+
+  (defun goto-pos (pos)
+    "Move the cursor to the location where `POS' is pointing.
+
+  if `POS' is a number assumed to be a line number.
+  If `POS' is a string assumed to be a searching word."
+    (interactive)
+    (when (cond
+           ((numberp pos)
+            (forward-line (- pos (line-number-at-pos)))
+            t)
+           ((stringp pos)
+            (let ((pos-num (string-to-number pos)))
+              (cl-case pos-num
+                (0 (goto-char
+                    (re-search-forward
+                     (string-join (split-string pos "" t "[ \t\r\n]*") "[ \t\r\n]*") nil nil)))
+                (t (forward-line (- pos-num (line-number-at-pos))))))
+            t))
+      (beginning-of-line)
+      (recenter-top-bottom 0)))
+
+  (defun open-url (url &optional pos)
+    "Open URL in an appropriate manner and jump to POS.
+
+  If URL points to a multimedia contents such as youtube video and mp3 audio file,
+  play it in media player."
+    (cond
+     ((or (string-match "\\([^/]+\\.pdf\\)" url)
+          (string-match "\\([^/]+\\.epub\\)" url))
+      (let ((dl-file (expand-file-name (match-string 0 url)
+                                       temporary-file-directory)))
+        (call-process-shell-command (format "curl %s -s -o %s" url dl-file))
+        (my/view-file dl-file)
+        (when pos (goto-pos pos))))
+     ((string-match-p "^https?://www.youtube.com.*" url)
+      ;; convert greedily watch url to playlist url if possible
+      (let ((url (if (string-match "&list=\\([[:graph:]]+\\)" url)
+                     (format "https://www.youtube.com/playlist?list=%s" (match-string 1 url))
+                   url))
+            (ytdl-opts
+             (remove nil
+                     (list (when (numberp pos)
+                             (format "--ytdl-raw-options=playlist-start=%d" pos))
+                           (format "--ytdl-format=%s" (shell-quote-argument (youtube-dl-format)))))))
+        (start-process-shell-command "mpv" nil (format "nohup mpv --force-window %s \"%s\" >/dev/null 2>&1" (mapconcat 'identity ytdl-opts " ") url))))
+     ((seq-some (lambda (suffix)
+                  (string-suffix-p suffix url))
+                '(".mp3" ".m4a" ".mp4" ".mkv" ".web" ".|m3" ".|jp" ".|jp" ".png"))
+      (start-process-shell-command "mpv" nil (format "nohup mpv --force-window \"%s\" >/dev/null 2>&1" url)))
+     (t (browse-web url)
+        (setq lexical-binding t)
+        (setq position pos)
+        (add-hook 'eww-after-render-hook
+                  (lambda ()
+                    (when position (goto-pos position))
+                    (setq-local eww-after-render-hook nil))
+                  0 t))))
 #+end_src
 
 *** media file handling
