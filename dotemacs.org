@@ -4702,15 +4702,19 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
       (when url
         (my/download-audio url))))
 
-  (defun show-media-duration-at-point ()
+  (defun my/show-media-duration-at-point ()
     "Show duration of media file which cursor currently pointed."
     (interactive)
     (if-let* ((url (thing-at-point-url-at-point)))
         (show-media-duration url)))
 
   (defmacro youtube-dl-format ()
-       "Return appropriate format option value for youtube-dl command."
-       "worstvideo+worstaudio mp4")
+    "Return appropriate format option value for youtube-dl command."
+    "worstvideo+worstaudio mp4")
+
+  (global-set-key (kbd "C-c D v") 'my/download-video-at-point)
+  (global-set-key (kbd "C-c D a") 'my/download-audio-at-point)
+  (global-set-key (kbd "C-c D =") 'my/show-media-duration-at-point)
 #+end_src
 
 **** confidential settings                     :crypt:
