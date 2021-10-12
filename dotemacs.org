@@ -3342,6 +3342,20 @@ speed commands and hydra-org.
     (plantuml-jar-path "/usr/share/plantuml/plantuml.jar"))
 #+end_src
 
+*** [[https://github.com/lilypond/lilypond/releases.atom][lilypond]]
+
+[[https://lilypond.org/unix.html][LilyPond]] elisp package is included in source tarball available at [[https://lilypond.org/download/source][here]],
+you are required to locate that package where emacs can search.
+
+#+begin_src emacs-lisp
+  (use-package lilypond-mode
+    :delight (LilyPond-mode " LP")
+    :mode ("\\.ly$" . LilyPond-mode)
+    :custom
+    (LilyPond-pdf-command "firefox")
+    (LilyPond-midi-command "fluidsynth -a alsa -m alsa_seq -l"))
+#+end_src
+
 *** conf
 
 #+begin_src emacs-lisp
