@@ -315,10 +315,6 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
     ;; decrease font size to 90% in minibuffer
     (setq-local face-remapping-alist '((default :height 0.9))))
 
-  (bind-keys :map minibuffer-local-map
-             ("C-M-n" . counsel-minibuffer-history)
-             ("C-M-y" . counsel-yank-pop))
-
   (setf enable-recursive-minibuffers t)
   (minibuffer-depth-indicate-mode 1)
 #+end_src
@@ -705,6 +701,7 @@ fDDHS5Vq5UvYutk=
 
 #+begin_src emacs-lisp
   (use-package bookmark
+    :bind ("C-c b" . bookmark-jump)
     :custom
     (bookmark-default-file
      (expand-file-name ".bookmarks.gpg" user-emacs-directory))
@@ -1863,7 +1860,6 @@ dMv+byk5Rw==
     :after (org org-ql my/org-archive)
     :bind (:map org-agenda-mode-map
                 ("C-j" . org-agenda-switch-to)
-                ("T" . counsel-org-tag-agenda)
                 ("M" . org-agenda-month-view))
     :hook
     (org-agenda-mode . (lambda ()
@@ -2961,13 +2957,11 @@ speed commands and hydra-org.
                                     :color teal)
       "Org Search"
       ("a" org-agenda)
-      ("c" counsel-org-capture)
-      ("C" org-capture)
+      ("c" org-capture)
       ("t" org-set-tags-command)
       ("j" org-clock-goto)
-      ("h" counsel-org-agenda-headlines)
-      ("g" counsel-org-goto)
-      ("G" counsel-org-goto-all)
+      ("h" consult-org-agenda)
+      ("g" consult-outline)
       ("ee" my/org-english-capture)
       ("ed" my/org-english-drill)
       ("eD" my/org-english-drill-resume)
@@ -2991,6 +2985,64 @@ speed commands and hydra-org.
       ("SPC" my/org-reset-dwim)
       ("C-g" nil "quit")))
 #+end_src
+
+** comletion
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".config/emacs/completion.el")
+:END:
+
+*** [[https://github.com/minad/vertico/releases.atom][vertico]]
+
+#+begin_src emacs-lisp
+  (use-package vertico
+    :straight t
+    :custom
+    (vertico-cycle t)
+    :config
+    (vertico-mode))
+#+end_src
+
+*** [[https://github.com/minad/consult/releases.atom][consult]]
+
+#+begin_src emacs-lisp
+  (use-package consult
+    :straight t
+    :after vertico
+    :bind
+    (:map global-map
+          ("C-s" . consult-line)
+          ("C-;" . consult-buffer)
+          ("C-c m" . consult-mode-command)
+          ("C-c r" . consult-recent-file)
+          ("C-c g" . consult-outline)
+          ("C-x M-:" . consult-complex-command)
+          ("M-y" . consult-yank-pop)
+          ("C-M-y" . consult-yank-from-kill-ring)
+          ("M-g M-g" . consult-goto-line)
+          ("M-g m" . consult-mark)
+          ("M-g M" . consult-global-mark)
+          ("M-g i" . consult-imenu)
+          ("M-g I" . consult-imenu-multi)
+          ("M-s e" . consult-isearch)
+          ("M-s \\" . consult-locate)
+          ("M-s g" . consult-grep)
+          ("M-s G" . consult-git-grep)
+          ("M-s r" . consult-ripgrep)
+          ("M-s l" . consult-line)
+          ("M-s L" . consult-line-multi)
+          ("M-s m" . consult-multi-occur)
+          ("M-s k" . consult-keep-lines)
+          ("M-s u" . consult-focus-lines)
+          :map isearch-mode-map
+          ("M-e" . consult-isearch)
+          ("M-s e" . consult-isearch)
+          ("M-s l" . consult-line)
+          ("M-s L" . consult-line-multi)
+          ("C-c h" . consult-history)
+          :map minibuffer-local-map
+          ("C-c h" . consult-history)))
+#+end_src
+
 ** major modes for programming/editing        :programs:
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/edit.el")
@@ -3425,7 +3477,6 @@ you are required to locate that package where emacs can search.
     :custom
     (projectile-project-search-path (expand-file-name "~/git"))
     (projectile-switch-project-action 'projectile-dired)
-    (projectile-completion-system 'ivy)
     (projectile-track-known-projects-automatically nil)
     (projectile-mode-line-prefix " P")
     (projectile-mode-line-function 'projectile-short-mode-line)
@@ -3486,9 +3537,7 @@ following packages are required by projectile in case of searching string in pro
            ("M-g x" . dumb-jump-go-prefer-external)
            ("M-g z" . dumb-jump-go-prefer-external-other-window)
            ("M-g /" . dumb-jump-back)
-           ("M-g l" . dumb-jump-quick-look))
-    :custom
-    (dumb-jump-selector 'ivy))
+           ("M-g l" . dumb-jump-quick-look)))
 #+end_src
 *** [[https://github.com/abo-abo/avy/releases.atom][avy]]
 
@@ -3832,11 +3881,6 @@ helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
     :straight t
     :bind (:map helpful-mode-map
                 ("w" . helpful-push-symbol-onto-kill-ring))
-    :custom
-    (counsel-describe-function-function #'helpful-callable)
-    (counsel-describe-variable-function #'helpful-variable)
-    (counsel-describe-symbol-function #'helpful-symbol)
-    (counsel-descbinds-function #'helpful-key)
     :config
     (bind-keys :map helpful-mode-map
                ("f" . scroll-up-line)
@@ -3993,7 +4037,7 @@ helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
   (use-package synosaurus
     :straight t
     :custom
-    (synosaurus-choose-method 'ivy))
+    (synosaurus-choose-method 'default))
 #+end_src
 
 *** [[https://github.com/purcell/exec-path-from-shell/releases.atom][exec-path-from-shell]]
@@ -4036,19 +4080,7 @@ migemo allows us to search incrementally Japanese words using roma-ji expression
 #+begin_src emacs-lisp
   (use-package ivy-migemo
     :straight t
-    :after (ivy migemo))
-#+end_src
-
-*** [[https://github.com/abo-abo/swiper/releases.atom][swiper/ivy]]
-Read [[info:ivy#Top][this manual]]
-
-#+begin_src emacs-lisp
-  (use-package ivy
-    :straight t
-    :config
-    (bind-keys :map ivy-minibuffer-map
-               ("M-y" . ivy-next-line)
-               ("M-w" . ivy-kill-ring-save)))
+    :after migemo)
 #+end_src
 
 *** [[https://github.com/nflath/hungry-delete/releases.atom][hungry-delete]]
@@ -4981,7 +5013,7 @@ Learning Workflow for English words:
            (buffer (url-retrieve-synchronously url t t)))
       (with-temp-buffer
         (url-insert-buffer-contents buffer url)
-        (ivy-read "match" (split-string (funcall 'my/define-word--parse-wordnik) "\n")))))
+        (completing-read "match" (split-string (funcall 'my/define-word--parse-wordnik) "\n")))))
 
   (advice-add #'my/org-english-insert-english-translation :around #'my/define-word--fix-31)
 
