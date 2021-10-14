@@ -4357,17 +4357,19 @@ to avoid accidental data loss.
 
   (defun my/drag-line-backward ()
     "Drag up current line for one."
-    (interactive "P")
+    (interactive)
     (transpose-lines 1)
     (previous-line 2))
+
   (global-set-key (kbd "M-S-<up>") 'my/drag-line-backward)
 
   (defun my/drag-line-forward ()
     "Drag down current line for one."
-    (interactive "P")
+    (interactive)
     (next-line 1)
     (transpose-lines 1)
     (previous-line 1))
+
   (global-set-key (kbd "M-S-<down>") 'my/drag-line-forward)
 #+end_src
 
