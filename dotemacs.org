@@ -3053,7 +3053,38 @@ speed commands and hydra-org.
           ("M-s L" . consult-line-multi)
           ("C-c h" . consult-history)
           :map minibuffer-local-map
-          ("C-c h" . consult-history)))
+          ("C-c h" . consult-history)
+          :map help-map
+          ("a" . consult-apropos)))
+#+end_src
+
+*** [[https://github.com/oantolin/embark/releases.atom][embark]]
+
+#+begin_src emacs-lisp
+  (use-package embark
+    :straight t
+    :bind
+    (("C-." . embark-act)
+     ("M-." . embark-dwim)
+     ("<help> B" . embark-bindings))
+    :init
+    (setq prefix-help-command #'embark-prefix-help-command))
+
+  (use-package embark-consult
+    :straight t
+    :after (embark consult)
+    :demand t
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+
+*** [[https://github.com/minad/marginalia/releases.atom][marginalia]]
+
+#+begin_src emacs-lisp
+  (use-package marginalia
+    :straight t
+    :config
+    (marginalia-mode))
 #+end_src
 
 ** major modes for programming/editing        :programs:
