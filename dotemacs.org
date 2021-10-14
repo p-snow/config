@@ -832,8 +832,12 @@ fDDHS5Vq5UvYutk=
   (use-package help-mode
     :delight " HE"
     :config
-    ;; (setq-default default-directory (expand-file-name "inits/" user-emacs-directory))
-    (bind-keys :map help-mode-map
+    (bind-key "C-M-h" help-map)
+    (bind-keys :map help-map
+               ("C-h" . nil)
+               ("c" . describe-face)
+               ("l" . find-library)
+               :map help-mode-map
                ("f" . scroll-up-line)
                ("e" . scroll-down-line)
                ("SPC" . my/forward-paragraph)
@@ -3879,8 +3883,13 @@ helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
 #+begin_src emacs-lisp
   (use-package helpful
     :straight t
-    :bind (:map helpful-mode-map
-                ("w" . helpful-push-symbol-onto-kill-ring))
+    :bind
+    (:map help-map
+          ("f" . helpful-callable)
+          ("v" . helpful-variable)
+          ("k" . helpful-key))
+    (:map helpful-mode-map
+          ("w" . helpful-push-symbol-onto-kill-ring) )
     :config
     (bind-keys :map helpful-mode-map
                ("f" . scroll-up-line)
@@ -4840,7 +4849,7 @@ MvHkcNaUqgU+pTSh/vqm38/pmqk1BE6mPp1dNMllXv1QUW4=
   exit 0
 #+end_src
 
-*** hydra definitions
+*** collective hydra definitions
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'hydra
