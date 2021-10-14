@@ -3509,6 +3509,54 @@ you are required to locate that package where emacs can search.
     (orgit-remote "github"))
 #+end_src
 
+*** [[https://github.com/bbatsov/projectile/releases.atom][projectile]]             :maintaining:ARCHIVE:ignore:
+
+#+begin_src emacs-lisp
+  (use-package projectile
+    :straight t
+    :hook
+    (find-file . projectile-mode-switch-dwim)
+    :bind-keymap
+    ("C-c p" . projectile-command-map)
+    :custom
+    (projectile-project-search-path (expand-file-name "~/git"))
+    (projectile-switch-project-action 'projectile-dired)
+    (projectile-track-known-projects-automatically nil)
+    (projectile-mode-line-prefix " P")
+    (projectile-mode-line-function 'projectile-short-mode-line)
+    :config
+    (projectile-load-known-projects)
+    (bind-keys :map projectile-command-map
+               ("C-s" . projectile-save-project-buffers)))
+
+  (defun projectile-mode-switch-dwim ()
+    "Intelligently switch on/off projectile mode."
+    (when-let* ((bfn (buffer-file-name))
+                (vc-registered (buffer-file-name)))
+      (setq-local projectile-mode t)))
+
+  (defun projectile-short-mode-line ()
+    "Report project name and type in the modeline."
+    (let ((project-name (projectile-project-name)))
+      (format "%s:%s"
+              projectile-mode-line-prefix
+              (or project-name "-"))))
+#+end_src
+
+*** [[https://github.com/ericdanan/counsel-projectile/releases.atom][counsel-projectile]]     :maintaining:ARCHIVE:ignore:
+
+#+begin_src emacs-lisp
+  (use-package counsel-projectile
+    :straight t
+    :after projectile
+    :config
+    (bind-keys :map projectile-command-map
+               ("p" . counsel-projectile-switch-project)
+               ("sG" . counsel-projectile-grep)
+               ("sS" . counsel-projectile-ag)
+               ("sR" . counsel-projectile-rg)
+               ("si" . counsel-projectile-git-grep)))
+#+end_src
 *** [[https://github.com/Wilfred/ag.el/releases.atom][ag.el]]                                    :programs:
 
 #+begin_src emacs-lisp
