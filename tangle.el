@@ -1,11 +1,8 @@
+(load-file "./common.el")
+
 (require 'org)
 (require 'org-crypt)
 (require 'ob-shell)
-
-(defun expand-tangle-target (file)
-  "docstring"
-  (let* ((target-dir (expand-file-name (org-entry-get nil "tangle-target-dir" t))))
-    (expand-file-name file target-dir)))
 
 (remove-hook 'org-babel-pre-tangle-hook
              'save-buffer)
