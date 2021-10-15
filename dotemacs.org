@@ -1025,32 +1025,32 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     "Go to selected heading line."
     (interactive)
     (setq lexical-binding t)
-    (let ((headings-root (eww-headings-dom))
-          (cur-buf (current-buffer)))
-      (ivy-read "Heading : "
-                (mapcar (lambda (heading-node)
-                          (when-let* ((heading (dom-text heading-node))
-                                      (tag (symbol-name (dom-tag heading-node)))
-                                      (match-pos (string-match "h\\([1-6]\\{1\\}\\)" tag))
-                                      (indent (- (string-to-number (match-string 1 tag)) 1)))
-                            (format "%s%s"
-                                    (apply 'concat (make-list indent "  "))
-                                    heading)))
-                        (dom-children headings-root))
-                :action (lambda (candidate)
-                          (when-let ((match (string-match "\\(?:  \\)*\\(.*\\)" candidate))
-                                     (heading (match-string 1 candidate))
-                                     (match-pos (or (re-search-forward (build-regex heading) nil t 1)
-                                                    (re-search-backward (build-regex heading) nil t 1))))
-                            (with-current-buffer cur-buf
-                              (switch-to-buffer cur-buf)
-                              (beginning-of-line)
-                              (recenter-top-bottom 0)))))))
+    (when-let* ((headings-root (eww-headings-dom))
+                (cur-buf (current-buffer))
+                (heading (completing-read
+                          "Heading : "
+                          (mapcar (lambda (heading-node)
+                                    (when-let* ((heading (dom-text heading-node))
+                                                (tag (symbol-name (dom-tag heading-node)))
+                                                (match-pos (string-match "h\\([1-6]\\{1\\}\\)" tag))
+                                                (indent (- (string-to-number (match-string 1 tag)) 1)))
+                                      (format "%s%s"
+                                              (apply 'concat (make-list indent "  "))
+                                              heading)))
+                                  (dom-children headings-root))))
+                (match (string-match "\\(?:  \\)*\\(.*\\)" heading))
+                (heading (match-string 1 heading))
+                (match-pos (or (re-search-forward (build-regex heading) nil t 1)
+                               (re-search-backward (build-regex heading) nil t 1))))
+      (with-current-buffer cur-buf
+        (switch-to-buffer cur-buf)
+        (beginning-of-line)
+        (recenter-top-bottom 0))))
 
-  (defun build-regex (str)
+  (defmacro build-regex (str)
     "Return a regexp representation for `STR'."
-    (format "^[[:blank:]SVG Image]*%s[[:blank:]]*$"
-            (ivy--regex str)))
+    `(format "^[[:blank:]SVG Image]*%s[[:blank:]]*$"
+             ,str))
 #+end_src
 
 *** extract_headings
