@@ -658,6 +658,20 @@ fDDHS5Vq5UvYutk=
     (epg-pinentry-mode 'loopback))
 #+end_src
 
+*** auth-source
+
+#+begin_src emacs-lisp
+  (use-package auth-source
+    :custom
+    (auth-source-gpg-encrypt-to `(,user-mail-address))
+    :config
+    (add-to-list 'auth-sources "~/.netrc.gpg"))
+
+  (use-package auth-source-pass
+    :config
+    (auth-source-pass-enable))
+#+end_src
+
 *** whitespace
 [[info:emacs#Useless Whitespace][emacs#Useless Whitespace]]
 
@@ -4272,6 +4286,26 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
     :custom
     (hydra-is-helpful nil))
 #+end_src
+*** [[https://github.com/NicolasPetton/pass/releases.atom][pass]]
+
+Major mode for manupulating password store file.
+
+#+begin_src emacs-lisp
+  (use-package pass
+    :straight t
+    :config
+    (bind-keys :map pass-mode-map
+               ("C-j" . pass-view)))
+#+end_src
+
+*** [[https://github.com/zx2c4/password-store/releases.atom][password-store]]
+
+#+begin_src emacs-lisp
+  (use-package password-store
+    :straight t
+    :custom
+    (password-store-time-before-clipboard-restore 25))
+#+end_src
 
 *** nov.el
 
@@ -5198,10 +5232,7 @@ Learning Workflow for English words:
 *** org-password-store
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/org-password-store.el")
-  (use-package password-store
-    :straight t
-    :custom
-    (password-store-time-before-clipboard-restore 25))
+  (require 'password-store)
 
   (defcustom my/org-password-store-property "PASSWORD_STORE"
     "Property used in my/password-store feature to get password-store entry name attached to current org entry.")
