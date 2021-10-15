@@ -1,0 +1,1555 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Software Configuration (.files)</title>
+<meta name="generator" content="Org mode" />
+<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/css/htmlize.css"/>
+<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/css/readtheorg.css"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/lib/js/jquery.stickytableheaders.min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/js/readtheorg.js"></script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Software Configuration (.files)</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org8e17f6f">User Information</a></li>
+<li><a href="#org04d4b6d">Bash</a>
+<ul>
+<li><a href="#orgaffa85a">secret parts&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></a></li>
+</ul>
+</li>
+<li><a href="#org33678b9">abcde</a></li>
+<li><a href="#org37a7d94">Git</a></li>
+<li><a href="#org5a4f5ba">GCompris</a>
+<ul>
+<li><a href="#org91cbdb8">Config file</a></li>
+</ul>
+</li>
+<li><a href="#orgc845bce">Pass</a></li>
+<li><a href="#orgb307822">mpv</a></li>
+<li><a href="#org22492e3">unison</a></li>
+<li><a href="#org00b0819">crontab</a></li>
+<li><a href="#orgeac6965">Aspell</a></li>
+<li><a href="#org2158252">asdf-vm</a>
+<ul>
+<li><a href="#org1efc31d">asdf-ruby</a></li>
+<li><a href="#orgd7de32a">asdf-python</a></li>
+</ul>
+</li>
+<li><a href="#orgafd850b">xkeysnail</a>
+<ul>
+<li><a href="#orgb9e173c">how to make xkeysnail daemonize</a></li>
+</ul>
+</li>
+<li><a href="#org7adb185">fstab</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org8e17f6f" class="outline-2">
+<h2 id="org8e17f6f">User Information</h2>
+<div class="outline-text-2" id="text-org8e17f6f">
+<ul class="org-ul">
+<li><p>
+my home directory
+</p>
+<div class="org-src-container">
+<pre class="src src-bash" id="orgc571ca7"><span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"${HOME}"</span>
+</pre>
+</div></li>
+<li><p>
+my user name on system
+</p>
+<div class="org-src-container">
+<pre class="src src-bash" id="org2c95828">whoami
+</pre>
+</div></li>
+<li><p>
+my email address
+</p>
+<div class="org-src-container">
+<pre class="src src-bash" id="orgc6e1530"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span>
+</pre>
+</div></li>
+<li><p>
+user account part of my email
+</p>
+<div class="org-src-container">
+<pre class="src src-bash" id="org3f69c75"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span> | cut -d<span style="font-style: italic;">'@'</span> -f1
+</pre>
+</div></li>
+<li><p>
+network part of my email
+</p>
+<div class="org-src-container">
+<pre class="src src-bash" id="org234139a"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span> | cut -d<span style="font-style: italic;">'@'</span> -f2
+</pre>
+</div></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org04d4b6d" class="outline-2">
+<h2 id="org04d4b6d">Bash</h2>
+<div class="outline-text-2" id="text-org04d4b6d">
+<ul class="org-ul">
+<li><p>
+bash profile
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
+
+<span style="font-weight: bold;">if</span> [ -f ~/.bashrc ]; <span style="font-weight: bold;">then</span>
+   source ~/.bashrc
+<span style="font-weight: bold;">fi</span>
+</pre>
+</div></li>
+<li><p>
+bashrc
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
+
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">EDITOR</span>=~/usr/bin/emacsclient
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">GIT_EDITOR</span>=~/usr/bin/emacsclient
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">VIEWER</span>=less
+
+<span style="font-weight: bold; font-style: italic;">USER_PATHS</span>=(
+  <span style="font-style: italic;">"${HOME}/bin"</span>
+  <span style="font-style: italic;">"${HOME}/usr/bin"</span>
+  <span style="font-style: italic;">"${HOME}/usr/bin/calibre"</span>
+  <span style="font-style: italic;">"${HOME}/usr/sbin"</span>
+  <span style="font-style: italic;">"${HOME}/Applications"</span>
+  <span style="font-style: italic;">"${HOME}/go/bin"</span>
+  <span style="font-style: italic;">"${HOME}/.cask/bin"</span>
+  <span style="font-style: italic;">"${HOME}/.local/bin"</span>
+  <span style="font-style: italic;">"${HOME}/.cabal"</span>
+)
+<span style="font-weight: bold;">for</span> path<span style="font-weight: bold;"> in</span> <span style="font-style: italic;">"${USER_PATHS[@]}"</span>; <span style="font-weight: bold;">do</span>
+  <span style="font-weight: bold;">if</span> [ -d <span style="font-style: italic;">"${path}"</span> ]; <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">PATH</span>=<span style="font-style: italic;">"${path}:$PATH"</span>
+  <span style="font-weight: bold;">fi</span>
+<span style="font-weight: bold;">done</span>
+
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">MANPATH</span>=<span style="font-style: italic;">"${HOME}/usr/share/man:${MANPATH}"</span>
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">INFOPATH</span>=<span style="font-style: italic;">"${HOME}/usr/share/info:${INFOPATH}"</span>
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">PKG_CONFIG_PATH</span>=<span style="font-style: italic;">"${HOME}/usr/lib/pkgconfig:${HOME}/usr/lib64/pkgconfig:${HOME}/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"</span>
+
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">LD_LIBRARY_PATH</span>=<span style="font-style: italic;">"${HOME}/usr/lib:${HOME}/usr/lib64:${HOME}/usr/lib/x86_64-linux-gnu:/usr/lib:/usr/local/lib:/usr/lib/x86_64-linux-gnu/"</span>
+
+<span style="font-weight: bold; font-style: italic;">python2_sp</span>=${<span style="font-weight: bold; font-style: italic;">HOME</span>}/usr/lib/python2.7/site-packages/
+<span style="font-weight: bold;">if</span> [ -d ${<span style="font-weight: bold; font-style: italic;">python2_sp</span>} ]; <span style="font-weight: bold;">then</span>
+  <span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">PYTHONPATH</span>=${<span style="font-weight: bold; font-style: italic;">python2_sp</span>}
+<span style="font-weight: bold;">fi</span>
+
+<span style="font-weight: bold;">for</span> bash_src<span style="font-weight: bold;"> in</span> <span style="font-style: italic;">"${HOME}"</span>/bin/bash_*.sh; <span style="font-weight: bold;">do</span>
+  . <span style="font-style: italic;">"${bash_src}"</span>
+<span style="font-weight: bold;">done</span>
+
+<span style="font-weight: bold;">case</span> ${<span style="font-weight: bold; font-style: italic;">TERM</span>} <span style="font-weight: bold;">in</span>
+linux) <span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">LANG</span>=<span style="font-style: italic;">"C"</span>;;
+*)     <span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">LANG</span>=<span style="font-style: italic;">"ja_JP.UTF-8"</span>;;
+<span style="font-weight: bold;">esac</span>
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">LC_MESSAGES</span>=<span style="font-style: italic;">"C"</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">prompt</span>
+<span style="font-weight: bold; font-style: italic;">MACHINE</span>=$(<span style="font-weight: bold;">echo</span> $(uname -n) | awk -F . <span style="font-style: italic;">'{print $1}'</span>)
+<span style="font-weight: bold; font-style: italic;">PS1</span>=<span style="font-style: italic;">"[\u@${MACHINE}:\\W]\n\$ "</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">function/variable used in libvterm/emacs</span>
+
+<span style="font-weight: bold;">vterm_prompt_end</span>(){
+  vterm_printf <span style="font-style: italic;">"51;A$(whoami)@$(hostname):$(pwd)"</span>
+}
+<span style="font-weight: bold; font-style: italic;">PS1</span>=$<span style="font-weight: bold; font-style: italic;">PS1</span><span style="font-style: italic;">'\[$(vterm_prompt_end)\]'</span>
+
+<span style="font-weight: bold;">vterm_printf</span>(){
+  <span style="font-weight: bold;">if</span> [ -n <span style="font-style: italic;">"$TMUX"</span> ]; <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Tell tmux to pass the escape sequences through</span>
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">(Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)</span>
+    printf <span style="font-style: italic;">"\ePtmux;\e\e]%s\007\e\\"</span> <span style="font-style: italic;">"$1"</span>
+  <span style="font-weight: bold;">elif</span> [ <span style="font-style: italic;">"${TERM%%-*}"</span> = <span style="font-style: italic;">"screen"</span> ]; <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">GNU screen (screen, screen-256color, screen-256color-bce)</span>
+    printf <span style="font-style: italic;">"\eP\e]%s\007\e\\"</span> <span style="font-style: italic;">"$1"</span>
+  <span style="font-weight: bold;">else</span>
+    printf <span style="font-style: italic;">"\e]%s\e\\"</span> <span style="font-style: italic;">"$1"</span>
+  <span style="font-weight: bold;">fi</span>
+}
+
+<span style="font-weight: bold; font-style: italic;">PROMPT_COMMAND</span>=<span style="font-style: italic;">'echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'</span>
+
+
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">GTAGSCONF</span>=${<span style="font-weight: bold; font-style: italic;">HOME</span>}/usr/share/gtags/gtags.conf
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">GTAGSLABEL</span>=pygments
+
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">WINEARCH</span>=win64
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">WINEPREFIX</span>=~/.wine
+</pre>
+</div></li>
+<li><p>
+profile
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">~/.profile: executed by the command interpreter for login shells.</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">exists.</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">see /usr/share/doc/bash/examples/startup-files for examples.</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">the files are located in the bash-doc package.</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">the default umask is set in /etc/profile; for setting the umask</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">for ssh logins, install and configure the libpam-umask package.</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">umask 022</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">if running bash</span>
+<span style="font-weight: bold;">if</span> [ -n <span style="font-style: italic;">"$BASH_VERSION"</span> ]; <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">include .bashrc if it exists</span>
+    <span style="font-weight: bold;">if</span> [ -f <span style="font-style: italic;">"$HOME/.bashrc"</span> ]; <span style="font-weight: bold;">then</span>
+        . <span style="font-style: italic;">"$HOME/.bashrc"</span>
+    <span style="font-weight: bold;">fi</span>
+<span style="font-weight: bold;">fi</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">set PATH so it includes user's private bin if it exists</span>
+<span style="font-weight: bold;">if</span> [ -d <span style="font-style: italic;">"$HOME/bin"</span> ] ; <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold; font-style: italic;">PATH</span>=<span style="font-style: italic;">"$HOME/bin:$PATH"</span>
+<span style="font-weight: bold;">fi</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">set PATH so it includes user's private bin if it exists</span>
+<span style="font-weight: bold;">if</span> [ -d <span style="font-style: italic;">"$HOME/.local/bin"</span> ] ; <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold; font-style: italic;">PATH</span>=<span style="font-style: italic;">"$HOME/.local/bin:$PATH"</span>
+<span style="font-weight: bold;">fi</span>
+</pre>
+</div></li>
+</ul>
+</div>
+<div id="outline-container-orgaffa85a" class="outline-3">
+<h3 id="orgaffa85a">secret parts&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></h3>
+<div class="outline-text-3" id="text-orgaffa85a">
+<p>
+&#x2013;&#x2014;BEGIN PGP MESSAGE&#x2013;&#x2014;
+</p>
+
+<p>
+hQEMA9uWvE5LJ2ejAQgArGORah6PhZQyWd8kqSGEwIXRkASbFg7cRhVeqngN02Ji
+myXYGFNOGf6yhRQb9BWUvOD9+GfGYn8Jp/LlKVRQxIwhZDj1gb6SGcEJeg1qWAQY
+AT4aowLdxyDt+rw3p+ezuZU5V2xXV4QHhT721A0+E4EU40FuY0DoHlE7RurSotXw
+fyJn2nu70XOyALvM+rsEE+T3HimvZZ1czubN721QBafmA6BaAbbG0xAKqX00DZ4I
+EpDA8xAkEupTh5QXIoq45PKifs09gxd2zuzBhUH2XGR75XoriAr/ZJx6INqyuBbQ
+Um6lhw6YclvDhkk7tFY4DKw7jHwxEBoNsefJMy/tENKkAQRsZkDUk4hYw0a0VaMf
+W8QEyJYqZKZHnhIvOJeawzvF04ryI/ok6LVlySWwwsK8TxNlXImNDr3jqdTTEJVD
+esnevCcl5Gon8qiUjFXwX6bomE+T9/jUK88HWJ9G5v2PUS/2QDmbU0o1MU+tUYp+
+i4IvaH/QeyE4KQkwJ25yAl6/juJZfXsA9uiWlH9hWhYBMyG+zYxx/kepJqtStCV0
+Q7sbt0I=
+=sBHC
+&#x2013;&#x2014;END PGP MESSAGE&#x2013;&#x2014;
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org33678b9" class="outline-2">
+<h2 id="org33678b9">abcde</h2>
+<div class="outline-text-2" id="text-org33678b9">
+<div class="org-src-container">
+<pre class="src src-conf"><span style="font-weight: bold; font-style: italic;">FDKAACENCOPTS</span>=<span style="font-style: italic;">'--bitrate 256k'</span>
+
+<span style="font-weight: bold; font-style: italic;">OUTPUTFORMAT</span>=<span style="font-style: italic;">'${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org37a7d94" class="outline-2">
+<h2 id="org37a7d94">Git</h2>
+<div class="outline-text-2" id="text-org37a7d94">
+<ul class="org-ul">
+<li><p>
+git ignore
+</p>
+<div class="org-src-container">
+<pre class="src src-conf"><span style="font-weight: bold; font-style: italic;">#</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">~/.gitignote</span>
+<span style="font-weight: bold; font-style: italic;">#</span>
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">archive ##</span>
+*.zip
+*.lzh
+*.tar.gz
+*.tgz
+*.bz2
+*.dmg
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">Compiled object files ##</span>
+*.slo
+*.lo
+*.o
+*.obj
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">Compiled Dynamic libraries ##</span>
+*.so
+*.dylib
+*.dll
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">Compiled Static libraries ##</span>
+*.lai
+*.la
+*.a
+*.lib
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">Executables ##</span>
+*.exe
+*.out
+*.app
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">Windows ##</span>
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">Mac ##</span>
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+._*
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">Linux ##</span>
+locate.db
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">version control system ##</span>
+.git/
+.hg/
+.svn/
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">backup,log ##</span>
+*~
+~*
+*.swp
+.swp.*
+*.tmp
+*.bak
+*.old
+*.log
+.cache/
+*.autosave
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">Emacs ##</span>
+*.elc
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">Vim ##</span>
+*.un~
+Session.vim
+.netrwhist
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">GNU GLOBAL ##</span>
+GPATH
+GRTAGS
+GTAGS
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">netbeans ##</span>
+nbproject/
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">intellij idea ##</span>
+.idea/
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">eclipse ##</span>
+.settings/
+.project
+.classpath
+.buildpath
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">XCode ##</span>
+*.xcodeproj/*
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">Build dir ##</span>
+build/
+</pre>
+</div></li>
+<li><p>
+git attributes
+</p>
+<div class="org-src-container">
+<pre class="src src-gitattributes">*.c diff=cpp
+*.h diff=cpp
+*.cpp diff=cpp
+*.hpp diff=cpp
+*.cs diff=csharp
+*.m diff=objc
+*.java diff=java
+*.html diff=html
+*.xml diff=html
+*.pl diff=perl
+*.pm diff=perl
+*.t diff=perl
+*.php diff=php
+*.ptml diff=php
+*.py diff=python
+*.rb diff=ruby
+*.js diff=java
+*.csv encoding=cp932
+*.json diff=json
+*.gpg filter=gpg diff=gpg
+</pre>
+</div></li>
+<li><p>
+git config
+</p>
+<div class="org-src-container">
+<pre class="src src-gitconfig">[core]
+	excludesfile = &lt;&lt;home-dir()&gt;&gt;/.config/git/info/ignore
+	attributesfile = &lt;&lt;home-dir()&gt;&gt;/.config/git/info/attributes
+	editor = emacs
+	symlinks = true
+	# Unicode
+	precomposeunicode = true
+	quotepath = true
+	autocrlf = false
+[push]
+	# simple,matching,upstream,current
+	default = simple
+[color]
+	ui = auto
+	status = auto
+	diff = auto
+	branch = auto
+	interactive = auto
+	grep = auto
+[diff]
+	patience = true
+[diff "gpg"]
+	textconv = gpg --no-tty --decrypt
+[help]
+	autocorrect = 0
+[alias]
+	co = checkout
+	ca = commit -a -v
+	ce = commit -v --amend
+	st = status --branch --short
+	si = status --ignored --short
+	branches = branch -a
+	remotes = remote -v
+	tags = tag -l
+	lg = log --graph --all --decorate --abbrev-commit --branches --date=short --pretty=format:\"%C(red)%h%C(reset) %C(green)[%ad]%C(reset) %s %C(cyan)@%an%C(reset) %C(yellow)%d%C(reset)\"
+	fp = fetch --prune
+	di = diff
+	dh = diff --histogram
+	dw = diff --word-diff
+	dc = diff --cached
+	wc = whatchanged
+[user]
+	email = 6841207+p-snow@users.noreply.github.com
+	name = p-snow
+[credential]
+	helper = /usr/bin/pass-git-helper -m &lt;&lt;home-dir()&gt;&gt;/.config/pass-git-helper/git-pass-mapping.ini
+</pre>
+</div></li>
+<li><p>
+pre-commit
+pre-commit script is useful for checking strings to commit
+</p>
+
+<p>
+#!/usr/bin/env bash
+</p>
+
+<p>
+forbiddens=(
+  <a id="org5d4b25f"></a>
+)
+</p>
+
+<p>
+. "$(git &#x2013;exec-path)/git-sh-setup" # for die
+for forbidden in ${forbiddens[@]}
+do
+  if git diff-index -p -M &#x2013;cached HEAD &#x2013; \
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">grep '^+' \</td>
+</tr>
+
+<tr>
+<td class="org-left">grep "${forbidden}"; then</td>
+</tr>
+</tbody>
+</table>
+<p>
+      die Blocking commit because string "${forbidden}" detected in patch
+    fi
+  done
+#+end<sub>src</sub>
+</p></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org5a4f5ba" class="outline-2">
+<h2 id="org5a4f5ba">GCompris</h2>
+<div class="outline-text-2" id="text-org5a4f5ba">
+<ul class="org-ul">
+<li><p>
+Download executable
+execute following source block to download package file and execute it to install GCompris executable file
+</p>
+<div class="org-src-container">
+<pre class="src src-sh"><span style="font-weight: bold; font-style: italic;">ver</span>=1.1
+<span style="font-weight: bold; font-style: italic;">sh_file</span>=gcompris-qt-${<span style="font-weight: bold; font-style: italic;">ver</span>}-Linux64.sh
+<span style="font-weight: bold;">if</span> [ ! -x ~/Applications/gcompris-qt-${<span style="font-weight: bold; font-style: italic;">ver</span>}-Linux/bin/gcompris-qt.sh ]; <span style="font-weight: bold;">then</span>
+  <span style="font-weight: bold;">cd</span> ~/Applications &amp;&amp; <span style="font-style: italic;">\</span>
+    curl -LJs --remote-name <span style="font-style: italic;">"https://gcompris.net/download/qt/linux/${sh_file}"</span>
+<span style="font-weight: bold;">fi</span>
+</pre>
+</div></li>
+<li><p>
+Desktop file
+</p>
+<div class="org-src-container">
+<pre class="src src-conf-desktop"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/env xdg-open</span>
+[<span style="font-weight: bold; text-decoration: underline;">Desktop Entry</span>]
+<span style="font-weight: bold; font-style: italic;">Type</span>=Application
+<span style="font-weight: bold; font-style: italic;">Version</span>=1.1
+<span style="font-weight: bold; font-style: italic;">Name</span>=GCompris
+<span style="font-weight: bold; font-style: italic;">Comment</span>=GCompris education app suite
+<span style="font-weight: bold; font-style: italic;">Exec</span>=&lt;&lt;home-dir()&gt;&gt;/Applications/gcompris-qt-1.1-Linux/bin/gcompris-qt.sh <span style="font-weight: bold; text-decoration: underline;">%F</span>
+<span style="font-weight: bold; font-style: italic;">Terminal</span>=<span style="font-weight: bold; text-decoration: underline;">false</span>
+<span style="font-weight: bold; font-style: italic;">Categories</span>=Education;
+</pre>
+</div></li>
+</ul>
+</div>
+<div id="outline-container-org91cbdb8" class="outline-3">
+<h3 id="org91cbdb8">Config file</h3>
+<div class="outline-text-3" id="text-org91cbdb8">
+<div class="org-src-container">
+<pre class="src src-conf">[<span style="font-weight: bold; text-decoration: underline;">Admin</span>]
+<span style="font-weight: bold; font-style: italic;">cachePath</span>=&lt;&lt;home-dir()&gt;&gt;/.cache/KDE/gcompris-qt
+<span style="font-weight: bold; font-style: italic;">downloadServerUrl</span>=https://cdn.kde.org/gcompris
+<span style="font-weight: bold; font-style: italic;">renderer</span>=auto
+<span style="font-weight: bold; font-style: italic;">userDataPath</span>=&lt;&lt;home-dir()&gt;&gt;/.local/share/GCompris
+
+[<span style="font-weight: bold; text-decoration: underline;">Favorite</span>]
+<span style="font-weight: bold; font-style: italic;">baby_tangram\BabyTangram.qml</span>=true
+<span style="font-weight: bold; font-style: italic;">babyshapes\Babyshapes.qml</span>=false
+<span style="font-weight: bold; font-style: italic;">braille_fun\BrailleFun.qml</span>=false
+<span style="font-weight: bold; font-style: italic;">canal_lock\CanalLock.qml</span>=true
+<span style="font-weight: bold; font-style: italic;">color_mix_light\ColorMixLight.qml</span>=true
+<span style="font-weight: bold; font-style: italic;">colors\Colors.qml</span>=true
+<span style="font-weight: bold; font-style: italic;">hanoi_real\HanoiReal.qml</span>=true
+<span style="font-weight: bold; font-style: italic;">maze\Maze.qml</span>=true
+<span style="font-weight: bold; font-style: italic;">play_piano\PlayPiano.qml</span>=true
+<span style="font-weight: bold; font-style: italic;">railroad\Railroad.qml</span>=true
+<span style="font-weight: bold; font-style: italic;">traffic\Traffic.qml</span>=true
+
+[<span style="font-weight: bold; text-decoration: underline;">%General</span>]
+<span style="font-weight: bold; font-style: italic;">audioEffectsVolume</span>=0.7
+<span style="font-weight: bold; font-style: italic;">backgroundMusicVolume</span>=0.2
+<span style="font-weight: bold; font-style: italic;">baseFontSize</span>=0
+<span style="font-weight: bold; font-style: italic;">defaultCursor</span>=false
+<span style="font-weight: bold; font-style: italic;">demo</span>=false
+<span style="font-weight: bold; font-style: italic;">enableAudioEffects</span>=true
+<span style="font-weight: bold; font-style: italic;">enableAudioVoices</span>=true
+<span style="font-weight: bold; font-style: italic;">enableAutomaticDownloads</span>=true
+<span style="font-weight: bold; font-style: italic;">enableBackgroundMusic</span>=true
+<span style="font-weight: bold; font-style: italic;">filterLevelMax</span>=6
+<span style="font-weight: bold; font-style: italic;">filterLevelMin</span>=1
+<span style="font-weight: bold; font-style: italic;">filteredBackgroundMusic</span>=forest.ogg
+<span style="font-weight: bold; font-style: italic;">font</span>=Andika-R.otf
+<span style="font-weight: bold; font-style: italic;">fontCapitalization</span>=0
+<span style="font-weight: bold; font-style: italic;">fontLetterSpacing</span>=0
+<span style="font-weight: bold; font-style: italic;">fullscreen</span>=false
+<span style="font-weight: bold; font-style: italic;">isCurrentFontEmbedded</span>=true
+<span style="font-weight: bold; font-style: italic;">key</span>=
+<span style="font-weight: bold; font-style: italic;">kiosk</span>=false
+<span style="font-weight: bold; font-style: italic;">locale</span>=system
+<span style="font-weight: bold; font-style: italic;">noCursor</span>=false
+<span style="font-weight: bold; font-style: italic;">previousHeight</span>=1375
+<span style="font-weight: bold; font-style: italic;">previousWidth</span>=2560
+<span style="font-weight: bold; font-style: italic;">sectionVisible</span>=true
+<span style="font-weight: bold; font-style: italic;">showLockedActivities</span>=false
+<span style="font-weight: bold; font-style: italic;">useWordset</span>=true
+<span style="font-weight: bold; font-style: italic;">virtualKeyboard</span>=false
+<span style="font-weight: bold; font-style: italic;">wordset</span>=data2/words/words.rcc
+
+[<span style="font-weight: bold; text-decoration: underline;">Internal</span>]
+<span style="font-weight: bold; font-style: italic;">exeCount</span>=139
+<span style="font-weight: bold; font-style: italic;">lastGCVersionRan</span>=10100
+
+[<span style="font-weight: bold; text-decoration: underline;">Levels</span>]
+<span style="font-weight: bold; font-style: italic;">algebra_by\AlgebraBy.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">algebra_div\AlgebraDiv.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">algebra_minus\AlgebraMinus.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">algebra_plus\AlgebraPlus.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">categorization\Categorization.qml</span>=1, 2, 3
+<span style="font-weight: bold; font-style: italic;">chronos\Chronos.qml</span>=1, 2
+<span style="font-weight: bold; font-style: italic;">clockgame\Clockgame.qml</span>=1, 2, 3, 4, 5, 6
+<span style="font-weight: bold; font-style: italic;">crane\Crane.qml</span>=1, 2, 3, 4
+<span style="font-weight: bold; font-style: italic;">details\Details.qml</span>=1, 2, 3
+<span style="font-weight: bold; font-style: italic;">enumerate\Enumerate.qml</span>=1, 2, 3, 4
+<span style="font-weight: bold; font-style: italic;">geo-country\GeoCountry.qml</span>=1, 2, 3, 4
+<span style="font-weight: bold; font-style: italic;">gnumch-equality\GnumchEquality.qml</span>=1, 2, 3, 4
+<span style="font-weight: bold; font-style: italic;">gnumch-inequality\GnumchInequality.qml</span>=1, 2, 3, 4
+<span style="font-weight: bold; font-style: italic;">guesscount\Guesscount.qml</span>=1, 2, 3, 4
+<span style="font-weight: bold; font-style: italic;">guessnumber\Guessnumber.qml</span>=1, 2, 3, 4, 5
+<span style="font-weight: bold; font-style: italic;">land_safe\LandSafe.qml</span>=1, 2
+<span style="font-weight: bold; font-style: italic;">learn_additions\Learn_additions.qml</span>=1, 2, 3
+<span style="font-weight: bold; font-style: italic;">learn_digits\Learn_digits.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9
+<span style="font-weight: bold; font-style: italic;">learn_subtractions\Learn_subtractions.qml</span>=1, 2, 3
+<span style="font-weight: bold; font-style: italic;">lightsoff\Lightsoff.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9
+<span style="font-weight: bold; font-style: italic;">magic-hat-minus\MagicHat.qml</span>=1, 2, 3, 4, 5, 6
+<span style="font-weight: bold; font-style: italic;">magic-hat-plus\MagicHatPlus.qml</span>=1, 2, 3, 4, 5, 6
+<span style="font-weight: bold; font-style: italic;">memory-enumerate\MemoryEnumerate.qml</span>=1, 2, 3, 4, 5, 6, 7, 8
+<span style="font-weight: bold; font-style: italic;">memory-math-add-minus-mult-div-tux\MemoryMathAddMinusMultDivTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">memory-math-add-minus-mult-div\MemoryMathAddMinusMultDiv.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">memory-math-add-minus-tux\MemoryMathAddMinusTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">memory-math-add-minus\MemoryMathAddMinus.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">memory-math-add-tux\MemoryMathAddTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">memory-math-add\MemoryMathAdd.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">memory-math-div-tux\MemoryMathDivTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">memory-math-div\MemoryMathDiv.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">memory-math-minus-tux\MemoryMathMinusTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">memory-math-minus\MemoryMathMinus.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">memory-math-mult-div-tux\MemoryMathMultDivTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9
+<span style="font-weight: bold; font-style: italic;">memory-math-mult-div\MemoryMathMultDiv.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9
+<span style="font-weight: bold; font-style: italic;">memory-math-mult-tux\MemoryMathMultTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">memory-math-mult\MemoryMathMult.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+<span style="font-weight: bold; font-style: italic;">money\Money.qml</span>=1, 2, 3
+<span style="font-weight: bold; font-style: italic;">money_back\MoneyBack.qml</span>=1, 2, 3
+<span style="font-weight: bold; font-style: italic;">money_back_cents\MoneyBackCents.qml</span>=1, 2, 3
+<span style="font-weight: bold; font-style: italic;">money_cents\MoneyCents.qml</span>=1, 2, 3
+<span style="font-weight: bold; font-style: italic;">mosaic\Mosaic.qml</span>=1, 2, 3, 4
+<span style="font-weight: bold; font-style: italic;">redraw\Redraw.qml</span>=1, 2, 3
+<span style="font-weight: bold; font-style: italic;">redraw_symmetrical\RedrawSymmetrical.qml</span>=1, 2, 3
+<span style="font-weight: bold; font-style: italic;">reversecount\Reversecount.qml</span>=1, 2
+<span style="font-weight: bold; font-style: italic;">scalesboard\ScaleNumber.qml</span>=1, 2, 3, 4, 5
+<span style="font-weight: bold; font-style: italic;">scalesboard_weight\ScalesboardWeight.qml</span>=1, 2, 3, 4, 5, 6
+<span style="font-weight: bold; font-style: italic;">scalesboard_weight_avoirdupois\ScalesboardWeight.qml</span>=1, 2, 3, 4, 5, 6
+<span style="font-weight: bold; font-style: italic;">share\Share.qml</span>=1, 2, 3
+<span style="font-weight: bold; font-style: italic;">smallnumbers\Smallnumbers.qml</span>=1, 2, 3, 4, 5, 6, 7, 8
+<span style="font-weight: bold; font-style: italic;">smallnumbers2\Smallnumbers2.qml</span>=1, 2, 3, 4, 5, 6, 7, 8
+<span style="font-weight: bold; font-style: italic;">sudoku\Sudoku.qml</span>=1, 2, 3, 4
+<span style="font-weight: bold; font-style: italic;">target\Target.qml</span>=1, 2, 3, 4, 5
+
+[<span style="font-weight: bold; text-decoration: underline;">balancebox</span>]
+<span style="font-weight: bold; font-style: italic;">filePath</span>=qrc:/gcompris/src/activities/balancebox/resource/levels-default.json
+<span style="font-weight: bold; font-style: italic;">levels</span>=builtin
+<span style="font-weight: bold; font-style: italic;">progress</span>=12
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgc845bce" class="outline-2">
+<h2 id="orgc845bce">Pass</h2>
+<div class="outline-text-2" id="text-orgc845bce">
+<div class="org-src-container">
+<pre class="src src-conf">[<span style="font-weight: bold; text-decoration: underline;">github.com*</span>]
+<span style="font-weight: bold; font-style: italic;">username_extractor</span>=specific_line
+<span style="font-weight: bold; font-style: italic;">line_username</span>=2
+<span style="font-weight: bold; font-style: italic;">target</span>=github.com
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">username_extractor=entry_name</span>
+</pre>
+</div>
+<ul class="org-ul">
+<li><p>
+additional environment variables
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">PASSWORD_STORE_CLIP_TIME</span>=25
+</pre>
+</div></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgb307822" class="outline-2">
+<h2 id="orgb307822">mpv</h2>
+<div class="outline-text-2" id="text-orgb307822">
+<ul class="org-ul">
+<li><p>
+mpv.conf
+</p>
+<div class="org-src-container">
+<pre class="src src-conf"><span style="font-weight: bold; font-style: italic;">##################</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">video settings #</span>
+<span style="font-weight: bold; font-style: italic;">##################</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Start in fullscreen mode by default.</span>
+<span style="font-weight: bold; font-style: italic;">fs</span>=yes
+
+
+<span style="font-weight: bold; font-style: italic;">###########</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">General #</span>
+<span style="font-weight: bold; font-style: italic;">###########</span>
+
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">save-position-on-quit</span>
+no-border                               <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">no window title bar</span>
+msg-module                              <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">prepend module name to log messages</span>
+msg-color                               <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">color log messages on terminal</span>
+term-osd-bar                            <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">display a progress bar on the terminal</span>
+use-filedir-conf                        <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">look for additional config files in the directory of the opened file</span>
+pause                                   <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">no autoplay</span>
+<span style="font-weight: bold; font-style: italic;">force-window</span>=immediate
+keep-open                               <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">keep the player open when a file's end is reached</span>
+<span style="font-weight: bold; font-style: italic;">autofit-larger</span>=100%x95%                 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">resize window in case it's larger than W%xH% of the screen</span>
+cursor-autohide-fs-only                 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">don't autohide the cursor in window mode, only fullscreen</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">input-media-keys=no                     # enable/disable OSX media keys</span>
+<span style="font-weight: bold; font-style: italic;">cursor-autohide</span>=1000                    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">autohide the curser after 1s</span>
+
+<span style="font-weight: bold; font-style: italic;">screenshot-format</span>=png
+<span style="font-weight: bold; font-style: italic;">screenshot-png-compression</span>=8
+<span style="font-weight: bold; font-style: italic;">screenshot-template</span>=<span style="font-style: italic;">'~/Desktop/%F (%P) %n'</span>
+
+<span style="font-weight: bold; font-style: italic;">hls-bitrate</span>=max                         <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">use max quality for HLS streams</span>
+
+
+<span style="font-weight: bold; font-style: italic;">#########</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Cache #</span>
+<span style="font-weight: bold; font-style: italic;">#########</span>
+
+<span style="font-weight: bold; font-style: italic;">cache</span>=yes
+<span style="font-weight: bold; font-style: italic;">cache-default</span>=5000000                   <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">size in KB</span>
+<span style="font-weight: bold; font-style: italic;">cache-backbuffer</span>=25000                  <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">size in KB</span>
+<span style="font-weight: bold; font-style: italic;">cache-initial</span>=0                         <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">start playback when your cache is filled up with x kB</span>
+<span style="font-weight: bold; font-style: italic;">cache-secs</span>=10                           <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">how many seconds of audio/video to prefetch if the cache is active</span>
+
+
+<span style="font-weight: bold; font-style: italic;">#############</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">OSD / OSC #</span>
+<span style="font-weight: bold; font-style: italic;">#############</span>
+
+<span style="font-weight: bold; font-style: italic;">osd-level</span>=1                             <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">enable osd and display --osd-status-msg on interaction</span>
+<span style="font-weight: bold; font-style: italic;">osd-duration</span>=2500                       <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">hide the osd after x ms</span>
+<span style="font-weight: bold; font-style: italic;">osd-status-msg</span>=<span style="font-style: italic;">'${time-pos} / ${duration}${?percent-pos: (${percent-pos}%)}${?frame-drop-count:${!frame-drop-count==0: Dropped: ${frame-drop-count}}}\n${?chapter:Chapter: ${chapter}}'</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">osd-status-msg='${=time-pos}'         # show raw position</span>
+
+<span style="font-weight: bold; font-style: italic;">osd-font</span>=<span style="font-style: italic;">'Source Sans Pro'</span>
+<span style="font-weight: bold; font-style: italic;">osd-font-size</span>=64
+<span style="font-weight: bold; font-style: italic;">osd-color</span>=<span style="font-style: italic;">'#CCFFFFFF'</span>                   <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">ARGB format</span>
+<span style="font-weight: bold; font-style: italic;">osd-border-color</span>=<span style="font-style: italic;">'#DD322640'</span>            <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">ARGB format</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">osd-shadow-offset=1                    # pixel width for osd text and progress bar</span>
+<span style="font-weight: bold; font-style: italic;">osd-bar-align-y</span>=0                       <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">progress bar y alignment (-1 top, 0 centered, 1 bottom)</span>
+<span style="font-weight: bold; font-style: italic;">osd-border-size</span>=2                       <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">size for osd text and progress bar</span>
+<span style="font-weight: bold; font-style: italic;">osd-bar-h</span>=2                             <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">height of osd bar as a fractional percentage of your screen height</span>
+<span style="font-weight: bold; font-style: italic;">osd-bar-w</span>=60                            <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">width of " " "</span>
+
+
+<span style="font-weight: bold; font-style: italic;">#############</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Subtitles #</span>
+<span style="font-weight: bold; font-style: italic;">#############</span>
+
+sub-use-margins
+sub-ass-force-margins
+
+demuxer-mkv-subtitle-preroll            <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">try to correctly show embedded subs when seeking</span>
+<span style="font-weight: bold; font-style: italic;">sub-auto</span>=fuzzy                          <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">external subs don't have to match the file name exactly to autoload</span>
+<span style="font-weight: bold; font-style: italic;">embeddedfonts</span>=yes                       <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">use embedded fonts for SSA/ASS subs</span>
+<span style="font-weight: bold; font-style: italic;">sub-fix-timing</span>=no                       <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">do not try to fix gaps (which might make it worse in some cases)</span>
+<span style="font-weight: bold; font-style: italic;">sub-ass-force-style</span>=Kerning=yes         <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">allows you to override style parameters of ASS scripts</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">the following options only apply to subtitles without own styling (i.e. not ASS but e.g. SRT)</span>
+<span style="font-weight: bold; font-style: italic;">sub-font</span>=<span style="font-style: italic;">"Source Sans Pro Semibold"</span>
+<span style="font-weight: bold; font-style: italic;">sub-font-size</span>=36
+<span style="font-weight: bold; font-style: italic;">sub-color</span>=<span style="font-style: italic;">"#FFFFFFFF"</span>
+<span style="font-weight: bold; font-style: italic;">sub-border-color</span>=<span style="font-style: italic;">"#FF262626"</span>
+<span style="font-weight: bold; font-style: italic;">sub-border-size</span>=3.2
+<span style="font-weight: bold; font-style: italic;">sub-shadow-offset</span>=1
+<span style="font-weight: bold; font-style: italic;">sub-shadow-color</span>=<span style="font-style: italic;">"#33000000"</span>
+<span style="font-weight: bold; font-style: italic;">sub-spacing</span>=0.5
+
+
+<span style="font-weight: bold; font-style: italic;">#############</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Languages #</span>
+<span style="font-weight: bold; font-style: italic;">#############</span>
+
+<span style="font-weight: bold; font-style: italic;">slang</span>=enm,en,eng,de,deu,ger             <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">automatically select these subtitles (decreasing priority)</span>
+<span style="font-weight: bold; font-style: italic;">alang</span>=ja,jp,jpn,en,eng,de,deu,ger       <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">automatically select these audio tracks (decreasing priority)</span>
+
+<span style="font-weight: bold; font-style: italic;">#########</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Image #</span>
+<span style="font-weight: bold; font-style: italic;">#########</span>
+
+<span style="font-weight: bold; font-style: italic;">image-display-duration</span>=4
+
+<span style="font-weight: bold; font-style: italic;">#########</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Audio #</span>
+<span style="font-weight: bold; font-style: italic;">#########</span>
+
+<span style="font-weight: bold; font-style: italic;">audio-file-auto</span>=fuzzy                   <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">external audio doesn't has to match the file name exactly to autoload</span>
+<span style="font-weight: bold; font-style: italic;">audio-pitch-correction</span>=yes              <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">automatically insert scaletempo when playing with higher speed</span>
+<span style="font-weight: bold; font-style: italic;">volume-max</span>=200                          <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">maximum volume in %, everything above 100 results in amplification</span>
+<span style="font-weight: bold; font-style: italic;">volume</span>=100                              <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">default volume, 100 = unchanged</span>
+
+
+<span style="font-weight: bold; font-style: italic;">################</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Video Output #</span>
+<span style="font-weight: bold; font-style: italic;">################</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Active VOs (and some other options) are set conditionally</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">See here for more information: https://github.com/wm4/mpv-scripts/blob/master/auto-profiles.lua</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">The script was modified to import functions from scripts/auto-profiles-functions.lua</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Defaults for all profiles</span>
+<span style="font-weight: bold; font-style: italic;">tscale</span>=catmull_rom                      <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">sharp: oversample &lt;-&gt; linear (triangle) &lt;-&gt; catmull_rom &lt;-&gt; mitchell &lt;-&gt; gaussian &lt;-&gt; bicubic : smooth</span>
+<span style="font-weight: bold; font-style: italic;">opengl-early-flush</span>=no
+<span style="font-weight: bold; font-style: italic;">opengl-pbo</span>=yes
+
+
+[<span style="font-weight: bold; text-decoration: underline;">high-quality</span>]
+<span style="font-weight: bold; font-style: italic;">profile-desc</span>=cond:is_desktop() and get(<span style="font-style: italic;">'width'</span>, math.huge) &lt; 3840
+<span style="font-weight: bold; font-style: italic;">scale</span>=ewa_lanczossharp
+<span style="font-weight: bold; font-style: italic;">cscale</span>=ewa_lanczossoft
+<span style="font-weight: bold; font-style: italic;">dscale</span>=mitchell
+<span style="font-weight: bold; font-style: italic;">scale-antiring</span>=0.7
+<span style="font-weight: bold; font-style: italic;">cscale-antiring</span>=0.7
+<span style="font-weight: bold; font-style: italic;">dither-depth</span>=auto
+<span style="font-weight: bold; font-style: italic;">correct-downscaling</span>=yes
+<span style="font-weight: bold; font-style: italic;">sigmoid-upscaling</span>=yes
+<span style="font-weight: bold; font-style: italic;">deband</span>=yes
+<span style="font-weight: bold; font-style: italic;">hwdec</span>=no
+
+[<span style="font-weight: bold; text-decoration: underline;">mid-quality</span>]
+<span style="font-weight: bold; font-style: italic;">profile-desc</span>=cond:(is_laptop() and not on_battery() and get(<span style="font-style: italic;">'width'</span>, math.huge) &lt; 1920) or (is_desktop() and get(<span style="font-style: italic;">'width'</span>, math.huge) &gt;= 3840)
+<span style="font-weight: bold; font-style: italic;">scale</span>=spline36
+<span style="font-weight: bold; font-style: italic;">cscale</span>=bilinear
+<span style="font-weight: bold; font-style: italic;">dscale</span>=mitchell
+<span style="font-weight: bold; font-style: italic;">scale-antiring</span>=1.0
+<span style="font-weight: bold; font-style: italic;">cscale-antiring</span>=1.0
+<span style="font-weight: bold; font-style: italic;">dither-depth</span>=auto
+<span style="font-weight: bold; font-style: italic;">correct-downscaling</span>=yes
+<span style="font-weight: bold; font-style: italic;">sigmoid-upscaling</span>=yes
+<span style="font-weight: bold; font-style: italic;">deband</span>=yes
+<span style="font-weight: bold; font-style: italic;">hwdec</span>=no
+
+[<span style="font-weight: bold; text-decoration: underline;">low-quality</span>]
+<span style="font-weight: bold; font-style: italic;">profile-desc</span>=cond:is_laptop() and (on_battery() or get(<span style="font-style: italic;">'width'</span>, math.huge) &gt;= 1920)
+<span style="font-weight: bold; font-style: italic;">scale</span>=bilinear
+<span style="font-weight: bold; font-style: italic;">cscale</span>=bilinear
+<span style="font-weight: bold; font-style: italic;">dscale</span>=bilinear
+<span style="font-weight: bold; font-style: italic;">scale-antiring</span>=0.0
+<span style="font-weight: bold; font-style: italic;">cscale-antiring</span>=0.0
+<span style="font-weight: bold; font-style: italic;">dither-depth</span>=no
+<span style="font-weight: bold; font-style: italic;">correct-downscaling</span>=no
+<span style="font-weight: bold; font-style: italic;">sigmoid-upscaling</span>=no
+<span style="font-weight: bold; font-style: italic;">deband</span>=no
+<span style="font-weight: bold; font-style: italic;">hwdec</span>=auto
+
+[<span style="font-weight: bold; text-decoration: underline;">60FPS</span>]
+<span style="font-weight: bold; font-style: italic;">profile-desc</span>=cond:is_laptop() and get(<span style="font-style: italic;">'container-fps'</span>, 0) &gt;= 59
+<span style="font-weight: bold; font-style: italic;">scale</span>=bilinear
+<span style="font-weight: bold; font-style: italic;">cscale</span>=bilinear
+
+[<span style="font-weight: bold; text-decoration: underline;">4K</span>]
+<span style="font-weight: bold; font-style: italic;">profile-desc</span>=cond:get(<span style="font-style: italic;">'width'</span>, -math.huge) &gt;= 3840
+<span style="font-weight: bold; font-style: italic;">vd-lavc-threads</span>=32
+
+[<span style="font-weight: bold; text-decoration: underline;">4K-inverted</span>]
+<span style="font-weight: bold; font-style: italic;">profile-desc</span>=cond:get(<span style="font-style: italic;">'width'</span>, -math.huge) &lt; 3840
+<span style="font-weight: bold; font-style: italic;">vd-lavc-threads</span>=0
+
+
+[<span style="font-weight: bold; text-decoration: underline;">default</span>]
+
+
+<span style="font-weight: bold; font-style: italic;">###################################</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Protocol Specific Configuration #</span>
+<span style="font-weight: bold; font-style: italic;">###################################</span>
+
+[<span style="font-weight: bold; text-decoration: underline;">protocol.https</span>]
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">cache=yes</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">cache-default=500000                    # size in KB</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">cache-backbuffer=250000                 # size in KB</span>
+<span style="font-weight: bold; font-style: italic;">cache-secs</span>=100                          <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">how many seconds of audio/video to prefetch</span>
+<span style="font-weight: bold; font-style: italic;">user-agent</span>=<span style="font-style: italic;">'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:47.0) Gecko/20100101 Firefox/47.0'</span>
+
+[<span style="font-weight: bold; text-decoration: underline;">protocol.http</span>]
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">cache=yes</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">cache-default=500000                    # size in KB</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">cache-backbuffer=250000                 # size in KB</span>
+<span style="font-weight: bold; font-style: italic;">cache-secs</span>=100                          <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">how many seconds of audio/video to prefetch</span>
+<span style="font-weight: bold; font-style: italic;">user-agent</span>=<span style="font-style: italic;">'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:47.0) Gecko/20100101 Firefox/47.0'</span>
+
+[<span style="font-weight: bold; text-decoration: underline;">extension.gif</span>]
+<span style="font-weight: bold; font-style: italic;">cache</span>=no
+no-pause
+<span style="font-weight: bold; font-style: italic;">loop-file</span>=yes
+
+[<span style="font-weight: bold; text-decoration: underline;">extension.webm</span>]
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">cache=no</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">no-pause</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">loop-file=yes</span>
+</pre>
+</div></li>
+<li><p>
+input.conf
+</p>
+<div class="org-src-container">
+<pre class="src src-conf"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">mpv keybindings</span>
+<span style="font-weight: bold; font-style: italic;">#</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Location of user-defined bindings: ~/.config/mpv/input.conf</span>
+<span style="font-weight: bold; font-style: italic;">#</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Lines starting with # are comments. Use SHARP to assign the # key.</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Copy this file and uncomment and edit the bindings you want to change.</span>
+<span style="font-weight: bold; font-style: italic;">#</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">List of commands and further details: DOCS/man/input.rst</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">List of special keys: --input-keylist</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Keybindings testing mode: mpv --input-test --force-window --idle</span>
+<span style="font-weight: bold; font-style: italic;">#</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Use 'ignore' to unbind a key fully (e.g. 'ctrl+a ignore').</span>
+<span style="font-weight: bold; font-style: italic;">#</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Strings need to be quoted and escaped:</span>
+<span style="font-weight: bold; font-style: italic;">#   </span><span style="font-weight: bold; font-style: italic;">KEY show-text "This is a single backslash: \\ and a quote: \" !"</span>
+<span style="font-weight: bold; font-style: italic;">#</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">You can use modifier-key combinations like Shift+Left or Ctrl+Alt+x with</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">the modifiers Shift, Ctrl, Alt and Meta (may not work on the terminal).</span>
+<span style="font-weight: bold; font-style: italic;">#</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">The default keybindings are hardcoded into the mpv binary.</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">You can disable them completely with: --no-input-default-bindings</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Developer note:</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">On compilation, this file is baked into the mpv binary, and all lines are</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">uncommented (unless '#' is followed by a space) - thus this file defines the</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">default key bindings.</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">If this is enabled, treat all the following bindings as default.</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">default-bindings start</span>
+
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">MOUSE_BTN0 ignore                      # don't do anything</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">MOUSE_BTN0_DBL cycle fullscreen        # toggle fullscreen on/off</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">MOUSE_BTN2 cycle pause                 # toggle pause on/off</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">MOUSE_BTN3 seek 10</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">MOUSE_BTN4 seek -10</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">MOUSE_BTN5 add volume -2</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">MOUSE_BTN6 add volume 2</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Mouse wheels, touchpad or other input devices that have axes</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">if the input devices supports precise scrolling it will also scale the</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">numeric value accordingly</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AXIS_UP    seek 10</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AXIS_DOWN  seek -10</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AXIS_LEFT  seek 5</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AXIS_RIGHT seek -5</span>
+
+<span style="font-weight: bold; font-style: italic;">## </span><span style="font-weight: bold; font-style: italic;">Seek units are in seconds, but note that these are limited by keyframes</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">RIGHT seek  5</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">LEFT  seek -5</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">UP    seek  60</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">DOWN  seek -60</span>
+RIGHT  seek  5
+LEFT   seek -5
+UP     seek -60
+DOWN   seek  60
+Ctrl+f seek  1
+Ctrl+b seek -1
+Ctrl+p seek -60
+Ctrl+n seek  60
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Do smaller, always exact (non-keyframe-limited), seeks with shift.</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Don't show them on the OSD (no-osd).</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Shift+RIGHT no-osd seek  1 exact</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Shift+LEFT  no-osd seek -1 exact</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Shift+UP    no-osd seek  5 exact</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Shift+DOWN  no-osd seek -5 exact</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Skip to previous/next subtitle (subject to some restrictions; see manpage)</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Ctrl+LEFT   no-osd sub-seek -1</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Ctrl+RIGHT  no-osd sub-seek  1</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">PGUP add chapter 1                     # skip to next chapter</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">PGDWN add chapter -1                   # skip to previous chapter</span>
+PGUP add chapter -1                     <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">skip to next chapter</span>
+PGDWN add chapter 1                     <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">skip to previous chapter</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Shift+PGUP seek 600</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Shift+PGDWN seek -600</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">[ multiply speed 0.9091                # scale playback speed</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">] multiply speed 1.1</span>
+<span style="font-weight: bold; font-style: italic; text-decoration: underline;">#</span><span style="font-weight: bold; font-style: italic;">{ multiply speed 0.5</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">} multiply speed 2.0</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">BS set speed 1.0                       # reset speed to normal</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">q quit</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Q quit-watch-later</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">q {encode} quit 4</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">ESC set fullscreen no</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">ESC {encode} quit 4</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">p cycle pause                          # toggle pause/playback mode</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">. frame-step                           # advance one frame and pause</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">, frame-back-step                      # go back by one frame and pause</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">SPACE cycle pause</span>
+? playlist-shuffle                      <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">skip to random file</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">&gt; playlist-next                        # skip to next file</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">ENTER playlist-next                    # skip to next file</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">&lt; playlist-prev                        # skip to previous file</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">O no-osd cycle-values osd-level 3 1    # cycle through OSD mode</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">o show-progress</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">P show-progress</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">I show-text "${filename}"              # display filename in osd</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">z add sub-delay -0.1                   # subtract 100 ms delay from subs</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">x add sub-delay +0.1                   # add</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">ctrl++ add audio-delay 0.100           # this changes audio/video sync</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">ctrl+- add audio-delay -0.100</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">9 add volume -2</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">/ add volume -2</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">0 add volume 2</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">* add volume 2</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">m cycle mute</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">1 add contrast -1</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">2 add contrast 1</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">3 add brightness -1</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">4 add brightness 1</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">5 add gamma -1</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">6 add gamma 1</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">7 add saturation -1</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">8 add saturation 1</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Alt+0 set window-scale 0.5</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Alt+1 set window-scale 1.0</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Alt+2 set window-scale 2.0</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">toggle deinterlacer (automatically inserts or removes required filter)</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">d cycle deinterlace</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">r add sub-pos -1                       # move subtitles up</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">t add sub-pos +1                       #                down</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">v cycle sub-visibility</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">stretch SSA/ASS subtitles with anamorphic videos to match historical</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">V cycle sub-ass-vsfilter-aspect-compat</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">switch between applying no style overrides to SSA/ASS subtitles, and</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">overriding them almost completely with the normal subtitle style</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">u cycle-values sub-ass-style-override "force" "no"</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">j cycle sub                            # cycle through subtitles</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">J cycle sub down                       # ...backwards</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">SHARP cycle audio                      # switch audio streams</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">_ cycle video</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">T cycle ontop                          # toggle video window ontop of other windows</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">f cycle fullscreen                     # toggle fullscreen</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">s async screenshot                     # take a screenshot</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">S async screenshot video               # ...without subtitles</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Ctrl+s async screenshot window         # ...with subtitles and OSD, and scaled</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">Alt+s screenshot each-frame            # automatically screenshot every frame</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">w add panscan -0.1                     # zoom out with -panscan 0 -fs</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">e add panscan +0.1                     #      in</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">cycle video aspect ratios; "-1" is the container aspect</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">A cycle-values video-aspect "16:9" "4:3" "2.35:1" "-1"</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">POWER quit</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">PLAY cycle pause</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">PAUSE cycle pause</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">PLAYPAUSE cycle pause</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">STOP quit</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">FORWARD seek 60</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">REWIND seek -60</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">NEXT playlist-next</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">PREV playlist-prev</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">VOLUME_UP add volume 2</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">VOLUME_DOWN add volume -2</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">MUTE cycle mute</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">CLOSE_WIN quit</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">CLOSE_WIN {encode} quit 4</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">E cycle edition                        # next edition</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">l ab-loop                              # Set/clear A-B loop points</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">L cycle-values loop-file "inf" "no"    # toggle infinite looping</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">ctrl+c quit 4</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Apple Remote section</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_PLAY cycle pause</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_PLAY_HOLD quit</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_CENTER cycle pause</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_CENTER_HOLD quit</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_NEXT seek 10</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_NEXT_HOLD seek 120</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_PREV seek -10</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_PREV_HOLD seek -120</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_MENU show-progress</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_MENU_HOLD cycle mute</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_VUP add volume 2</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_VUP_HOLD add chapter 1</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_VDOWN add volume -2</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">AR_VDOWN_HOLD add chapter -1</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">For tv://</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">h cycle tv-channel -1                  # previous channel</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">k cycle tv-channel +1                  # next channel</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">For dvb://</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">H cycle dvb-channel-name -1            # previous channel</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">K cycle dvb-channel-name +1            # next channel</span>
+
+<span style="font-weight: bold; font-style: italic;">#</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Legacy bindings (may or may not be removed in the future)</span>
+<span style="font-weight: bold; font-style: italic;">#</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">! add chapter -1                       # skip to previous chapter</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">@ add chapter 1                        #         next</span>
+
+<span style="font-weight: bold; font-style: italic;">#</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Not assigned by default</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">(not an exhaustive list of unbound commands)</span>
+<span style="font-weight: bold; font-style: italic;">#</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">? add sub-scale +0.1                  # increase subtitle font size</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">? add sub-scale -0.1                  # decrease subtitle font size</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">? sub-step -1                         # immediately display next subtitle</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">? sub-step +1                         #                     previous</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">? cycle angle                         # switch DVD/Bluray angle</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">? add balance -0.1                    # adjust audio balance in favor of left</span>
+Z add balance -0.1                    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">adjust audio balance in favor of left</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">? add balance 0.1                     #                                  right</span>
+X add balance 0.1                     <span style="font-weight: bold; font-style: italic;">#                                  </span><span style="font-weight: bold; font-style: italic;">right</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">? cycle sub-forced-only               # toggle DVD forced subs</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">? cycle program                       # cycle transport stream programs</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">? stop                                # stop playback (quit or enter idle mode)</span>
+</pre>
+</div></li>
+<li><p>
+scripts
+</p>
+<div class="org-src-container">
+<pre class="src src-lua">local utils = require "mp.utils"
+
+del_list = {}
+
+function contains_item(l, i)
+   for k, v in pairs(l) do
+      if v == i then
+	 mp.osd_message("undeleting current file")
+	 l[k] = nil
+	 return true
+      end
+   end
+   mp.osd_message("deleting current file")
+   return false
+end
+
+function mark_delete()
+   local work_dir = mp.get_property_native("working-directory")
+   local file_path = mp.get_property_native("path")
+   local s = file_path:find(work_dir, 0, true)
+   local final_path
+   if s and s == 0 then
+      final_path = file_path
+   else
+      final_path = utils.join_path(work_dir, file_path)
+   end
+   if not contains_item(del_list, final_path) then
+      table.insert(del_list, final_path)
+   end
+end
+
+function delete(e)
+   if e.reason == "quit" then
+      for i, v in pairs(del_list) do
+	 print("deleting: "..v)
+	 os.remove(v)
+      end
+   end
+end
+
+mp.add_key_binding("ctrl+DEL", "delete_file", mark_delete)
+mp.register_event("end-file", delete)
+</pre>
+</div></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org22492e3" class="outline-2">
+<h2 id="org22492e3">unison</h2>
+<div class="outline-text-2" id="text-org22492e3">
+<ul class="org-ul">
+<li><p>
+music directory syncing
+</p>
+<div class="org-src-container">
+<pre class="src src-conf"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Roots of the synchronization</span>
+<span style="font-weight: bold; font-style: italic;">root</span> = &lt;&lt;home-dir()&gt;&gt;/mnt/ruizu/Music
+<span style="font-weight: bold; font-style: italic;">root</span> = &lt;&lt;home-dir()&gt;&gt;/Audio
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Paths to synchronize</span>
+<span style="font-weight: bold; font-style: italic;">path</span> = .
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Ruizu's file system is FAT</span>
+<span style="font-weight: bold; font-style: italic;">fat</span> = true
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Overwrite by newer file on confliction</span>
+<span style="font-weight: bold; font-style: italic;">prefer</span> = newer
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Show nothing</span>
+<span style="font-weight: bold; font-style: italic;">silent</span> = true
+<span style="font-weight: bold; font-style: italic;">confirmbigdel</span> = false
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Do fast checking</span>
+<span style="font-weight: bold; font-style: italic;">fastcheck</span> = true
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Log settings</span>
+<span style="font-weight: bold; font-style: italic;">log</span> = true
+<span style="font-weight: bold; font-style: italic;">logfile</span> = &lt;&lt;home-dir()&gt;&gt;/var/log/unison/music.log
+
+</pre>
+</div></li>
+<li><p>
+doc directory backup
+</p>
+<div class="org-src-container">
+<pre class="src src-conf"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Roots of the synchronization</span>
+<span style="font-weight: bold; font-style: italic;">root</span> = &lt;&lt;home-dir()&gt;&gt;/mnt/ns01
+<span style="font-weight: bold; font-style: italic;">root</span> = &lt;&lt;home-dir()&gt;&gt;
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Paths to synchronize</span>
+<span style="font-weight: bold; font-style: italic;">path</span> = doc
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Overwrite by newer file on confliction</span>
+<span style="font-weight: bold; font-style: italic;">prefer</span> = newer
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Use this command for displaying diffs</span>
+<span style="font-weight: bold; font-style: italic;">diff</span> = diff -y -W 79 --suppress-common-lines
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Write down synchronization activity on log file rather than show in stdout</span>
+<span style="font-weight: bold; font-style: italic;">auto</span> = true
+<span style="font-weight: bold; font-style: italic;">confirmbigdel</span> = false
+<span style="font-weight: bold; font-style: italic;">silent</span> = true
+<span style="font-weight: bold; font-style: italic;">log</span> = true
+<span style="font-weight: bold; font-style: italic;">logfile</span> = &lt;&lt;home-dir()&gt;&gt;/var/log/unison/doc.log
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Use inode number to verify identity rather than ckeck whole byte sequence</span>
+<span style="font-weight: bold; font-style: italic;">fastcheck</span> = true
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Abort if device is not mounted</span>
+<span style="font-weight: bold; font-style: italic;">mountpoint</span> = doc
+</pre>
+</div></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org00b0819" class="outline-2">
+<h2 id="org00b0819">crontab</h2>
+<div class="outline-text-2" id="text-org00b0819">
+<ul class="org-ul">
+<li><p>
+crontab job definitions for my private PC
+</p>
+<div class="org-src-container">
+<pre class="src src-conf"><span style="font-weight: bold; font-style: italic;">MAILTO</span>=<span style="font-style: italic;">"&lt;&lt;email()&gt;&gt;"</span>
+
+<span style="font-weight: bold; font-style: italic;">BIN_DIR</span>=<span style="font-style: italic;">"&lt;&lt;home-dir()&gt;&gt;/bin"</span>
+<span style="font-weight: bold; font-style: italic;">LOCAL_BIN_DIR</span>=<span style="font-style: italic;">"&lt;&lt;home-dir()&gt;&gt;/.local/bin"</span>
+<span style="font-weight: bold; font-style: italic;">LOG_DIR</span>=<span style="font-style: italic;">"&lt;&lt;home-dir()&gt;&gt;/var/log"</span>
+
+<span style="font-weight: bold; font-style: italic;">PATH</span>=&lt;&lt;home-dir()&gt;&gt;/usr/bin:&lt;&lt;home-dir()&gt;&gt;/.local/bin:&lt;&lt;home-dir()&gt;&gt;/.anyenv/envs/pyenv/shims:/bin:/usr/bin:/usr/sbin
+<span style="font-weight: bold; font-style: italic;">HOME</span>=&lt;&lt;home-dir()&gt;&gt;
+
+0 1 * * * /bin/bash &lt;&lt;home-dir()&gt;&gt;/.local/bin/snapshot.sh &gt;&gt; $LOG_DIR/snapshot.log 2&gt;&amp;1
+0 2 * * * /bin/bash -c <span style="font-style: italic;">"source $LOCAL_BIN_DIR/init_asdf.sh &amp;&amp; $LOCAL_BIN_DIR/tidyup &gt;&gt; $LOG_DIR/tidyup.log 2&gt;&amp;1"</span>
+0 3,15 * * * /bin/bash $BIN_DIR/gitsync-local &lt;&lt;home-dir()&gt;&gt;/git/ &gt;&gt; $LOG_DIR/gitsync-local.log 2&gt;&amp;1
+5 3,15 * * * /bin/bash $BIN_DIR/gitsync-remote &lt;&lt;home-dir()&gt;&gt;/git/ &gt;&gt; $LOG_DIR/gitsync-remote.log 2&gt;&amp;1
+</pre>
+</div></li>
+<li>how to activate cron jobs
+<ol class="org-ol">
+<li><p>
+load cron job definition file
+</p>
+<pre class="example">
+$ crontab ~/.config/crontab/pc01
+
+</pre></li>
+</ol></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgeac6965" class="outline-2">
+<h2 id="orgeac6965">Aspell</h2>
+<div class="outline-text-2" id="text-orgeac6965">
+<p>
+aspell - interactive spell checker
+</p>
+<div class="org-src-container">
+<pre class="src src-conf">lang en_US
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org2158252" class="outline-2">
+<h2 id="org2158252">asdf-vm</h2>
+<div class="outline-text-2" id="text-org2158252">
+<p>
+Extendable version manager
+</p>
+<ul class="org-ul">
+<li><p>
+initializing script
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">. $<span style="font-weight: bold; font-style: italic;">HOME</span>/.asdf/asdf.sh
+. $<span style="font-weight: bold; font-style: italic;">HOME</span>/.asdf/completions/asdf.bash
+</pre>
+</div></li>
+<li><p>
+call for init script in bashrc
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">. ${<span style="font-weight: bold; font-style: italic;">HOME</span>}/.local/bin/init_asdf.sh
+</pre>
+</div></li>
+<li><p>
+define versions
+</p>
+<div class="org-src-container">
+<pre class="src src-conf">ruby 2.6.8
+python 3.8.5
+</pre>
+</div></li>
+</ul>
+</div>
+<div id="outline-container-org1efc31d" class="outline-3">
+<h3 id="org1efc31d">asdf-ruby</h3>
+<div class="outline-text-3" id="text-org1efc31d">
+<div class="org-src-container">
+<pre class="src src-conf">thor 1.1.0
+pry 0.14.1
+rubocop
+exifr 1.2.6
+streamio-ffmpeg
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgd7de32a" class="outline-3">
+<h3 id="orgd7de32a">asdf-python</h3>
+<div class="outline-text-3" id="text-orgd7de32a">
+<div class="org-src-container">
+<pre class="src src-python">lxml
+jedi
+ical2orgpy
+Send2Trash
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgafd850b" class="outline-2">
+<h2 id="orgafd850b">xkeysnail</h2>
+<div class="outline-text-2" id="text-orgafd850b">
+<ul class="org-ul">
+<li><p>
+config.py
+</p>
+<div class="org-src-container">
+<pre class="src src-python"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">-*- coding: utf-8 -*-</span>
+
+<span style="font-weight: bold;">import</span> re
+<span style="font-weight: bold;">from</span> xkeysnail.transform <span style="font-weight: bold;">import</span> *
+
+define_multipurpose_modmap({
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">SandS</span>
+    Key.SPACE: [Key.SPACE, Key.LEFT_SHIFT],
+
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Enter is enter when pressed and released. Control when held down.</span>
+    Key.ENTER: [Key.ENTER, Key.RIGHT_CTRL],
+
+    Key.LEFT_SHIFT: [Key.EQUAL, Key.LEFT_SHIFT],
+    Key.RIGHT_SHIFT: [Key.MINUS, Key.RIGHT_SHIFT],
+})
+
+define_modmap({
+    Key.LEFT_CTRL: Key.CAPSLOCK,
+    Key.CAPSLOCK: Key.LEFT_CTRL,
+    Key.SYSRQ: Key.RIGHT_META,
+})
+
+define_keymap(<span style="font-weight: bold; text-decoration: underline;">None</span>, {
+    K(<span style="font-style: italic;">"C-Shift-a"</span>): K(<span style="font-style: italic;">"KEY_1"</span>),
+    K(<span style="font-style: italic;">"C-Shift-s"</span>): K(<span style="font-style: italic;">"KEY_2"</span>),
+    K(<span style="font-style: italic;">"C-Shift-d"</span>): K(<span style="font-style: italic;">"KEY_3"</span>),
+    K(<span style="font-style: italic;">"C-Shift-f"</span>): K(<span style="font-style: italic;">"KEY_4"</span>),
+    K(<span style="font-style: italic;">"C-Shift-g"</span>): K(<span style="font-style: italic;">"KEY_5"</span>),
+    K(<span style="font-style: italic;">"C-Shift-h"</span>): K(<span style="font-style: italic;">"KEY_6"</span>),
+    K(<span style="font-style: italic;">"C-Shift-j"</span>): K(<span style="font-style: italic;">"KEY_7"</span>),
+    K(<span style="font-style: italic;">"C-Shift-k"</span>): K(<span style="font-style: italic;">"KEY_8"</span>),
+    K(<span style="font-style: italic;">"C-Shift-l"</span>): K(<span style="font-style: italic;">"KEY_9"</span>),
+    K(<span style="font-style: italic;">"C-Shift-semicolon"</span>): K(<span style="font-style: italic;">"KEY_0"</span>),
+})
+
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;"># [Conditional modmap] Change modifier keys in certain applications</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">define_conditional_modmap(re.compile(r'Emacs'), {</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">Key.RIGHT_CTRL: Key.ESC,</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">})</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;"># [Multipurpose modmap] Give a key two meanings. A normal key when pressed and</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;"># released, and a modifier key when held down with another key. See Xcape,</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;"># Carabiner and caps2esc for ideas and concept.</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">define_multipurpose_modmap(</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Enter is enter when pressed and released. Control when held down.</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">{Key.ENTER: [Key.ENTER, Key.RIGHT_CTRL]}</span>
+
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Capslock is escape when pressed and released. Control when held down.</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># {Key.CAPSLOCK: [Key.ESC, Key.LEFT_CTRL]</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># To use this example, you can't remap capslock with define_modmap.</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">)</span>
+
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;"># Keybindings for Firefox/Chrome</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">define_keymap(re.compile("Firefox|Google-chrome"), {</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Ctrl+Alt+j/k to switch next/previous tab</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-M-j"): K("C-TAB"),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-M-k"): K("C-Shift-TAB"),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Type C-j to focus to the content</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-j"): K("C-f6"),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># very naive "Edit in editor" feature (just an example)</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-o"): [K("C-a"), K("C-c"), launch(["gedit"]), sleep(0.5), K("C-v")]</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">}, "Firefox and Chrome")</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;"># Keybindings for Zeal https://github.com/zealdocs/zeal/</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">define_keymap(re.compile("Zeal"), {</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Ctrl+s to focus search area</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-s"): K("C-k"),</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">}, "Zeal")</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;"># Emacs-like keybindings in non-Emacs applications</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">define_keymap(lambda wm_class: wm_class not in ("Emacs", "URxvt"), {</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Cursor</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-b"): with_mark(K("left")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-f"): with_mark(K("right")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-p"): with_mark(K("up")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-n"): with_mark(K("down")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-h"): with_mark(K("backspace")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Forward/Backward word</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("M-b"): with_mark(K("C-left")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("M-f"): with_mark(K("C-right")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Beginning/End of line</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-a"): with_mark(K("home")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-e"): with_mark(K("end")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Page up/down</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("M-v"): with_mark(K("page_up")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-v"): with_mark(K("page_down")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Beginning/End of file</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("M-Shift-comma"): with_mark(K("C-home")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("M-Shift-dot"): with_mark(K("C-end")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Newline</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-m"): K("enter"),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-j"): K("enter"),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-o"): [K("enter"), K("left")],</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Copy</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-w"): [K("C-x"), set_mark(False)],</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("M-w"): [K("C-c"), set_mark(False)],</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-y"): [K("C-v"), set_mark(False)],</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Delete</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-d"): [K("delete"), set_mark(False)],</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("M-d"): [K("C-delete"), set_mark(False)],</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Kill line</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-k"): [K("Shift-end"), K("C-x"), set_mark(False)],</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Undo</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-slash"): [K("C-z"), set_mark(False)],</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-Shift-ro"): K("C-z"),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Mark</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-space"): set_mark(True),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-M-space"): with_or_set_mark(K("C-right")),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Search</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-s"): K("F3"),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-r"): K("Shift-F3"),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("M-Shift-key_5"): K("C-h"),</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Cancel</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-g"): [K("esc"), set_mark(False)],</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># Escape</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-q"): escape_next_key,</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;"># C-x YYY</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">K("C-x"): {</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;"># C-x h (select all)</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;">K("h"): [K("C-home"), K("C-a"), set_mark(True)],</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;"># C-x C-f (open)</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;">K("C-f"): K("C-o"),</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;"># C-x C-s (save)</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;">K("C-s"): K("C-s"),</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;"># C-x k (kill tab)</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;">K("k"): K("C-f4"),</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;"># C-x C-c (exit)</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;">K("C-c"): K("C-q"),</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;"># cancel</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;">K("C-g"): pass_through_key,</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;"># C-x u (undo)</span>
+<span style="font-weight: bold; font-style: italic;">#         </span><span style="font-weight: bold; font-style: italic;">K("u"): [K("C-z"), set_mark(False)],</span>
+<span style="font-weight: bold; font-style: italic;">#     </span><span style="font-weight: bold; font-style: italic;">}</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">}, "Emacs-like keys")</span>
+</pre>
+</div></li>
+<li><p>
+xkeysnail.service
+</p>
+<div class="org-src-container">
+<pre class="src src-conf">[<span style="font-weight: bold; text-decoration: underline;">Unit</span>]
+<span style="font-weight: bold; font-style: italic;">Description</span>=xkeysnail
+
+[<span style="font-weight: bold; text-decoration: underline;">Service</span>]
+<span style="font-weight: bold; font-style: italic;">KillMode</span>=process
+<span style="font-weight: bold; font-style: italic;">ExecStart</span>=%h/.local/bin/pwsudo /usr/local/bin/xkeysnail --watch --quiet %h/.config/xkeysnail/config.py
+<span style="font-weight: bold; font-style: italic;">ExecStop</span>=%h/.local/bin/pwsudo /usr/bin/killall xkeysnail
+<span style="font-weight: bold; font-style: italic;">ExecStartPre</span>=/usr/bin/xhost +SI:localuser:root
+<span style="font-weight: bold; font-style: italic;">Type</span>=simple
+<span style="font-weight: bold; font-style: italic;">Restart</span>=always
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Update DISPLAY to be the same as `echo $DISPLAY` on your graphical terminal.</span>
+<span style="font-weight: bold; font-style: italic;">Environment</span>=DISPLAY=:0
+
+[<span style="font-weight: bold; text-decoration: underline;">Install</span>]
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">WantedBy=graphical.target</span>
+<span style="font-weight: bold; font-style: italic;">WantedBy</span>=default.target
+</pre>
+</div></li>
+</ul>
+</div>
+<div id="outline-container-orgb9e173c" class="outline-3">
+<h3 id="orgb9e173c">how to make xkeysnail daemonize</h3>
+<div class="outline-text-3" id="text-orgb9e173c">
+<ol class="org-ol">
+<li><p>
+Install xkeysnail
+Install xkeysnail (v0.4.0) on python3 on system via pip3
+</p>
+<pre class="example">
+# apt install python3-pip
+# pip3 install xkeysnail
+
+</pre></li>
+<li><p>
+Start systemd service for xkeysnail
+</p>
+<pre class="example">
+$ systemctl --user enable xkeysnail
+$ systemctl --user start xkeysnail
+
+</pre></li>
+</ol>
+</div>
+</div>
+</div>
+<div id="outline-container-org7adb185" class="outline-2">
+<h2 id="org7adb185">fstab</h2>
+<div class="outline-text-2" id="text-org7adb185">
+<ul class="org-ul">
+<li><p>
+/etc/fstab file for my personal machine
+</p>
+<div class="org-src-container">
+<pre class="src src-conf"><span style="font-weight: bold; font-style: italic;">UUID</span>=98422431-b089-4dc0-b326-2693c19ace4e /mnt/ssd01/ btrfs x-systemd.defaults,nofail 0 2
+<span style="font-weight: bold; font-style: italic;">UUID</span>=98422431-b089-4dc0-b326-2693c19ace4e &lt;&lt;home-dir()&gt;&gt;/doc btrfs x-systemd.defaults,nofail,relatime,space_cache,compress=zstd,subvolid=710 0 0
+<span style="font-weight: bold; font-style: italic;">UUID</span>=98422431-b089-4dc0-b326-2693c19ace4e &lt;&lt;home-dir()&gt;&gt;/work btrfs x-systemd.defaults,nofail,relatime,space_cache,compress=zstd,subvolid=717 0 0
+
+<span style="font-weight: bold; font-style: italic;">UUID</span>=92a594bc-2800-48fd-a2f9-6e735ec5cfca /mnt/hdd01 btrfs x-systemd.defaults,nofail,relatime,space_cache,subvolid=5,subvol=/ 0 2
+
+sshfs<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">&lt;&lt;account()&gt;&gt;@ns01:/home/&lt;&lt;account()&gt;&gt;/share /mnt/ns01 fuse defaults,x-systemd.nofail,allow_other,nonempty,IdentityFile=&lt;&lt;home-dir()&gt;&gt;/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2</span>
+sshfs<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">&lt;&lt;account()&gt;&gt;@sv04.&lt;&lt;my-network()&gt;&gt;:/home/&lt;&lt;account()&gt;&gt; /mnt/sv04 fuse defaults,x-systemd.nofail,allow_other,nonempty,IdentityFile=&lt;&lt;home-dir()&gt;&gt;/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2</span>
+</pre>
+</div></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="creator"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 26.3 (<a href="https://orgmode.org">Org</a> mode 9.1.9)</p>
+<p class="validation"></p>
+</div>
+</body>
+</html>
