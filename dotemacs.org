@@ -3106,6 +3106,40 @@ speed commands and hydra-org.
     :custom (completion-styles '(orderless)))
 #+end_src
 
+**** migemo support
+
+#+begin_src emacs-lisp
+  (defun orderless-migemo (component)
+    (let ((pattern (migemo-get-pattern component)))
+      (condition-case nil
+          (progn (string-match-p pattern "") pattern)
+        (invalid-regexp nil))))
+
+  (orderless-define-completion-style orderless-default-style
+    (orderless-matching-styles '(orderless-literal
+                                 orderless-regexp)))
+
+  (orderless-define-completion-style orderless-migemo-style
+    (orderless-matching-styles '(orderless-literal
+                                 orderless-regexp
+                                 orderless-migemo)))
+
+  ;; uncomment below if you wish to apply migemo globally
+  ;; (setq orderless-matching-styles '(orderless-literal orderless-regexp orderless-migemo))
+
+  (setq completion-category-overrides
+        '((command (styles orderless-default-style))
+          (file (styles orderless-migemo-style))
+          (buffer (styles orderless-migemo-style))
+          (symbol (styles orderless-default-style))
+          (consult-location (styles orderless-migemo-style)) ; category `consult-location' は `consult-line' などに使われる
+          (consult-multi (styles orderless-migemo-style)) ; category `consult-multi' は `consult-buffer' などに使われる
+          (consult-org-heading (styles orderless-migemo-style))
+          (org-roam-node (styles orderless-migemo-style)) ; category `org-roam-node' は `org-roam-node-find' で使われる
+          (unicode-name (styles orderless-migemo-style))
+          (variable (styles orderless-default-style))))
+#+end_src
+
 ** major modes for programming/editing        :programs:
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/edit.el")
