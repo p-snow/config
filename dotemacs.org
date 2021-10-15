@@ -3055,7 +3055,13 @@ speed commands and hydra-org.
           :map minibuffer-local-map
           ("C-c h" . consult-history)
           :map help-map
-          ("a" . consult-apropos)))
+          ("a" . consult-apropos))
+    :custom
+    (consult-project-root-function #'project-root-function))
+
+  (defun project-root-function ()
+    (when-let (project (project-current))
+      (car (project-roots project))))
 #+end_src
 
 **** consult-dir
