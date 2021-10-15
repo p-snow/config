@@ -3058,6 +3058,17 @@ speed commands and hydra-org.
           ("a" . consult-apropos)))
 #+end_src
 
+**** consult-dir
+
+#+begin_src emacs-lisp
+  (use-package consult-dir
+    :straight t
+    :bind (("C-x C-d" . consult-dir)
+           :map vertico-map
+           ("C-x C-d" . consult-dir)
+           ("C-x C-j" . consult-dir-jump-file)))
+#+end_src
+
 *** [[https://github.com/oantolin/embark/releases.atom][embark]]
 
 #+begin_src emacs-lisp
@@ -3085,6 +3096,14 @@ speed commands and hydra-org.
     :straight t
     :config
     (marginalia-mode))
+#+end_src
+
+*** [[https://github.com/oantolin/orderless/releases.atom][orderless]]
+
+#+begin_src emacs-lisp
+  (use-package orderless
+    :straight t
+    :custom (completion-styles '(orderless)))
 #+end_src
 
 ** major modes for programming/editing        :programs:
