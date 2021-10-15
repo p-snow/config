@@ -30,9 +30,6 @@
              :publishing-function 'org-html-publish-to-html
              :publishing-directory "./public"
              :exclude "README.org"
-             :auto-sitemap t
-             :sitemap-filename "index.org"
-             :sitemap-title "My Dotfiles"
              :with-author nil
              :with-creator t
              :with-toc t
