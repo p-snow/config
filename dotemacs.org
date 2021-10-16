@@ -724,6 +724,26 @@ fDDHS5Vq5UvYutk=
     (delight 'bookmark-bmenu-mode " BB"))
 #+end_src
 
+*** find-dired
+
+#+begin_src emacs-lisp
+  (use-package find-dired
+    :custom
+    (find-grep-options "-n -H --no-heading -q")
+    (find-ls-option '("-print0 | xargs -0 ls -ldN" . "-ldN")))
+
+  (with-eval-after-load 'hydra
+    (defhydra hydra-find-dired (global-map "M-s d"
+                                           :color teal)
+      "find dired"
+      ("f" find-dired)
+      ("F" find-lisp-find-dired)
+      ("g" find-grep-dired)
+      ("n" find-name-dired)
+      ("d" find-lisp-find-dired-subdirectories)
+      ("q" nil "quit")))
+#+end_src
+
 *** hideshow
 
 #+begin_src emacs-lisp
