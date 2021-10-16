@@ -3783,6 +3783,25 @@ you are required to locate that package where emacs can search.
            ("M-g /" . dumb-jump-back)
            ("M-g l" . dumb-jump-quick-look)))
 #+end_src
+
+*** [[https://github.com/benma/visual-regexp.el/releases.atom][visual-regexp.el]]
+
+#+begin_src emacs-lisp
+  (use-package visual-regexp
+    :straight t
+    :bind ("C-%" . vr/query-replace))
+#+end_src
+
+**** [[https://github.com/benma/visual-regexp-steroids.el/releases.atom][visual-regexp-steroids.el]]
+
+#+begin_src emacs-lisp
+  (use-package visual-regexp-steroids
+    :straight t
+    :after (visual-regexp)
+    :config
+    (setq vr/engine 'python))
+#+end_src
+
 *** [[https://github.com/abo-abo/avy/releases.atom][avy]]
 
 #+begin_src emacs-lisp
