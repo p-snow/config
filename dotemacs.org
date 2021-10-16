@@ -818,13 +818,21 @@ fDDHS5Vq5UvYutk=
     :custom
     (vc-follow-symlinks t))
 #+end_src
-*** project
-
-Use hosting version of project.el on GitHub via straight until Emacs 28 which ships with latest version of project.el is released.
+*** re-builder
 
 #+begin_src emacs-lisp
-  (use-package project
-    :straight t)
+  (use-package re-builder
+    :custom
+    (reb-re-syntax 'string))
+#+end_src
+*** isearch
+
+#+begin_src emacs-lisp
+  (use-package isearch
+    :diminish "is"
+    :config
+    (bind-keys :map isearch-mode-map
+               ("C-j" . isearch-exit)))
 #+end_src
 
 *** imenu                                    :programs:
