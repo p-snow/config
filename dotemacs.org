@@ -1735,6 +1735,7 @@ dMv+byk5Rw==
 #+begin_src emacs-lisp
   (use-package eshell
     :delight " ES"
+    :hook
     (eshell-kill . eshell-command-alert)
     :custom
     (eshell-prompt-function
@@ -4614,8 +4615,6 @@ to avoid accidental data loss.
 
 #+begin_src emacs-lisp
   (defun my/forward-paragraph ()
-    "docstring"
-    (interactive)
     (interactive)
     (forward-paragraph 2)
     (backward-paragraph 1)
@@ -5496,17 +5495,17 @@ Learning Workflow for English words:
 
 Provide a function to Build a clock table summing up time by tag.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/clocktable-by-tag.el")
   (require 'org-table)
   (require 'org-clock)
 
-  (defun clocktable-by-atag/shift-cell (n)
+  (defun clocktable-by-tag/shift-cell (n)
     (let ((str ""))
       (dotimes (i n)
         (setq str (concat str "| ")))
       str))
 
-  (defun clocktable-by-atag/insert-tag (params)
+  (defun clocktable-by-tag/insert-tag (params)
     (let ((match (plist-get params :match)))
       (insert "|--\n")
       (insert (format "| %s | *Tag time* |\n" match))
@@ -5524,7 +5523,7 @@ Provide a function to Build a clock table summing up time by tag.
                  (insert (format "| | . %s%s | %s %.2f |\n"
                                  (org-clocktable-indent-string (nth 0 entry))
                                  (replace-regexp-in-string "|" "\\vert\{\}" (nth 1 entry) nil t)
-                                 (clocktable-by-atag/shift-cell (nth 0 entry))
+                                 (clocktable-by-tag/shift-cell (nth 0 entry))
                                  (/ (nth 4 entry) 60.0)))))))
          (org-agenda-files))
         (if (= total 0)
@@ -5540,7 +5539,7 @@ Provide a function to Build a clock table summing up time by tag.
             (insert (format "*%.2f*" (/ total 60.0))))))
       (org-table-align)))
 
-  (defun org-dblock-write:clocktable-by-atag (params)
+  (defun org-dblock-write:clocktable-by-tag (params)
     (funcall indent-line-function)
     (insert "| Tag | Headline | Time (h) |\n")
     (insert "|     |          | <r>  |\n")
@@ -5550,7 +5549,7 @@ Provide a function to Build a clock table summing up time by tag.
                 (let ((match-str (car match)))
                   (when (string= (substring match-str 0 3) "AC_")
                     (setq params (plist-put params :match match-str))
-                    (clocktable-by-atag/insert-tag params))))
+                    (clocktable-by-tag/insert-tag params))))
               matches)))
 
   (provide 'clocktable-by-tag)
