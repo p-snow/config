@@ -3226,12 +3226,14 @@ speed commands and hydra-org.
 #+begin_src emacs-lisp
   (use-package embark
     :straight t
-    :bind
-    (("C-." . embark-act)
-     ("M-." . embark-dwim)
-     ("<help> B" . embark-bindings))
+    :bind (("C-." . embark-act)
+           ("M-." . embark-dwim)
+           ("<help> B" . embark-bindings))
     :init
-    (setq prefix-help-command #'embark-prefix-help-command))
+    (setq prefix-help-command #'embark-prefix-help-command) ;
+    :config
+    (bind-keys :map embark-collect-mode-map
+               ("C-j" . push-button)))
 
   (use-package embark-consult
     :straight t
