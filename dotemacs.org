@@ -216,7 +216,7 @@ CAUTION: There are some face definitions which use an extra large font since I a
     ((eww-mode twittering-mode) . (lambda () (buffer-face-set 'my/large-gothic-face)))
     ((Info-mode help-mode helpful-mode woman-mode) . (lambda () (buffer-face-set 'my/medium-large-gothic-face)))
     ((org-mode text-mode dired-mode mu4e-headers-mode mu4e-compose-mode) . (lambda () (buffer-face-set 'my/medium-gothic-face)))
-    (prog-mode . (lambda () (buffer-face-set 'my/small-gothic-face)))
+    ((prog-mode shell-mode term-mode vterm-mode eshell-mode) . (lambda () (buffer-face-set 'my/small-gothic-face)))
     ((mu4e-view-mode nov-mode elfeed-show-mode) . (lambda () (buffer-face-set 'my/large-mincho-face)))
     (elfeed-search-update . (lambda () (buffer-face-set 'my/medium-mincho-face))))
 #+end_src
@@ -894,6 +894,17 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
     (require 'info-look)
     (autoload 'info-lookup-add-help "info-look"))
 #+end_src
+*** tramp
+
+#+begin_src emacs-lisp
+  (use-package tramp
+    :defer t
+    :config
+    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+    (add-to-list 'tramp-remote-path "~/bin")
+    (add-to-list 'tramp-remote-path "~/usr/bin"))
+#+end_src
+
 *** view
 
 #+begin_src emacs-lisp
@@ -1636,6 +1647,98 @@ dMv+byk5Rw==
                 ("C-M-S-u" . dired-du-mode))
     :custom
     (dired-du-size-format t))
+#+end_src
+
+** Shells
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".config/emacs/shell.el")
+:END:
+
+*** shell
+
+#+begin_src emacs-lisp
+  (use-package shell
+    :delight " SM"
+    :commands (shell)
+    :config
+    (bind-keys :map shell-mode-map
+               ("C-j" . comint-send-input)))
+#+end_src
+
+*** term
+
+#+begin_src emacs-lisp
+  (use-package term
+    :delight
+    (term-mode " TR")
+    :config
+    (bind-keys :map term-mode-map
+               ("C-j" . term-send-input)))
+#+end_src
+
+*** vterm
+
+#+begin_src emacs-lisp
+  (use-package vterm
+    :straight t
+    :commands (vterm)
+    :delight " VT"
+    :diminish ((vterm-copy-mode . "vc"))
+    :bind
+    :custom
+    (vterm-min-window-width 55)
+    (vterm-buffer-name-string "vterm %s")
+    :config
+    (bind-keys :map vterm-mode-map
+               ("C-h" . vterm-send-backspace)
+               ("M-h" . vterm-send-meta-backspace)
+               ("C-y" . vterm-yank)
+               ("M-y" . vterm-yank-pop)
+               ("C-o" . nil)
+               ("M-l" . nil)
+               :map vterm-copy-mode-map
+               ("C-j" . vterm-copy-mode-done))
+    (advice-add 'consult-yank-from-kill-ring :around #'advice/vterm-yank-pop))
+
+  (defun advice/vterm-yank-pop (orig-fun &rest args)
+    (if (equal major-mode 'vterm-mode)
+        (let ((inhibit-read-only t)
+              (yank-undo-function (lambda (_start _end) (vterm-undo))))
+          (cl-letf (((symbol-function 'insert-for-yank)
+                     (lambda (str) (vterm-send-string str t))))
+            (apply orig-fun args)))
+      (apply orig-fun args)))
+#+end_src
+
+*** eshell
+
+#+begin_src emacs-lisp
+  (use-package eshell
+    :delight " ES"
+    (eshell-kill . eshell-command-alert)
+    :custom
+    (eshell-prompt-function
+     #'(lambda ()
+         (format "[%s]\n%s"
+                 (eshell/basename (eshell/pwd))
+                 (if (= (user-uid) 0) "# " "$ "))))
+    (eshell-prompt-regexp "[#$] ")
+    (eshell-visual-subcommands '(("git" "log" "diff" "show")))
+    :config
+    (setq eshell-path-env (getenv "PATH"))
+    (bind-keys :map eshell-mode-map
+               ("C-j"    . eshell-send-input)
+               ("<up>"   . previous-line)
+               ("<down>" . next-line)))
+
+  (defun eshell-command-alert (process status)
+    "Send `alert' with severity based on STATUS when PROCESS finished."
+    (let* ((cmd (process-command process))
+           (buffer (process-buffer process))
+           (msg (format "%s: %s" (mapconcat 'identity cmd " ")  status)))
+      (if (string-prefix-p "finished" status)
+          (alert msg :buffer buffer :severity  'normal)
+        (alert msg :buffer buffer :severity 'urgent))))
 #+end_src
 
 ** org mode
@@ -4463,7 +4566,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 #+end_src
 
 * further customization
-** handy functionality
+** handy functionalities
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".config/emacs/extensions.el")
 :END:
@@ -5016,9 +5119,6 @@ MvHkcNaUqgU+pTSh/vqm38/pmqk1BE6mPp1dNMllXv1QUW4=
       ("xs" shell)
       ("xt" term)
       ("xv" vterm)
-      ("s" shell-switcher)
-      ("S" shell)
-      ("e" (eshell t))
       ("D" dired-jump)
       ("=" ediff)
       ("@" twit)
