@@ -3624,6 +3624,42 @@ speed commands and hydra-org.
                         (setq-local counsel-dash-docsets '("MySQL")))))
 #+end_src
 
+*** project
+
+Use hosting version of project.el on GitHub via straight until Emacs 28 which ships with latest version of project.el is released.
+
+#+begin_src emacs-lisp
+  (use-package project
+    :straight t)
+#+end_src
+
+*** grep
+
+#+begin_src emacs-lisp
+  (use-package grep
+    :custom
+    (grep-program "rg")
+    :config
+    (bind-keys :map grep-mode-map
+               ("C-j" . compile-goto-error)))
+
+  (defun my/grep-ripgrep-all ()
+    "Grep many kind of files like pdf, epub and more."
+    (interactive)
+    (let ((grep-find-command '("rga --with-filename --no-heading --line-number --color never -e ''" . 66)))
+      (call-interactively 'grep-find)))
+
+  (global-set-key (kbd "M-s A") 'my/grep-ripgrep-all)
+#+end_src
+
+*** compile
+
+#+begin_src emacs-lisp
+  (use-package compile
+    :bind (:map compilation-mode-map
+                ("C-j" . compile-goto-error)))
+#+end_src
+
 *** log-view
 
 #+begin_src emacs-lisp
