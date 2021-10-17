@@ -5563,6 +5563,405 @@ Learning Workflow for English words:
       ("q" nil "quit")))
 #+end_src
 
+*** org-archive
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/org-archive.el")
+  (require 'org)
+  (require 'org-agenda)
+
+  (defun my/org-archive-file (&optional year)
+    "Return a path of archive file.
+
+  If optional argument `YEAR' is passed that year's file is returned instead of current year's."
+    (let* ((record-year (or year (ts-year (ts-now))))
+           (record-file-cand (format "%s/archive/archive_%s.org" org-directory record-year))
+           (record-file
+            (if (file-exists-p record-file-cand)
+                record-file-cand
+              (expand-file-name "archive/archive_0000.org" org-directory))))
+      (if (or (file-exists-p record-file)
+              (file-symlink-p record-file))
+          record-file
+        nil)))
+
+  (defvar my/org-archive-file (my/org-archive-file))
+
+  (defun my/org-archive-files ()
+    "Return list of archive files."
+    (append (directory-files (expand-file-name "archive" org-directory) t "archive_[[:digit:]]\\{4\\}\\.org" nil)
+            org-agenda-files))
+
+  (defvar my/org-archive-files (my/org-archive-files))
+
+  (defun my/org-archive-find-date (date)
+    "Find and visit the location of DATE in archivee file.
+
+  DATE must be a string representing the date to find and parsable with `format-time-string'.
+
+  If called interactively, it prompt the user to select the date to find."
+    (interactive
+     (cond
+      ((eq major-mode 'calendar-mode)
+       (list (calendar-date-string (calendar-cursor-to-date))))
+      ((eq major-mode 'org-agenda-mode)
+       (let* ((day (or (get-text-property (min (1- (point-max)) (point)) 'day)
+                       (user-error "Don't know which date to open in calendar")))
+              (date (calendar-gregorian-from-absolute day)))
+         (list (calendar-date-string date))))
+      (t (let ((date-select (org-read-date)))
+           (list date-select)))))
+    (let* ((d (parse-time-string date))
+           (day (decoded-time-day d))
+           (month (decoded-time-month d))
+           (year (decoded-time-year d)))
+      (find-file (my/org-archive-file year))
+      (org-datetree-find-iso-week-create `(,month ,day ,year))))
+
+  (defun my/org-archive-subtree ()
+    "Refile current subtree to archive file using latest timestamp."
+    (interactive)
+    (let* ((ts (car (sort (org-timestamps-in-entry) #'ts>)))
+           (year (ts-year (or ts (ts-now))))
+           (save-file (my/org-archive-file year))
+           (tags (org-get-local-tags))
+           (todo (org-get-todo-state)))
+      (when-let* ((pos (with-current-buffer (find-file-noselect save-file)
+                         (save-excursion
+                           (if (and (member "web" tags)
+                                    (not (member todo '("DN" "PD"))))
+                               (org-find-exact-headline-in-buffer "untouched items")
+                             (org-datetree-find-iso-week-create `(,(ts-month ts)
+                                                                  ,(ts-day ts)
+                                                                  ,(ts-year ts)))
+                             (point))))))
+        (org-refile nil nil (list nil save-file nil pos)))
+      (org-save-all-org-buffers)
+      (setq this-command 'my/org-archive-subtree)))
+
+  (defun my/org-agenda-archive-subtree ()
+    "Refile the entry or subtree belonging to the current agenda entry."
+    (interactive)
+    (org-agenda-archive-with 'my/org-archive-subtree))
+
+  (defun my/org-ql-view-archive-subtree ()
+    "Refile the entry or subtree belonging to the current agenda entry."
+    (interactive)
+    (org-agenda-archive-with 'my/org-archive-subtree)
+    (org-ql-view-refresh))
+
+  (defun my/org-archive-search (query)
+    "Search org entries matched QUERY in archive files using `org-ql-search'."
+    (interactive (list (read-string "Query: ")))
+    (let ((files (my/org-archive-files)))
+      (org-ql-search files query)))
+
+  (bind-keys :map org-agenda-mode-map
+             ("$" . my/org-agenda-archive-subtree)
+             ("C" . my/org-archive-find-date)
+             :map org-ql-view-map
+             ("$" . my/org-ql-view-archive-subtree)
+             :map calendar-mode-map
+             ("C" . my/org-archive-find-date))
+
+  (push '("Archive entries" . my/org-archive-search)
+        org-ql-views)
+
+  (defun my/lookup-org-archive (word &optional arg)
+    "Look up WORD in my archive files using `org-ql-search'."
+    (interactive (list (if (use-region-p)
+                           (buffer-substring (region-beginning) (region-end))
+                         (read-string "Word: "))
+                       current-prefix-arg))
+    (org-ql-search
+      my/org-archive-files
+      (cond
+       ((equal arg '(4)) `(heading ,word))
+       (t `(regexp ,word)))))
+
+  ;; TODO: This function can be rewritten with org-ml
+  ;;;###autoload
+  (defun org-timestamps-in-entry ()
+    "Return timestamp objects for all Org timestamps in entry."
+    (interactive (list current-prefix-arg))
+    (save-excursion
+      (goto-char (org-entry-beginning-position))
+      (org-show-entry)
+      (org-narrow-to-element)
+      (let* ((parsetree (org-element-parse-buffer))
+             (ts-list nil))
+        (org-element-map parsetree '(planning clock timestamp)
+          (lambda (elm)
+            (cl-case (org-element-type elm)
+              ('planning
+               (add-to-list 'ts-list (ts-parse-org-element (or (org-element-property :closed elm)
+                                                               (org-element-property :scheduled elm)
+                                                               (org-element-property :deadline elm)))
+                            t))
+              ('clock
+               (add-to-list 'ts-list (ts-parse-org-element (org-element-property :value elm)) t))
+              ('timestamp
+               (add-to-list 'ts-list (ts-parse-org-element elm) t)))))
+        (widen)
+        ts-list)))
+
+  (provide 'my/org-archive)
+#+end_src
+
+*** org-capture-derived
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/org-capture-derived.el")
+  (require 'thingatpt)
+  (require 'whitespace)
+
+  (with-eval-after-load 'org-capture
+    (mapc (lambda (template)
+            (add-to-list 'org-capture-templates
+                         template))
+          '(("x" "actionable entry for manual input"
+             entry
+             (function org-capture-derived-target-function)
+             "* %(org-capture-derived-insert-todo)%? %(org-set-tags org-capture-derived-tags)\n%(org-capture-derived-insert-deadline)")
+            ("X" "Actionable entry for automated input"
+             entry
+             (function org-capture-derived-target-function)
+             "* %(org-capture-derived-insert-todo)%a %(org-set-tags org-capture-derived-tags)\n%(org-capture-derived-insert-deadline)"
+             :immediate-finish t))))
+
+  (defvar org-capture-derived-todo nil
+    "Todo state to be set to an org entry which org-capture-derived creates.
+
+  User should set this value locally, otherwise unexpected results occur.")
+  (defvar org-capture-derived-tags nil
+    "Tags represented with colon(:) to be set to an org entry which org-capture-derived creates.
+
+  User should set this value locally, otherwise unexpected results occur.")
+  (defvar org-capture-derived-target nil "docstring")
+  (defvar org-capture-derived-deadline-in-day nil "docstring")
+
+  (defun org-capture-derived-target-function ()
+    ""
+    (cond
+     ((listp org-capture-derived-target)
+      (set-buffer (org-capture-target-buffer (nth 1 org-capture-derived-target)))
+      (org-capture-put-target-region-and-position)
+      (widen)
+      (goto-char (nth 3 org-capture-derived-target)))
+     ((and (stringp org-capture-derived-target)
+           (string-match-p thing-at-point-uuid-regexp org-capture-derived-target))
+      (org-id-goto org-capture-derived-target))))
+
+  (defun org-capture-derived (&optional arg)
+    "C-u user is asked for all arguments
+  C-u C-u create manually"
+    (interactive "P")
+    ;; insert ID property unless existing
+    (cond
+     ((and (eq major-mode 'org-mode)
+           (not (equal arg '(16))))
+      (org-id-get nil t)))
+    (let* ((todo-in-org
+            (when (derived-mode-p 'org-mode)
+              (org-entry-get (point) "DERIVED_TODO" t)))
+           (org-capture-derived-todo
+            (or todo-in-org
+                org-capture-derived-todo))
+           (tags-in-org
+            (when (derived-mode-p 'org-mode)
+              (org-entry-get (point) "DERIVED_TAGS" t)))
+           (org-capture-derived-tags
+            (or (when (not (equal arg '(4)))
+                  (or tags-in-org
+                      org-capture-derived-tags))
+                (read-string "Tags: " tags-in-org)))
+           (target-in-org
+            (when (derived-mode-p 'org-mode)
+              (org-entry-get (point) "DERIVED_TARGET" t)))
+           (org-capture-derived-target
+            (or (when (not (equal arg '(4)))
+                  (or target-in-org
+                      org-capture-derived-target))
+                (org-refile-get-location)))
+           (deadline-str-in-org
+            (when (derived-mode-p 'org-mode)
+              (org-entry-get (point) "DERIVED_DEADLINE_IN_DAY" t)))
+           (deadline-num-in-org
+            (if (stringp deadline-str-in-org) (string-to-number deadline-str-in-org) nil))
+           (org-capture-derived-deadline-in-day
+            (if (equal arg '(4))
+                (read-number "Deadline in day: "
+                             deadline-num-in-org)
+              (or deadline-num-in-org
+                  org-capture-derived-deadline-in-day))))
+      (if (equal arg '(16))
+          (org-capture nil "x")
+        (org-capture nil "X"))))
+
+  (defun org-capture-derived-insert-todo ()
+    ""
+    (if (stringp org-capture-derived-todo)
+        (if (string-match-p whitespace-trailing-regexp
+                            org-capture-derived-todo)
+            org-capture-derived-todo
+          (format "%s " org-capture-derived-todo))
+      ""))
+
+  (defun org-capture-derived-insert-deadline ()
+    ""
+    (if (numberp org-capture-derived-deadline-in-day)
+        (let ((week-ahead (encode-time
+                           (seq-map-indexed (lambda (element index)
+                                              (if (= index 3)
+                                                  (+ element org-capture-derived-deadline-in-day)
+                                                element))
+                                            (decode-time (current-time))))))
+          (format-time-string "DEADLINE: <%Y-%m-%d %a>" week-ahead))
+      ""))
+#+end_src
+
+*** org-relate
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/org-relate.el")
+  (require 'thingatpt)
+  (require 'org-ql-search)
+
+  (defconst org-relate-property "PARENT"
+    "Property name for child nodes to look up parent node.")
+  (defcustom org-relate-parent-tag-list
+    '("project" "refile")
+    "A list of tags all parent nodes must have one of them.")
+  (defcustom org-relate-target-files
+    (directory-files-recursively org-directory "\\.org$")
+    "A list of target files to search relation nodes.")
+
+  (with-eval-after-load 'org
+    (bind-key "C-c %" #'org-relate-search
+              org-mode-map))
+
+  (with-eval-after-load 'org-keys
+    (setf (map-elt org-speed-commands "%") #'org-relate-search)
+    (setf (map-elt org-speed-commands "&") #'org-relate-interrelate)
+    (push '("Org-Relate Operation") org-speed-commands))
+
+  (with-eval-after-load 'org-agenda
+    (bind-keys :map org-agenda-mode-map
+               ("&" . org-agenda-relation-interrelate)))
+
+  (defun org-relate-search ()
+    "Search for entries related to the entry at point.
+
+  User who would like to search for parent and children of that, namely siblings,
+   must press 'p'.
+  User who would like to search for children of this entry must press 'c'.
+  User who would like to search for friends either pointing to this entry
+   or pointed from this entry must be press 'f'.
+  User who would like to search for all listed above must press 'a'."
+    (interactive)
+    (let* ((org-super-agenda-properties-inherit nil)
+           (char (read-char-from-minibuffer "Target: [a]ll [p]arent [c]hild [f]riend"))
+           (queries (seq-remove 'null
+                                (cond
+                                 ((equal char ?a) (list (org-relate--search-parent-org-ql-query)
+                                                        (org-relate--search-children-org-ql-query)
+                                                        (org-relate--search-friends-refer-org-ql-query)
+                                                        (org-relate--search-friends-referred-org-ql-query)
+                                                        (org-relate--search-siblings-org-ql-query)))
+                                 ((equal char ?p) (list (org-relate--search-parent-org-ql-query)
+                                                        (org-relate--search-siblings-org-ql-query)))
+                                 ((equal char ?c) (list (org-relate--search-children-org-ql-query)))
+                                 ((equal char ?f) (list (org-relate--search-friends-refer-org-ql-query)
+                                                        (org-relate--search-friends-referred-org-ql-query)))))))
+      (if queries
+          (org-ql-search org-relate-target-files
+            (seq-reduce (lambda (accum elem)
+                          (push elem (cdr (last accum)))
+                          accum)
+                        (mapcar 'car queries)
+                        '(or))
+            :super-groups (mapcar 'cdr queries))
+        (message "No query found"))))
+
+  (defun org-relate--search-children-org-ql-query ()
+    (when-let* ((id (org-id-get))
+                (rel-prop-link (format "[[id:%s]]" id)))
+      `((or (property ,org-relate-property ,id)
+            (property ,org-relate-property ,rel-prop-link)) .
+            (:name "Children" :property (,org-relate-property ,id)))))
+
+  (defun org-relate--search-parent-org-ql-query ()
+    (if-let* ((prop-ref (org-entry-get (point) org-relate-property))
+              (index (string-match (format "\\(%s\\)" thing-at-point-uuid-regexp) prop-ref))
+              (parent-id (match-string 0 prop-ref)))
+        `((property "ID" ,parent-id) .
+          (:name "Parent" :property ("ID" ,parent-id)))))
+
+  (defun org-relate--search-siblings-org-ql-query ()
+    (if-let* ((prop-ref (org-entry-get (point) org-relate-property))
+              (index (string-match (format "\\(%s\\)" thing-at-point-uuid-regexp) prop-ref))
+              (parent-id (match-string 0 prop-ref))
+              (parent-id-link (format "[[id:%s]]" parent-id)))
+        `((or (property ,org-relate-property ,parent-id)
+              (property ,org-relate-property ,parent-id-link)) .
+              (:name "Siblings" :property (,org-relate-property ,parent-id)))))
+
+  (defun org-relate--search-friends-refer-org-ql-query ()
+    (when-let* ((id (org-id-get))
+                (ref-re (format "\\[\\[id:%s\\].*\\]" id)))
+      `((regexp ,ref-re) .
+        (:name "Friends pointing to this entry" :regexp ,ref-re))))
+
+  (defun org-relate--search-friends-referred-org-ql-query ()
+    (let* ((id-link-re (format "\\[\\[id:\\(%s\\)\\].*\\]" thing-at-point-uuid-regexp))
+           (end (or (save-excursion
+                      (outline-next-heading))
+                    (point-max))))
+      (when (save-excursion
+              (re-search-forward id-link-re end t))
+        `((property "ID" ,(match-string 1)) .
+          (:name "Friends to whom this entry is pointing" :property ("ID" ,(match-string 1)))))))
+
+  (defun org-relate-interrelate ()
+    "Make parent-child relationship by inserting property.
+
+  This command must be called in parent node which should have one of `org-relate-parent-tag-list'."
+    (interactive)
+    (save-excursion
+      (org-back-to-heading)
+      (if (cl-some (lambda (parent-tag)
+                     (member parent-tag (org-get-tags)))
+                   org-relate-parent-tag-list)
+          (let ((ref-id (org-id-get-create)))
+            (and (org-goto-first-child)
+                 (cl-labels ((set-ref-id-to-siblings
+                              (ref-link)
+                              (org-set-property org-relate-property ref-link)
+                              (and (org-goto-sibling)
+                                   (set-ref-id-to-siblings ref-link))))
+                   (set-ref-id-to-siblings ref-id)))
+            (message "Interrelated has done."))
+        (message "This entry does not compliant with 'org-relate-parent-tag-list"))))
+
+  (defun org-agenda-relation-interrelate ()
+    "Invoke `org-relate-interrelate' in agenda view."
+    (interactive)
+    (org-agenda-check-no-diary)
+    (let* ((hdmarker (or (org-get-at-bol 'org-hd-marker)
+                         (org-agenda-error)))
+           (buffer (marker-buffer hdmarker))
+           (pos (marker-position hdmarker))
+           (inhibit-read-only t)
+           newhead)
+      (org-with-remote-undo buffer
+        (with-current-buffer buffer
+          (widen)
+          (goto-char pos)
+          (org-show-context 'agenda)
+          (call-interactively 'org-relate-interrelate)
+          (end-of-line 1)
+          (setq newhead (org-get-heading))))))
+
+  (provide 'org-relate)
+#+end_src
+
 *** clocktable-by-tag with org-clock
 
 Provide a function to Build a clock table summing up time by tag.
