@@ -4464,6 +4464,24 @@ migemo allows us to search incrementally Japanese words using roma-ji expression
     :after migemo)
 #+end_src
 
+*** [[https://github.com/emacs-jp/japanese-holidays/releases.atom][japanese-holidays]]
+
+#+begin_src emacs-lisp
+  (use-package japanese-holidays
+    :straight t
+    :after calendar
+    :hook
+    ((calendar-today-visible calendar-today-invisible) . japanese-holiday-mark-weekend)
+    (calendar-today-visible . calendar-mark-today)
+    :config
+    (setq calendar-holidays
+          (append japanese-holidays holiday-local-holidays holiday-other-holidays))
+    (setq calendar-mark-holidays-flag t)
+    (setq japanese-holiday-weekend '(0 6)
+          japanese-holiday-weekend-marker
+          '(holiday nil nil nil nil nil japanese-holiday-saturday)))
+#+end_src
+
 *** [[https://github.com/nflath/hungry-delete/releases.atom][hungry-delete]]
 Aggressively delete successive white spaces.
 
