@@ -185,6 +185,10 @@ CAUTION: There are some face definitions which use an extra large font since I a
                       nil
                       :font "fontset-variable"
                       :height (my-adjust-font-size 660))
+  (set-face-attribute 'mode-line
+                      nil
+                      :font "fontset-dense"
+                      :height (my-adjust-font-size 580))
 
   (use-package face-remap
     :diminish buffer-face-mode
@@ -292,6 +296,48 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
     (other-window 1)
     (delete-other-windows))
   (global-set-key (kbd "C-x O") 'my/next-window-expand)
+#+end_src
+
+*** mode line
+
+#+begin_src emacs-lisp
+  ;; Don't show line and column number in the mode line
+  (line-number-mode -1)
+  (column-number-mode -1)
+
+  (use-package time
+    :custom
+    (display-time-24hr-format t)
+    (display-time-mail-string "")
+    (display-time-default-load-average nil)
+    :config
+    (display-time-mode t))
+
+  (defvar my/mode-line-buffer-name-length 14
+    "Fixed length for displaying buffer name in mode line.")
+
+  (setq-default mode-line-format
+                '("%e"
+                  mode-line-front-space
+                  mode-line-mule-info
+                  (:eval
+                   (let ((mode-line-buffer-name
+                          (replace-regexp-in-string " %\\([[:ascii:]]\\)" " %%\\1"
+                                                    (truncate-string-to-width
+                                                     (buffer-name) my/mode-line-buffer-name-length nil ? t))))
+                     (cond
+                      (buffer-read-only
+                       (propertize mode-line-buffer-name 'face 'underline))
+                      ((buffer-modified-p)
+                       (propertize mode-line-buffer-name 'face 'warning))
+                      (mode-line-buffer-name))))
+                  (:eval
+                   (let ((str (if line-number-mode
+                                  "^%l-%p" "")))
+                     (if column-number-mode
+                         (concat str "_%c") str)))
+                  global-mode-string
+                  mode-name))
 #+end_src
 
 *** minibuffer
