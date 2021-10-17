@@ -210,6 +210,9 @@ CAUTION: There are some face definitions which use an extra large font since I a
     (defface my/small-gothic-face `((t . (:font "fontset-default"
                                                 :height ,(my-adjust-font-size 570))))
       "A face with small font.")
+    (defface my/tiny-gothic-face `((t . (:font "fontset-default"
+                                               :height ,(my-adjust-font-size 400))))
+      "A face with tiny font.")
     (defface my/large-mincho-face `((t . (:font "fontset-mincho"
                                                 :height ,(my-adjust-font-size 840))))
       "A face with large mincho font.")
@@ -221,6 +224,7 @@ CAUTION: There are some face definitions which use an extra large font since I a
     ((Info-mode help-mode helpful-mode woman-mode) . (lambda () (buffer-face-set 'my/medium-large-gothic-face)))
     ((org-mode text-mode dired-mode mu4e-headers-mode mu4e-compose-mode) . (lambda () (buffer-face-set 'my/medium-gothic-face)))
     ((prog-mode shell-mode term-mode vterm-mode eshell-mode) . (lambda () (buffer-face-set 'my/small-gothic-face)))
+    (calendar-mode . (lambda () (buffer-face-set 'my/tiny-gothic-face)))
     ((mu4e-view-mode nov-mode elfeed-show-mode) . (lambda () (buffer-face-set 'my/large-mincho-face)))
     (elfeed-search-update . (lambda () (buffer-face-set 'my/medium-mincho-face))))
 #+end_src
@@ -838,6 +842,16 @@ fDDHS5Vq5UvYutk=
     :config
     (setf calc-display-trail nil))
 #+end_src
+*** calendar
+
+#+begin_src emacs-lisp
+  (use-package calendar
+    :commands calendar
+    :config
+    (bind-keys :map calendar-mode-map
+               ("v" . calendar-org-archive-show-summary-day)))
+#+end_src
+
 *** proced
 
 #+begin_src emacs-lisp
