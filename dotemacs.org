@@ -116,9 +116,29 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 #+begin_src emacs-lisp
   (require 'cl-lib)
 #+end_src
+*** [[https://github.com/protesilaos/modus-themes/releases.atom][modus-themes]]
+
+I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modus-themes/][conforms to WCAG AAA]]
+
+#+begin_src emacs-lisp
+  (use-package modus-themes
+    :straight (modus-themes
+               :host github
+               :repo "protesilaos/modus-themes"
+               :branch "main")
+    :init
+    ;; Add all your customizations prior to loading the themes
+    (setq modus-themes-slanted-constructs t
+          modus-themes-bold-constructs nil
+          modus-themes-region 'no-extend)
+    ;; Load the theme files before enabling a theme
+    (modus-themes-load-themes)
+    :config
+    (modus-themes-load-vivendi))
+#+end_src
 ** basic config
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/01-init.el")
+:header-args+: :tangle (expand-tangle-target ".config/emacs/01-basic.el")
 :END:
 
 *** language
@@ -187,8 +207,8 @@ CAUTION: There are some face definitions which use an extra large font since I a
                       :height (my-adjust-font-size 660))
   (set-face-attribute 'mode-line
                       nil
-                      :font "fontset-dense"
-                      :height (my-adjust-font-size 580))
+                      :font "fontset-mincho"
+                      :height (my-adjust-font-size 660))
 
   (use-package face-remap
     :diminish buffer-face-mode
@@ -674,7 +694,7 @@ fDDHS5Vq5UvYutk=
 
 ** built-in features
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/features.el")
+:header-args+: :tangle (expand-tangle-target ".config/emacs/02-built-ins.el")
 :END:
 *** Auto Revert
 [[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
@@ -4656,26 +4676,6 @@ Major mode for manupulating password store file.
     (rainbow-x-colors t)
     (rainbow-latex-colors t)
     (rainbow-ansi-colors t))
-#+end_src
-*** [[https://github.com/protesilaos/modus-themes/releases.atom][modus-themes]]
-
-I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modus-themes/][conforms to WCAG AAA]]
-
-#+begin_src emacs-lisp
-  (use-package modus-themes
-    :straight (modus-themes
-               :host github
-               :repo "protesilaos/modus-themes"
-               :branch "main")
-    :init
-    ;; Add all your customizations prior to loading the themes
-    (setq modus-themes-slanted-constructs t
-          modus-themes-bold-constructs nil
-          modus-themes-region 'no-extend)
-    ;; Load the theme files before enabling a theme
-    (modus-themes-load-themes)
-    :config
-    (modus-themes-load-vivendi))
 #+end_src
 *** [[https://github.com/jwiegley/alert/releases.atom][alert]]
 
