@@ -1834,11 +1834,7 @@ dMv+byk5Rw==
     (eshell-prompt-regexp "[#$] ")
     (eshell-visual-subcommands '(("git" "log" "diff" "show")))
     :config
-    (setq eshell-path-env (getenv "PATH"))
-    (bind-keys :map eshell-mode-map
-               ("C-j"    . eshell-send-input)
-               ("<up>"   . previous-line)
-               ("<down>" . next-line)))
+    (setq eshell-path-env (getenv "PATH")))
 
   (defun eshell-command-alert (process status)
     "Send `alert' with severity based on STATUS when PROCESS finished."
@@ -2080,7 +2076,7 @@ dMv+byk5Rw==
                 (setq skk-dcomp-multiple-activate nil)))
 
     ;; clock table
-    ;;; work around for the bug in emacs 25
+    ;; work around for the bug in emacs 25
     (defalias 'calendar-absolute-from-iso 'calendar-iso-to-absolute)
 
     ;; image
