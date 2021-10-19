@@ -4018,6 +4018,20 @@ Handy commands
     :hook (lsp-mode . lsp-ivy-mode))
 #+end_src
 
+*** [[https://github.com/company-mode/company-mode/releases.atom][company-mode]]
+
+#+begin_src emacs-lisp
+  (use-package company
+    :straight t
+    :hook (prog-mode . company-mode)
+    :bind (:map company-active-map
+                ("C-j" . company-complete-selection)
+                ("C-h" . backward-delete-char-untabify)
+                ("C-M-h" . company-show-doc-buffer)
+                ("C-n" . company-select-next)
+                ("C-p" . company-select-previous)))
+#+end_src
+
 *** [[https://github.com/flycheck/flycheck/releases.atom][flycheck]]
 
 #+begin_src emacs-lisp
