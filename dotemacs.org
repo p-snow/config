@@ -1911,65 +1911,15 @@ dMv+byk5Rw==
     ;; attach
     (setq org-attach-preferred-new-method nil)
 
-    ;; link
-    (setq org-confirm-elisp-link-function nil) ; do not confirm when execute elisp
-    (org-link-set-parameters
-     "src" :follow #'org-babel-ref-resolve)
-    (defun org-open-at-point-link ()
-      "This function is responsible for org links when user calls `org-open-at-point'."
-      (let* ((context (org-element-lineage
-                       (org-element-context)
-                       '(link)
-                       t))
-             (type (org-element-property :type context))
-             (path (org-element-property :path context))
-             (app (org-element-property :application context))
-             (search-option (org-element-property :search-option context)))
-        (if (stringp type)
-            (cond
-             ((string-match-p "https?" type)
-              (let ((url-pos (split-location-uri (org-link-unescape (concat type ":" path)))))
-                (cl-case (prefix-numeric-value current-prefix-arg)
-                  (16 (browse-url-default-browser (car url-pos)))
-                  (4 (eww-browse-url (car url-pos)))
-                  (t (open-url (car url-pos) (cadr url-pos))))
-                t))
-             ((string= type "file")
-              (let ((line-search (cond ((not search-option) nil)
-                                       ((string-match-p "\\`[0-9]+\\'" search-option)
-                                        (list (string-to-number search-option)))
-                                       (t (list nil search-option)))))
-                (apply #'my/org-open-file
-                       path
-                       (cond
-                        ((equal app "sys") 'system)
-                        ((equal app "emacs") 'emacs)
-                        (t nil))
-                       line-search))
-              t))
-          (my/enter-thing-at-point))))
-    (add-to-list 'org-open-at-point-functions 'org-open-at-point-link)
     (setq org-file-apps
           '((t . (lambda (file-path link-string)
                    (my/view-file file-path)))))
-    (org-add-link-type
-     "sudo"
-     (lambda (cmd)
-       "Run CMD with sudo."
-       (shell-command
-        (concat "echo " (shell-quote-argument (read-passwd "Password? "))
-                " | sudo -S " cmd))))
 
     ;; basic
     (setq org-hide-leading-stars t)
     (setq org-comment-string "####")
     (setq org-pretty-entities t)
     (setq org-use-sub-superscripts '{}) ; use _{}/^{} for sub/super script
-
-    ;; display
-    (add-hook 'org-mode-hook
-              (lambda ()
-                (setq-local truncate-lines t)))
 
     ;; tag/property
     (setq org-use-tag-inheritance "ARCHIVE")
@@ -2604,6 +2554,62 @@ dMv+byk5Rw==
     (org-id-extra-files
      (append org-agenda-text-search-extra-files))
     (org-id-link-to-org-use-id 'create-if-interactive))
+#+end_src
+
+*** org links (ol)
+
+#+begin_src emacs-lisp
+  (use-package ol
+    :after org
+    :custom
+    (org-link-elisp-confirm-function nil)
+    :config
+    ;; the file which is referred via ong link opens in same window
+    (setf (alist-get 'file org-link-frame-setup) 'find-file)
+    (org-link-set-parameters "src" :follow #'org-babel-ref-resolve)
+    (add-to-list 'org-open-at-point-functions 'org-open-at-point-link)
+    ;; set 'sudo' link type to invoke command with root privilege
+    (org-link-set-parameters
+     "sudo"
+     (lambda (cmd)
+       "Run CMD with sudo."
+       (shell-command
+        (concat "echo " (shell-quote-argument (read-passwd "Password? "))
+                " | sudo -S " cmd)))))
+
+  (defun org-open-at-point-link ()
+    "This function is responsible for org links when user calls `org-open-at-point'."
+    (let* ((context (org-element-lineage
+                     (org-element-context)
+                     '(link)
+                     t))
+           (type (org-element-property :type context))
+           (path (org-element-property :path context))
+           (app (org-element-property :application context))
+           (search-option (org-element-property :search-option context)))
+      (if (stringp type)
+          (cond
+           ((string-match-p "https?" type)
+            (let ((url-pos (split-location-uri (org-link-unescape (concat type ":" path)))))
+              (cl-case (prefix-numeric-value current-prefix-arg)
+                (16 (browse-url-default-browser (car url-pos)))
+                (4 (eww-browse-url (car url-pos)))
+                (t (open-url (car url-pos) (cadr url-pos))))
+              t))
+           ((string= type "file")
+            (let ((line-search (cond ((not search-option) nil)
+                                     ((string-match-p "\\`[0-9]+\\'" search-option)
+                                      (list (string-to-number search-option)))
+                                     (t (list nil search-option)))))
+              (apply #'my/org-open-file
+                     path
+                     (cond
+                      ((equal app "sys") 'system)
+                      ((equal app "emacs") 'emacs)
+                      (t nil))
+                     line-search))
+            t))
+        (my/enter-thing-at-point))))
 #+end_src
 
 *** org-archive
