@@ -869,7 +869,7 @@ fDDHS5Vq5UvYutk=
     :commands calendar
     :config
     (bind-keys :map calendar-mode-map
-               ("v" . calendar-org-archive-show-summary-day)))
+               ("v" . my/calendar-show-items)))
 #+end_src
 
 *** proced
@@ -5340,6 +5340,31 @@ MvHkcNaUqgU+pTSh/vqm38/pmqk1BE6mPp1dNMllXv1QUW4=
       ("oe" org-transpose-elements "Org mode elements")
       ("ot" org-table-transpose-table-at-point "Org mode table")
       ("q" nil "cancel" :exit t)))
+#+end_src
+
+*** show the day in calendar
+
+#+begin_src emacs-lisp
+  (defun my/calendar-show-items ()
+    "Show items on the day pointed in calendar view."
+    (interactive)
+    (let* ((calendar-date-display-form calendar-iso-date-display-form)
+           (date (calendar-date-string (calendar-cursor-to-date)))
+           (d (parse-time-string date))
+           (year (decoded-time-year d))
+           (files (append `(,(my/org-archive-file year))
+                          org-agenda-files))
+           (buffer-name-prefix "==")
+           (buffer-name (concat buffer-name-prefix date))
+           (display-buffer-alist
+            `((,buffer-name-prefix
+               (display-buffer-reuse-mode-window
+                display-buffer-pop-up-window)))))
+      (org-ql-search files `(and (or (parent (heading ,date))
+                                     (ts-a :on ,date))
+                                 (not (tags "web" "drill")))
+        :buffer buffer-name)
+      (other-window 1)))
 #+end_src
 
 *** utilities
