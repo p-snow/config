@@ -13,7 +13,7 @@
 
 ** early initialization
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/00-early-init.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/early-init.el")
 :END:
 
 These process must be evaluated beforehand.
@@ -136,9 +136,30 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
     :config
     (modus-themes-load-vivendi))
 #+end_src
+
+** init file
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".emacs.d/init.el")
+:END:
+
+*** global variable definitions
+
+#+begin_src emacs-lisp
+  (setf user-emacs-directory (file-name-as-directory "~/var/lib/emacs"))
+#+end_src
+
+*** loading lisp files
+
+#+begin_src emacs-lisp
+  (dolist (file (directory-files "~/.emacs.d/lisp" t "\.el$"))
+    (funcall #'load-file file))
+  (dolist (file (directory-files "~/.emacs.d/site-lisp" t "\.el$"))
+    (funcall #'load-file file))
+#+end_src
+
 ** basic config
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/01-basic.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/01-basic.el")
 :END:
 
 *** language
@@ -273,6 +294,8 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (setq auto-save-interval 4)
   (setq auto-save-timeout 1)
   (setq auto-save-default t)
+  (setq auto-save-list-file-prefix
+        (concat user-emacs-directory "auto-save-list/.saves-"))
 #+end_src
 *** modifier keys
 
@@ -535,7 +558,7 @@ fDDHS5Vq5UvYutk=
     (default-input-method "japanese-skk")
     (skk-kakutei-key (kbd "C-m"))
     (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
-    (skk-init-file "~/.config/emacs/ddskk/init.el")
+    (skk-init-file "~/.emacs.d/lisp/ddskk/init.el")
     (skk-byte-compile-init-file t)
     (skk-tut-file
      (expand-file-name "etc/SKK.tut" (straight--repos-dir "ddskk")))
@@ -607,7 +630,7 @@ fDDHS5Vq5UvYutk=
 
 **** skk-init-file
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/ddskk/init.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/lisp/ddskk/init.el")
   ;; -*- mode:emacs-lisp; -*-
   (setq skk-rom-kana-rule-list
         (append skk-rom-kana-rule-list
@@ -694,7 +717,7 @@ fDDHS5Vq5UvYutk=
 
 ** built-in features
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/02-built-ins.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/02-built-ins.el")
 :END:
 *** Auto Revert
 [[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
@@ -717,6 +740,7 @@ fDDHS5Vq5UvYutk=
     :custom
     (save-abbrevs t)
     :config
+    (setf abbrev-file-name (expand-file-name "abbrev_defs" user-emacs-directory))
     (quietly-read-abbrev-file))
 #+end_src
 
@@ -787,8 +811,6 @@ fDDHS5Vq5UvYutk=
   (use-package bookmark
     :bind ("C-c b" . bookmark-jump)
     :custom
-    (bookmark-default-file
-     (expand-file-name ".bookmarks.gpg" user-emacs-directory))
     (bookmark-watch-bookmark-file 'silent)
     :config
     (delight 'bookmark-bmenu-mode " BB"))
@@ -1056,7 +1078,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 
 ** EWW
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/eww.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/eww.el")
 :END:
 
 #+begin_src emacs-lisp
@@ -1236,7 +1258,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 
 ** [[https://github.com/djcb/mu/releases.atom][mu4e]]
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/mu4e.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/mu4e.el")
 :END:
 
 You need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-message-store.html][issue 'mu init' command]] after changing either maildir, email address or home-dir for mu.
@@ -1391,7 +1413,7 @@ lDAmxVslTY94qV4=
 
 ** [[https://github.com/skeeto/elfeed/releases.atom][elfeed]]
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/elfeed.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/elfeed.el")
 :END:
 
 #+begin_src emacs-lisp
@@ -1627,7 +1649,7 @@ dMv+byk5Rw==
 
 ** Dired
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/dired.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/dired.el")
 :END:
 
 #+begin_src emacs-lisp
@@ -1759,7 +1781,7 @@ dMv+byk5Rw==
 
 ** Shells
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/shell.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/shell.el")
 :END:
 
 *** shell
@@ -1848,7 +1870,7 @@ dMv+byk5Rw==
 
 ** org mode
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/org.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/org.el")
 :END:
 
 *** org
@@ -1860,8 +1882,6 @@ dMv+byk5Rw==
     :mode (("\\.org$" . org-mode))
     :interpreter (("org" . org-mode))
     :init
-    (add-to-list 'load-path (concat (file-name-as-directory user-emacs-directory) "straight/repos/org/lisp"))
-    (add-to-list 'load-path (concat (file-name-as-directory user-emacs-directory) "straight/repos/org/contrib/lisp"))
     (defvar org-warning-keyword-0 "UG" "TODO keyword acronym standing for 'UrGent'")
     (defvar org-todo-keyword-0 "TD" "TODO keyword acronym standing for 'To Do'")
     (defvar org-todo-keyword-1 "GO" "TODO keyword acronym standing for 'Get On'")
@@ -3229,7 +3249,7 @@ speed commands and hydra-org.
 
 ** comletion
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/completion.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/completion.el")
 :END:
 
 *** [[https://github.com/minad/vertico/releases.atom][vertico]]
@@ -3381,7 +3401,7 @@ speed commands and hydra-org.
 
 ** major modes for programming/editing        :programs:
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/prog.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/prog.el")
 :END:
 
 *** prog
@@ -3802,7 +3822,7 @@ you are required to locate that package where emacs can search.
 
 ** other third-party packages
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/packages.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/packages.el")
 :END:
 
 *** [[https://github.com/magit/magit/releases.atom][Magit]]                                 :maintaining:
@@ -4753,7 +4773,7 @@ Major mode for manupulating password store file.
 * further customization
 ** handy functionalities
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".config/emacs/extensions.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/site-lisp/features.el")
 :END:
 
 *** power management
@@ -5421,7 +5441,7 @@ Learning Workflow for English words:
 1. Capture an word to study by invoking my/org-english-capture
 2. Review words periodically with my/org-english-drill-test-display or its variants
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/org-english.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-english.el")
   (defun my/org-english-capture (word)
     "Capture an english WORD as a org-mode entry suitable for org-drill.
 
@@ -5546,7 +5566,7 @@ Learning Workflow for English words:
 
 *** org-password-store
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/org-password-store.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-password-store.el")
   (require 'password-store)
 
   (defcustom my/org-password-store-property "PASSWORD_STORE"
@@ -5682,7 +5702,7 @@ Learning Workflow for English words:
 
 *** org-archive
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/org-archive.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-archive.el")
   (require 'org)
   (require 'org-agenda)
 
@@ -5826,7 +5846,7 @@ Learning Workflow for English words:
 
 *** org-capture-derived
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/org-capture-derived.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-capture-derived.el")
   (require 'thingatpt)
   (require 'whitespace)
 
@@ -5937,7 +5957,7 @@ Learning Workflow for English words:
 
 *** org-relate
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/org-relate.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-relate.el")
   (require 'thingatpt)
   (require 'org-ql-search)
 
@@ -6083,7 +6103,7 @@ Learning Workflow for English words:
 
 Provide a function to Build a clock table summing up time by tag.
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/clocktable-by-tag.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/clocktable-by-tag.el")
   (require 'org-table)
   (require 'org-clock)
 
@@ -6145,7 +6165,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 *** narrow-dwim
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/narrow-dwim.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/narrow-dwim.el")
   (bind-key* "C-x n" 'my/toggle-narrow-dwim)
 
   (defun my/toggle-narrow-dwim (arg)
@@ -6210,7 +6230,7 @@ Provide a function to Build a clock table summing up time by tag.
 #+end_src
 *** weather
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/weather.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/weather.el")
   ;; 気象庁配信の天気情報を加工して表示
 
   (require 'request)
@@ -6277,7 +6297,7 @@ Provide a function to Build a clock table summing up time by tag.
 #+end_src
 *** view-file
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".config/emacs/site-lisp/view-file.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/view-file.el")
   (defcustom my/view-file--temp-dir "~/var/tmp/view-file"
     "Directory in which we will work for uncompresssing, decrypting and htmlize.")
   (defvar my/view-file--open-file nil
