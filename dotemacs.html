@@ -21,272 +21,282 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orga2043ee">general configuration&#xa0;&#xa0;&#xa0;<span class="tag"><span class="elfeed">elfeed</span>&#xa0;<span class="soft_update">soft_update</span>&#xa0;<span class="prime">prime</span></span></a>
+<li><a href="#org4232030">general configuration&#xa0;&#xa0;&#xa0;<span class="tag"><span class="elfeed">elfeed</span>&#xa0;<span class="soft_update">soft_update</span>&#xa0;<span class="prime">prime</span></span></a>
 <ul>
-<li><a href="#org4324c11">early initialization</a>
+<li><a href="#org6f8ec3c">early initialization</a>
 <ul>
-<li><a href="#org29cda4d">package.el</a></li>
-<li><a href="#orgd6ea32c">straight.el</a></li>
-<li><a href="#org4f0702d">use-package</a></li>
-<li><a href="#org5bb3851">load cl-lib</a></li>
-<li><a href="#org19dd374">modus-themes</a></li>
+<li><a href="#org72462e5">package.el</a></li>
+<li><a href="#org5b9cfce">straight.el</a></li>
+<li><a href="#org5131eb5">use-package</a></li>
+<li><a href="#org4ae0d7c">load cl-lib</a></li>
+<li><a href="#org7b2ff1f">modus-themes</a></li>
 </ul>
 </li>
-<li><a href="#orgad8d004">basic config</a>
+<li><a href="#org41045ec">init file</a>
 <ul>
-<li><a href="#orgd1cb37f">language</a></li>
-<li><a href="#orgb04d2f9">visual facets</a></li>
-<li><a href="#orgf7d0b60">face</a></li>
-<li><a href="#orga1f342f">file handling</a></li>
-<li><a href="#org0448699">modifier keys</a></li>
-<li><a href="#org490153a">mark/region</a></li>
-<li><a href="#org06cfd33">window</a></li>
-<li><a href="#org501e709">mode line</a></li>
-<li><a href="#org50bfef7">minibuffer</a></li>
-<li><a href="#org4ac6ba2">displaying</a></li>
-<li><a href="#org56852a9">display buffer</a></li>
-<li><a href="#orgc0dac2f">text handling</a></li>
-<li><a href="#orgde71d8e">indent</a></li>
-<li><a href="#org7a4e038">performance</a></li>
-<li><a href="#org705493e">customize buffer</a></li>
-<li><a href="#org8c4d5ce">killing&#xa0;&#xa0;&#xa0;<span class="tag"><span class="kill">kill</span></span></a></li>
-<li><a href="#org7f13cf3">mouse</a></li>
-<li><a href="#org398b6ce">email&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></a></li>
-<li><a href="#org9a52f76">ddskk</a></li>
-<li><a href="#orga3d8ded">fundamental key bindings</a></li>
+<li><a href="#orgfc48e30">global variable definitions</a></li>
+<li><a href="#orgb9ebe40">loading lisp files</a></li>
 </ul>
 </li>
-<li><a href="#org5c016de">built-in features</a>
+<li><a href="#orgdd725d3">basic config</a>
 <ul>
-<li><a href="#orgaaeae2e">Auto Revert</a></li>
-<li><a href="#orgd38c457">Abbrev</a></li>
-<li><a href="#orgc1abab8">EasyPG (epg)</a></li>
-<li><a href="#org575d560">auth-source</a></li>
-<li><a href="#org8176eae">whitespace</a></li>
-<li><a href="#org620d53d">hippie-exp</a></li>
-<li><a href="#org88f756f">bookmark</a></li>
-<li><a href="#orge23f691">find-dired</a></li>
-<li><a href="#orgd93a547">hideshow</a></li>
-<li><a href="#org7a4b26c">uniquify</a></li>
-<li><a href="#orgfeeb9a5">recentf</a></li>
-<li><a href="#org918e38e">server</a></li>
-<li><a href="#org38d4637">calc</a></li>
-<li><a href="#orgba04a10">calendar</a></li>
-<li><a href="#org2c0a7d3">proced</a></li>
-<li><a href="#orgd163abe">vc (version control)&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span></span></a></li>
-<li><a href="#orgc1758b7">re-builder</a></li>
-<li><a href="#orgf7d906b">isearch</a></li>
-<li><a href="#orgb335cf3">imenu&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></a></li>
-<li><a href="#org8d198d1">flyspell&#xa0;&#xa0;&#xa0;<span class="tag"><span class="fixit">fixit</span></span></a></li>
-<li><a href="#org4cfae52">help&#xa0;&#xa0;&#xa0;<span class="tag"><span class="help">help</span></span></a></li>
-<li><a href="#orgbe7c319">info&#xa0;&#xa0;&#xa0;<span class="tag"><span class="help">help</span></span></a></li>
-<li><a href="#orgd3041dc">tramp</a></li>
-<li><a href="#orgf69481e">view</a></li>
-<li><a href="#org034d797">woman&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></a></li>
-<li><a href="#org0d630e3">executable</a></li>
-<li><a href="#org8fc3f28">paren</a></li>
+<li><a href="#orgc728058">language</a></li>
+<li><a href="#orgc736034">visual facets</a></li>
+<li><a href="#orgb9b16e6">face</a></li>
+<li><a href="#org93af47d">file handling</a></li>
+<li><a href="#org7b2ee19">modifier keys</a></li>
+<li><a href="#orge85a70d">mark/region</a></li>
+<li><a href="#orgd999271">window</a></li>
+<li><a href="#org782a955">mode line</a></li>
+<li><a href="#org89094cd">minibuffer</a></li>
+<li><a href="#orga01e812">displaying</a></li>
+<li><a href="#orgb58aef7">display buffer</a></li>
+<li><a href="#orgdc0ff5f">text handling</a></li>
+<li><a href="#orgd1222d9">indent</a></li>
+<li><a href="#org4c15dd9">performance</a></li>
+<li><a href="#orgd2e9825">customize buffer</a></li>
+<li><a href="#org676b038">killing&#xa0;&#xa0;&#xa0;<span class="tag"><span class="kill">kill</span></span></a></li>
+<li><a href="#org1d49fbf">mouse</a></li>
+<li><a href="#org9bd391d">email&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></a></li>
+<li><a href="#orge991cf0">ddskk</a></li>
+<li><a href="#orge6cb3c1">fundamental key bindings</a></li>
 </ul>
 </li>
-<li><a href="#orgd43d4bb">EWW</a>
+<li><a href="#org4e28f25">built-in features</a>
 <ul>
-<li><a href="#org72321ad">extract<sub>headings</sub></a></li>
+<li><a href="#org0f9f2bf">Auto Revert</a></li>
+<li><a href="#org165caa6">Abbrev</a></li>
+<li><a href="#org4121ced">EasyPG (epg)</a></li>
+<li><a href="#org46df106">auth-source</a></li>
+<li><a href="#org056c59b">whitespace</a></li>
+<li><a href="#orge97052e">hippie-exp</a></li>
+<li><a href="#org5a09937">bookmark</a></li>
+<li><a href="#orgdbc6ba4">find-dired</a></li>
+<li><a href="#org95d9d27">hideshow</a></li>
+<li><a href="#org23ef915">uniquify</a></li>
+<li><a href="#orgfb0a6ff">recentf</a></li>
+<li><a href="#org6d6fbbd">server</a></li>
+<li><a href="#org48a77a2">calc</a></li>
+<li><a href="#org530a843">calendar</a></li>
+<li><a href="#org9d29970">proced</a></li>
+<li><a href="#org23052f9">vc (version control)&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span></span></a></li>
+<li><a href="#org3805ee2">re-builder</a></li>
+<li><a href="#org7d6e31e">isearch</a></li>
+<li><a href="#orgdf93e49">imenu&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></a></li>
+<li><a href="#org7e89dfe">flyspell&#xa0;&#xa0;&#xa0;<span class="tag"><span class="fixit">fixit</span></span></a></li>
+<li><a href="#orgc1c661f">help&#xa0;&#xa0;&#xa0;<span class="tag"><span class="help">help</span></span></a></li>
+<li><a href="#org8f0801c">info&#xa0;&#xa0;&#xa0;<span class="tag"><span class="help">help</span></span></a></li>
+<li><a href="#org0e6f16b">tramp</a></li>
+<li><a href="#orgb769e4c">view</a></li>
+<li><a href="#orgc837d2a">woman&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></a></li>
+<li><a href="#orgc413e6e">executable</a></li>
+<li><a href="#org9d797da">paren</a></li>
 </ul>
 </li>
-<li><a href="#org6989fe7">mu4e</a>
+<li><a href="#org27156a4">EWW</a>
 <ul>
-<li><a href="#orgfbe2d1e">mu4e-alert</a></li>
-<li><a href="#org4ebb850">additional tweaks</a></li>
-<li><a href="#orgea282a0">personal settings&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></a></li>
+<li><a href="#orgf80d664">extract<sub>headings</sub></a></li>
 </ul>
 </li>
-<li><a href="#org8772836">elfeed</a>
+<li><a href="#orgf6bb32e">mu4e</a>
 <ul>
-<li><a href="#org281eef1">elfeed-org</a></li>
-<li><a href="#org1eb3d97">personal tagging rules&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></a></li>
+<li><a href="#orge529c4d">mu4e-alert</a></li>
+<li><a href="#orgc5c2bd1">additional tweaks</a></li>
+<li><a href="#org62426e9">personal settings&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></a></li>
 </ul>
 </li>
-<li><a href="#orgc74c9b7">Dired</a>
+<li><a href="#org35d733d">elfeed</a>
 <ul>
-<li><a href="#orgcb4d53f">dired-rsync</a></li>
-<li><a href="#org4a2538e">dired-single</a></li>
-<li><a href="#org0768916">dired-hacks</a></li>
-<li><a href="#org7f09845">dired-hide-dotfiles</a></li>
-<li><a href="#org1e26eb7">dired-du</a></li>
+<li><a href="#orgaba6d3c">elfeed-org</a></li>
+<li><a href="#orgc295c09">personal tagging rules&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></a></li>
 </ul>
 </li>
-<li><a href="#org7c2521e">Shells</a>
+<li><a href="#org2790e46">Dired</a>
 <ul>
-<li><a href="#org5d1fd8c">shell</a></li>
-<li><a href="#org83c5a11">term</a></li>
-<li><a href="#org33a1d80">vterm</a></li>
-<li><a href="#org31a51c4">eshell</a></li>
+<li><a href="#org9119410">dired-rsync</a></li>
+<li><a href="#org18690db">dired-single</a></li>
+<li><a href="#orge95466b">dired-hacks</a></li>
+<li><a href="#orgcb468bc">dired-hide-dotfiles</a></li>
+<li><a href="#orgb17244a">dired-du</a></li>
 </ul>
 </li>
-<li><a href="#org43f7021">org mode</a>
+<li><a href="#orgfe89fa3">Shells</a>
 <ul>
-<li><a href="#org1ce6630">org</a></li>
-<li><a href="#orgaba44b4">org-agenda</a></li>
-<li><a href="#org8196ede">org-capture</a></li>
-<li><a href="#orge6a6c7f">org-timer and org-clock</a></li>
-<li><a href="#org40dcb67">org-refile</a></li>
-<li><a href="#orga39856e">org-plot</a></li>
-<li><a href="#org588ed91">org-id</a></li>
-<li><a href="#orgc2fae31">org-archive</a></li>
-<li><a href="#org2a986e9">org-list</a></li>
-<li><a href="#orgbf8f3a0">org-indent</a></li>
-<li><a href="#orgaa7d5a9">org-crypt</a></li>
-<li><a href="#org504c073">org-babel</a></li>
-<li><a href="#org741a486">org-src</a></li>
-<li><a href="#org20315f6">org-export</a></li>
-<li><a href="#orgff6ae77">org-contrib</a></li>
-<li><a href="#orgd79ba0e">org-reveal</a></li>
-<li><a href="#orgdb11909">org-ql</a></li>
-<li><a href="#org4564e78">org-ml</a></li>
-<li><a href="#orgb62f932">org-roam</a></li>
-<li><a href="#org29f89ba">org-drill</a></li>
-<li><a href="#orge92a94d">org-mime</a></li>
-<li><a href="#org7df2979">org-web-tools</a></li>
-<li><a href="#org038493f">org-clock-convenience</a></li>
-<li><a href="#orgcb2a786">custom functions</a></li>
-<li><a href="#org554183e">key bindings</a></li>
+<li><a href="#org7c852fd">shell</a></li>
+<li><a href="#orgc2f0571">term</a></li>
+<li><a href="#org1da4c4c">vterm</a></li>
+<li><a href="#org2ae4a39">eshell</a></li>
 </ul>
 </li>
-<li><a href="#orgb295531">comletion</a>
+<li><a href="#org70d9c74">org mode</a>
 <ul>
-<li><a href="#orgc843c93">vertico</a></li>
-<li><a href="#orgfe9971e">consult</a></li>
-<li><a href="#org138a39a">embark</a></li>
-<li><a href="#org2bd392f">marginalia</a></li>
-<li><a href="#org76cec20">orderless</a></li>
+<li><a href="#org2e975ad">org</a></li>
+<li><a href="#org6eb7a5c">org-agenda</a></li>
+<li><a href="#orgdaa4097">org-capture</a></li>
+<li><a href="#orga158fb1">org-timer and org-clock</a></li>
+<li><a href="#org655259e">org-refile</a></li>
+<li><a href="#org72dab63">org-plot</a></li>
+<li><a href="#orgb929e79">org-id</a></li>
+<li><a href="#org9312f06">org links (ol)</a></li>
+<li><a href="#org52f8107">org-archive</a></li>
+<li><a href="#org7a8034c">org-list</a></li>
+<li><a href="#orgc97e514">org-indent</a></li>
+<li><a href="#org4724023">org-crypt</a></li>
+<li><a href="#org7513380">org-babel</a></li>
+<li><a href="#org8e99feb">org-src</a></li>
+<li><a href="#orgbb8dbf5">org-export</a></li>
+<li><a href="#org92ba56f">org-contrib</a></li>
+<li><a href="#org296c010">org-reveal</a></li>
+<li><a href="#orge6e2e79">org-ql</a></li>
+<li><a href="#orgde204cc">org-ml</a></li>
+<li><a href="#orga5af190">org-roam</a></li>
+<li><a href="#orgaf483c5">org-drill</a></li>
+<li><a href="#org8117ffb">org-mime</a></li>
+<li><a href="#orgea8d85b">org-web-tools</a></li>
+<li><a href="#orgda57521">org-clock-convenience</a></li>
+<li><a href="#orgd11e5a1">custom functions</a></li>
+<li><a href="#org5d63c57">key bindings</a></li>
 </ul>
 </li>
-<li><a href="#org11ffe85">major modes for programming/editing&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></a>
+<li><a href="#orgba9b6de">comletion</a>
 <ul>
-<li><a href="#orgd897d80">prog</a></li>
-<li><a href="#org55fa2b3">sh</a></li>
-<li><a href="#org0a23a0b">emacs lisp</a></li>
-<li><a href="#orgb4e28ae">cc-mode</a></li>
-<li><a href="#orge572bf6">python-mode</a></li>
-<li><a href="#orgbd6e4c8">ruby-mode</a></li>
-<li><a href="#orgaffcb4f">inf-ruby</a></li>
-<li><a href="#org5262225">yaml-mode</a></li>
-<li><a href="#org0d045cc">lua-mode</a></li>
-<li><a href="#orga804ad8">perl-mode</a></li>
-<li><a href="#org908f53e">tex-mode</a></li>
-<li><a href="#org91957e9">web-mode</a></li>
-<li><a href="#orgb8be025">css-mode</a></li>
-<li><a href="#org0871b72">js2-mode</a></li>
-<li><a href="#orgf5f9fbc">text-mode</a></li>
-<li><a href="#org813a480">nxml</a></li>
-<li><a href="#org3e167f7">sql-mode</a></li>
-<li><a href="#orgb804150">project</a></li>
-<li><a href="#org93f6986">grep</a></li>
-<li><a href="#org67ade2c">compile</a></li>
-<li><a href="#org97626fb">log-view</a></li>
-<li><a href="#org7e3b53f">plantuml-mode</a></li>
-<li><a href="#orgc059806">lilypond</a></li>
-<li><a href="#orgb964741">conf</a></li>
-<li><a href="#org69b6927">generic-x</a></li>
-<li><a href="#org66e800b">fundamental mode</a></li>
+<li><a href="#org72fc552">vertico</a></li>
+<li><a href="#org0d66cae">consult</a></li>
+<li><a href="#org8ff76cf">embark</a></li>
+<li><a href="#orgf31ea1d">marginalia</a></li>
+<li><a href="#orgb252e86">orderless</a></li>
 </ul>
 </li>
-<li><a href="#orgf55f738">other third-party packages</a>
+<li><a href="#org3a6a883">major modes for programming/editing&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></a>
 <ul>
-<li><a href="#orgbe66f77">Magit&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span></span></a></li>
-<li><a href="#orgfb137f0">projectile&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></a></li>
-<li><a href="#orgf839951">counsel-projectile&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></a></li>
-<li><a href="#org4e2bcb8">ag.el&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></a></li>
-<li><a href="#org0ff4e0c">ripgrep.el&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></a></li>
-<li><a href="#org4d1ffcd">Emacs-wgrep</a></li>
-<li><a href="#orgb8b4b7a">dumb-jump&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></a></li>
-<li><a href="#orgd2e8f1d">visual-regexp.el</a></li>
-<li><a href="#orgde88320">avy</a></li>
-<li><a href="#orgfc39abc">paredit</a></li>
-<li><a href="#orga6bf4e3">lsp-mode</a></li>
-<li><a href="#orgbddfd44">flycheck</a></li>
-<li><a href="#org41c1ad0">twittering-mode</a></li>
-<li><a href="#org00754c2">comment-dwim-2&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></a></li>
-<li><a href="#org88631d9">easy-kill&#xa0;&#xa0;&#xa0;<span class="tag"><span class="kill">kill</span></span></a></li>
-<li><a href="#org25509be">undo-tree</a></li>
-<li><a href="#org9868efa">quickrun&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></a></li>
-<li><a href="#org50f019b">expand-region.el&#xa0;&#xa0;&#xa0;<span class="tag"><span class="mark">mark</span></span></a></li>
-<li><a href="#org1affadd">helpful&#xa0;&#xa0;&#xa0;<span class="tag"><span class="help">help</span></span></a></li>
-<li><a href="#orgb1e5426">define-word</a></li>
-<li><a href="#orgd8d4cfb">synosaurus</a></li>
-<li><a href="#org97251e6">exec-path-from-shell</a></li>
-<li><a href="#org5e3ca71">migemo</a></li>
-<li><a href="#org43fee57">japanese-holidays</a></li>
-<li><a href="#org3091510">hungry-delete</a></li>
-<li><a href="#org3eca1de">aggressive-indent-mode</a></li>
-<li><a href="#orgbd151c6">adaptive-wrap</a></li>
-<li><a href="#org4d72410">restart-emacs</a></li>
-<li><a href="#org5fa0871">pangu-spacing</a></li>
-<li><a href="#org6a5b7d1">emacs-which-key</a></li>
-<li><a href="#orgb35f471">hydra</a></li>
-<li><a href="#orgc329a45">pass</a></li>
-<li><a href="#orgc8d5562">password-store</a></li>
-<li><a href="#org0974a44">nov.el</a></li>
-<li><a href="#org384ae73">yasnippet</a></li>
-<li><a href="#org8380eea">pdf-tools</a></li>
-<li><a href="#org54185e5">rainbow-mode</a></li>
-<li><a href="#orgeaa9b88">alert</a></li>
-<li><a href="#org6897474">ts.el</a></li>
-<li><a href="#orgfc763c4">app-launcher</a></li>
+<li><a href="#org9d00a25">prog</a></li>
+<li><a href="#org7a4101c">sh</a></li>
+<li><a href="#orge12f345">emacs lisp</a></li>
+<li><a href="#org40facbb">cc-mode</a></li>
+<li><a href="#org1ca41e0">python-mode</a></li>
+<li><a href="#org0a1cacd">ruby-mode</a></li>
+<li><a href="#orgc954aef">inf-ruby</a></li>
+<li><a href="#org7b3a6d1">yaml-mode</a></li>
+<li><a href="#org797761c">lua-mode</a></li>
+<li><a href="#orge31ee12">perl-mode</a></li>
+<li><a href="#orge5fedf6">tex-mode</a></li>
+<li><a href="#org0af0190">web-mode</a></li>
+<li><a href="#orge3314c6">css-mode</a></li>
+<li><a href="#org726e47f">js2-mode</a></li>
+<li><a href="#orgd2ab0af">text-mode</a></li>
+<li><a href="#org3a76304">nxml</a></li>
+<li><a href="#orge52cfc8">sql-mode</a></li>
+<li><a href="#orgccaf9e3">project</a></li>
+<li><a href="#org068bbe0">grep</a></li>
+<li><a href="#org569a106">compile</a></li>
+<li><a href="#org0876f9e">log-view</a></li>
+<li><a href="#org615012a">plantuml-mode</a></li>
+<li><a href="#org95050a6">lilypond</a></li>
+<li><a href="#org834c6cb">conf</a></li>
+<li><a href="#org0edf635">generic-x</a></li>
+<li><a href="#orgc289147">fundamental mode</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a href="#org47e0e00">further customization</a>
+<li><a href="#org166f1a6">other third-party packages</a>
 <ul>
-<li><a href="#org644c518">handy functionalities</a>
-<ul>
-<li><a href="#org8211482">power management</a></li>
-<li><a href="#orgb008dee">cursor movement</a></li>
-<li><a href="#orge8d4449">lookup functions</a></li>
-<li><a href="#orgb69412d">perspective control</a></li>
-<li><a href="#orgc6fd6cf">tldr</a></li>
-<li><a href="#orgc57f299">sending email</a></li>
-<li><a href="#orgfa89280">open url or something</a></li>
-<li><a href="#org8cb8e81">media file handling</a></li>
-<li><a href="#orge7ea14a">using speech synthesis</a></li>
-<li><a href="#orge624f48">collective hydra definitions</a></li>
-<li><a href="#orgfb1735d">utilities</a></li>
-</ul>
-</li>
-<li><a href="#org616bf42">original features</a>
-<ul>
-<li><a href="#org5d6d2e4">org-english</a></li>
-<li><a href="#org11fa4ac">org-password-store</a></li>
-<li><a href="#org52ff194">org-archive</a></li>
-<li><a href="#org71923f2">org-capture-derived</a></li>
-<li><a href="#org3c0d5f1">org-relate</a></li>
-<li><a href="#org457ce4e">clocktable-by-tag with org-clock</a></li>
-<li><a href="#orgf6f571b">narrow-dwim</a></li>
-<li><a href="#orgbe5887f">weather</a></li>
-<li><a href="#orgc7e050f">view-file</a></li>
+<li><a href="#org38759fc">Magit&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span></span></a></li>
+<li><a href="#orgf751b9f">projectile&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></a></li>
+<li><a href="#org44430fd">counsel-projectile&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></a></li>
+<li><a href="#org0c75bd9">ag.el&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></a></li>
+<li><a href="#org57e4b72">ripgrep.el&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></a></li>
+<li><a href="#orgf30a0cf">Emacs-wgrep</a></li>
+<li><a href="#org9733629">dumb-jump&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></a></li>
+<li><a href="#orga06ce33">visual-regexp.el</a></li>
+<li><a href="#org188b19c">avy</a></li>
+<li><a href="#orgf6b43c1">paredit</a></li>
+<li><a href="#org0f0bcec">lsp-mode</a></li>
+<li><a href="#orgbcae344">company-mode</a></li>
+<li><a href="#org93d1acd">flycheck</a></li>
+<li><a href="#orgd38c40b">twittering-mode</a></li>
+<li><a href="#org6cfbccf">comment-dwim-2&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></a></li>
+<li><a href="#org3b47380">easy-kill&#xa0;&#xa0;&#xa0;<span class="tag"><span class="kill">kill</span></span></a></li>
+<li><a href="#orgf0050c0">undo-tree</a></li>
+<li><a href="#org2bb84fe">quickrun&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></a></li>
+<li><a href="#orgc517e55">expand-region.el&#xa0;&#xa0;&#xa0;<span class="tag"><span class="mark">mark</span></span></a></li>
+<li><a href="#org1467eae">helpful&#xa0;&#xa0;&#xa0;<span class="tag"><span class="help">help</span></span></a></li>
+<li><a href="#org42a2abf">define-word</a></li>
+<li><a href="#org0a04723">synosaurus</a></li>
+<li><a href="#org399266c">exec-path-from-shell</a></li>
+<li><a href="#orgf742204">migemo</a></li>
+<li><a href="#org42efef7">japanese-holidays</a></li>
+<li><a href="#orgff3a641">hungry-delete</a></li>
+<li><a href="#org5daad4b">aggressive-indent-mode</a></li>
+<li><a href="#org5f8d1b9">adaptive-wrap</a></li>
+<li><a href="#orge220297">restart-emacs</a></li>
+<li><a href="#orga3d08cc">pangu-spacing</a></li>
+<li><a href="#org237fa9e">emacs-which-key</a></li>
+<li><a href="#org800584b">hydra</a></li>
+<li><a href="#org9bea08f">pass</a></li>
+<li><a href="#org2144534">password-store</a></li>
+<li><a href="#orgf1f13b8">nov.el</a></li>
+<li><a href="#org3112268">yasnippet</a></li>
+<li><a href="#orge4dcafe">pdf-tools</a></li>
+<li><a href="#orgd3caa22">rainbow-mode</a></li>
+<li><a href="#org0672e08">alert</a></li>
+<li><a href="#orge8715e8">ts.el</a></li>
+<li><a href="#orgbd25a17">app-launcher</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li><a href="#org03ef41e">further customization</a>
+<ul>
+<li><a href="#org81786c4">handy functionalities</a>
+<ul>
+<li><a href="#orgcc9b5fa">power management</a></li>
+<li><a href="#orgb739cff">cursor movement</a></li>
+<li><a href="#orgcdb6b9e">lookup functions</a></li>
+<li><a href="#orgb5e0409">perspective control</a></li>
+<li><a href="#org7221b92">tldr</a></li>
+<li><a href="#orgb0403ef">sending email</a></li>
+<li><a href="#org91ca78b">open url or something</a></li>
+<li><a href="#org16893a6">media file handling</a></li>
+<li><a href="#orgee6a71e">using speech synthesis</a></li>
+<li><a href="#org40e09d8">collective hydra definitions</a></li>
+<li><a href="#orgc6f0037">show the day in calendar</a></li>
+<li><a href="#org7fc9e25">utilities</a></li>
+</ul>
+</li>
+<li><a href="#org1692373">original features</a>
+<ul>
+<li><a href="#org61af8ea">org-english</a></li>
+<li><a href="#org67d0573">org-password-store</a></li>
+<li><a href="#orgd1945f7">org-archive</a></li>
+<li><a href="#org4cd5889">org-capture-derived</a></li>
+<li><a href="#org0021196">org-relate</a></li>
+<li><a href="#org3a938cd">clocktable-by-tag with org-clock</a></li>
+<li><a href="#orga62102a">narrow-dwim</a></li>
+<li><a href="#org91b1298">weather</a></li>
+<li><a href="#orgd988403">view-file</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org000e813">package management</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orga2043ee" class="outline-2">
-<h2 id="orga2043ee">general configuration&#xa0;&#xa0;&#xa0;<span class="tag"><span class="elfeed">elfeed</span>&#xa0;<span class="soft_update">soft_update</span>&#xa0;<span class="prime">prime</span></span></h2>
-<div class="outline-text-2" id="text-orga2043ee">
+<div id="outline-container-org4232030" class="outline-2">
+<h2 id="org4232030">general configuration&#xa0;&#xa0;&#xa0;<span class="tag"><span class="elfeed">elfeed</span>&#xa0;<span class="soft_update">soft_update</span>&#xa0;<span class="prime">prime</span></span></h2>
+<div class="outline-text-2" id="text-org4232030">
 </div>
-<div id="outline-container-org4324c11" class="outline-3">
-<h3 id="org4324c11">early initialization</h3>
-<div class="outline-text-3" id="text-org4324c11">
+<div id="outline-container-org6f8ec3c" class="outline-3">
+<h3 id="org6f8ec3c">early initialization</h3>
+<div class="outline-text-3" id="text-org6f8ec3c">
 <p>
 These process must be evaluated beforehand.
 </p>
 </div>
 
-<div id="outline-container-org29cda4d" class="outline-4">
-<h4 id="org29cda4d">package.el</h4>
-<div class="outline-text-4" id="text-org29cda4d">
+<div id="outline-container-org72462e5" class="outline-4">
+<h4 id="org72462e5">package.el</h4>
+<div class="outline-text-4" id="text-org72462e5">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">require</span> '<span style="font-weight: bold; text-decoration: underline;">package</span>)
 (<span style="font-weight: bold;">setq</span> package-archives
@@ -306,9 +316,9 @@ These process must be evaluated beforehand.
 </div>
 </div>
 
-<div id="outline-container-orgd6ea32c" class="outline-4">
-<h4 id="orgd6ea32c"><a href="https://github.com/raxod502/straight.el/releases.atom">straight.el</a></h4>
-<div class="outline-text-4" id="text-orgd6ea32c">
+<div id="outline-container-org5b9cfce" class="outline-4">
+<h4 id="org5b9cfce"><a href="https://github.com/raxod502/straight.el/releases.atom">straight.el</a></h4>
+<div class="outline-text-4" id="text-org5b9cfce">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setq</span> straight-recipes-gnu-elpa-use-mirror t)
 
@@ -354,9 +364,9 @@ These process must be evaluated beforehand.
 </div>
 </div>
 
-<div id="outline-container-org4f0702d" class="outline-4">
-<h4 id="org4f0702d"><a href="https://github.com/jwiegley/use-package/releases.atom">use-package</a></h4>
-<div class="outline-text-4" id="text-org4f0702d">
+<div id="outline-container-org5131eb5" class="outline-4">
+<h4 id="org5131eb5"><a href="https://github.com/jwiegley/use-package/releases.atom">use-package</a></h4>
+<div class="outline-text-4" id="text-org5131eb5">
 <p>
 <a href="https://jwiegley.github.io/use-package/">Official manual</a> is handy especially when you look up <a href="https://jwiegley.github.io/use-package/keywords/">Keywords</a>.
 </p>
@@ -379,8 +389,8 @@ use-package depends on following packages internally
 </div>
 
 <ul class="org-ul">
-<li><a id="orgc222c5c"></a><a href="https://github.com/myrjola/diminish.el/releases.atom">diminish.el</a><br />
-<div class="outline-text-5" id="text-orgc222c5c">
+<li><a id="org038e847"></a><a href="https://github.com/myrjola/diminish.el/releases.atom">diminish.el</a><br />
+<div class="outline-text-5" id="text-org038e847">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package diminish <span style="font-weight: bold;">:straight</span> t)
 </pre>
@@ -388,8 +398,8 @@ use-package depends on following packages internally
 </div>
 </li>
 
-<li><a id="org82ab551"></a><a href="https://github.com/emacs-straight/delight/releases.atom">delight</a><br />
-<div class="outline-text-5" id="text-org82ab551">
+<li><a id="org890ba39"></a><a href="https://github.com/emacs-straight/delight/releases.atom">delight</a><br />
+<div class="outline-text-5" id="text-org890ba39">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package delight <span style="font-weight: bold;">:straight</span> t)
 </pre>
@@ -399,9 +409,9 @@ use-package depends on following packages internally
 </ul>
 </div>
 
-<div id="outline-container-org5bb3851" class="outline-4">
-<h4 id="org5bb3851">load cl-lib</h4>
-<div class="outline-text-4" id="text-org5bb3851">
+<div id="outline-container-org4ae0d7c" class="outline-4">
+<h4 id="org4ae0d7c">load cl-lib</h4>
+<div class="outline-text-4" id="text-org4ae0d7c">
 <p>
 Use 'cl-lib' rather than 'cl' package since it is <a href="https://www.gnu.org/savannah-checkouts/gnu/emacs/news/NEWS.27.1">officially deprecated</a>.
 </p>
@@ -412,9 +422,9 @@ Use 'cl-lib' rather than 'cl' package since it is <a href="https://www.gnu.org/s
 </div>
 </div>
 </div>
-<div id="outline-container-org19dd374" class="outline-4">
-<h4 id="org19dd374"><a href="https://github.com/protesilaos/modus-themes/releases.atom">modus-themes</a></h4>
-<div class="outline-text-4" id="text-org19dd374">
+<div id="outline-container-org7b2ff1f" class="outline-4">
+<h4 id="org7b2ff1f"><a href="https://github.com/protesilaos/modus-themes/releases.atom">modus-themes</a></h4>
+<div class="outline-text-4" id="text-org7b2ff1f">
 <p>
 I love modus-theme which <a href="https://protesilaos.com/codelog/2019-08-07-emacs-modus-themes/">conforms to WCAG AAA</a>
 </p>
@@ -439,14 +449,44 @@ I love modus-theme which <a href="https://protesilaos.com/codelog/2019-08-07-ema
 </div>
 </div>
 </div>
-<div id="outline-container-orgad8d004" class="outline-3">
-<h3 id="orgad8d004">basic config</h3>
-<div class="outline-text-3" id="text-orgad8d004">
+
+<div id="outline-container-org41045ec" class="outline-3">
+<h3 id="org41045ec">init file</h3>
+<div class="outline-text-3" id="text-org41045ec">
 </div>
 
-<div id="outline-container-orgd1cb37f" class="outline-4">
-<h4 id="orgd1cb37f">language</h4>
-<div class="outline-text-4" id="text-orgd1cb37f">
+<div id="outline-container-orgfc48e30" class="outline-4">
+<h4 id="orgfc48e30">global variable definitions</h4>
+<div class="outline-text-4" id="text-orgfc48e30">
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setf</span> user-emacs-directory (file-name-as-directory <span style="font-style: italic;">"~/var/lib/emacs"</span>))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgb9ebe40" class="outline-4">
+<h4 id="orgb9ebe40">loading lisp files</h4>
+<div class="outline-text-4" id="text-orgb9ebe40">
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">dolist</span> (file (directory-files <span style="font-style: italic;">"~/.emacs.d/lisp"</span> t <span style="font-style: italic;">"</span><span style="font-weight: bold; font-style: italic;">\</span><span style="font-style: italic;">.el$"</span>))
+  (funcall #'load-file file))
+(<span style="font-weight: bold;">dolist</span> (file (directory-files <span style="font-style: italic;">"~/.emacs.d/site-lisp"</span> t <span style="font-style: italic;">"</span><span style="font-weight: bold; font-style: italic;">\</span><span style="font-style: italic;">.el$"</span>))
+  (funcall #'load-file file))
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgdd725d3" class="outline-3">
+<h3 id="orgdd725d3">basic config</h3>
+<div class="outline-text-3" id="text-orgdd725d3">
+</div>
+
+<div id="outline-container-orgc728058" class="outline-4">
+<h4 id="orgc728058">language</h4>
+<div class="outline-text-4" id="text-orgc728058">
 <p>
 <a href="https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Language-Environments">emacs#Language Environments</a>
 </p>
@@ -471,9 +511,9 @@ I love modus-theme which <a href="https://protesilaos.com/codelog/2019-08-07-ema
 </div>
 </div>
 </div>
-<div id="outline-container-orgb04d2f9" class="outline-4">
-<h4 id="orgb04d2f9">visual facets</h4>
-<div class="outline-text-4" id="text-orgb04d2f9">
+<div id="outline-container-orgc736034" class="outline-4">
+<h4 id="orgc736034">visual facets</h4>
+<div class="outline-text-4" id="text-orgc736034">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">do not use basic GUI facets</span>
 (tool-bar-mode -1)
@@ -494,9 +534,9 @@ I love modus-theme which <a href="https://protesilaos.com/codelog/2019-08-07-ema
 </div>
 </div>
 </div>
-<div id="outline-container-orgf7d0b60" class="outline-4">
-<h4 id="orgf7d0b60">face</h4>
-<div class="outline-text-4" id="text-orgf7d0b60">
+<div id="outline-container-orgb9b16e6" class="outline-4">
+<h4 id="orgb9b16e6">face</h4>
+<div class="outline-text-4" id="text-orgb9b16e6">
 <p>
 CAUTION: There are some face definitions which use an extra large font since I am <a href="https://en.wikipedia.org/wiki/Visual_impairment">visually impaired</a>.
 </p>
@@ -569,9 +609,9 @@ CAUTION: There are some face definitions which use an extra large font since I a
 </div>
 </div>
 
-<div id="outline-container-orga1f342f" class="outline-4">
-<h4 id="orga1f342f">file handling</h4>
-<div class="outline-text-4" id="text-orga1f342f">
+<div id="outline-container-org93af47d" class="outline-4">
+<h4 id="org93af47d">file handling</h4>
+<div class="outline-text-4" id="text-org93af47d">
 <p>
 File-related tweaks including <a href="https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Customize-Save">Customizing Saving of Files</a>.
 </p>
@@ -597,13 +637,15 @@ File-related tweaks including <a href="https://www.gnu.org/software/emacs/manual
 (<span style="font-weight: bold;">setq</span> auto-save-interval 4)
 (<span style="font-weight: bold;">setq</span> auto-save-timeout 1)
 (<span style="font-weight: bold;">setq</span> auto-save-default t)
+(<span style="font-weight: bold;">setq</span> auto-save-list-file-prefix
+      (concat user-emacs-directory <span style="font-style: italic;">"auto-save-list/.saves-"</span>))
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-org0448699" class="outline-4">
-<h4 id="org0448699">modifier keys</h4>
-<div class="outline-text-4" id="text-org0448699">
+<div id="outline-container-org7b2ee19" class="outline-4">
+<h4 id="org7b2ee19">modifier keys</h4>
+<div class="outline-text-4" id="text-org7b2ee19">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">cond</span>
  ((string= window-system <span style="font-style: italic;">"x"</span>)
@@ -622,9 +664,9 @@ File-related tweaks including <a href="https://www.gnu.org/software/emacs/manual
 </div>
 </div>
 </div>
-<div id="outline-container-org490153a" class="outline-4">
-<h4 id="org490153a">mark/region</h4>
-<div class="outline-text-4" id="text-org490153a">
+<div id="outline-container-orge85a70d" class="outline-4">
+<h4 id="orge85a70d">mark/region</h4>
+<div class="outline-text-4" id="text-orge85a70d">
 <p>
 Variables need to be carefully tweaked with <a href="https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Mark">manual</a>.
 </p>
@@ -641,9 +683,9 @@ Variables need to be carefully tweaked with <a href="https://www.gnu.org/softwar
 </div>
 </div>
 
-<div id="outline-container-org06cfd33" class="outline-4">
-<h4 id="org06cfd33">window</h4>
-<div class="outline-text-4" id="text-org06cfd33">
+<div id="outline-container-orgd999271" class="outline-4">
+<h4 id="orgd999271">window</h4>
+<div class="outline-text-4" id="text-orgd999271">
 <p>
 Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit-function.
 </p>
@@ -666,9 +708,9 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
 </div>
 </div>
 
-<div id="outline-container-org501e709" class="outline-4">
-<h4 id="org501e709">mode line</h4>
-<div class="outline-text-4" id="text-org501e709">
+<div id="outline-container-org782a955" class="outline-4">
+<h4 id="org782a955">mode line</h4>
+<div class="outline-text-4" id="text-org782a955">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">Don't show line and column number in the mode line</span>
 (line-number-mode -1)
@@ -712,9 +754,9 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
 </div>
 </div>
 
-<div id="outline-container-org50bfef7" class="outline-4">
-<h4 id="org50bfef7">minibuffer</h4>
-<div class="outline-text-4" id="text-org50bfef7">
+<div id="outline-container-org89094cd" class="outline-4">
+<h4 id="org89094cd">minibuffer</h4>
+<div class="outline-text-4" id="text-org89094cd">
 <p>
 <a href="savehist-mode">savehist-mode</a> saves minibuffer history and additionals.
 </p>
@@ -744,9 +786,9 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
 </div>
 </div>
 
-<div id="outline-container-org4ac6ba2" class="outline-4">
-<h4 id="org4ac6ba2">displaying</h4>
-<div class="outline-text-4" id="text-org4ac6ba2">
+<div id="outline-container-orga01e812" class="outline-4">
+<h4 id="orga01e812">displaying</h4>
+<div class="outline-text-4" id="text-orga01e812">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setf</span> scroll-step 1)
 
@@ -783,9 +825,9 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
 </div>
 </div>
 
-<div id="outline-container-org56852a9" class="outline-4">
-<h4 id="org56852a9"><a id="ID-a504f06e-02d3-4dcd-b80b-566a55cca2c7"></a>display buffer</h4>
-<div class="outline-text-4" id="text-org56852a9">
+<div id="outline-container-orgb58aef7" class="outline-4">
+<h4 id="orgb58aef7"><a id="ID-a504f06e-02d3-4dcd-b80b-566a55cca2c7"></a>display buffer</h4>
+<div class="outline-text-4" id="text-orgb58aef7">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setq</span> display-buffer-base-action
       '((display-buffer-same-window
@@ -797,9 +839,9 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
 </div>
 </div>
 
-<div id="outline-container-orgc0dac2f" class="outline-4">
-<h4 id="orgc0dac2f">text handling</h4>
-<div class="outline-text-4" id="text-orgc0dac2f">
+<div id="outline-container-orgdc0ff5f" class="outline-4">
+<h4 id="orgdc0ff5f">text handling</h4>
+<div class="outline-text-4" id="text-orgdc0ff5f">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setq-default</span> fill-column 80)
 
@@ -810,9 +852,9 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
 </div>
 </div>
 
-<div id="outline-container-orgde71d8e" class="outline-4">
-<h4 id="orgde71d8e">indent</h4>
-<div class="outline-text-4" id="text-orgde71d8e">
+<div id="outline-container-orgd1222d9" class="outline-4">
+<h4 id="orgd1222d9">indent</h4>
+<div class="outline-text-4" id="text-orgd1222d9">
 <p>
 customization for <a href="https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Indentation">indentation</a>
 See also [BROKEN LINK: id:4a58219c-74dd-4135-b56d-876b0db2cd83]
@@ -829,9 +871,9 @@ See also [BROKEN LINK: id:4a58219c-74dd-4135-b56d-876b0db2cd83]
 </div>
 </div>
 
-<div id="outline-container-org7a4e038" class="outline-4">
-<h4 id="org7a4e038">performance</h4>
-<div class="outline-text-4" id="text-org7a4e038">
+<div id="outline-container-org4c15dd9" class="outline-4">
+<h4 id="org4c15dd9">performance</h4>
+<div class="outline-text-4" id="text-org4c15dd9">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setq</span> gc-cons-threshold (* 10 gc-cons-threshold))
 (<span style="font-weight: bold;">setq</span> message-log-max 10000)
@@ -846,9 +888,9 @@ See also [BROKEN LINK: id:4a58219c-74dd-4135-b56d-876b0db2cd83]
 </div>
 </div>
 
-<div id="outline-container-org705493e" class="outline-4">
-<h4 id="org705493e">customize buffer</h4>
-<div class="outline-text-4" id="text-org705493e">
+<div id="outline-container-orgd2e9825" class="outline-4">
+<h4 id="orgd2e9825">customize buffer</h4>
+<div class="outline-text-4" id="text-orgd2e9825">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(custom-set-variables
  '(custom-file (expand-file-name <span style="font-style: italic;">"custom.el"</span> user-emacs-directory)))
@@ -857,9 +899,9 @@ See also [BROKEN LINK: id:4a58219c-74dd-4135-b56d-876b0db2cd83]
 </div>
 </div>
 
-<div id="outline-container-org8c4d5ce" class="outline-4">
-<h4 id="org8c4d5ce">killing&#xa0;&#xa0;&#xa0;<span class="tag"><span class="kill">kill</span></span></h4>
-<div class="outline-text-4" id="text-org8c4d5ce">
+<div id="outline-container-org676b038" class="outline-4">
+<h4 id="org676b038">killing&#xa0;&#xa0;&#xa0;<span class="tag"><span class="kill">kill</span></span></h4>
+<div class="outline-text-4" id="text-org676b038">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(custom-set-variables '(yank-pop-change-selection t))
 </pre>
@@ -867,9 +909,9 @@ See also [BROKEN LINK: id:4a58219c-74dd-4135-b56d-876b0db2cd83]
 </div>
 </div>
 
-<div id="outline-container-org7f13cf3" class="outline-4">
-<h4 id="org7f13cf3">mouse</h4>
-<div class="outline-text-4" id="text-org7f13cf3">
+<div id="outline-container-org1d49fbf" class="outline-4">
+<h4 id="org1d49fbf">mouse</h4>
+<div class="outline-text-4" id="text-org1d49fbf">
 <p>
 I prefer to rid my emacs experience of mouse as least as possible.
 </p>
@@ -886,9 +928,9 @@ I prefer to rid my emacs experience of mouse as least as possible.
 </div>
 </div>
 
-<div id="outline-container-org398b6ce" class="outline-4">
-<h4 id="org398b6ce">email&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></h4>
-<div class="outline-text-4" id="text-org398b6ce">
+<div id="outline-container-org9bd391d" class="outline-4">
+<h4 id="org9bd391d">email&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></h4>
+<div class="outline-text-4" id="text-org9bd391d">
 <p>
 &#x2013;&#x2014;BEGIN PGP MESSAGE&#x2013;&#x2014;
 </p>
@@ -912,9 +954,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 
-<div id="outline-container-org9a52f76" class="outline-4">
-<h4 id="org9a52f76"><a href="https://github.com/skk-dev/ddskk/releases.atom">ddskk</a></h4>
-<div class="outline-text-4" id="text-org9a52f76">
+<div id="outline-container-orge991cf0" class="outline-4">
+<h4 id="orge991cf0"><a href="https://github.com/skk-dev/ddskk/releases.atom">ddskk</a></h4>
+<div class="outline-text-4" id="text-orge991cf0">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defvar</span> <span style="font-weight: bold; font-style: italic;">skk-data-dir</span> (expand-file-name <span style="font-style: italic;">"~/var/lib/skk"</span>))
 
@@ -933,7 +975,7 @@ fDDHS5Vq5UvYutk=
   (default-input-method <span style="font-style: italic;">"japanese-skk"</span>)
   (skk-kakutei-key (kbd <span style="font-style: italic;">"C-m"</span>))
   (skk-user-directory (expand-file-name <span style="font-style: italic;">"ddskk"</span> user-emacs-directory))
-  (skk-init-file <span style="font-style: italic;">"~/.config/emacs/ddskk/init.el"</span>)
+  (skk-init-file <span style="font-style: italic;">"~/.emacs.d/lisp/ddskk/init.el"</span>)
   (skk-byte-compile-init-file t)
   (skk-tut-file
    (expand-file-name <span style="font-style: italic;">"etc/SKK.tut"</span> (straight--repos-dir <span style="font-style: italic;">"ddskk"</span>)))
@@ -1006,8 +1048,8 @@ fDDHS5Vq5UvYutk=
 </div>
 
 <ul class="org-ul">
-<li><a id="orgfa48c2b"></a>skk-init-file<br />
-<div class="outline-text-5" id="text-orgfa48c2b">
+<li><a id="org892feee"></a>skk-init-file<br />
+<div class="outline-text-5" id="text-org892feee">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">-*- mode:emacs-lisp; -*-</span>
 (<span style="font-weight: bold;">setq</span> skk-rom-kana-rule-list
@@ -1072,9 +1114,9 @@ fDDHS5Vq5UvYutk=
 </ul>
 </div>
 
-<div id="outline-container-orga3d8ded" class="outline-4">
-<h4 id="orga3d8ded">fundamental key bindings</h4>
-<div class="outline-text-4" id="text-orga3d8ded">
+<div id="outline-container-orge6cb3c1" class="outline-4">
+<h4 id="orge6cb3c1">fundamental key bindings</h4>
+<div class="outline-text-4" id="text-orge6cb3c1">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">to be capable of distinguishing TAB and C-i</span>
 (<span style="font-weight: bold;">setq</span> local-function-key-map (delq '(kp-tab . [9]) local-function-key-map))
@@ -1103,13 +1145,13 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 
-<div id="outline-container-org5c016de" class="outline-3">
-<h3 id="org5c016de">built-in features</h3>
-<div class="outline-text-3" id="text-org5c016de">
+<div id="outline-container-org4e28f25" class="outline-3">
+<h3 id="org4e28f25">built-in features</h3>
+<div class="outline-text-3" id="text-org4e28f25">
 </div>
-<div id="outline-container-orgaaeae2e" class="outline-4">
-<h4 id="orgaaeae2e">Auto Revert</h4>
-<div class="outline-text-4" id="text-orgaaeae2e">
+<div id="outline-container-org0f9f2bf" class="outline-4">
+<h4 id="org0f9f2bf">Auto Revert</h4>
+<div class="outline-text-4" id="text-org0f9f2bf">
 <p>
 <a href="https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Auto-Revert">Auto Revert</a>: Keeping buffers automatically up-to-date.
 </p>
@@ -1127,24 +1169,25 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 
-<div id="outline-container-orgd38c457" class="outline-4">
-<h4 id="orgd38c457">Abbrev</h4>
-<div class="outline-text-4" id="text-orgd38c457">
+<div id="outline-container-org165caa6" class="outline-4">
+<h4 id="org165caa6">Abbrev</h4>
+<div class="outline-text-4" id="text-org165caa6">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package abbrev
   <span style="font-weight: bold;">:diminish</span> abbrev-mode
   <span style="font-weight: bold;">:custom</span>
   (save-abbrevs t)
   <span style="font-weight: bold;">:config</span>
+  (<span style="font-weight: bold;">setf</span> abbrev-file-name (expand-file-name <span style="font-style: italic;">"abbrev_defs"</span> user-emacs-directory))
   (quietly-read-abbrev-file))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgc1abab8" class="outline-4">
-<h4 id="orgc1abab8">EasyPG (epg)</h4>
-<div class="outline-text-4" id="text-orgc1abab8">
+<div id="outline-container-org4121ced" class="outline-4">
+<h4 id="org4121ced">EasyPG (epg)</h4>
+<div class="outline-text-4" id="text-org4121ced">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package epg
   <span style="font-weight: bold;">:custom</span>
@@ -1154,9 +1197,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 
-<div id="outline-container-org575d560" class="outline-4">
-<h4 id="org575d560">auth-source</h4>
-<div class="outline-text-4" id="text-org575d560">
+<div id="outline-container-org46df106" class="outline-4">
+<h4 id="org46df106">auth-source</h4>
+<div class="outline-text-4" id="text-org46df106">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package auth-source
   <span style="font-weight: bold;">:custom</span>
@@ -1172,9 +1215,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 
-<div id="outline-container-org8176eae" class="outline-4">
-<h4 id="org8176eae">whitespace</h4>
-<div class="outline-text-4" id="text-org8176eae">
+<div id="outline-container-org056c59b" class="outline-4">
+<h4 id="org056c59b">whitespace</h4>
+<div class="outline-text-4" id="text-org056c59b">
 <p>
 <a href="https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Useless-Whitespace">emacs#Useless Whitespace</a>
 </p>
@@ -1202,9 +1245,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 
-<div id="outline-container-org620d53d" class="outline-4">
-<h4 id="org620d53d">hippie-exp</h4>
-<div class="outline-text-4" id="text-org620d53d">
+<div id="outline-container-orge97052e" class="outline-4">
+<h4 id="orge97052e">hippie-exp</h4>
+<div class="outline-text-4" id="text-orge97052e">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package hippie-exp
   <span style="font-weight: bold;">:bind</span> (<span style="font-style: italic;">"M-/"</span> . hippie-expand)
@@ -1222,15 +1265,13 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 
-<div id="outline-container-org88f756f" class="outline-4">
-<h4 id="org88f756f">bookmark</h4>
-<div class="outline-text-4" id="text-org88f756f">
+<div id="outline-container-org5a09937" class="outline-4">
+<h4 id="org5a09937">bookmark</h4>
+<div class="outline-text-4" id="text-org5a09937">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package bookmark
   <span style="font-weight: bold;">:bind</span> (<span style="font-style: italic;">"C-c b"</span> . bookmark-jump)
   <span style="font-weight: bold;">:custom</span>
-  (bookmark-default-file
-   (expand-file-name <span style="font-style: italic;">".bookmarks.gpg"</span> user-emacs-directory))
   (bookmark-watch-bookmark-file 'silent)
   <span style="font-weight: bold;">:config</span>
   (delight 'bookmark-bmenu-mode <span style="font-style: italic;">" BB"</span>))
@@ -1239,9 +1280,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 
-<div id="outline-container-orge23f691" class="outline-4">
-<h4 id="orge23f691">find-dired</h4>
-<div class="outline-text-4" id="text-orge23f691">
+<div id="outline-container-orgdbc6ba4" class="outline-4">
+<h4 id="orgdbc6ba4">find-dired</h4>
+<div class="outline-text-4" id="text-orgdbc6ba4">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package find-dired
   <span style="font-weight: bold;">:custom</span>
@@ -1263,9 +1304,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 
-<div id="outline-container-orgd93a547" class="outline-4">
-<h4 id="orgd93a547">hideshow</h4>
-<div class="outline-text-4" id="text-orgd93a547">
+<div id="outline-container-org95d9d27" class="outline-4">
+<h4 id="org95d9d27">hideshow</h4>
+<div class="outline-text-4" id="text-org95d9d27">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package hideshow
   <span style="font-weight: bold;">:diminish</span> <span style="font-style: italic;">"hs"</span>
@@ -1275,9 +1316,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 
-<div id="outline-container-org7a4b26c" class="outline-4">
-<h4 id="org7a4b26c">uniquify</h4>
-<div class="outline-text-4" id="text-org7a4b26c">
+<div id="outline-container-org23ef915" class="outline-4">
+<h4 id="org23ef915">uniquify</h4>
+<div class="outline-text-4" id="text-org23ef915">
 <p>
 <a href="https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Uniquify">Uniquify</a> makes buffer names unique.
 </p>
@@ -1292,9 +1333,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 </div>
-<div id="outline-container-orgfeeb9a5" class="outline-4">
-<h4 id="orgfeeb9a5">recentf</h4>
-<div class="outline-text-4" id="text-orgfeeb9a5">
+<div id="outline-container-orgfb0a6ff" class="outline-4">
+<h4 id="orgfb0a6ff">recentf</h4>
+<div class="outline-text-4" id="text-orgfb0a6ff">
 <p>
 <a href="https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#File-Conveniences">emacs#File Conveniences</a>
 </p>
@@ -1313,9 +1354,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 </div>
-<div id="outline-container-org918e38e" class="outline-4">
-<h4 id="org918e38e">server</h4>
-<div class="outline-text-4" id="text-org918e38e">
+<div id="outline-container-org6d6fbbd" class="outline-4">
+<h4 id="org6d6fbbd">server</h4>
+<div class="outline-text-4" id="text-org6d6fbbd">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package server
   <span style="font-weight: bold;">:config</span>
@@ -1325,9 +1366,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 </div>
-<div id="outline-container-org38d4637" class="outline-4">
-<h4 id="org38d4637">calc</h4>
-<div class="outline-text-4" id="text-org38d4637">
+<div id="outline-container-org48a77a2" class="outline-4">
+<h4 id="org48a77a2">calc</h4>
+<div class="outline-text-4" id="text-org48a77a2">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package calc
   <span style="font-weight: bold;">:bind</span> ((<span style="font-style: italic;">"&lt;f5&gt;"</span> . calc))
@@ -1337,23 +1378,23 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 </div>
-<div id="outline-container-orgba04a10" class="outline-4">
-<h4 id="orgba04a10">calendar</h4>
-<div class="outline-text-4" id="text-orgba04a10">
+<div id="outline-container-org530a843" class="outline-4">
+<h4 id="org530a843">calendar</h4>
+<div class="outline-text-4" id="text-org530a843">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package calendar
   <span style="font-weight: bold;">:commands</span> calendar
   <span style="font-weight: bold;">:config</span>
   (bind-keys <span style="font-weight: bold;">:map</span> calendar-mode-map
-             (<span style="font-style: italic;">"v"</span> . calendar-org-archive-show-summary-day)))
+             (<span style="font-style: italic;">"v"</span> . my/calendar-show-items)))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org2c0a7d3" class="outline-4">
-<h4 id="org2c0a7d3">proced</h4>
-<div class="outline-text-4" id="text-org2c0a7d3">
+<div id="outline-container-org9d29970" class="outline-4">
+<h4 id="org9d29970">proced</h4>
+<div class="outline-text-4" id="text-org9d29970">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package proced
   <span style="font-weight: bold;">:no-require</span> t
@@ -1364,13 +1405,13 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 </div>
-<div id="outline-container-orgd163abe" class="outline-4">
-<h4 id="orgd163abe">vc (version control)&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span></span></h4>
-<div class="outline-text-4" id="text-orgd163abe">
+<div id="outline-container-org23052f9" class="outline-4">
+<h4 id="org23052f9">vc (version control)&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span></span></h4>
+<div class="outline-text-4" id="text-org23052f9">
 </div>
 <ul class="org-ul">
-<li><a id="org2c08db9"></a>ediff<br />
-<div class="outline-text-5" id="text-org2c08db9">
+<li><a id="org5ca2310"></a>ediff<br />
+<div class="outline-text-5" id="text-org5ca2310">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package ediff
   <span style="font-weight: bold;">:commands</span> ediff-files
@@ -1381,8 +1422,8 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 </li>
-<li><a id="orge2392a5"></a>vc-hooks<br />
-<div class="outline-text-5" id="text-orge2392a5">
+<li><a id="org6531eb2"></a>vc-hooks<br />
+<div class="outline-text-5" id="text-org6531eb2">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package vc-hooks
   <span style="font-weight: bold;">:custom</span>
@@ -1393,9 +1434,9 @@ fDDHS5Vq5UvYutk=
 </li>
 </ul>
 </div>
-<div id="outline-container-orgc1758b7" class="outline-4">
-<h4 id="orgc1758b7">re-builder</h4>
-<div class="outline-text-4" id="text-orgc1758b7">
+<div id="outline-container-org3805ee2" class="outline-4">
+<h4 id="org3805ee2">re-builder</h4>
+<div class="outline-text-4" id="text-org3805ee2">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package re-builder
   <span style="font-weight: bold;">:custom</span>
@@ -1404,9 +1445,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 </div>
-<div id="outline-container-orgf7d906b" class="outline-4">
-<h4 id="orgf7d906b">isearch</h4>
-<div class="outline-text-4" id="text-orgf7d906b">
+<div id="outline-container-org7d6e31e" class="outline-4">
+<h4 id="org7d6e31e">isearch</h4>
+<div class="outline-text-4" id="text-org7d6e31e">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package isearch
   <span style="font-weight: bold;">:diminish</span> <span style="font-style: italic;">"is"</span>
@@ -1418,9 +1459,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 
-<div id="outline-container-orgb335cf3" class="outline-4">
-<h4 id="orgb335cf3">imenu&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></h4>
-<div class="outline-text-4" id="text-orgb335cf3">
+<div id="outline-container-orgdf93e49" class="outline-4">
+<h4 id="orgdf93e49">imenu&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></h4>
+<div class="outline-text-4" id="text-orgdf93e49">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package imenu
   <span style="font-weight: bold;">:custom</span>
@@ -1429,9 +1470,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 </div>
-<div id="outline-container-org8d198d1" class="outline-4">
-<h4 id="org8d198d1">flyspell&#xa0;&#xa0;&#xa0;<span class="tag"><span class="fixit">fixit</span></span></h4>
-<div class="outline-text-4" id="text-org8d198d1">
+<div id="outline-container-org7e89dfe" class="outline-4">
+<h4 id="org7e89dfe">flyspell&#xa0;&#xa0;&#xa0;<span class="tag"><span class="fixit">fixit</span></span></h4>
+<div class="outline-text-4" id="text-org7e89dfe">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package flyspell
   <span style="font-weight: bold;">:diminish</span> <span style="font-style: italic;">"fs"</span>
@@ -1465,9 +1506,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 </div>
-<div id="outline-container-org4cfae52" class="outline-4">
-<h4 id="org4cfae52"><a id="ID-a55da7a2-6525-4788-ba56-085eb61928d4"></a>help&#xa0;&#xa0;&#xa0;<span class="tag"><span class="help">help</span></span></h4>
-<div class="outline-text-4" id="text-org4cfae52">
+<div id="outline-container-orgc1c661f" class="outline-4">
+<h4 id="orgc1c661f"><a id="ID-a55da7a2-6525-4788-ba56-085eb61928d4"></a>help&#xa0;&#xa0;&#xa0;<span class="tag"><span class="help">help</span></span></h4>
+<div class="outline-text-4" id="text-orgc1c661f">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package help-mode
   <span style="font-weight: bold;">:delight</span> <span style="font-style: italic;">" HE"</span>
@@ -1489,9 +1530,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 </div>
-<div id="outline-container-orgbe7c319" class="outline-4">
-<h4 id="orgbe7c319">info&#xa0;&#xa0;&#xa0;<span class="tag"><span class="help">help</span></span></h4>
-<div class="outline-text-4" id="text-orgbe7c319">
+<div id="outline-container-org8f0801c" class="outline-4">
+<h4 id="org8f0801c">info&#xa0;&#xa0;&#xa0;<span class="tag"><span class="help">help</span></span></h4>
+<div class="outline-text-4" id="text-org8f0801c">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package Info
   <span style="font-weight: bold;">:defer</span> t
@@ -1518,9 +1559,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 </div>
-<div id="outline-container-orgd3041dc" class="outline-4">
-<h4 id="orgd3041dc">tramp</h4>
-<div class="outline-text-4" id="text-orgd3041dc">
+<div id="outline-container-org0e6f16b" class="outline-4">
+<h4 id="org0e6f16b">tramp</h4>
+<div class="outline-text-4" id="text-org0e6f16b">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package tramp
   <span style="font-weight: bold;">:defer</span> t
@@ -1533,9 +1574,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 
-<div id="outline-container-orgf69481e" class="outline-4">
-<h4 id="orgf69481e">view</h4>
-<div class="outline-text-4" id="text-orgf69481e">
+<div id="outline-container-orgb769e4c" class="outline-4">
+<h4 id="orgb769e4c">view</h4>
+<div class="outline-text-4" id="text-orgb769e4c">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package view
   <span style="font-weight: bold;">:diminish</span> view-mode <span style="font-style: italic;">"vw"</span>)
@@ -1543,9 +1584,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 </div>
-<div id="outline-container-org034d797" class="outline-4">
-<h4 id="org034d797">woman&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></h4>
-<div class="outline-text-4" id="text-org034d797">
+<div id="outline-container-orgc837d2a" class="outline-4">
+<h4 id="orgc837d2a">woman&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></h4>
+<div class="outline-text-4" id="text-orgc837d2a">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package woman
   <span style="font-weight: bold;">:defer</span> t
@@ -1563,9 +1604,9 @@ fDDHS5Vq5UvYutk=
 </div>
 </div>
 </div>
-<div id="outline-container-org0d630e3" class="outline-4">
-<h4 id="org0d630e3">executable</h4>
-<div class="outline-text-4" id="text-org0d630e3">
+<div id="outline-container-orgc413e6e" class="outline-4">
+<h4 id="orgc413e6e">executable</h4>
+<div class="outline-text-4" id="text-orgc413e6e">
 <p>
 This customization is based on <a href="https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/">this advice</a>
 </p>
@@ -1578,9 +1619,9 @@ This customization is based on <a href="https://emacsredux.com/blog/2021/09/29/m
 </div>
 </div>
 </div>
-<div id="outline-container-org8fc3f28" class="outline-4">
-<h4 id="org8fc3f28">paren</h4>
-<div class="outline-text-4" id="text-org8fc3f28">
+<div id="outline-container-org9d797da" class="outline-4">
+<h4 id="org9d797da">paren</h4>
+<div class="outline-text-4" id="text-org9d797da">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package paren
   <span style="font-weight: bold;">:custom</span>
@@ -1594,9 +1635,9 @@ This customization is based on <a href="https://emacsredux.com/blog/2021/09/29/m
 </div>
 </div>
 
-<div id="outline-container-orgd43d4bb" class="outline-3">
-<h3 id="orgd43d4bb">EWW</h3>
-<div class="outline-text-3" id="text-orgd43d4bb">
+<div id="outline-container-org27156a4" class="outline-3">
+<h3 id="org27156a4">EWW</h3>
+<div class="outline-text-3" id="text-org27156a4">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package eww
   <span style="font-weight: bold;">:delight</span> <span style="font-style: italic;">" EW"</span>
@@ -1726,9 +1767,9 @@ This customization is based on <a href="https://emacsredux.com/blog/2021/09/29/m
 </div>
 </div>
 
-<div id="outline-container-org72321ad" class="outline-4">
-<h4 id="org72321ad">extract<sub>headings</sub></h4>
-<div class="outline-text-4" id="text-org72321ad">
+<div id="outline-container-orgf80d664" class="outline-4">
+<h4 id="orgf80d664">extract<sub>headings</sub></h4>
+<div class="outline-text-4" id="text-orgf80d664">
 <div class="org-src-container">
 <pre class="src src-python"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/env python3</span>
 
@@ -1780,9 +1821,9 @@ This customization is based on <a href="https://emacsredux.com/blog/2021/09/29/m
 </div>
 </div>
 
-<div id="outline-container-org6989fe7" class="outline-3">
-<h3 id="org6989fe7"><a href="https://github.com/djcb/mu/releases.atom">mu4e</a></h3>
-<div class="outline-text-3" id="text-org6989fe7">
+<div id="outline-container-orgf6bb32e" class="outline-3">
+<h3 id="orgf6bb32e"><a href="https://github.com/djcb/mu/releases.atom">mu4e</a></h3>
+<div class="outline-text-3" id="text-orgf6bb32e">
 <p>
 You need to <a href="https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-message-store.html">issue 'mu init' command</a> after changing either maildir, email address or home-dir for mu.
 </p>
@@ -1855,9 +1896,9 @@ You need to <a href="https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-m
 </div>
 </div>
 
-<div id="outline-container-orgfbe2d1e" class="outline-4">
-<h4 id="orgfbe2d1e"><a href="https://github.com/iqbalansari/mu4e-alert/releases.atom">mu4e-alert</a></h4>
-<div class="outline-text-4" id="text-orgfbe2d1e">
+<div id="outline-container-orge529c4d" class="outline-4">
+<h4 id="orge529c4d"><a href="https://github.com/iqbalansari/mu4e-alert/releases.atom">mu4e-alert</a></h4>
+<div class="outline-text-4" id="text-orge529c4d">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package mu4e-alert
   <span style="font-weight: bold;">:straight</span> t
@@ -1878,9 +1919,9 @@ You need to <a href="https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-m
 </div>
 </div>
 
-<div id="outline-container-org4ebb850" class="outline-4">
-<h4 id="org4ebb850">additional tweaks</h4>
-<div class="outline-text-4" id="text-org4ebb850">
+<div id="outline-container-orgc5c2bd1" class="outline-4">
+<h4 id="orgc5c2bd1">additional tweaks</h4>
+<div class="outline-text-4" id="text-orgc5c2bd1">
 <ul class="org-ul">
 <li><p>
 file attachment in dired (<a href="https://www.djcbsoftware.nl/code/mu/mu4e/Dired.html">source</a>)
@@ -1919,9 +1960,9 @@ use contact info from org-contacts
 </div>
 </div>
 
-<div id="outline-container-orgea282a0" class="outline-4">
-<h4 id="orgea282a0">personal settings&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></h4>
-<div class="outline-text-4" id="text-orgea282a0">
+<div id="outline-container-org62426e9" class="outline-4">
+<h4 id="org62426e9">personal settings&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></h4>
+<div class="outline-text-4" id="text-org62426e9">
 <p>
 &#x2013;&#x2014;BEGIN PGP MESSAGE&#x2013;&#x2014;
 </p>
@@ -1963,9 +2004,9 @@ lDAmxVslTY94qV4=
 </div>
 </div>
 
-<div id="outline-container-org8772836" class="outline-3">
-<h3 id="org8772836"><a href="https://github.com/skeeto/elfeed/releases.atom">elfeed</a></h3>
-<div class="outline-text-3" id="text-org8772836">
+<div id="outline-container-org35d733d" class="outline-3">
+<h3 id="org35d733d"><a href="https://github.com/skeeto/elfeed/releases.atom">elfeed</a></h3>
+<div class="outline-text-3" id="text-org35d733d">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package elfeed
   <span style="font-weight: bold;">:straight</span> t
@@ -2153,9 +2194,9 @@ lDAmxVslTY94qV4=
 </div>
 </div>
 
-<div id="outline-container-org281eef1" class="outline-4">
-<h4 id="org281eef1"><a href="https://github.com/remyhonig/elfeed-org/releases.atom">elfeed-org</a></h4>
-<div class="outline-text-4" id="text-org281eef1">
+<div id="outline-container-orgaba6d3c" class="outline-4">
+<h4 id="orgaba6d3c"><a href="https://github.com/remyhonig/elfeed-org/releases.atom">elfeed-org</a></h4>
+<div class="outline-text-4" id="text-orgaba6d3c">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package elfeed-org
   <span style="font-weight: bold;">:straight</span> t
@@ -2171,9 +2212,9 @@ lDAmxVslTY94qV4=
 </div>
 </div>
 
-<div id="outline-container-org1eb3d97" class="outline-4">
-<h4 id="org1eb3d97">personal tagging rules&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></h4>
-<div class="outline-text-4" id="text-org1eb3d97">
+<div id="outline-container-orgc295c09" class="outline-4">
+<h4 id="orgc295c09">personal tagging rules&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></h4>
+<div class="outline-text-4" id="text-orgc295c09">
 <p>
 &#x2013;&#x2014;BEGIN PGP MESSAGE&#x2013;&#x2014;
 </p>
@@ -2211,9 +2252,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-orgc74c9b7" class="outline-3">
-<h3 id="orgc74c9b7">Dired</h3>
-<div class="outline-text-3" id="text-orgc74c9b7">
+<div id="outline-container-org2790e46" class="outline-3">
+<h3 id="org2790e46">Dired</h3>
+<div class="outline-text-3" id="text-org2790e46">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package dired
   <span style="font-weight: bold;">:bind</span> (<span style="font-weight: bold;">:map</span> dired-mode-map
@@ -2275,9 +2316,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-orgcb4d53f" class="outline-4">
-<h4 id="orgcb4d53f"><a href="https://github.com/stsquad/dired-rsync/releases.atom">dired-rsync</a></h4>
-<div class="outline-text-4" id="text-orgcb4d53f">
+<div id="outline-container-org9119410" class="outline-4">
+<h4 id="org9119410"><a href="https://github.com/stsquad/dired-rsync/releases.atom">dired-rsync</a></h4>
+<div class="outline-text-4" id="text-org9119410">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package dired-rsync
   <span style="font-weight: bold;">:straight</span> t
@@ -2291,9 +2332,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org4a2538e" class="outline-4">
-<h4 id="org4a2538e"><a href="https://github.com/crocket/dired-single/releases.atom">dired-single</a></h4>
-<div class="outline-text-4" id="text-org4a2538e">
+<div id="outline-container-org18690db" class="outline-4">
+<h4 id="org18690db"><a href="https://github.com/crocket/dired-single/releases.atom">dired-single</a></h4>
+<div class="outline-text-4" id="text-org18690db">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package dired-single
   <span style="font-weight: bold;">:straight</span> t
@@ -2306,9 +2347,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org0768916" class="outline-4">
-<h4 id="org0768916"><a href="https://github.com/Fuco1/dired-hacks/releases.atom">dired-hacks</a></h4>
-<div class="outline-text-4" id="text-org0768916">
+<div id="outline-container-orge95466b" class="outline-4">
+<h4 id="orge95466b"><a href="https://github.com/Fuco1/dired-hacks/releases.atom">dired-hacks</a></h4>
+<div class="outline-text-4" id="text-orge95466b">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package dired-subtree
   <span style="font-weight: bold;">:straight</span> t
@@ -2329,9 +2370,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org7f09845" class="outline-4">
-<h4 id="org7f09845"><a href="https://github.com/mattiasb/dired-hide-dotfiles/releases.atom">dired-hide-dotfiles</a></h4>
-<div class="outline-text-4" id="text-org7f09845">
+<div id="outline-container-orgcb468bc" class="outline-4">
+<h4 id="orgcb468bc"><a href="https://github.com/mattiasb/dired-hide-dotfiles/releases.atom">dired-hide-dotfiles</a></h4>
+<div class="outline-text-4" id="text-orgcb468bc">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package dired-hide-dotfiles
   <span style="font-weight: bold;">:straight</span> t
@@ -2346,9 +2387,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org1e26eb7" class="outline-4">
-<h4 id="org1e26eb7"><a href="https://github.com/emacs-straight/dired-du/releases.atom">dired-du</a></h4>
-<div class="outline-text-4" id="text-org1e26eb7">
+<div id="outline-container-orgb17244a" class="outline-4">
+<h4 id="orgb17244a"><a href="https://github.com/emacs-straight/dired-du/releases.atom">dired-du</a></h4>
+<div class="outline-text-4" id="text-orgb17244a">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package dired-du
   <span style="font-weight: bold;">:straight</span> t
@@ -2364,14 +2405,14 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org7c2521e" class="outline-3">
-<h3 id="org7c2521e">Shells</h3>
-<div class="outline-text-3" id="text-org7c2521e">
+<div id="outline-container-orgfe89fa3" class="outline-3">
+<h3 id="orgfe89fa3">Shells</h3>
+<div class="outline-text-3" id="text-orgfe89fa3">
 </div>
 
-<div id="outline-container-org5d1fd8c" class="outline-4">
-<h4 id="org5d1fd8c">shell</h4>
-<div class="outline-text-4" id="text-org5d1fd8c">
+<div id="outline-container-org7c852fd" class="outline-4">
+<h4 id="org7c852fd">shell</h4>
+<div class="outline-text-4" id="text-org7c852fd">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package shell
   <span style="font-weight: bold;">:delight</span> <span style="font-style: italic;">" SM"</span>
@@ -2384,9 +2425,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org83c5a11" class="outline-4">
-<h4 id="org83c5a11">term</h4>
-<div class="outline-text-4" id="text-org83c5a11">
+<div id="outline-container-orgc2f0571" class="outline-4">
+<h4 id="orgc2f0571">term</h4>
+<div class="outline-text-4" id="text-orgc2f0571">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package term
   <span style="font-weight: bold;">:delight</span>
@@ -2399,9 +2440,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org33a1d80" class="outline-4">
-<h4 id="org33a1d80">vterm</h4>
-<div class="outline-text-4" id="text-org33a1d80">
+<div id="outline-container-org1da4c4c" class="outline-4">
+<h4 id="org1da4c4c">vterm</h4>
+<div class="outline-text-4" id="text-org1da4c4c">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package vterm
   <span style="font-weight: bold;">:straight</span> t
@@ -2437,9 +2478,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org31a51c4" class="outline-4">
-<h4 id="org31a51c4">eshell</h4>
-<div class="outline-text-4" id="text-org31a51c4">
+<div id="outline-container-org2ae4a39" class="outline-4">
+<h4 id="org2ae4a39">eshell</h4>
+<div class="outline-text-4" id="text-org2ae4a39">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package eshell
   <span style="font-weight: bold;">:delight</span> <span style="font-style: italic;">" ES"</span>
@@ -2454,11 +2495,7 @@ dMv+byk5Rw==
   (eshell-prompt-regexp <span style="font-style: italic;">"[#$] "</span>)
   (eshell-visual-subcommands '((<span style="font-style: italic;">"git"</span> <span style="font-style: italic;">"log"</span> <span style="font-style: italic;">"diff"</span> <span style="font-style: italic;">"show"</span>)))
   <span style="font-weight: bold;">:config</span>
-  (<span style="font-weight: bold;">setq</span> eshell-path-env (getenv <span style="font-style: italic;">"PATH"</span>))
-  (bind-keys <span style="font-weight: bold;">:map</span> eshell-mode-map
-             (<span style="font-style: italic;">"C-j"</span>    . eshell-send-input)
-             (<span style="font-style: italic;">"&lt;up&gt;"</span>   . previous-line)
-             (<span style="font-style: italic;">"&lt;down&gt;"</span> . next-line)))
+  (<span style="font-weight: bold;">setq</span> eshell-path-env (getenv <span style="font-style: italic;">"PATH"</span>)))
 
 (<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">eshell-command-alert</span> (process status)
   <span style="font-style: italic;">"Send `</span><span style="font-weight: bold; font-style: italic; text-decoration: underline;">alert</span><span style="font-style: italic;">' with severity based on STATUS when PROCESS finished."</span>
@@ -2474,14 +2511,14 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org43f7021" class="outline-3">
-<h3 id="org43f7021">org mode</h3>
-<div class="outline-text-3" id="text-org43f7021">
+<div id="outline-container-org70d9c74" class="outline-3">
+<h3 id="org70d9c74">org mode</h3>
+<div class="outline-text-3" id="text-org70d9c74">
 </div>
 
-<div id="outline-container-org1ce6630" class="outline-4">
-<h4 id="org1ce6630">org</h4>
-<div class="outline-text-4" id="text-org1ce6630">
+<div id="outline-container-org2e975ad" class="outline-4">
+<h4 id="org2e975ad">org</h4>
+<div class="outline-text-4" id="text-org2e975ad">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org
   <span style="font-weight: bold;">:straight</span> t
@@ -2489,8 +2526,6 @@ dMv+byk5Rw==
   <span style="font-weight: bold;">:mode</span> ((<span style="font-style: italic;">"\\.org$"</span> . org-mode))
   <span style="font-weight: bold;">:interpreter</span> ((<span style="font-style: italic;">"org"</span> . org-mode))
   <span style="font-weight: bold;">:init</span>
-  (add-to-list 'load-path (concat (file-name-as-directory user-emacs-directory) <span style="font-style: italic;">"straight/repos/org/lisp"</span>))
-  (add-to-list 'load-path (concat (file-name-as-directory user-emacs-directory) <span style="font-style: italic;">"straight/repos/org/contrib/lisp"</span>))
   (<span style="font-weight: bold;">defvar</span> <span style="font-weight: bold; font-style: italic;">org-warning-keyword-0</span> <span style="font-style: italic;">"UG"</span> <span style="font-style: italic;">"TODO keyword acronym standing for 'UrGent'"</span>)
   (<span style="font-weight: bold;">defvar</span> <span style="font-weight: bold; font-style: italic;">org-todo-keyword-0</span> <span style="font-style: italic;">"TD"</span> <span style="font-style: italic;">"TODO keyword acronym standing for 'To Do'"</span>)
   (<span style="font-weight: bold;">defvar</span> <span style="font-weight: bold; font-style: italic;">org-todo-keyword-1</span> <span style="font-style: italic;">"GO"</span> <span style="font-style: italic;">"TODO keyword acronym standing for 'Get On'"</span>)
@@ -2540,65 +2575,15 @@ dMv+byk5Rw==
   <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">attach</span>
   (<span style="font-weight: bold;">setq</span> org-attach-preferred-new-method nil)
 
-  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">link</span>
-  (<span style="font-weight: bold;">setq</span> org-confirm-elisp-link-function nil) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">do not confirm when execute elisp</span>
-  (org-link-set-parameters
-   <span style="font-style: italic;">"src"</span> <span style="font-weight: bold;">:follow</span> #'org-babel-ref-resolve)
-  (<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">org-open-at-point-link</span> ()
-    <span style="font-style: italic;">"This function is responsible for org links when user calls `</span><span style="font-weight: bold; font-style: italic; text-decoration: underline;">org-open-at-point</span><span style="font-style: italic;">'."</span>
-    (<span style="font-weight: bold;">let*</span> ((context (org-element-lineage
-                     (org-element-context)
-                     '(link)
-                     t))
-           (type (org-element-property <span style="font-weight: bold;">:type</span> context))
-           (path (org-element-property <span style="font-weight: bold;">:path</span> context))
-           (app (org-element-property <span style="font-weight: bold;">:application</span> context))
-           (search-option (org-element-property <span style="font-weight: bold;">:search-option</span> context)))
-      (<span style="font-weight: bold;">if</span> (stringp type)
-          (<span style="font-weight: bold;">cond</span>
-           ((string-match-p <span style="font-style: italic;">"https?"</span> type)
-            (<span style="font-weight: bold;">let</span> ((url-pos (split-location-uri (org-link-unescape (concat type <span style="font-style: italic;">":"</span> path)))))
-              (<span style="font-weight: bold;">cl-case</span> (prefix-numeric-value current-prefix-arg)
-                (16 (browse-url-default-browser (car url-pos)))
-                (4 (eww-browse-url (car url-pos)))
-                (t (open-url (car url-pos) (cadr url-pos))))
-              t))
-           ((string= type <span style="font-style: italic;">"file"</span>)
-            (<span style="font-weight: bold;">let</span> ((line-search (<span style="font-weight: bold;">cond</span> ((not search-option) nil)
-                                     ((string-match-p <span style="font-style: italic;">"\\`[0-9]+\\'"</span> search-option)
-                                      (list (string-to-number search-option)))
-                                     (t (list nil search-option)))))
-              (apply #'my/org-open-file
-                     path
-                     (<span style="font-weight: bold;">cond</span>
-                      ((equal app <span style="font-style: italic;">"sys"</span>) 'system)
-                      ((equal app <span style="font-style: italic;">"emacs"</span>) 'emacs)
-                      (t nil))
-                     line-search))
-            t))
-        (my/enter-thing-at-point))))
-  (add-to-list 'org-open-at-point-functions 'org-open-at-point-link)
   (<span style="font-weight: bold;">setq</span> org-file-apps
         '((t . (<span style="font-weight: bold;">lambda</span> (file-path link-string)
                  (my/view-file file-path)))))
-  (org-add-link-type
-   <span style="font-style: italic;">"sudo"</span>
-   (<span style="font-weight: bold;">lambda</span> (cmd)
-     <span style="font-style: italic;">"Run CMD with sudo."</span>
-     (shell-command
-      (concat <span style="font-style: italic;">"echo "</span> (shell-quote-argument (read-passwd <span style="font-style: italic;">"Password? "</span>))
-              <span style="font-style: italic;">" | sudo -S "</span> cmd))))
 
   <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">basic</span>
   (<span style="font-weight: bold;">setq</span> org-hide-leading-stars t)
   (<span style="font-weight: bold;">setq</span> org-comment-string <span style="font-style: italic;">"####"</span>)
   (<span style="font-weight: bold;">setq</span> org-pretty-entities t)
   (<span style="font-weight: bold;">setq</span> org-use-sub-superscripts '{}) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">use _{}/^{} for sub/super script</span>
-
-  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">display</span>
-  (add-hook 'org-mode-hook
-            (<span style="font-weight: bold;">lambda</span> ()
-              (<span style="font-weight: bold;">setq-local</span> truncate-lines t)))
 
   <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">tag/property</span>
   (<span style="font-weight: bold;">setq</span> org-use-tag-inheritance <span style="font-style: italic;">"ARCHIVE"</span>)
@@ -2705,7 +2690,7 @@ dMv+byk5Rw==
               (<span style="font-weight: bold;">setq</span> skk-dcomp-multiple-activate nil)))
 
   <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">clock table</span>
-  <span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">work around for the bug in emacs 25</span>
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">work around for the bug in emacs 25</span>
   (<span style="font-weight: bold;">defalias</span> '<span style="font-weight: bold;">calendar-absolute-from-iso</span> 'calendar-iso-to-absolute)
 
   <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">image</span>
@@ -2720,9 +2705,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-orgaba44b4" class="outline-4">
-<h4 id="orgaba44b4">org-agenda</h4>
-<div class="outline-text-4" id="text-orgaba44b4">
+<div id="outline-container-org6eb7a5c" class="outline-4">
+<h4 id="org6eb7a5c">org-agenda</h4>
+<div class="outline-text-4" id="text-org6eb7a5c">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-agenda
   <span style="font-weight: bold;">:after</span> (org org-ql my/org-archive)
@@ -3050,9 +3035,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org8196ede" class="outline-4">
-<h4 id="org8196ede">org-capture</h4>
-<div class="outline-text-4" id="text-org8196ede">
+<div id="outline-container-orgdaa4097" class="outline-4">
+<h4 id="orgdaa4097">org-capture</h4>
+<div class="outline-text-4" id="text-orgdaa4097">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-capture
   <span style="font-weight: bold;">:after</span> (org my/org-archive)
@@ -3137,9 +3122,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-orge6a6c7f" class="outline-4">
-<h4 id="orge6a6c7f">org-timer and org-clock</h4>
-<div class="outline-text-4" id="text-orge6a6c7f">
+<div id="outline-container-orga158fb1" class="outline-4">
+<h4 id="orga158fb1">org-timer and org-clock</h4>
+<div class="outline-text-4" id="text-orga158fb1">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-timer
   <span style="font-weight: bold;">:after</span> org
@@ -3217,9 +3202,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org40dcb67" class="outline-4">
-<h4 id="org40dcb67">org-refile</h4>
-<div class="outline-text-4" id="text-org40dcb67">
+<div id="outline-container-org655259e" class="outline-4">
+<h4 id="org655259e">org-refile</h4>
+<div class="outline-text-4" id="text-org655259e">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-refile
   <span style="font-weight: bold;">:after</span> org
@@ -3232,9 +3217,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-orga39856e" class="outline-4">
-<h4 id="orga39856e">org-plot</h4>
-<div class="outline-text-4" id="text-orga39856e">
+<div id="outline-container-org72dab63" class="outline-4">
+<h4 id="org72dab63">org-plot</h4>
+<div class="outline-text-4" id="text-org72dab63">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-plot
   <span style="font-weight: bold;">:straight</span> gnuplot gnuplot-mode
@@ -3244,9 +3229,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org588ed91" class="outline-4">
-<h4 id="org588ed91">org-id</h4>
-<div class="outline-text-4" id="text-org588ed91">
+<div id="outline-container-orgb929e79" class="outline-4">
+<h4 id="orgb929e79">org-id</h4>
+<div class="outline-text-4" id="text-orgb929e79">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-id
   <span style="font-weight: bold;">:after</span> org
@@ -3262,9 +3247,69 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-orgc2fae31" class="outline-4">
-<h4 id="orgc2fae31">org-archive</h4>
-<div class="outline-text-4" id="text-orgc2fae31">
+<div id="outline-container-org9312f06" class="outline-4">
+<h4 id="org9312f06">org links (ol)</h4>
+<div class="outline-text-4" id="text-org9312f06">
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(use-package ol
+  <span style="font-weight: bold;">:after</span> org
+  <span style="font-weight: bold;">:custom</span>
+  (org-link-elisp-confirm-function nil)
+  <span style="font-weight: bold;">:config</span>
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">the file which is referred via ong link opens in same window</span>
+  (<span style="font-weight: bold;">setf</span> (alist-get 'file org-link-frame-setup) 'find-file)
+  (org-link-set-parameters <span style="font-style: italic;">"src"</span> <span style="font-weight: bold;">:follow</span> #'org-babel-ref-resolve)
+  (add-to-list 'org-open-at-point-functions 'org-open-at-point-link)
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">set 'sudo' link type to invoke command with root privilege</span>
+  (org-link-set-parameters
+   <span style="font-style: italic;">"sudo"</span>
+   (<span style="font-weight: bold;">lambda</span> (cmd)
+     <span style="font-style: italic;">"Run CMD with sudo."</span>
+     (shell-command
+      (concat <span style="font-style: italic;">"echo "</span> (shell-quote-argument (read-passwd <span style="font-style: italic;">"Password? "</span>))
+              <span style="font-style: italic;">" | sudo -S "</span> cmd)))))
+
+(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">org-open-at-point-link</span> ()
+  <span style="font-style: italic;">"This function is responsible for org links when user calls `</span><span style="font-weight: bold; font-style: italic; text-decoration: underline;">org-open-at-point</span><span style="font-style: italic;">'."</span>
+  (<span style="font-weight: bold;">let*</span> ((context (org-element-lineage
+                   (org-element-context)
+                   '(link)
+                   t))
+         (type (org-element-property <span style="font-weight: bold;">:type</span> context))
+         (path (org-element-property <span style="font-weight: bold;">:path</span> context))
+         (app (org-element-property <span style="font-weight: bold;">:application</span> context))
+         (search-option (org-element-property <span style="font-weight: bold;">:search-option</span> context)))
+    (<span style="font-weight: bold;">if</span> (stringp type)
+        (<span style="font-weight: bold;">cond</span>
+         ((string-match-p <span style="font-style: italic;">"https?"</span> type)
+          (<span style="font-weight: bold;">let</span> ((url-pos (split-location-uri (org-link-unescape (concat type <span style="font-style: italic;">":"</span> path)))))
+            (<span style="font-weight: bold;">cl-case</span> (prefix-numeric-value current-prefix-arg)
+              (16 (browse-url-default-browser (car url-pos)))
+              (4 (eww-browse-url (car url-pos)))
+              (t (open-url (car url-pos) (cadr url-pos))))
+            t))
+         ((string= type <span style="font-style: italic;">"file"</span>)
+          (<span style="font-weight: bold;">let</span> ((line-search (<span style="font-weight: bold;">cond</span> ((not search-option) nil)
+                                   ((string-match-p <span style="font-style: italic;">"\\`[0-9]+\\'"</span> search-option)
+                                    (list (string-to-number search-option)))
+                                   (t (list nil search-option)))))
+            (apply #'my/org-open-file
+                   path
+                   (<span style="font-weight: bold;">cond</span>
+                    ((equal app <span style="font-style: italic;">"sys"</span>) 'system)
+                    ((equal app <span style="font-style: italic;">"emacs"</span>) 'emacs)
+                    (t nil))
+                   line-search))
+          t))
+      (my/enter-thing-at-point))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org52f8107" class="outline-4">
+<h4 id="org52f8107">org-archive</h4>
+<div class="outline-text-4" id="text-org52f8107">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-archive
   <span style="font-weight: bold;">:after</span> org
@@ -3276,9 +3321,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org2a986e9" class="outline-4">
-<h4 id="org2a986e9">org-list</h4>
-<div class="outline-text-4" id="text-org2a986e9">
+<div id="outline-container-org7a8034c" class="outline-4">
+<h4 id="org7a8034c">org-list</h4>
+<div class="outline-text-4" id="text-org7a8034c">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-list
   <span style="font-weight: bold;">:after</span> org
@@ -3295,9 +3340,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-orgbf8f3a0" class="outline-4">
-<h4 id="orgbf8f3a0">org-indent</h4>
-<div class="outline-text-4" id="text-orgbf8f3a0">
+<div id="outline-container-orgc97e514" class="outline-4">
+<h4 id="orgc97e514">org-indent</h4>
+<div class="outline-text-4" id="text-orgc97e514">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-indent
   <span style="font-weight: bold;">:after</span> org
@@ -3310,9 +3355,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-orgaa7d5a9" class="outline-4">
-<h4 id="orgaa7d5a9">org-crypt</h4>
-<div class="outline-text-4" id="text-orgaa7d5a9">
+<div id="outline-container-org4724023" class="outline-4">
+<h4 id="org4724023">org-crypt</h4>
+<div class="outline-text-4" id="text-org4724023">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-crypt
   <span style="font-weight: bold;">:after</span> org
@@ -3326,9 +3371,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org504c073" class="outline-4">
-<h4 id="org504c073">org-babel</h4>
-<div class="outline-text-4" id="text-org504c073">
+<div id="outline-container-org7513380" class="outline-4">
+<h4 id="org7513380">org-babel</h4>
+<div class="outline-text-4" id="text-org7513380">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package ob-core
   <span style="font-weight: bold;">:after</span> org
@@ -3360,8 +3405,8 @@ dMv+byk5Rw==
 </div>
 
 <ul class="org-ul">
-<li><a id="org6f01c29"></a><a href="https://github.com/astahlman/ob-async/releases.atom">ob-async</a><br />
-<div class="outline-text-5" id="text-org6f01c29">
+<li><a id="org6861720"></a><a href="https://github.com/astahlman/ob-async/releases.atom">ob-async</a><br />
+<div class="outline-text-5" id="text-org6861720">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package ob-async
   <span style="font-weight: bold;">:straight</span> t
@@ -3371,8 +3416,8 @@ dMv+byk5Rw==
 </div>
 </li>
 
-<li><a id="org6015780"></a>ob-lilypond<br />
-<div class="outline-text-5" id="text-org6015780">
+<li><a id="org52ea3a6"></a>ob-lilypond<br />
+<div class="outline-text-5" id="text-org52ea3a6">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package ob-lilypond
   <span style="font-weight: bold;">:after</span> (org lilypond-mode)
@@ -3387,9 +3432,9 @@ dMv+byk5Rw==
 </ul>
 </div>
 
-<div id="outline-container-org741a486" class="outline-4">
-<h4 id="org741a486">org-src</h4>
-<div class="outline-text-4" id="text-org741a486">
+<div id="outline-container-org8e99feb" class="outline-4">
+<h4 id="org8e99feb">org-src</h4>
+<div class="outline-text-4" id="text-org8e99feb">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-src
   <span style="font-weight: bold;">:diminish</span> (org-src-mode . <span style="font-style: italic;">"os"</span>)
@@ -3410,9 +3455,9 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-org20315f6" class="outline-4">
-<h4 id="org20315f6">org-export</h4>
-<div class="outline-text-4" id="text-org20315f6">
+<div id="outline-container-orgbb8dbf5" class="outline-4">
+<h4 id="orgbb8dbf5">org-export</h4>
+<div class="outline-text-4" id="text-orgbb8dbf5">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package ox
   <span style="font-weight: bold;">:defer</span> t
@@ -3496,17 +3541,17 @@ dMv+byk5Rw==
 </div>
 </div>
 
-<div id="outline-container-orgff6ae77" class="outline-4">
-<h4 id="orgff6ae77">org-contrib</h4>
-<div class="outline-text-4" id="text-orgff6ae77">
+<div id="outline-container-org92ba56f" class="outline-4">
+<h4 id="org92ba56f">org-contrib</h4>
+<div class="outline-text-4" id="text-org92ba56f">
 <p>
 org-contrib is a set of 3rd party add-ons for org-mode.
 </p>
 </div>
 
 <ul class="org-ul">
-<li><a id="org4b35d3e"></a>org-contacts<br />
-<div class="outline-text-5" id="text-org4b35d3e">
+<li><a id="org0c2326e"></a>org-contacts<br />
+<div class="outline-text-5" id="text-org0c2326e">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-contacts
   <span style="font-weight: bold;">:after</span> org
@@ -3520,9 +3565,9 @@ org-contrib is a set of 3rd party add-ons for org-mode.
 </ul>
 </div>
 
-<div id="outline-container-orgd79ba0e" class="outline-4">
-<h4 id="orgd79ba0e"><a href="https://github.com/yjwen/org-reveal/releases.atom">org-reveal</a></h4>
-<div class="outline-text-4" id="text-orgd79ba0e">
+<div id="outline-container-org296c010" class="outline-4">
+<h4 id="org296c010"><a href="https://github.com/yjwen/org-reveal/releases.atom">org-reveal</a></h4>
+<div class="outline-text-4" id="text-org296c010">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package ox-reveal
   <span style="font-weight: bold;">:straight</span> t
@@ -3532,9 +3577,9 @@ org-contrib is a set of 3rd party add-ons for org-mode.
 </div>
 </div>
 
-<div id="outline-container-orgdb11909" class="outline-4">
-<h4 id="orgdb11909"><a href="https://github.com/alphapapa/org-ql/releases.atom">org-ql</a></h4>
-<div class="outline-text-4" id="text-orgdb11909">
+<div id="outline-container-orge6e2e79" class="outline-4">
+<h4 id="orge6e2e79"><a href="https://github.com/alphapapa/org-ql/releases.atom">org-ql</a></h4>
+<div class="outline-text-4" id="text-orge6e2e79">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-ql
   <span style="font-weight: bold;">:straight</span> t
@@ -3565,9 +3610,9 @@ org-contrib is a set of 3rd party add-ons for org-mode.
 </div>
 </div>
 
-<div id="outline-container-org4564e78" class="outline-4">
-<h4 id="org4564e78"><a href="https://github.com/ndwarshuis/org-ml/releases.atom">org-ml</a></h4>
-<div class="outline-text-4" id="text-org4564e78">
+<div id="outline-container-orgde204cc" class="outline-4">
+<h4 id="orgde204cc"><a href="https://github.com/ndwarshuis/org-ml/releases.atom">org-ml</a></h4>
+<div class="outline-text-4" id="text-orgde204cc">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-ml
   <span style="font-weight: bold;">:straight</span> t
@@ -3577,9 +3622,9 @@ org-contrib is a set of 3rd party add-ons for org-mode.
 </div>
 </div>
 
-<div id="outline-container-orgb62f932" class="outline-4">
-<h4 id="orgb62f932"><a href="https://github.com/org-roam/org-roam/releases.atom">org-roam</a></h4>
-<div class="outline-text-4" id="text-orgb62f932">
+<div id="outline-container-orga5af190" class="outline-4">
+<h4 id="orga5af190"><a href="https://github.com/org-roam/org-roam/releases.atom">org-roam</a></h4>
+<div class="outline-text-4" id="text-orga5af190">
 <p>
 org-roam v2
 </p>
@@ -3603,9 +3648,9 @@ org-roam v2
 </div>
 </div>
 </div>
-<div id="outline-container-org29f89ba" class="outline-4">
-<h4 id="org29f89ba"><a href="https://gitlab.com/phillord/org-drill/-/tags?format=atom">org-drill</a></h4>
-<div class="outline-text-4" id="text-org29f89ba">
+<div id="outline-container-orgaf483c5" class="outline-4">
+<h4 id="orgaf483c5"><a href="https://gitlab.com/phillord/org-drill/-/tags?format=atom">org-drill</a></h4>
+<div class="outline-text-4" id="text-orgaf483c5">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-drill
   <span style="font-weight: bold;">:init</span> (straight-use-package 'persist)
@@ -3624,9 +3669,9 @@ org-roam v2
 </div>
 </div>
 </div>
-<div id="outline-container-orge92a94d" class="outline-4">
-<h4 id="orge92a94d"><a href="https://github.com/org-mime/org-mime/releases.atom">org-mime</a></h4>
-<div class="outline-text-4" id="text-orge92a94d">
+<div id="outline-container-org8117ffb" class="outline-4">
+<h4 id="org8117ffb"><a href="https://github.com/org-mime/org-mime/releases.atom">org-mime</a></h4>
+<div class="outline-text-4" id="text-org8117ffb">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-mime
   <span style="font-weight: bold;">:straight</span> t
@@ -3638,9 +3683,9 @@ org-roam v2
 </div>
 </div>
 
-<div id="outline-container-org7df2979" class="outline-4">
-<h4 id="org7df2979"><a href="https://github.com/alphapapa/org-web-tools/releases.atom">org-web-tools</a></h4>
-<div class="outline-text-4" id="text-org7df2979">
+<div id="outline-container-orgea8d85b" class="outline-4">
+<h4 id="orgea8d85b"><a href="https://github.com/alphapapa/org-web-tools/releases.atom">org-web-tools</a></h4>
+<div class="outline-text-4" id="text-orgea8d85b">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-web-tools
   <span style="font-weight: bold;">:straight</span> t
@@ -3652,9 +3697,9 @@ org-roam v2
 </div>
 </div>
 
-<div id="outline-container-org038493f" class="outline-4">
-<h4 id="org038493f"><a href="https://github.com/dfeich/org-clock-convenience/releases.atom">org-clock-convenience</a></h4>
-<div class="outline-text-4" id="text-org038493f">
+<div id="outline-container-orgda57521" class="outline-4">
+<h4 id="orgda57521"><a href="https://github.com/dfeich/org-clock-convenience/releases.atom">org-clock-convenience</a></h4>
+<div class="outline-text-4" id="text-orgda57521">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package org-clock-convenience
   <span style="font-weight: bold;">:straight</span> t
@@ -3667,9 +3712,9 @@ org-roam v2
 </div>
 </div>
 
-<div id="outline-container-orgcb2a786" class="outline-4">
-<h4 id="orgcb2a786">custom functions</h4>
-<div class="outline-text-4" id="text-orgcb2a786">
+<div id="outline-container-orgd11e5a1" class="outline-4">
+<h4 id="orgd11e5a1">custom functions</h4>
+<div class="outline-text-4" id="text-orgd11e5a1">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/org-open-file</span> (path <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> in-emacs line search)
   <span style="font-style: italic;">"docstring"</span>
@@ -3862,9 +3907,9 @@ org-roam v2
 </div>
 </div>
 
-<div id="outline-container-org554183e" class="outline-4">
-<h4 id="org554183e">key bindings</h4>
-<div class="outline-text-4" id="text-org554183e">
+<div id="outline-container-org5d63c57" class="outline-4">
+<h4 id="org5d63c57">key bindings</h4>
+<div class="outline-text-4" id="text-org5d63c57">
 <p>
 speed commands and hydra-org.
 </p>
@@ -3971,14 +4016,14 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-orgb295531" class="outline-3">
-<h3 id="orgb295531">comletion</h3>
-<div class="outline-text-3" id="text-orgb295531">
+<div id="outline-container-orgba9b6de" class="outline-3">
+<h3 id="orgba9b6de">comletion</h3>
+<div class="outline-text-3" id="text-orgba9b6de">
 </div>
 
-<div id="outline-container-orgc843c93" class="outline-4">
-<h4 id="orgc843c93"><a href="https://github.com/minad/vertico/releases.atom">vertico</a></h4>
-<div class="outline-text-4" id="text-orgc843c93">
+<div id="outline-container-org72fc552" class="outline-4">
+<h4 id="org72fc552"><a href="https://github.com/minad/vertico/releases.atom">vertico</a></h4>
+<div class="outline-text-4" id="text-org72fc552">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package vertico
   <span style="font-weight: bold;">:straight</span> t
@@ -3989,9 +4034,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-orgfe9971e" class="outline-4">
-<h4 id="orgfe9971e"><a href="https://github.com/minad/consult/releases.atom">consult</a></h4>
-<div class="outline-text-4" id="text-orgfe9971e">
+<div id="outline-container-org0d66cae" class="outline-4">
+<h4 id="org0d66cae"><a href="https://github.com/minad/consult/releases.atom">consult</a></h4>
+<div class="outline-text-4" id="text-org0d66cae">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package consult
   <span style="font-weight: bold;">:straight</span> t
@@ -4042,8 +4087,8 @@ speed commands and hydra-org.
 </div>
 
 <ul class="org-ul">
-<li><a id="org0603a23"></a>consult-dir<br />
-<div class="outline-text-5" id="text-org0603a23">
+<li><a id="orgc9efc54"></a>consult-dir<br />
+<div class="outline-text-5" id="text-orgc9efc54">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package consult-dir
   <span style="font-weight: bold;">:straight</span> t
@@ -4058,9 +4103,9 @@ speed commands and hydra-org.
 </ul>
 </div>
 
-<div id="outline-container-org138a39a" class="outline-4">
-<h4 id="org138a39a"><a href="https://github.com/oantolin/embark/releases.atom">embark</a></h4>
-<div class="outline-text-4" id="text-org138a39a">
+<div id="outline-container-org8ff76cf" class="outline-4">
+<h4 id="org8ff76cf"><a href="https://github.com/oantolin/embark/releases.atom">embark</a></h4>
+<div class="outline-text-4" id="text-org8ff76cf">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package embark
   <span style="font-weight: bold;">:straight</span> t
@@ -4084,9 +4129,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-org2bd392f" class="outline-4">
-<h4 id="org2bd392f"><a href="https://github.com/minad/marginalia/releases.atom">marginalia</a></h4>
-<div class="outline-text-4" id="text-org2bd392f">
+<div id="outline-container-orgf31ea1d" class="outline-4">
+<h4 id="orgf31ea1d"><a href="https://github.com/minad/marginalia/releases.atom">marginalia</a></h4>
+<div class="outline-text-4" id="text-orgf31ea1d">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package marginalia
   <span style="font-weight: bold;">:straight</span> t
@@ -4102,9 +4147,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-org76cec20" class="outline-4">
-<h4 id="org76cec20"><a href="https://github.com/oantolin/orderless/releases.atom">orderless</a></h4>
-<div class="outline-text-4" id="text-org76cec20">
+<div id="outline-container-orgb252e86" class="outline-4">
+<h4 id="orgb252e86"><a href="https://github.com/oantolin/orderless/releases.atom">orderless</a></h4>
+<div class="outline-text-4" id="text-orgb252e86">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package orderless
   <span style="font-weight: bold;">:straight</span> t
@@ -4114,8 +4159,8 @@ speed commands and hydra-org.
 </div>
 
 <ul class="org-ul">
-<li><a id="org28a034c"></a>migemo support<br />
-<div class="outline-text-5" id="text-org28a034c">
+<li><a id="org05ff056"></a>migemo support<br />
+<div class="outline-text-5" id="text-org05ff056">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">orderless-migemo</span> (component)
   (<span style="font-weight: bold;">let</span> ((pattern (migemo-get-pattern component)))
@@ -4154,14 +4199,14 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-org11ffe85" class="outline-3">
-<h3 id="org11ffe85">major modes for programming/editing&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></h3>
-<div class="outline-text-3" id="text-org11ffe85">
+<div id="outline-container-org3a6a883" class="outline-3">
+<h3 id="org3a6a883">major modes for programming/editing&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></h3>
+<div class="outline-text-3" id="text-org3a6a883">
 </div>
 
-<div id="outline-container-orgd897d80" class="outline-4">
-<h4 id="orgd897d80">prog</h4>
-<div class="outline-text-4" id="text-orgd897d80">
+<div id="outline-container-org9d00a25" class="outline-4">
+<h4 id="org9d00a25">prog</h4>
+<div class="outline-text-4" id="text-org9d00a25">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package prog-mode
   <span style="font-weight: bold;">:hook</span> (prog-mode . my/prog-mode-hook-function))
@@ -4176,9 +4221,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-org55fa2b3" class="outline-4">
-<h4 id="org55fa2b3">sh</h4>
-<div class="outline-text-4" id="text-org55fa2b3">
+<div id="outline-container-org7a4101c" class="outline-4">
+<h4 id="org7a4101c">sh</h4>
+<div class="outline-text-4" id="text-org7a4101c">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package sh-script
   <span style="font-weight: bold;">:delight</span> <span style="font-style: italic;">" SH"</span>
@@ -4195,9 +4240,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-org0a23a0b" class="outline-4">
-<h4 id="org0a23a0b">emacs lisp</h4>
-<div class="outline-text-4" id="text-org0a23a0b">
+<div id="outline-container-orge12f345" class="outline-4">
+<h4 id="orge12f345">emacs lisp</h4>
+<div class="outline-text-4" id="text-orge12f345">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package elisp-mode
   <span style="font-weight: bold;">:commands</span> emacs-lisp-mode
@@ -4215,9 +4260,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-orgb4e28ae" class="outline-4">
-<h4 id="orgb4e28ae">cc-mode</h4>
-<div class="outline-text-4" id="text-orgb4e28ae">
+<div id="outline-container-org40facbb" class="outline-4">
+<h4 id="org40facbb">cc-mode</h4>
+<div class="outline-text-4" id="text-org40facbb">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package cc-mode
   <span style="font-weight: bold;">:hook</span> (c-mode-common . (<span style="font-weight: bold;">lambda</span> ()
@@ -4270,9 +4315,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-orge572bf6" class="outline-4">
-<h4 id="orge572bf6">python-mode</h4>
-<div class="outline-text-4" id="text-orge572bf6">
+<div id="outline-container-org1ca41e0" class="outline-4">
+<h4 id="org1ca41e0">python-mode</h4>
+<div class="outline-text-4" id="text-org1ca41e0">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package python
   <span style="font-weight: bold;">:mode</span> <span style="font-style: italic;">"\\.py\\'"</span>
@@ -4312,8 +4357,8 @@ speed commands and hydra-org.
 </div>
 
 <ul class="org-ul">
-<li><a id="org49664cf"></a><a href="https://github.com/emacsorphanage/company-jedi/releases.atom">company-jedi</a><br />
-<div class="outline-text-5" id="text-org49664cf">
+<li><a id="org9e90481"></a><a href="https://github.com/emacsorphanage/company-jedi/releases.atom">company-jedi</a><br />
+<div class="outline-text-5" id="text-org9e90481">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package company-jedi
   <span style="font-weight: bold;">:straight</span> t
@@ -4331,9 +4376,9 @@ speed commands and hydra-org.
 </ul>
 </div>
 
-<div id="outline-container-orgbd6e4c8" class="outline-4">
-<h4 id="orgbd6e4c8">ruby-mode</h4>
-<div class="outline-text-4" id="text-orgbd6e4c8">
+<div id="outline-container-org0a1cacd" class="outline-4">
+<h4 id="org0a1cacd">ruby-mode</h4>
+<div class="outline-text-4" id="text-org0a1cacd">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package ruby-mode
   <span style="font-weight: bold;">:delight</span> <span style="font-style: italic;">" RB"</span>
@@ -4361,9 +4406,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-orgaffcb4f" class="outline-4">
-<h4 id="orgaffcb4f"><a href="https://github.com/nonsequitur/inf-ruby/releases.atom">inf-ruby</a></h4>
-<div class="outline-text-4" id="text-orgaffcb4f">
+<div id="outline-container-orgc954aef" class="outline-4">
+<h4 id="orgc954aef"><a href="https://github.com/nonsequitur/inf-ruby/releases.atom">inf-ruby</a></h4>
+<div class="outline-text-4" id="text-orgc954aef">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package inf-ruby
   <span style="font-weight: bold;">:straight</span> t
@@ -4378,9 +4423,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-org5262225" class="outline-4">
-<h4 id="org5262225"><a href="https://github.com/yoshiki/yaml-mode/releases.atom">yaml-mode</a></h4>
-<div class="outline-text-4" id="text-org5262225">
+<div id="outline-container-org7b3a6d1" class="outline-4">
+<h4 id="org7b3a6d1"><a href="https://github.com/yoshiki/yaml-mode/releases.atom">yaml-mode</a></h4>
+<div class="outline-text-4" id="text-org7b3a6d1">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package yaml-mode
   <span style="font-weight: bold;">:straight</span> t)
@@ -4389,9 +4434,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-org0d045cc" class="outline-4">
-<h4 id="org0d045cc"><a href="https://github.com/immerrr/lua-mode/releases.atom">lua-mode</a></h4>
-<div class="outline-text-4" id="text-org0d045cc">
+<div id="outline-container-org797761c" class="outline-4">
+<h4 id="org797761c"><a href="https://github.com/immerrr/lua-mode/releases.atom">lua-mode</a></h4>
+<div class="outline-text-4" id="text-org797761c">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package lua-mode
   <span style="font-weight: bold;">:straight</span> t)
@@ -4400,9 +4445,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-orga804ad8" class="outline-4">
-<h4 id="orga804ad8">perl-mode</h4>
-<div class="outline-text-4" id="text-orga804ad8">
+<div id="outline-container-orge31ee12" class="outline-4">
+<h4 id="orge31ee12">perl-mode</h4>
+<div class="outline-text-4" id="text-orge31ee12">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package perl-mode
   <span style="font-weight: bold;">:delight</span> <span style="font-style: italic;">" PL"</span>)
@@ -4411,9 +4456,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-org908f53e" class="outline-4">
-<h4 id="org908f53e">tex-mode</h4>
-<div class="outline-text-4" id="text-org908f53e">
+<div id="outline-container-orge5fedf6" class="outline-4">
+<h4 id="orge5fedf6">tex-mode</h4>
+<div class="outline-text-4" id="text-orge5fedf6">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package tex-mode
   <span style="font-weight: bold;">:mode</span> (<span style="font-style: italic;">"\\.tex$"</span> . latex-mode)
@@ -4424,9 +4469,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-org91957e9" class="outline-4">
-<h4 id="org91957e9"><a href="https://github.com/fxbois/web-mode/releases.atom">web-mode</a></h4>
-<div class="outline-text-4" id="text-org91957e9">
+<div id="outline-container-org0af0190" class="outline-4">
+<h4 id="org0af0190"><a href="https://github.com/fxbois/web-mode/releases.atom">web-mode</a></h4>
+<div class="outline-text-4" id="text-org0af0190">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package web-mode
   <span style="font-weight: bold;">:straight</span> t
@@ -4453,9 +4498,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-orgb8be025" class="outline-4">
-<h4 id="orgb8be025">css-mode</h4>
-<div class="outline-text-4" id="text-orgb8be025">
+<div id="outline-container-orge3314c6" class="outline-4">
+<h4 id="orge3314c6">css-mode</h4>
+<div class="outline-text-4" id="text-orge3314c6">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package css-mode
   <span style="font-weight: bold;">:hook</span> (css-mode . (<span style="font-weight: bold;">lambda</span> ()
@@ -4467,9 +4512,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-org0871b72" class="outline-4">
-<h4 id="org0871b72"><a href="https://github.com/mooz/js2-mode/releases.atom">js2-mode</a></h4>
-<div class="outline-text-4" id="text-org0871b72">
+<div id="outline-container-org726e47f" class="outline-4">
+<h4 id="org726e47f"><a href="https://github.com/mooz/js2-mode/releases.atom">js2-mode</a></h4>
+<div class="outline-text-4" id="text-org726e47f">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package js2-mode
   <span style="font-weight: bold;">:straight</span> t
@@ -4492,9 +4537,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-orgf5f9fbc" class="outline-4">
-<h4 id="orgf5f9fbc">text-mode</h4>
-<div class="outline-text-4" id="text-orgf5f9fbc">
+<div id="outline-container-orgd2ab0af" class="outline-4">
+<h4 id="orgd2ab0af">text-mode</h4>
+<div class="outline-text-4" id="text-orgd2ab0af">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package text-mode
   <span style="font-weight: bold;">:mode</span> (<span style="font-style: italic;">"\\.txt$"</span> . text-mode)
@@ -4503,9 +4548,9 @@ speed commands and hydra-org.
 </div>
 </div>
 </div>
-<div id="outline-container-org813a480" class="outline-4">
-<h4 id="org813a480">nxml</h4>
-<div class="outline-text-4" id="text-org813a480">
+<div id="outline-container-org3a76304" class="outline-4">
+<h4 id="org3a76304">nxml</h4>
+<div class="outline-text-4" id="text-org3a76304">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package nxml-mode
   <span style="font-weight: bold;">:delight</span> (nxml-mode <span style="font-style: italic;">" XM"</span>)
@@ -4534,9 +4579,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-org3e167f7" class="outline-4">
-<h4 id="org3e167f7">sql-mode</h4>
-<div class="outline-text-4" id="text-org3e167f7">
+<div id="outline-container-orge52cfc8" class="outline-4">
+<h4 id="orge52cfc8">sql-mode</h4>
+<div class="outline-text-4" id="text-orge52cfc8">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package sql
   <span style="font-weight: bold;">:delight</span> <span style="font-style: italic;">" SQ"</span>
@@ -4552,9 +4597,9 @@ speed commands and hydra-org.
 </div>
 </div>
 
-<div id="outline-container-orgb804150" class="outline-4">
-<h4 id="orgb804150">project</h4>
-<div class="outline-text-4" id="text-orgb804150">
+<div id="outline-container-orgccaf9e3" class="outline-4">
+<h4 id="orgccaf9e3">project</h4>
+<div class="outline-text-4" id="text-orgccaf9e3">
 <p>
 Use hosting version of project.el on GitHub via straight until Emacs 28 which ships with latest version of project.el is released.
 </p>
@@ -4567,9 +4612,9 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
 </div>
 </div>
 
-<div id="outline-container-org93f6986" class="outline-4">
-<h4 id="org93f6986">grep</h4>
-<div class="outline-text-4" id="text-org93f6986">
+<div id="outline-container-org068bbe0" class="outline-4">
+<h4 id="org068bbe0">grep</h4>
+<div class="outline-text-4" id="text-org068bbe0">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package grep
   <span style="font-weight: bold;">:custom</span>
@@ -4590,9 +4635,9 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
 </div>
 </div>
 
-<div id="outline-container-org67ade2c" class="outline-4">
-<h4 id="org67ade2c">compile</h4>
-<div class="outline-text-4" id="text-org67ade2c">
+<div id="outline-container-org569a106" class="outline-4">
+<h4 id="org569a106">compile</h4>
+<div class="outline-text-4" id="text-org569a106">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package compile
   <span style="font-weight: bold;">:bind</span> (<span style="font-weight: bold;">:map</span> compilation-mode-map
@@ -4602,9 +4647,9 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
 </div>
 </div>
 
-<div id="outline-container-org97626fb" class="outline-4">
-<h4 id="org97626fb">log-view</h4>
-<div class="outline-text-4" id="text-org97626fb">
+<div id="outline-container-org0876f9e" class="outline-4">
+<h4 id="org0876f9e">log-view</h4>
+<div class="outline-text-4" id="text-org0876f9e">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package log-view
   <span style="font-weight: bold;">:delight</span>
@@ -4617,9 +4662,9 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
 </div>
 </div>
 
-<div id="outline-container-org7e3b53f" class="outline-4">
-<h4 id="org7e3b53f"><a href="https://github.com/skuro/plantuml-mode/releases.atom">plantuml-mode</a></h4>
-<div class="outline-text-4" id="text-org7e3b53f">
+<div id="outline-container-org615012a" class="outline-4">
+<h4 id="org615012a"><a href="https://github.com/skuro/plantuml-mode/releases.atom">plantuml-mode</a></h4>
+<div class="outline-text-4" id="text-org615012a">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package plantuml-mode
   <span style="font-weight: bold;">:straight</span> t
@@ -4634,9 +4679,9 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
 </div>
 </div>
 
-<div id="outline-container-orgc059806" class="outline-4">
-<h4 id="orgc059806"><a href="https://github.com/lilypond/lilypond/releases.atom">lilypond</a></h4>
-<div class="outline-text-4" id="text-orgc059806">
+<div id="outline-container-org95050a6" class="outline-4">
+<h4 id="org95050a6"><a href="https://github.com/lilypond/lilypond/releases.atom">lilypond</a></h4>
+<div class="outline-text-4" id="text-org95050a6">
 <p>
 <a href="https://lilypond.org/unix.html">LilyPond</a> elisp package is included in source tarball available at <a href="https://lilypond.org/download/source">here</a>,
 you are required to locate that package where emacs can search.
@@ -4654,9 +4699,9 @@ you are required to locate that package where emacs can search.
 </div>
 </div>
 
-<div id="outline-container-orgb964741" class="outline-4">
-<h4 id="orgb964741">conf</h4>
-<div class="outline-text-4" id="text-orgb964741">
+<div id="outline-container-org834c6cb" class="outline-4">
+<h4 id="org834c6cb">conf</h4>
+<div class="outline-text-4" id="text-org834c6cb">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package conf-mode
   <span style="font-weight: bold;">:delight</span> <span style="font-style: italic;">" CF"</span>)
@@ -4665,9 +4710,9 @@ you are required to locate that package where emacs can search.
 </div>
 </div>
 
-<div id="outline-container-org69b6927" class="outline-4">
-<h4 id="org69b6927">generic-x</h4>
-<div class="outline-text-4" id="text-org69b6927">
+<div id="outline-container-org0edf635" class="outline-4">
+<h4 id="org0edf635">generic-x</h4>
+<div class="outline-text-4" id="text-org0edf635">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package generic-x
   <span style="font-weight: bold;">:mode</span> ((<span style="font-style: italic;">"\\.conf$"</span>     . apache-conf-generic-mode)
@@ -4677,9 +4722,9 @@ you are required to locate that package where emacs can search.
 </div>
 </div>
 
-<div id="outline-container-org66e800b" class="outline-4">
-<h4 id="org66e800b">fundamental mode</h4>
-<div class="outline-text-4" id="text-org66e800b">
+<div id="outline-container-orgc289147" class="outline-4">
+<h4 id="orgc289147">fundamental mode</h4>
+<div class="outline-text-4" id="text-orgc289147">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package emacs
   <span style="font-weight: bold;">:delight</span> (fundamental-mode <span style="font-style: italic;">" FU"</span>))
@@ -4689,14 +4734,14 @@ you are required to locate that package where emacs can search.
 </div>
 </div>
 
-<div id="outline-container-orgf55f738" class="outline-3">
-<h3 id="orgf55f738">other third-party packages</h3>
-<div class="outline-text-3" id="text-orgf55f738">
+<div id="outline-container-org166f1a6" class="outline-3">
+<h3 id="org166f1a6">other third-party packages</h3>
+<div class="outline-text-3" id="text-org166f1a6">
 </div>
 
-<div id="outline-container-orgbe66f77" class="outline-4">
-<h4 id="orgbe66f77"><a href="https://github.com/magit/magit/releases.atom">Magit</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span></span></h4>
-<div class="outline-text-4" id="text-orgbe66f77">
+<div id="outline-container-org38759fc" class="outline-4">
+<h4 id="org38759fc"><a href="https://github.com/magit/magit/releases.atom">Magit</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span></span></h4>
+<div class="outline-text-4" id="text-org38759fc">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package magit
   <span style="font-weight: bold;">:straight</span> t
@@ -4713,8 +4758,8 @@ you are required to locate that package where emacs can search.
 </div>
 
 <ul class="org-ul">
-<li><a id="org6b3238f"></a><a href="https://github.com/magit/git-modes/releases.atom">git-modes</a><br />
-<div class="outline-text-5" id="text-org6b3238f">
+<li><a id="org717a7bd"></a><a href="https://github.com/magit/git-modes/releases.atom">git-modes</a><br />
+<div class="outline-text-5" id="text-org717a7bd">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package git-modes
   <span style="font-weight: bold;">:straight</span> t)
@@ -4723,8 +4768,8 @@ you are required to locate that package where emacs can search.
 </div>
 </li>
 
-<li><a id="org32237a1"></a><a href="https://github.com/magit/orgit/releases.atom">orgit</a><br />
-<div class="outline-text-5" id="text-org32237a1">
+<li><a id="org3aad2a5"></a><a href="https://github.com/magit/orgit/releases.atom">orgit</a><br />
+<div class="outline-text-5" id="text-org3aad2a5">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package orgit
   <span style="font-weight: bold;">:straight</span> t
@@ -4738,24 +4783,24 @@ you are required to locate that package where emacs can search.
 </ul>
 </div>
 
-<div id="outline-container-orgfb137f0" class="outline-4">
-<h4 id="orgfb137f0"><a href="https://github.com/bbatsov/projectile/releases.atom">projectile</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></h4>
+<div id="outline-container-orgf751b9f" class="outline-4">
+<h4 id="orgf751b9f"><a href="https://github.com/bbatsov/projectile/releases.atom">projectile</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></h4>
 </div>
 
-<div id="outline-container-orgf839951" class="outline-4">
-<h4 id="orgf839951"><a href="https://github.com/ericdanan/counsel-projectile/releases.atom">counsel-projectile</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></h4>
+<div id="outline-container-org44430fd" class="outline-4">
+<h4 id="org44430fd"><a href="https://github.com/ericdanan/counsel-projectile/releases.atom">counsel-projectile</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="maintaining">maintaining</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></h4>
 </div>
-<div id="outline-container-org4e2bcb8" class="outline-4">
-<h4 id="org4e2bcb8"><a href="https://github.com/Wilfred/ag.el/releases.atom">ag.el</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></h4>
-</div>
-
-<div id="outline-container-org0ff4e0c" class="outline-4">
-<h4 id="org0ff4e0c"><a href="https://github.com/nlamirault/ripgrep.el/releases.atom">ripgrep.el</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></h4>
+<div id="outline-container-org0c75bd9" class="outline-4">
+<h4 id="org0c75bd9"><a href="https://github.com/Wilfred/ag.el/releases.atom">ag.el</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></h4>
 </div>
 
-<div id="outline-container-org4d1ffcd" class="outline-4">
-<h4 id="org4d1ffcd"><a href="https://github.com/mhayashi1120/Emacs-wgrep/releases.atom">Emacs-wgrep</a></h4>
-<div class="outline-text-4" id="text-org4d1ffcd">
+<div id="outline-container-org57e4b72" class="outline-4">
+<h4 id="org57e4b72"><a href="https://github.com/nlamirault/ripgrep.el/releases.atom">ripgrep.el</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span>&#xa0;<span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span></h4>
+</div>
+
+<div id="outline-container-orgf30a0cf" class="outline-4">
+<h4 id="orgf30a0cf"><a href="https://github.com/mhayashi1120/Emacs-wgrep/releases.atom">Emacs-wgrep</a></h4>
+<div class="outline-text-4" id="text-orgf30a0cf">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package wgrep
   <span style="font-weight: bold;">:straight</span> t)
@@ -4764,9 +4809,9 @@ you are required to locate that package where emacs can search.
 </div>
 </div>
 
-<div id="outline-container-orgb8b4b7a" class="outline-4">
-<h4 id="orgb8b4b7a"><a href="https://github.com/jacktasia/dumb-jump/releases.atom">dumb-jump</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></h4>
-<div class="outline-text-4" id="text-orgb8b4b7a">
+<div id="outline-container-org9733629" class="outline-4">
+<h4 id="org9733629"><a href="https://github.com/jacktasia/dumb-jump/releases.atom">dumb-jump</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></h4>
+<div class="outline-text-4" id="text-org9733629">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package dumb-jump
   <span style="font-weight: bold;">:straight</span> t
@@ -4781,9 +4826,9 @@ you are required to locate that package where emacs can search.
 </div>
 </div>
 
-<div id="outline-container-orgd2e8f1d" class="outline-4">
-<h4 id="orgd2e8f1d"><a href="https://github.com/benma/visual-regexp.el/releases.atom">visual-regexp.el</a></h4>
-<div class="outline-text-4" id="text-orgd2e8f1d">
+<div id="outline-container-orga06ce33" class="outline-4">
+<h4 id="orga06ce33"><a href="https://github.com/benma/visual-regexp.el/releases.atom">visual-regexp.el</a></h4>
+<div class="outline-text-4" id="text-orga06ce33">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package visual-regexp
   <span style="font-weight: bold;">:straight</span> t
@@ -4793,8 +4838,8 @@ you are required to locate that package where emacs can search.
 </div>
 
 <ul class="org-ul">
-<li><a id="org0b9b838"></a><a href="https://github.com/benma/visual-regexp-steroids.el/releases.atom">visual-regexp-steroids.el</a><br />
-<div class="outline-text-5" id="text-org0b9b838">
+<li><a id="org9bf60bb"></a><a href="https://github.com/benma/visual-regexp-steroids.el/releases.atom">visual-regexp-steroids.el</a><br />
+<div class="outline-text-5" id="text-org9bf60bb">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package visual-regexp-steroids
   <span style="font-weight: bold;">:straight</span> t
@@ -4808,9 +4853,9 @@ you are required to locate that package where emacs can search.
 </ul>
 </div>
 
-<div id="outline-container-orgde88320" class="outline-4">
-<h4 id="orgde88320"><a href="https://github.com/abo-abo/avy/releases.atom">avy</a></h4>
-<div class="outline-text-4" id="text-orgde88320">
+<div id="outline-container-org188b19c" class="outline-4">
+<h4 id="org188b19c"><a href="https://github.com/abo-abo/avy/releases.atom">avy</a></h4>
+<div class="outline-text-4" id="text-org188b19c">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package avy
   <span style="font-weight: bold;">:straight</span> t
@@ -4822,9 +4867,9 @@ you are required to locate that package where emacs can search.
 </div>
 </div>
 
-<div id="outline-container-orgfc39abc" class="outline-4">
-<h4 id="orgfc39abc">paredit</h4>
-<div class="outline-text-4" id="text-orgfc39abc">
+<div id="outline-container-orgf6b43c1" class="outline-4">
+<h4 id="orgf6b43c1">paredit</h4>
+<div class="outline-text-4" id="text-orgf6b43c1">
 <p>
 Handy commands
 </p>
@@ -4890,9 +4935,9 @@ Thanks to <a href="https://andreyorst.gitlab.io/posts/2021-09-30-why-is-paredit-
 </div>
 </div>
 
-<div id="outline-container-orga6bf4e3" class="outline-4">
-<h4 id="orga6bf4e3"><a href="https://github.com/emacs-lsp/lsp-mode/releases.atom">lsp-mode</a></h4>
-<div class="outline-text-4" id="text-orga6bf4e3">
+<div id="outline-container-org0f0bcec" class="outline-4">
+<h4 id="org0f0bcec"><a href="https://github.com/emacs-lsp/lsp-mode/releases.atom">lsp-mode</a></h4>
+<div class="outline-text-4" id="text-org0f0bcec">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package lsp-mode
   <span style="font-weight: bold;">:straight</span> t
@@ -4903,13 +4948,31 @@ Thanks to <a href="https://andreyorst.gitlab.io/posts/2021-09-30-why-is-paredit-
 </div>
 
 <ul class="org-ul">
-<li><a id="org1fea450"></a><a href="https://github.com/emacs-lsp/lsp-ivy/releases.atom">lsp-ivy</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span><br /></li>
+<li><a id="org12f0924"></a><a href="https://github.com/emacs-lsp/lsp-ivy/releases.atom">lsp-ivy</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span><br /></li>
 </ul>
 </div>
 
-<div id="outline-container-orgbddfd44" class="outline-4">
-<h4 id="orgbddfd44"><a href="https://github.com/flycheck/flycheck/releases.atom">flycheck</a></h4>
-<div class="outline-text-4" id="text-orgbddfd44">
+<div id="outline-container-orgbcae344" class="outline-4">
+<h4 id="orgbcae344"><a href="https://github.com/company-mode/company-mode/releases.atom">company-mode</a></h4>
+<div class="outline-text-4" id="text-orgbcae344">
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(use-package company
+  <span style="font-weight: bold;">:straight</span> t
+  <span style="font-weight: bold;">:hook</span> (prog-mode . company-mode)
+  <span style="font-weight: bold;">:bind</span> (<span style="font-weight: bold;">:map</span> company-active-map
+              (<span style="font-style: italic;">"C-j"</span> . company-complete-selection)
+              (<span style="font-style: italic;">"C-h"</span> . backward-delete-char-untabify)
+              (<span style="font-style: italic;">"C-M-h"</span> . company-show-doc-buffer)
+              (<span style="font-style: italic;">"C-n"</span> . company-select-next)
+              (<span style="font-style: italic;">"C-p"</span> . company-select-previous)))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org93d1acd" class="outline-4">
+<h4 id="org93d1acd"><a href="https://github.com/flycheck/flycheck/releases.atom">flycheck</a></h4>
+<div class="outline-text-4" id="text-org93d1acd">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package flycheck
   <span style="font-weight: bold;">:straight</span> t
@@ -4953,9 +5016,9 @@ Thanks to <a href="https://andreyorst.gitlab.io/posts/2021-09-30-why-is-paredit-
 </div>
 </div>
 
-<div id="outline-container-org41c1ad0" class="outline-4">
-<h4 id="org41c1ad0"><a href="https://github.com/hayamiz/twittering-mode/releases.atom">twittering-mode</a></h4>
-<div class="outline-text-4" id="text-org41c1ad0">
+<div id="outline-container-orgd38c40b" class="outline-4">
+<h4 id="orgd38c40b"><a href="https://github.com/hayamiz/twittering-mode/releases.atom">twittering-mode</a></h4>
+<div class="outline-text-4" id="text-orgd38c40b">
 <p>
 useful tips:
 </p>
@@ -5115,9 +5178,9 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
 </div>
 </div>
 
-<div id="outline-container-org00754c2" class="outline-4">
-<h4 id="org00754c2"><a href="https://github.com/remyferre/comment-dwim-2/releases.atom">comment-dwim-2</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></h4>
-<div class="outline-text-4" id="text-org00754c2">
+<div id="outline-container-org6cfbccf" class="outline-4">
+<h4 id="org6cfbccf"><a href="https://github.com/remyferre/comment-dwim-2/releases.atom">comment-dwim-2</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></h4>
+<div class="outline-text-4" id="text-org6cfbccf">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package comment-dwim-2
   <span style="font-weight: bold;">:straight</span> t
@@ -5131,9 +5194,9 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
 </div>
 </div>
 
-<div id="outline-container-org88631d9" class="outline-4">
-<h4 id="org88631d9"><a href="https://github.com/leoliu/easy-kill/releases.atom">easy-kill</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="kill">kill</span></span></h4>
-<div class="outline-text-4" id="text-org88631d9">
+<div id="outline-container-org3b47380" class="outline-4">
+<h4 id="org3b47380"><a href="https://github.com/leoliu/easy-kill/releases.atom">easy-kill</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="kill">kill</span></span></h4>
+<div class="outline-text-4" id="text-org3b47380">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package easy-kill
   <span style="font-weight: bold;">:straight</span> t
@@ -5143,9 +5206,9 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
 </div>
 </div>
 
-<div id="outline-container-org25509be" class="outline-4">
-<h4 id="org25509be">undo-tree</h4>
-<div class="outline-text-4" id="text-org25509be">
+<div id="outline-container-orgf0050c0" class="outline-4">
+<h4 id="orgf0050c0">undo-tree</h4>
+<div class="outline-text-4" id="text-orgf0050c0">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package undo-tree
   <span style="font-weight: bold;">:straight</span> t
@@ -5165,9 +5228,9 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
 </div>
 </div>
 
-<div id="outline-container-org9868efa" class="outline-4">
-<h4 id="org9868efa"><a href="https://github.com/emacsorphanage/quickrun/releases.atom">quickrun</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></h4>
-<div class="outline-text-4" id="text-org9868efa">
+<div id="outline-container-org2bb84fe" class="outline-4">
+<h4 id="org2bb84fe"><a href="https://github.com/emacsorphanage/quickrun/releases.atom">quickrun</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="programs">programs</span></span></h4>
+<div class="outline-text-4" id="text-org2bb84fe">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package quickrun
   <span style="font-weight: bold;">:straight</span> t)
@@ -5176,9 +5239,9 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
 </div>
 </div>
 
-<div id="outline-container-org50f019b" class="outline-4">
-<h4 id="org50f019b"><a href="https://github.com/magnars/expand-region.el/releases.atom">expand-region.el</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="mark">mark</span></span></h4>
-<div class="outline-text-4" id="text-org50f019b">
+<div id="outline-container-orgc517e55" class="outline-4">
+<h4 id="orgc517e55"><a href="https://github.com/magnars/expand-region.el/releases.atom">expand-region.el</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="mark">mark</span></span></h4>
+<div class="outline-text-4" id="text-orgc517e55">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package expand-region
   <span style="font-weight: bold;">:straight</span> t
@@ -5191,9 +5254,9 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
 </div>
 </div>
 
-<div id="outline-container-org1affadd" class="outline-4">
-<h4 id="org1affadd"><a href="https://github.com/Wilfred/helpful/releases.atom">helpful</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="help">help</span></span></h4>
-<div class="outline-text-4" id="text-org1affadd">
+<div id="outline-container-org1467eae" class="outline-4">
+<h4 id="org1467eae"><a href="https://github.com/Wilfred/helpful/releases.atom">helpful</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="help">help</span></span></h4>
+<div class="outline-text-4" id="text-org1467eae">
 <p>
 helpful-mode shows  than [BROKEN LINK: id:a55da7a2-6525-4788-ba56-085eb61928d4].
 </p>
@@ -5229,9 +5292,9 @@ helpful-mode shows  than [BROKEN LINK: id:a55da7a2-6525-4788-ba56-085eb61928d4].
 </div>
 </div>
 
-<div id="outline-container-orgb1e5426" class="outline-4">
-<h4 id="orgb1e5426"><a href="https://github.com/abo-abo/define-word/releases.atom">define-word</a></h4>
-<div class="outline-text-4" id="text-orgb1e5426">
+<div id="outline-container-org42a2abf" class="outline-4">
+<h4 id="org42a2abf"><a href="https://github.com/abo-abo/define-word/releases.atom">define-word</a></h4>
+<div class="outline-text-4" id="text-org42a2abf">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package define-word
   <span style="font-weight: bold;">:straight</span> t
@@ -5365,9 +5428,9 @@ helpful-mode shows  than [BROKEN LINK: id:a55da7a2-6525-4788-ba56-085eb61928d4].
 </div>
 </div>
 
-<div id="outline-container-orgd8d4cfb" class="outline-4">
-<h4 id="orgd8d4cfb"><a href="https://github.com/hpdeifel/synosaurus/releases.atom">synosaurus</a></h4>
-<div class="outline-text-4" id="text-orgd8d4cfb">
+<div id="outline-container-org0a04723" class="outline-4">
+<h4 id="org0a04723"><a href="https://github.com/hpdeifel/synosaurus/releases.atom">synosaurus</a></h4>
+<div class="outline-text-4" id="text-org0a04723">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package synosaurus
   <span style="font-weight: bold;">:straight</span> t
@@ -5378,9 +5441,9 @@ helpful-mode shows  than [BROKEN LINK: id:a55da7a2-6525-4788-ba56-085eb61928d4].
 </div>
 </div>
 
-<div id="outline-container-org97251e6" class="outline-4">
-<h4 id="org97251e6"><a href="https://github.com/purcell/exec-path-from-shell/releases.atom">exec-path-from-shell</a></h4>
-<div class="outline-text-4" id="text-org97251e6">
+<div id="outline-container-org399266c" class="outline-4">
+<h4 id="org399266c"><a href="https://github.com/purcell/exec-path-from-shell/releases.atom">exec-path-from-shell</a></h4>
+<div class="outline-text-4" id="text-org399266c">
 <p>
 A GNU Emacs library to ensure environment variables inside Emacs look the same as in the user's shell.
 </p>
@@ -5396,9 +5459,9 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
 </div>
 </div>
 
-<div id="outline-container-org5e3ca71" class="outline-4">
-<h4 id="org5e3ca71"><a href="https://github.com/emacs-jp/migemo/releases.atom">migemo</a></h4>
-<div class="outline-text-4" id="text-org5e3ca71">
+<div id="outline-container-orgf742204" class="outline-4">
+<h4 id="orgf742204"><a href="https://github.com/emacs-jp/migemo/releases.atom">migemo</a></h4>
+<div class="outline-text-4" id="text-orgf742204">
 <p>
 migemo allows us to search incrementally Japanese words using roma-ji expression.
 </p>
@@ -5426,13 +5489,13 @@ migemo allows us to search incrementally Japanese words using roma-ji expression
 </div>
 
 <ul class="org-ul">
-<li><a id="org43ebf2a"></a><a href="https://github.com/ROCKTAKEY/ivy-migemo/releases.atom">ivy-migemo</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span><br /></li>
+<li><a id="org6abf224"></a><a href="https://github.com/ROCKTAKEY/ivy-migemo/releases.atom">ivy-migemo</a>&#xa0;&#xa0;&#xa0;<span class="tag"><span class="ARCHIVE">ARCHIVE</span>&#xa0;<span class="ignore">ignore</span></span><br /></li>
 </ul>
 </div>
 
-<div id="outline-container-org43fee57" class="outline-4">
-<h4 id="org43fee57"><a href="https://github.com/emacs-jp/japanese-holidays/releases.atom">japanese-holidays</a></h4>
-<div class="outline-text-4" id="text-org43fee57">
+<div id="outline-container-org42efef7" class="outline-4">
+<h4 id="org42efef7"><a href="https://github.com/emacs-jp/japanese-holidays/releases.atom">japanese-holidays</a></h4>
+<div class="outline-text-4" id="text-org42efef7">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package japanese-holidays
   <span style="font-weight: bold;">:straight</span> t
@@ -5452,9 +5515,9 @@ migemo allows us to search incrementally Japanese words using roma-ji expression
 </div>
 </div>
 
-<div id="outline-container-org3091510" class="outline-4">
-<h4 id="org3091510"><a href="https://github.com/nflath/hungry-delete/releases.atom">hungry-delete</a></h4>
-<div class="outline-text-4" id="text-org3091510">
+<div id="outline-container-orgff3a641" class="outline-4">
+<h4 id="orgff3a641"><a href="https://github.com/nflath/hungry-delete/releases.atom">hungry-delete</a></h4>
+<div class="outline-text-4" id="text-orgff3a641">
 <p>
 Aggressively delete successive white spaces.
 </p>
@@ -5469,9 +5532,9 @@ Aggressively delete successive white spaces.
 </div>
 </div>
 </div>
-<div id="outline-container-org3eca1de" class="outline-4">
-<h4 id="org3eca1de"><a id="ID-4a58219c-74dd-4135-b56d-876b0db2cd83"></a><a href="https://github.com/Malabarba/aggressive-indent-mode/releases.atom">aggressive-indent-mode</a></h4>
-<div class="outline-text-4" id="text-org3eca1de">
+<div id="outline-container-org5daad4b" class="outline-4">
+<h4 id="org5daad4b"><a id="ID-4a58219c-74dd-4135-b56d-876b0db2cd83"></a><a href="https://github.com/Malabarba/aggressive-indent-mode/releases.atom">aggressive-indent-mode</a></h4>
+<div class="outline-text-4" id="text-org5daad4b">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package aggressive-indent
   <span style="font-weight: bold;">:straight</span> t
@@ -5481,9 +5544,9 @@ Aggressively delete successive white spaces.
 </div>
 </div>
 </div>
-<div id="outline-container-orgbd151c6" class="outline-4">
-<h4 id="orgbd151c6"><a href="https://github.com/emacsmirror/adaptive-wrap/releases.atom">adaptive-wrap</a></h4>
-<div class="outline-text-4" id="text-orgbd151c6">
+<div id="outline-container-org5f8d1b9" class="outline-4">
+<h4 id="org5f8d1b9"><a href="https://github.com/emacsmirror/adaptive-wrap/releases.atom">adaptive-wrap</a></h4>
+<div class="outline-text-4" id="text-org5f8d1b9">
 <p>
 adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major modes.
 </p>
@@ -5496,9 +5559,9 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
 </div>
 </div>
 
-<div id="outline-container-org4d72410" class="outline-4">
-<h4 id="org4d72410"><a href="https://github.com/iqbalansari/restart-emacs/releases.atom">restart-emacs</a></h4>
-<div class="outline-text-4" id="text-org4d72410">
+<div id="outline-container-orge220297" class="outline-4">
+<h4 id="orge220297"><a href="https://github.com/iqbalansari/restart-emacs/releases.atom">restart-emacs</a></h4>
+<div class="outline-text-4" id="text-orge220297">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package restart-emacs
   <span style="font-weight: bold;">:straight</span> t
@@ -5508,9 +5571,9 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
 </div>
 </div>
 </div>
-<div id="outline-container-org5fa0871" class="outline-4">
-<h4 id="org5fa0871"><a href="https://github.com/coldnew/pangu-spacing/releases.atom">pangu-spacing</a></h4>
-<div class="outline-text-4" id="text-org5fa0871">
+<div id="outline-container-orga3d08cc" class="outline-4">
+<h4 id="orga3d08cc"><a href="https://github.com/coldnew/pangu-spacing/releases.atom">pangu-spacing</a></h4>
+<div class="outline-text-4" id="text-orga3d08cc">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package pangu-spacing
   <span style="font-weight: bold;">:straight</span> t
@@ -5528,9 +5591,9 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
 </div>
 </div>
 </div>
-<div id="outline-container-org6a5b7d1" class="outline-4">
-<h4 id="org6a5b7d1"><a href="https://github.com/justbur/emacs-which-key/releases.atom">emacs-which-key</a></h4>
-<div class="outline-text-4" id="text-org6a5b7d1">
+<div id="outline-container-org237fa9e" class="outline-4">
+<h4 id="org237fa9e"><a href="https://github.com/justbur/emacs-which-key/releases.atom">emacs-which-key</a></h4>
+<div class="outline-text-4" id="text-org237fa9e">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package which-key
   <span style="font-weight: bold;">:straight</span> t
@@ -5548,9 +5611,9 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
 </div>
 </div>
 </div>
-<div id="outline-container-orgb35f471" class="outline-4">
-<h4 id="orgb35f471"><a href="https://github.com/abo-abo/hydra/releases.atom">hydra</a></h4>
-<div class="outline-text-4" id="text-orgb35f471">
+<div id="outline-container-org800584b" class="outline-4">
+<h4 id="org800584b"><a href="https://github.com/abo-abo/hydra/releases.atom">hydra</a></h4>
+<div class="outline-text-4" id="text-org800584b">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package hydra
   <span style="font-weight: bold;">:straight</span> t
@@ -5560,9 +5623,9 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
 </div>
 </div>
 </div>
-<div id="outline-container-orgc329a45" class="outline-4">
-<h4 id="orgc329a45"><a href="https://github.com/NicolasPetton/pass/releases.atom">pass</a></h4>
-<div class="outline-text-4" id="text-orgc329a45">
+<div id="outline-container-org9bea08f" class="outline-4">
+<h4 id="org9bea08f"><a href="https://github.com/NicolasPetton/pass/releases.atom">pass</a></h4>
+<div class="outline-text-4" id="text-org9bea08f">
 <p>
 Major mode for manupulating password store file.
 </p>
@@ -5578,9 +5641,9 @@ Major mode for manupulating password store file.
 </div>
 </div>
 
-<div id="outline-container-orgc8d5562" class="outline-4">
-<h4 id="orgc8d5562"><a href="https://github.com/zx2c4/password-store/releases.atom">password-store</a></h4>
-<div class="outline-text-4" id="text-orgc8d5562">
+<div id="outline-container-org2144534" class="outline-4">
+<h4 id="org2144534"><a href="https://github.com/zx2c4/password-store/releases.atom">password-store</a></h4>
+<div class="outline-text-4" id="text-org2144534">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package password-store
   <span style="font-weight: bold;">:straight</span> t
@@ -5591,9 +5654,9 @@ Major mode for manupulating password store file.
 </div>
 </div>
 
-<div id="outline-container-org0974a44" class="outline-4">
-<h4 id="org0974a44">nov.el</h4>
-<div class="outline-text-4" id="text-org0974a44">
+<div id="outline-container-orgf1f13b8" class="outline-4">
+<h4 id="orgf1f13b8">nov.el</h4>
+<div class="outline-text-4" id="text-orgf1f13b8">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package nov
   <span style="font-weight: bold;">:straight</span> t
@@ -5620,9 +5683,9 @@ Major mode for manupulating password store file.
 </div>
 </div>
 </div>
-<div id="outline-container-org384ae73" class="outline-4">
-<h4 id="org384ae73"><a href="https://github.com/joaotavora/yasnippet/releases.atom">yasnippet</a></h4>
-<div class="outline-text-4" id="text-org384ae73">
+<div id="outline-container-org3112268" class="outline-4">
+<h4 id="org3112268"><a href="https://github.com/joaotavora/yasnippet/releases.atom">yasnippet</a></h4>
+<div class="outline-text-4" id="text-org3112268">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package yasnippet
   <span style="font-weight: bold;">:straight</span> t
@@ -5639,8 +5702,8 @@ Major mode for manupulating password store file.
 </div>
 </div>
 <ul class="org-ul">
-<li><a id="org99ddd9e"></a><a href="https://github.com/AndreaCrotti/yasnippet-snippets/releases.atom">yasnippet-snippets</a><br />
-<div class="outline-text-5" id="text-org99ddd9e">
+<li><a id="org57f6ecd"></a><a href="https://github.com/AndreaCrotti/yasnippet-snippets/releases.atom">yasnippet-snippets</a><br />
+<div class="outline-text-5" id="text-org57f6ecd">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package yasnippet-snippets
   <span style="font-weight: bold;">:straight</span> t
@@ -5651,9 +5714,9 @@ Major mode for manupulating password store file.
 </li>
 </ul>
 </div>
-<div id="outline-container-org8380eea" class="outline-4">
-<h4 id="org8380eea"><a href="https://github.com/politza/pdf-tools/releases.atom">pdf-tools</a></h4>
-<div class="outline-text-4" id="text-org8380eea">
+<div id="outline-container-orge4dcafe" class="outline-4">
+<h4 id="orge4dcafe"><a href="https://github.com/politza/pdf-tools/releases.atom">pdf-tools</a></h4>
+<div class="outline-text-4" id="text-orge4dcafe">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package pdf-tools
   <span style="font-weight: bold;">:straight</span> t
@@ -5671,9 +5734,9 @@ Major mode for manupulating password store file.
 </div>
 </div>
 
-<div id="outline-container-org54185e5" class="outline-4">
-<h4 id="org54185e5"><a href="https://github.com/emacs-straight/rainbow-mode/releases.atom">rainbow-mode</a></h4>
-<div class="outline-text-4" id="text-org54185e5">
+<div id="outline-container-orgd3caa22" class="outline-4">
+<h4 id="orgd3caa22"><a href="https://github.com/emacs-straight/rainbow-mode/releases.atom">rainbow-mode</a></h4>
+<div class="outline-text-4" id="text-orgd3caa22">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package rainbow-mode
   <span style="font-weight: bold;">:straight</span> t
@@ -5690,9 +5753,9 @@ Major mode for manupulating password store file.
 </div>
 </div>
 </div>
-<div id="outline-container-orgeaa9b88" class="outline-4">
-<h4 id="orgeaa9b88"><a href="https://github.com/jwiegley/alert/releases.atom">alert</a></h4>
-<div class="outline-text-4" id="text-orgeaa9b88">
+<div id="outline-container-org0672e08" class="outline-4">
+<h4 id="org0672e08"><a href="https://github.com/jwiegley/alert/releases.atom">alert</a></h4>
+<div class="outline-text-4" id="text-org0672e08">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package alert
   <span style="font-weight: bold;">:straight</span> t
@@ -5735,9 +5798,9 @@ Major mode for manupulating password store file.
 </div>
 </div>
 </div>
-<div id="outline-container-org6897474" class="outline-4">
-<h4 id="org6897474"><a href="https://github.com/alphapapa/ts.el/releases.atom">ts.el</a></h4>
-<div class="outline-text-4" id="text-org6897474">
+<div id="outline-container-orge8715e8" class="outline-4">
+<h4 id="orge8715e8"><a href="https://github.com/alphapapa/ts.el/releases.atom">ts.el</a></h4>
+<div class="outline-text-4" id="text-orge8715e8">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package ts
   <span style="font-weight: bold;">:straight</span> t)
@@ -5746,9 +5809,9 @@ Major mode for manupulating password store file.
 </div>
 </div>
 
-<div id="outline-container-orgfc763c4" class="outline-4">
-<h4 id="orgfc763c4"><a href="https://github.com/SebastienWae/app-launcher/releases.atom">app-launcher</a></h4>
-<div class="outline-text-4" id="text-orgfc763c4">
+<div id="outline-container-orgbd25a17" class="outline-4">
+<h4 id="orgbd25a17"><a href="https://github.com/SebastienWae/app-launcher/releases.atom">app-launcher</a></h4>
+<div class="outline-text-4" id="text-orgbd25a17">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(use-package app-launcher
   <span style="font-weight: bold;">:straight</span> '(app-launcher
@@ -5761,18 +5824,18 @@ Major mode for manupulating password store file.
 </div>
 </div>
 
-<div id="outline-container-org47e0e00" class="outline-2">
-<h2 id="org47e0e00">further customization</h2>
-<div class="outline-text-2" id="text-org47e0e00">
+<div id="outline-container-org03ef41e" class="outline-2">
+<h2 id="org03ef41e">further customization</h2>
+<div class="outline-text-2" id="text-org03ef41e">
 </div>
-<div id="outline-container-org644c518" class="outline-3">
-<h3 id="org644c518">handy functionalities</h3>
-<div class="outline-text-3" id="text-org644c518">
+<div id="outline-container-org81786c4" class="outline-3">
+<h3 id="org81786c4">handy functionalities</h3>
+<div class="outline-text-3" id="text-org81786c4">
 </div>
 
-<div id="outline-container-org8211482" class="outline-4">
-<h4 id="org8211482">power management</h4>
-<div class="outline-text-4" id="text-org8211482">
+<div id="outline-container-orgcc9b5fa" class="outline-4">
+<h4 id="orgcc9b5fa">power management</h4>
+<div class="outline-text-4" id="text-orgcc9b5fa">
 <p>
 Shut down emacs automatically when remaining power of laptop PC lower than <a href="battery-load-low">battery-load-low</a>
 to avoid accidental data loss.
@@ -5796,9 +5859,9 @@ to avoid accidental data loss.
 </div>
 </div>
 
-<div id="outline-container-orgb008dee" class="outline-4">
-<h4 id="orgb008dee">cursor movement</h4>
-<div class="outline-text-4" id="text-orgb008dee">
+<div id="outline-container-orgb739cff" class="outline-4">
+<h4 id="orgb739cff">cursor movement</h4>
+<div class="outline-text-4" id="text-orgb739cff">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/forward-paragraph</span> ()
   (<span style="font-weight: bold;">interactive</span>)
@@ -5836,9 +5899,9 @@ to avoid accidental data loss.
 </div>
 </div>
 
-<div id="outline-container-orge8d4449" class="outline-4">
-<h4 id="orge8d4449">lookup functions</h4>
-<div class="outline-text-4" id="text-orge8d4449">
+<div id="outline-container-orgcdb6b9e" class="outline-4">
+<h4 id="orgcdb6b9e">lookup functions</h4>
+<div class="outline-text-4" id="text-orgcdb6b9e">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defmacro</span> <span style="font-weight: bold;">define-lookup-function</span> (fun search-prefix <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> word-fixed <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> post-process)
   <span style="font-style: italic;">"Create lookup function named FUN using SEARCH-PREFIX for querying.</span>
@@ -5894,9 +5957,9 @@ to avoid accidental data loss.
 </div>
 </div>
 
-<div id="outline-container-orgb69412d" class="outline-4">
-<h4 id="orgb69412d">perspective control</h4>
-<div class="outline-text-4" id="text-orgb69412d">
+<div id="outline-container-orgb5e0409" class="outline-4">
+<h4 id="orgb5e0409">perspective control</h4>
+<div class="outline-text-4" id="text-orgb5e0409">
 <p>
 This hydra definition enalbes the user to focus on changing font size, moving window to display.
 </p>
@@ -5935,9 +5998,9 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
 </div>
 </div>
 
-<div id="outline-container-orgc6fd6cf" class="outline-4">
-<h4 id="orgc6fd6cf">tldr</h4>
-<div class="outline-text-4" id="text-orgc6fd6cf">
+<div id="outline-container-org7221b92" class="outline-4">
+<h4 id="org7221b92">tldr</h4>
+<div class="outline-text-4" id="text-org7221b92">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/tldr</span> (command)
   <span style="font-style: italic;">"Show the output of tldr for COMMAND in a dedicated buffer."</span>
@@ -5960,9 +6023,9 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
 </div>
 </div>
 
-<div id="outline-container-orgc57f299" class="outline-4">
-<h4 id="orgc57f299">sending email</h4>
-<div class="outline-text-4" id="text-orgc57f299">
+<div id="outline-container-orgb0403ef" class="outline-4">
+<h4 id="orgb0403ef">sending email</h4>
+<div class="outline-text-4" id="text-orgb0403ef">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">mail-simple-send</span> (mailto subject body)
   <span style="font-style: italic;">"Default function to send a mail with SUBJECT and BODY to myself."</span>
@@ -5987,9 +6050,9 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
 </div>
 </div>
 
-<div id="outline-container-orgfa89280" class="outline-4">
-<h4 id="orgfa89280">open url or something</h4>
-<div class="outline-text-4" id="text-orgfa89280">
+<div id="outline-container-org91ca78b" class="outline-4">
+<h4 id="org91ca78b">open url or something</h4>
+<div class="outline-text-4" id="text-org91ca78b">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">require</span> '<span style="font-weight: bold; text-decoration: underline;">thingatpt</span>)
 
@@ -6122,9 +6185,9 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
 </div>
 </div>
 
-<div id="outline-container-org8cb8e81" class="outline-4">
-<h4 id="org8cb8e81">media file handling</h4>
-<div class="outline-text-4" id="text-org8cb8e81">
+<div id="outline-container-org16893a6" class="outline-4">
+<h4 id="org16893a6">media file handling</h4>
+<div class="outline-text-4" id="text-org16893a6">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defvar</span> <span style="font-weight: bold; font-style: italic;">my/download-video-dir</span> <span style="font-style: italic;">"~/Videos"</span> <span style="font-style: italic;">"Directory where downloaded video locate."</span>)
 
@@ -6271,8 +6334,8 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
 </div>
 
 <ul class="org-ul">
-<li><a id="org68a4730"></a>confidential settings&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span><br />
-<div class="outline-text-5" id="text-org68a4730">
+<li><a id="org2a724b7"></a>confidential settings&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span><br />
+<div class="outline-text-5" id="text-org2a724b7">
 <p>
 &#x2013;&#x2014;BEGIN PGP MESSAGE&#x2013;&#x2014;
 </p>
@@ -6302,9 +6365,9 @@ MvHkcNaUqgU+pTSh/vqm38/pmqk1BE6mPp1dNMllXv1QUW4=
 </ul>
 </div>
 
-<div id="outline-container-orge7ea14a" class="outline-4">
-<h4 id="orge7ea14a">using speech synthesis</h4>
-<div class="outline-text-4" id="text-orge7ea14a">
+<div id="outline-container-orgee6a71e" class="outline-4">
+<h4 id="orgee6a71e">using speech synthesis</h4>
+<div class="outline-text-4" id="text-orgee6a71e">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">utl-say</span> ()
   <span style="font-style: italic;">"read out using open-jtalk"</span>
@@ -6321,8 +6384,8 @@ MvHkcNaUqgU+pTSh/vqm38/pmqk1BE6mPp1dNMllXv1QUW4=
 </div>
 
 <ul class="org-ul">
-<li><a id="org41d4bd1"></a>jsay<br />
-<div class="outline-text-5" id="text-org41d4bd1">
+<li><a id="orgf63771c"></a>jsay<br />
+<div class="outline-text-5" id="text-orgf63771c">
 <div class="org-src-container">
 <pre class="src src-shell"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
 
@@ -6340,8 +6403,8 @@ rm -f ${<span style="font-weight: bold; font-style: italic;">AUDIO_FILE</span>}
 </div>
 </li>
 
-<li><a id="org520a19b"></a>esay<br />
-<div class="outline-text-5" id="text-org520a19b">
+<li><a id="org1a8656a"></a>esay<br />
+<div class="outline-text-5" id="text-org1a8656a">
 <div class="org-src-container">
 <pre class="src src-shell"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
 
@@ -6360,9 +6423,9 @@ rm -f ${<span style="font-weight: bold; font-style: italic;">AUDIO_FILE</span>}
 </ul>
 </div>
 
-<div id="outline-container-orge624f48" class="outline-4">
-<h4 id="orge624f48">collective hydra definitions</h4>
-<div class="outline-text-4" id="text-orge624f48">
+<div id="outline-container-org40e09d8" class="outline-4">
+<h4 id="org40e09d8">collective hydra definitions</h4>
+<div class="outline-text-4" id="text-org40e09d8">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">with-eval-after-load</span> 'hydra
   (defhydra hydra-launcher (global-map <span style="font-style: italic;">"M-l"</span>
@@ -6431,9 +6494,38 @@ rm -f ${<span style="font-weight: bold; font-style: italic;">AUDIO_FILE</span>}
 </div>
 </div>
 
-<div id="outline-container-orgfb1735d" class="outline-4">
-<h4 id="orgfb1735d">utilities</h4>
-<div class="outline-text-4" id="text-orgfb1735d">
+<div id="outline-container-orgc6f0037" class="outline-4">
+<h4 id="orgc6f0037">show the day in calendar</h4>
+<div class="outline-text-4" id="text-orgc6f0037">
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/calendar-show-items</span> ()
+  <span style="font-style: italic;">"Show items on the day pointed in calendar view."</span>
+  (<span style="font-weight: bold;">interactive</span>)
+  (<span style="font-weight: bold;">let*</span> ((calendar-date-display-form calendar-iso-date-display-form)
+         (date (calendar-date-string (calendar-cursor-to-date)))
+         (d (parse-time-string date))
+         (year (decoded-time-year d))
+         (files (append `(,(my/org-archive-file year))
+                        org-agenda-files))
+         (buffer-name-prefix <span style="font-style: italic;">"=="</span>)
+         (buffer-name (concat buffer-name-prefix date))
+         (display-buffer-alist
+          `((,buffer-name-prefix
+             (display-buffer-reuse-mode-window
+              display-buffer-pop-up-window)))))
+    (org-ql-search files `(<span style="font-weight: bold;">and</span> (<span style="font-weight: bold;">or</span> (parent (heading ,date))
+                                   (ts-a <span style="font-weight: bold;">:on</span> ,date))
+                               (not (tags <span style="font-style: italic;">"web"</span> <span style="font-style: italic;">"drill"</span>)))
+      <span style="font-weight: bold;">:buffer</span> buffer-name)
+    (other-window 1)))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org7fc9e25" class="outline-4">
+<h4 id="org7fc9e25">utilities</h4>
+<div class="outline-text-4" id="text-org7fc9e25">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/copy-line-number</span> ()
   <span style="font-style: italic;">"Copy the line number of current point into the kill ring."</span>
@@ -6469,13 +6561,13 @@ rm -f ${<span style="font-weight: bold; font-style: italic;">AUDIO_FILE</span>}
 </div>
 </div>
 
-<div id="outline-container-org616bf42" class="outline-3">
-<h3 id="org616bf42">original features</h3>
-<div class="outline-text-3" id="text-org616bf42">
+<div id="outline-container-org1692373" class="outline-3">
+<h3 id="org1692373">original features</h3>
+<div class="outline-text-3" id="text-org1692373">
 </div>
-<div id="outline-container-org5d6d2e4" class="outline-4">
-<h4 id="org5d6d2e4">org-english</h4>
-<div class="outline-text-4" id="text-org5d6d2e4">
+<div id="outline-container-org61af8ea" class="outline-4">
+<h4 id="org61af8ea">org-english</h4>
+<div class="outline-text-4" id="text-org61af8ea">
 <p>
 Learning Workflow for English words:
 </p>
@@ -6610,9 +6702,9 @@ Learning Workflow for English words:
 </div>
 </div>
 
-<div id="outline-container-org11fa4ac" class="outline-4">
-<h4 id="org11fa4ac">org-password-store</h4>
-<div class="outline-text-4" id="text-org11fa4ac">
+<div id="outline-container-org67d0573" class="outline-4">
+<h4 id="org67d0573">org-password-store</h4>
+<div class="outline-text-4" id="text-org67d0573">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">require</span> '<span style="font-weight: bold; text-decoration: underline;">password-store</span>)
 
@@ -6750,9 +6842,9 @@ Learning Workflow for English words:
 </div>
 </div>
 
-<div id="outline-container-org52ff194" class="outline-4">
-<h4 id="org52ff194">org-archive</h4>
-<div class="outline-text-4" id="text-org52ff194">
+<div id="outline-container-orgd1945f7" class="outline-4">
+<h4 id="orgd1945f7">org-archive</h4>
+<div class="outline-text-4" id="text-orgd1945f7">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">require</span> '<span style="font-weight: bold; text-decoration: underline;">org</span>)
 (<span style="font-weight: bold;">require</span> '<span style="font-weight: bold; text-decoration: underline;">org-agenda</span>)
@@ -6898,9 +6990,9 @@ Learning Workflow for English words:
 </div>
 </div>
 
-<div id="outline-container-org71923f2" class="outline-4">
-<h4 id="org71923f2">org-capture-derived</h4>
-<div class="outline-text-4" id="text-org71923f2">
+<div id="outline-container-org4cd5889" class="outline-4">
+<h4 id="org4cd5889">org-capture-derived</h4>
+<div class="outline-text-4" id="text-org4cd5889">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">require</span> '<span style="font-weight: bold; text-decoration: underline;">thingatpt</span>)
 (<span style="font-weight: bold;">require</span> '<span style="font-weight: bold; text-decoration: underline;">whitespace</span>)
@@ -7013,9 +7105,9 @@ Learning Workflow for English words:
 </div>
 </div>
 
-<div id="outline-container-org3c0d5f1" class="outline-4">
-<h4 id="org3c0d5f1">org-relate</h4>
-<div class="outline-text-4" id="text-org3c0d5f1">
+<div id="outline-container-org0021196" class="outline-4">
+<h4 id="org0021196">org-relate</h4>
+<div class="outline-text-4" id="text-org0021196">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">require</span> '<span style="font-weight: bold; text-decoration: underline;">thingatpt</span>)
 (<span style="font-weight: bold;">require</span> '<span style="font-weight: bold; text-decoration: underline;">org-ql-search</span>)
@@ -7161,9 +7253,9 @@ Learning Workflow for English words:
 </div>
 </div>
 
-<div id="outline-container-org457ce4e" class="outline-4">
-<h4 id="org457ce4e">clocktable-by-tag with org-clock</h4>
-<div class="outline-text-4" id="text-org457ce4e">
+<div id="outline-container-org3a938cd" class="outline-4">
+<h4 id="org3a938cd">clocktable-by-tag with org-clock</h4>
+<div class="outline-text-4" id="text-org3a938cd">
 <p>
 Provide a function to Build a clock table summing up time by tag.
 </p>
@@ -7231,9 +7323,9 @@ Provide a function to Build a clock table summing up time by tag.
 </div>
 </div>
 
-<div id="outline-container-orgf6f571b" class="outline-4">
-<h4 id="orgf6f571b">narrow-dwim</h4>
-<div class="outline-text-4" id="text-orgf6f571b">
+<div id="outline-container-orga62102a" class="outline-4">
+<h4 id="orga62102a">narrow-dwim</h4>
+<div class="outline-text-4" id="text-orga62102a">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(bind-key* <span style="font-style: italic;">"C-x n"</span> 'my/toggle-narrow-dwim)
 
@@ -7300,9 +7392,9 @@ Provide a function to Build a clock table summing up time by tag.
 </div>
 </div>
 </div>
-<div id="outline-container-orgbe5887f" class="outline-4">
-<h4 id="orgbe5887f">weather</h4>
-<div class="outline-text-4" id="text-orgbe5887f">
+<div id="outline-container-org91b1298" class="outline-4">
+<h4 id="org91b1298">weather</h4>
+<div class="outline-text-4" id="text-org91b1298">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">&#27671;&#35937;&#24193;&#37197;&#20449;&#12398;&#22825;&#27671;&#24773;&#22577;&#12434;&#21152;&#24037;&#12375;&#12390;&#34920;&#31034;</span>
 
@@ -7371,9 +7463,9 @@ Provide a function to Build a clock table summing up time by tag.
 </div>
 </div>
 </div>
-<div id="outline-container-orgc7e050f" class="outline-4">
-<h4 id="orgc7e050f">view-file</h4>
-<div class="outline-text-4" id="text-orgc7e050f">
+<div id="outline-container-orgd988403" class="outline-4">
+<h4 id="orgd988403">view-file</h4>
+<div class="outline-text-4" id="text-orgd988403">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defcustom</span> <span style="font-weight: bold; font-style: italic;">my/view-file--temp-dir</span> <span style="font-style: italic;">"~/var/tmp/view-file"</span>
   <span style="font-style: italic;">"Directory in which we will work for uncompresssing, decrypting and htmlize."</span>)
@@ -7537,8 +7629,8 @@ Provide a function to Build a clock table summing up time by tag.
 </div>
 </div>
 <ul class="org-ul">
-<li><a id="org69e1fff"></a>strip<sub>ruby</sub><br />
-<div class="outline-text-5" id="text-org69e1fff">
+<li><a id="org744e963"></a>strip<sub>ruby</sub><br />
+<div class="outline-text-5" id="text-org744e963">
 <p>
 A program strips all ruby tags in a HTML stream. All HTML contents are expected to be from STDIN and go out as STDOUT. This procedure is mainly for html files converted from pdf and epub files.
 Stripping rules are:
@@ -7578,6 +7670,138 @@ Stripping rules are:
 </div>
 </li>
 </ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org000e813" class="outline-2">
+<h2 id="org000e813">package management</h2>
+<div class="outline-text-2" id="text-org000e813">
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">((<span style="font-style: italic;">"Emacs-wgrep"</span> . <span style="font-style: italic;">"f9687c28bbc2e84f87a479b6ce04407bb97cfb23"</span>)
+ (<span style="font-style: italic;">"adaptive-wrap"</span> . <span style="font-style: italic;">"0d5b4a07de76d87dd64333a566a8a0a845f2b9f0"</span>)
+ (<span style="font-style: italic;">"aggressive-indent-mode"</span> . <span style="font-style: italic;">"cb416faf61c46977c06cf9d99525b04dc109a33c"</span>)
+ (<span style="font-style: italic;">"alert"</span> . <span style="font-style: italic;">"7046393272686c7a1a9b3e7f7b1d825d2e5250a6"</span>)
+ (<span style="font-style: italic;">"app-launcher"</span> . <span style="font-style: italic;">"80a9ed37892ee6e21fe44487ed11f66a15e3f440"</span>)
+ (<span style="font-style: italic;">"avy"</span> . <span style="font-style: italic;">"8686845ed907b986ac7c95169b6396300ee114c2"</span>)
+ (<span style="font-style: italic;">"comment-dwim-2"</span> . <span style="font-style: italic;">"3dfdd58495c46a37708344a57c5c52beca6b2c1c"</span>)
+ (<span style="font-style: italic;">"company-jedi"</span> . <span style="font-style: italic;">"4775b659564f1d57bc68c88c9faabf44c9fe4e4d"</span>)
+ (<span style="font-style: italic;">"company-mode"</span> . <span style="font-style: italic;">"6116c4617a7934acfe84cb82a058e9b198f0f480"</span>)
+ (<span style="font-style: italic;">"consult"</span> . <span style="font-style: italic;">"f757c17cfc3850fb25d28c90ebf19db0976895fe"</span>)
+ (<span style="font-style: italic;">"consult-dir"</span> . <span style="font-style: italic;">"08f543ae6acbfc1ffe579ba1d00a5414012d5c0b"</span>)
+ (<span style="font-style: italic;">"dash.el"</span> . <span style="font-style: italic;">"da167c51e9fd167a48d06c7c0ee8e3ac7abd9718"</span>)
+ (<span style="font-style: italic;">"ddskk"</span> . <span style="font-style: italic;">"81410b925afd4cfd1ca5ab6c1257e221e1cc664f"</span>)
+ (<span style="font-style: italic;">"define-word"</span> . <span style="font-style: italic;">"6e4a427503aef096484f88332962c346cdd10847"</span>)
+ (<span style="font-style: italic;">"delight"</span> . <span style="font-style: italic;">"70cb8cec9e5eb2c24364e065d85c2ea8f14a587c"</span>)
+ (<span style="font-style: italic;">"diminish.el"</span> . <span style="font-style: italic;">"565a983a39d2e2cffab5df13b34f3b6116723208"</span>)
+ (<span style="font-style: italic;">"dired-du"</span> . <span style="font-style: italic;">"d6571317673ba44566ba411d26b7af74e3139ff7"</span>)
+ (<span style="font-style: italic;">"dired-hacks"</span> . <span style="font-style: italic;">"ae39981d7cc58206cfeb377d6621bdd9000fd472"</span>)
+ (<span style="font-style: italic;">"dired-hide-dotfiles"</span> . <span style="font-style: italic;">"b715f643ec805b3b8aca334595e6589320f04a49"</span>)
+ (<span style="font-style: italic;">"dired-rsync"</span> . <span style="font-style: italic;">"947a008387a939f466ca122bda2ea98bb17710e3"</span>)
+ (<span style="font-style: italic;">"dired-single"</span> . <span style="font-style: italic;">"f760aa94ea3f87845dd2325287d05447322a60bc"</span>)
+ (<span style="font-style: italic;">"dumb-jump"</span> . <span style="font-style: italic;">"0319569f1332641057c3e23d1e3bffb2404435a8"</span>)
+ (<span style="font-style: italic;">"easy-kill"</span> . <span style="font-style: italic;">"e2b667f651a3531164d24ea4cbcd8c34fba0e17f"</span>)
+ (<span style="font-style: italic;">"el-get"</span> . <span style="font-style: italic;">"b5a5a405d04f61ec9c5fcb19357a50a4b9e36a25"</span>)
+ (<span style="font-style: italic;">"elfeed"</span> . <span style="font-style: italic;">"e29c8b91450bd42d90041231f769c4e5fe5070da"</span>)
+ (<span style="font-style: italic;">"elfeed-org"</span> . <span style="font-style: italic;">"77b6bbf222487809813de260447d31c4c59902c9"</span>)
+ (<span style="font-style: italic;">"elisp-refs"</span> . <span style="font-style: italic;">"b3634a4567c655a1cda51b217629849cba0ac6a7"</span>)
+ (<span style="font-style: italic;">"emacs-async"</span> . <span style="font-style: italic;">"5d365ffc6a2c2041657eaa5d762c395ea748c8d7"</span>)
+ (<span style="font-style: italic;">"emacs-ctable"</span> . <span style="font-style: italic;">"b8830d1ca95abb100a81bc32011bd17d5ecba000"</span>)
+ (<span style="font-style: italic;">"emacs-deferred"</span> . <span style="font-style: italic;">"2239671d94b38d92e9b28d4e12fd79814cfb9c16"</span>)
+ (<span style="font-style: italic;">"emacs-epc"</span> . <span style="font-style: italic;">"e1bfa5ca163273859336e3cc89b4b6460f7f8cda"</span>)
+ (<span style="font-style: italic;">"emacs-jedi"</span> . <span style="font-style: italic;">"d9b53d2ca103c46686f6fb4aa92d8af403107982"</span>)
+ (<span style="font-style: italic;">"emacs-kv"</span> . <span style="font-style: italic;">"721148475bce38a70e0b678ba8aa923652e8900e"</span>)
+ (<span style="font-style: italic;">"emacs-libvterm"</span> . <span style="font-style: italic;">"01a1332ebb11daca5408f7fcb8a08454b0176e79"</span>)
+ (<span style="font-style: italic;">"emacs-python-environment"</span> . <span style="font-style: italic;">"401006584e32864a10c69d29f14414828909362e"</span>)
+ (<span style="font-style: italic;">"emacs-request"</span> . <span style="font-style: italic;">"99ae82f1f578787bc19100970ce108dbd247fa27"</span>)
+ (<span style="font-style: italic;">"emacs-which-key"</span> . <span style="font-style: italic;">"fc29864395fdaf688e2ef5111831663bad89a020"</span>)
+ (<span style="font-style: italic;">"emacsmirror-mirror"</span> . <span style="font-style: italic;">"cbb3c3c57c522ba97a8793aa8ba471151556e404"</span>)
+ (<span style="font-style: italic;">"emacsql"</span> . <span style="font-style: italic;">"6d8cd9366284b5a27268ff4b783e2c34573d5b60"</span>)
+ (<span style="font-style: italic;">"emacsql-sqlite3"</span> . <span style="font-style: italic;">"50aa9bdd76b0d18bf80526cff13a69fe306ee29c"</span>)
+ (<span style="font-style: italic;">"embark"</span> . <span style="font-style: italic;">"010b7356af782a3723fcfbbfc943bc8082c54c27"</span>)
+ (<span style="font-style: italic;">"epl"</span> . <span style="font-style: italic;">"78ab7a85c08222cd15582a298a364774e3282ce6"</span>)
+ (<span style="font-style: italic;">"esxml"</span> . <span style="font-style: italic;">"701ccc285f3748d94c12f85636fecaa88858c178"</span>)
+ (<span style="font-style: italic;">"exec-path-from-shell"</span> . <span style="font-style: italic;">"d8aa7765a138a0cee1a18ac380019fb3b33d07e6"</span>)
+ (<span style="font-style: italic;">"expand-region.el"</span> . <span style="font-style: italic;">"95a773bd8f557cbd43d3b2dab2fa4417ec5927ab"</span>)
+ (<span style="font-style: italic;">"f.el"</span> . <span style="font-style: italic;">"50af874cd19042f17c8686813d52569b1025c76a"</span>)
+ (<span style="font-style: italic;">"flycheck"</span> . <span style="font-style: italic;">"784f184cdd9f9cb4e3dbb997c09d93e954142842"</span>)
+ (<span style="font-style: italic;">"git-modes"</span> . <span style="font-style: italic;">"14adca24eb6b0b4e311ad144c5d41972c6b044b2"</span>)
+ (<span style="font-style: italic;">"gntp.el"</span> . <span style="font-style: italic;">"767571135e2c0985944017dc59b0be79af222ef5"</span>)
+ (<span style="font-style: italic;">"gnu-elpa-mirror"</span> . <span style="font-style: italic;">"0df9ceb0143205840193fab980ac7ac3a6c091b3"</span>)
+ (<span style="font-style: italic;">"gnuplot"</span> . <span style="font-style: italic;">"7138b139d2dca9683f1a81325c643b2744aa1ea3"</span>)
+ (<span style="font-style: italic;">"gnuplot-mode"</span> . <span style="font-style: italic;">"601f6392986f0cba332c87678d31ae0d0a496ce7"</span>)
+ (<span style="font-style: italic;">"helpful"</span> . <span style="font-style: italic;">"584ecc887bb92133119f93a6716cdf7af0b51dca"</span>)
+ (<span style="font-style: italic;">"ht.el"</span> . <span style="font-style: italic;">"c4c1be487d6ecb353d07881526db05d7fc90ea87"</span>)
+ (<span style="font-style: italic;">"hungry-delete"</span> . <span style="font-style: italic;">"0434458d3f6b2b585f332271feaa054bf4ec96d7"</span>)
+ (<span style="font-style: italic;">"hydra"</span> . <span style="font-style: italic;">"2d553787aca1aceb3e6927e426200e9bb9f056f1"</span>)
+ (<span style="font-style: italic;">"inf-ruby"</span> . <span style="font-style: italic;">"49d59a7897f594e3be74ecbddae83719f9a6c0f0"</span>)
+ (<span style="font-style: italic;">"japanese-holidays"</span> . <span style="font-style: italic;">"45e70a6eaf4a555fadc58ab731d522a037a81997"</span>)
+ (<span style="font-style: italic;">"js2-mode"</span> . <span style="font-style: italic;">"e6a9059fc823a17496e1a5114652d92a9071a78f"</span>)
+ (<span style="font-style: italic;">"let-alist"</span> . <span style="font-style: italic;">"6708ec0b2e6dff80ff5b64698aa009d9070a2ed2"</span>)
+ (<span style="font-style: italic;">"log4e"</span> . <span style="font-style: italic;">"7df0c1ff4656f8f993b87064b1567618eadb5546"</span>)
+ (<span style="font-style: italic;">"lsp-mode"</span> . <span style="font-style: italic;">"77b918fc0b6d8ec8624d2a77fc0f5e465518fd29"</span>)
+ (<span style="font-style: italic;">"lua-mode"</span> . <span style="font-style: italic;">"2d9a468b94acd8480299d47449b53136060b7b23"</span>)
+ (<span style="font-style: italic;">"magit"</span> . <span style="font-style: italic;">"877f7140451de30c3c55554aa780f5a2680f6674"</span>)
+ (<span style="font-style: italic;">"map"</span> . <span style="font-style: italic;">"dba584726393b0d9831e5cd44d0a974d7d993ca3"</span>)
+ (<span style="font-style: italic;">"marginalia"</span> . <span style="font-style: italic;">"9cd762b6c3f2714375f47993e9a6384d3bc16ebf"</span>)
+ (<span style="font-style: italic;">"markdown-mode"</span> . <span style="font-style: italic;">"9977753eebe3f5cca7ab85b18a7c719fdb0b7654"</span>)
+ (<span style="font-style: italic;">"melpa"</span> . <span style="font-style: italic;">"cca2c57104e14cb0c47e27d7fe4b437b38009a5c"</span>)
+ (<span style="font-style: italic;">"migemo"</span> . <span style="font-style: italic;">"e4744efae1b2fdea2bbd2ceaff0f6ea0bb739f5a"</span>)
+ (<span style="font-style: italic;">"modus-themes"</span> . <span style="font-style: italic;">"eba0ca9ce2bc2014669a55231136a01e015098da"</span>)
+ (<span style="font-style: italic;">"mu4e-alert"</span> . <span style="font-style: italic;">"91f0657c5b245a9de57aa38391221fb5d141d9bd"</span>)
+ (<span style="font-style: italic;">"nov.el"</span> . <span style="font-style: italic;">"b3c7cc28e95fe25ce7b443e5f49e2e45360944a3"</span>)
+ (<span style="font-style: italic;">"ob-async"</span> . <span style="font-style: italic;">"de1cd6c93242a4cb8773bbe115b7be3d4dd6b97e"</span>)
+ (<span style="font-style: italic;">"orderless"</span> . <span style="font-style: italic;">"62f71c34baca0b7d0adeab4a1c07d85ffcee80d9"</span>)
+ (<span style="font-style: italic;">"org"</span> . <span style="font-style: italic;">"3664447eb2417b38f0053674f248d2b0f1592ff0"</span>)
+ (<span style="font-style: italic;">"org-clock-convenience"</span> . <span style="font-style: italic;">"7d14699a15ad6c5b9a63246a11188c77f8800e94"</span>)
+ (<span style="font-style: italic;">"org-contrib"</span> . <span style="font-style: italic;">"06ac117a39f95e72a04988955978f13380587faa"</span>)
+ (<span style="font-style: italic;">"org-drill"</span> . <span style="font-style: italic;">"bf8fe812d44a3ce3e84361fb39b8ef28ca10fd0c"</span>)
+ (<span style="font-style: italic;">"org-mime"</span> . <span style="font-style: italic;">"9bb6351b25c62835c7881fc64096028eb8ef83ef"</span>)
+ (<span style="font-style: italic;">"org-ml"</span> . <span style="font-style: italic;">"1b02583a5cdb8f6b7cd82b31ec80b53753cb7729"</span>)
+ (<span style="font-style: italic;">"org-ql"</span> . <span style="font-style: italic;">"94f9e6f3031b32cf5e2149beca7074807235dcb0"</span>)
+ (<span style="font-style: italic;">"org-reveal"</span> . <span style="font-style: italic;">"58540c7dde7dbf4e922209d7fb3e6739570f49b5"</span>)
+ (<span style="font-style: italic;">"org-roam"</span> . <span style="font-style: italic;">"be95b42d32d9707309ab373f1d8182c84db41c5c"</span>)
+ (<span style="font-style: italic;">"org-super-agenda"</span> . <span style="font-style: italic;">"a5557ea4f51571ee9def3cd9a1ab1c38f1a27af7"</span>)
+ (<span style="font-style: italic;">"org-web-tools"</span> . <span style="font-style: italic;">"b94a07add8558ef7b0666173dbb8a2554f1d41a6"</span>)
+ (<span style="font-style: italic;">"orgit"</span> . <span style="font-style: italic;">"609fd0ccfb5268704b5bc7d7ac1014d4960b9707"</span>)
+ (<span style="font-style: italic;">"ov"</span> . <span style="font-style: italic;">"c5b9aa4e1b00d702eb2caedd61c69a22a5fa1fab"</span>)
+ (<span style="font-style: italic;">"pangu-spacing"</span> . <span style="font-style: italic;">"a4463dbb74abdeddb6c1c132a1f8fcf67ed87498"</span>)
+ (<span style="font-style: italic;">"paredit"</span> . <span style="font-style: italic;">"8330a41e8188fe18d3fa805bb9aa529f015318e8"</span>)
+ (<span style="font-style: italic;">"pass"</span> . <span style="font-style: italic;">"5651da53137db9adcb125b4897c2fe27eeb4368d"</span>)
+ (<span style="font-style: italic;">"password-store"</span> . <span style="font-style: italic;">"3dd14690c7c81ac80e32e942cf5976732faf0fb3"</span>)
+ (<span style="font-style: italic;">"password-store-otp.el"</span> . <span style="font-style: italic;">"04998c8578a060ab4a4e8f46f2ee0aafad4ab4d5"</span>)
+ (<span style="font-style: italic;">"pdf-tools"</span> . <span style="font-style: italic;">"66dd313dbb1d078fa847805b0d7cf9797bec9e4c"</span>)
+ (<span style="font-style: italic;">"peg"</span> . <span style="font-style: italic;">"014927e2130edcc453ca078a4fa06b48be63d834"</span>)
+ (<span style="font-style: italic;">"persist"</span> . <span style="font-style: italic;">"bbd57894134e06ec71251c1318055c0f8fd6e05b"</span>)
+ (<span style="font-style: italic;">"pkg-info"</span> . <span style="font-style: italic;">"76ba7415480687d05a4353b27fea2ae02b8d9d61"</span>)
+ (<span style="font-style: italic;">"plantuml-mode"</span> . <span style="font-style: italic;">"ea45a13707abd2a70df183f1aec6447197fc9ccc"</span>)
+ (<span style="font-style: italic;">"popup-el"</span> . <span style="font-style: italic;">"80829dd46381754639fb764da11c67235fe63282"</span>)
+ (<span style="font-style: italic;">"project"</span> . <span style="font-style: italic;">"a546cce47c434b0b4bf24bf1d5ed6e4623492072"</span>)
+ (<span style="font-style: italic;">"quickrun"</span> . <span style="font-style: italic;">"35e91f4b6cfbb8dd2adea4d8cf53ae76db7d00d9"</span>)
+ (<span style="font-style: italic;">"rainbow-mode"</span> . <span style="font-style: italic;">"8059f1cb756d2b211af962f07c5e6aff958094d7"</span>)
+ (<span style="font-style: italic;">"restart-emacs"</span> . <span style="font-style: italic;">"9aa90d3df9e08bc420e1c9845ee3ff568e911bd9"</span>)
+ (<span style="font-style: italic;">"s.el"</span> . <span style="font-style: italic;">"08661efb075d1c6b4fa812184c1e5e90c08795a9"</span>)
+ (<span style="font-style: italic;">"spinner"</span> . <span style="font-style: italic;">"e19f3cfc0646c0e23c10c22df219fcf427054621"</span>)
+ (<span style="font-style: italic;">"straight.el"</span> . <span style="font-style: italic;">"af5437f2afd00936c883124d6d3098721c2d306c"</span>)
+ (<span style="font-style: italic;">"synosaurus"</span> . <span style="font-style: italic;">"bc26f5c22b4d08dd09d0852435814977433c9521"</span>)
+ (<span style="font-style: italic;">"system-packages"</span> . <span style="font-style: italic;">"d18b2c0e38ddc1ccfcd7d787112fb3465df51769"</span>)
+ (<span style="font-style: italic;">"tablist"</span> . <span style="font-style: italic;">"c834a84efb6efa32497efe1e73160fade741b836"</span>)
+ (<span style="font-style: italic;">"transient"</span> . <span style="font-style: italic;">"65f4eac82c564204d20df0a606dc2fcaa72cc41e"</span>)
+ (<span style="font-style: italic;">"ts.el"</span> . <span style="font-style: italic;">"3fee71ceefac71ba55eb34829d7e94bb3df37cee"</span>)
+ (<span style="font-style: italic;">"twittering-mode"</span> . <span style="font-style: italic;">"bacb67311a4e01d39950ffae8e9291c7e8a37d3b"</span>)
+ (<span style="font-style: italic;">"undo-tree"</span> . <span style="font-style: italic;">"e326c6135e62f5fe8536528d3acd5e798f847407"</span>)
+ (<span style="font-style: italic;">"use-package"</span> . <span style="font-style: italic;">"a7422fb8ab1baee19adb2717b5b47b9c3812a84c"</span>)
+ (<span style="font-style: italic;">"vertico"</span> . <span style="font-style: italic;">"9258920318bf60dab5d0b9f8093a08c4b76580dd"</span>)
+ (<span style="font-style: italic;">"visual-regexp-steroids.el"</span> . <span style="font-style: italic;">"a6420b25ec0fbba43bf57875827092e1196d8a9e"</span>)
+ (<span style="font-style: italic;">"visual-regexp.el"</span> . <span style="font-style: italic;">"48457d42a5e0fe10fa3a9c15854f1f127ade09b5"</span>)
+ (<span style="font-style: italic;">"web-mode"</span> . <span style="font-style: italic;">"61f057a6baeba6b3595e412ba79b3080dca17dcc"</span>)
+ (<span style="font-style: italic;">"with-editor"</span> . <span style="font-style: italic;">"5519b6a67ecd66865b4fdd5447425eee900c54f4"</span>)
+ (<span style="font-style: italic;">"xref"</span> . <span style="font-style: italic;">"edccc43d6e456edc199fd087d50ffeb7a6d663ee"</span>)
+ (<span style="font-style: italic;">"yaml-mode"</span> . <span style="font-style: italic;">"40067a10ac1360f0b9533f0bbbb2eea128e2574d"</span>)
+ (<span style="font-style: italic;">"yasnippet"</span> . <span style="font-style: italic;">"5cbdbf0d2015540c59ed8ee0fcf4788effdf75b6"</span>)
+ (<span style="font-style: italic;">"yasnippet-snippets"</span> . <span style="font-style: italic;">"be823d7e1a1a46454d60a9f3dabb16b68b5dd853"</span>))
+<span style="font-weight: bold;">:beta</span>
+</pre>
 </div>
 </div>
 </div>
