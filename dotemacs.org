@@ -215,20 +215,26 @@ CAUTION: There are some face definitions which use an extra large font since I a
 
   (create-fontset-from-ascii-font "TakaoGothic" nil "default")
   (create-fontset-from-ascii-font "TakaoExGothic" nil "variable")
-  (create-fontset-from-ascii-font "TakaoMincho" nil "mincho")
+  (create-fontset-from-ascii-font "TakaoPMincho" nil "mincho")
+  (create-fontset-from-ascii-font "TakaoMincho" nil "fmincho")
   (create-fontset-from-ascii-font "Gen Shin Gothic Monospace Light" nil "dense")
 
   (set-face-attribute 'default
                       nil
                       :font "fontset-default"
                       :height (my-adjust-font-size 660))
+  (set-face-attribute 'fixed-pitch
+                      nil
+                      :font "fontset-default")
   (set-face-attribute 'variable-pitch
                       nil
-                      :font "fontset-variable"
-                      :height (my-adjust-font-size 660))
+                      :font "fontset-variable")
+  (set-face-attribute 'bold
+                      nil
+                      :weight 'bold)
   (set-face-attribute 'mode-line
                       nil
-                      :font "fontset-mincho"
+                      :font "fontset-fmincho"
                       :height (my-adjust-font-size 660))
 
   (use-package face-remap
@@ -257,7 +263,7 @@ CAUTION: There are some face definitions which use an extra large font since I a
     (defface my/large-mincho-face `((t . (:font "fontset-mincho"
                                                 :height ,(my-adjust-font-size 840))))
       "A face with large mincho font.")
-    (defface my/medium-mincho-face `((t . (:font "fontset-mincho"
+    (defface my/medium-mincho-face `((t . (:font "fontset-fmincho"
                                                  :height ,(my-adjust-font-size 780))))
       "A face with medium mincho font.")
     :hook
