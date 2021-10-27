@@ -1036,8 +1036,7 @@ fDDHS5Vq5UvYutk=
     :defer t
     :config
     (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-    (add-to-list 'tramp-remote-path "~/bin")
-    (add-to-list 'tramp-remote-path "~/usr/bin"))
+    (add-to-list 'tramp-remote-path "~/bin"))
 #+end_src
 
 *** view
@@ -1266,7 +1265,14 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/mu4e.el")
 :END:
 
-You need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-message-store.html][issue 'mu init' command]] after changing either maildir, email address or home-dir for mu.
+You need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-message-store.html][issue 'mu init' command]] before using mu4e.
+Command in practice presumably looks like:
+: mu init --maildir=~/var/mail --muhome ~/var/lib/mu --my-address=jim@example.com
+
+#+begin_src scheme :noweb-ref packages :noweb-sep ""
+  "mu"
+  "nkf"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package mu4e-utils
@@ -1278,7 +1284,6 @@ You need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-message-
     (mu4e-compose-mode " MU")
     :hook (after-init . mu4e~start)
     :custom
-    (mu4e-mu-binary (expand-file-name "mu" "~/usr/bin"))
     (mail-user-agent 'mu4e-user-agent)
     (mu4e-hide-index-messages t)
     (mu4e-context-policy 'pick-first)
@@ -2686,6 +2691,11 @@ dMv+byk5Rw==
 
 *** org-babel
 
+#+begin_src scheme :noweb-ref packages :noweb-sep ""
+  "graphviz"
+  "plantuml"
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package ob-core
     :after org
@@ -2709,7 +2719,7 @@ dMv+byk5Rw==
     (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
     (cond
      ((string= system-type "gnu/linux")
-      (custom-set-variables '(org-plantuml-jar-path "~/var/lib/plantuml/plantuml.jar")))
+      (custom-set-variables `(org-plantuml-jar-path ,(expand-file-name "plantuml.jar" "~/.guix-profile/share/java"))))
      ((string= system-type "darwin")
       (custom-set-variables '(org-plantuml-jar-path "/usr/local/Cellar/plantuml/8041/plantuml.8041.jar")))))
 #+end_src
@@ -4689,6 +4699,10 @@ Major mode for manupulating password store file.
 #+end_src
 *** [[https://github.com/politza/pdf-tools/releases.atom][pdf-tools]]
 
+#+begin_src scheme :noweb-ref packages :noweb-sep ""
+  "emacs-pdf-tools"
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package pdf-tools
     :straight t
@@ -4699,7 +4713,6 @@ Major mode for manupulating password store file.
     (pdf-view-mode . pdf-view-midnight-minor-mode)
     (pdf-view-mode . pdf-view-fit-page-to-window)
     :custom
-    (pdf-info-epdfinfo-program "/usr/bin/epdfinfo")
     (pdf-view-display-size 'fit-width))
 #+end_src
 
@@ -4719,6 +4732,11 @@ Major mode for manupulating password store file.
     (rainbow-ansi-colors t))
 #+end_src
 *** [[https://github.com/jwiegley/alert/releases.atom][alert]]
+
+#+begin_src scheme :noweb-ref packages :noweb-sep ""
+  "mpg321"
+#+end_src
+
 
 #+begin_src emacs-lisp
   (use-package alert
@@ -6624,4 +6642,25 @@ Stripping rules are:
    ("yasnippet" . "5cbdbf0d2015540c59ed8ee0fcf4788effdf75b6")
    ("yasnippet-snippets" . "be823d7e1a1a46454d60a9f3dabb16b68b5dd853"))
   :beta
+#+end_src
+
+* required programs
+
+#+begin_src scheme :noweb-ref packages :noweb-sep ""
+  "zstd"
+  "isync"
+  "sqlite"
+  "stunnel"
+  "wordnet"
+#+end_src
+
+
+* emacs profile for guix
+
+#+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/emacs.scm")
+  (specifications->manifest
+   '(;; "emacs"
+     "emacs-no-x-toolkit"
+     <<packages>>
+  ))
 #+end_src
