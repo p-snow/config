@@ -3449,6 +3449,8 @@ speed commands and hydra-org.
 
 *** emacs lisp
 
+I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[https://karthinks.com/software/an-elisp-editing-tip/][this blog post]]
+
 #+begin_src emacs-lisp
   (use-package elisp-mode
     :commands emacs-lisp-mode
@@ -3460,7 +3462,10 @@ speed commands and hydra-org.
                                (setq-local counsel-dash-docsets '("Emacs Lisp" "Common Lisp"))
                                (eldoc-mode 1)))
     :config
-    (require 'eldoc))
+    (require 'eldoc)
+    (substitute-key-definition 'eval-last-sexp
+                               'pp-eval-last-sexp
+                               global-map))
 #+end_src
 
 *** cc-mode
