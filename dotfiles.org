@@ -344,7 +344,7 @@ Q7sbt0I=
             email = 6841207+p-snow@users.noreply.github.com
             name = p-snow
     [credential]
-            helper = /usr/bin/pass-git-helper -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
+            helper = <<home-dir()>>/.guix-profile/bin/pass-git-helper -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
   #+END_SRC
 - pre-commit
   pre-commit script is useful for checking strings to commit
@@ -377,18 +377,6 @@ Q7sbt0I=
         curl -LJs --remote-name "https://gcompris.net/download/qt/linux/${sh_file}"
     fi
   #+end_src
-- Desktop file
-  #+BEGIN_SRC conf-desktop :noweb tangle :tangle (expand-tangle-target ".local/share/applications/gcompris.desktop")
-    #!/usr/bin/env xdg-open
-    [Desktop Entry]
-    Type=Application
-    Version=1.1
-    Name=GCompris
-    Comment=GCompris education app suite
-    Exec=<<home-dir()>>/Applications/gcompris-qt-1.1-Linux/bin/gcompris-qt.sh %F
-    Terminal=false
-    Categories=Education;
-  #+END_SRC
 ** Config file
 #+begin_src conf :noweb tangle :comments noweb :tangle (expand-tangle-target ".config/gcompris/gcompris-qt.conf")
   [Admin]
@@ -1242,7 +1230,7 @@ Extendable version manager
 
     [Service]
     KillMode=process
-    ExecStart=%h/.local/bin/pwsudo /usr/local/bin/xkeysnail --watch --quiet %h/.config/xkeysnail/config.py
+    ExecStart=%h/.local/bin/pwsudo %h/.guix-profile/bin/xkeysnail --watch --quiet %h/.config/xkeysnail/config.py
     ExecStop=%h/.local/bin/pwsudo /usr/bin/killall xkeysnail
     ExecStartPre=/usr/bin/xhost +SI:localuser:root
     Type=simple
@@ -1255,10 +1243,7 @@ Extendable version manager
     WantedBy=default.target
   #+end_src
 ** how to make xkeysnail daemonize
-1. Install xkeysnail
-   Install xkeysnail (v0.4.0) on python3 on system via pip3
-   : # apt install python3-pip
-   : # pip3 install xkeysnail
+1. Install xkeysnail on guix
 2. Start systemd service for xkeysnail
    : $ systemctl --user enable xkeysnail
    : $ systemctl --user start xkeysnail
