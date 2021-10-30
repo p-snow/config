@@ -5259,9 +5259,22 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
     (if-let* ((url (thing-at-point-url-at-point)))
         (show-media-duration url)))
 
-  (defmacro youtube-dl-format ()
+  (defun youtube-dl-format ()
     "Return appropriate format option value for youtube-dl command."
-    "worstvideo+worstaudio mp4")
+    (let* ((ipv4-addr (shell-command-to-string "hostname -I | cut -f1 -d' ' | tr -d '\n'"))
+           (wifi-ssid (shell-command-to-string "iwgetid -r | tr -d '\n'"))
+           (fmt-quality (cond
+                         ;; using mobile Wi-Fi
+                         ((string-prefix-p "192.168.179." ipv4-addr)
+                          "bestvideo[height<=?240]+worstaudio/best")
+                         ;; using wired network or broad wifi
+                         ((or (string= ipv4-addr "192.168.100.126")
+                              (member wifi-ssid '("saint_laurent_ap")))
+                          "bestvideo[height<=?720]+bestaudio/best")
+                         ;; usin unknown network
+                         (t
+                          "worstvideo+worstaudio"))))
+      (format "%s mp4" fmt-quality)))
 
   (global-set-key (kbd "C-c D v") 'my/download-video-at-point)
   (global-set-key (kbd "C-c D a") 'my/download-audio-at-point)
