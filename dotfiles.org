@@ -1,7 +1,7 @@
 #+SETUPFILE: ./export.setup
 
 #+TITLE: Software Configuration (.files)
-#+PROPERTY: header-args       :tangle-mode (identity #o644)
+#+PROPERTY: header-args       :tangle-mode (identity #o444)
 #+PROPERTY: header-args+      :mkdirp yes
 #+PROPERTY: tangle-target-dir .files
 
@@ -53,30 +53,13 @@
     USER_PATHS=(
       "${HOME}/bin"
       "${HOME}/usr/bin"
-      "${HOME}/usr/bin/calibre"
-      "${HOME}/usr/sbin"
-      "${HOME}/Applications"
-      "${HOME}/go/bin"
-      "${HOME}/.cask/bin"
       "${HOME}/.local/bin"
-      "${HOME}/.cabal"
     )
     for path in "${USER_PATHS[@]}"; do
       if [ -d "${path}" ]; then
         export PATH="${path}:$PATH"
       fi
     done
-
-    export MANPATH="${HOME}/usr/share/man:${MANPATH}"
-    export INFOPATH="${HOME}/usr/share/info:${INFOPATH}"
-    export PKG_CONFIG_PATH="${HOME}/usr/lib/pkgconfig:${HOME}/usr/lib64/pkgconfig:${HOME}/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"
-
-    export LD_LIBRARY_PATH="${HOME}/usr/lib:${HOME}/usr/lib64:${HOME}/usr/lib/x86_64-linux-gnu:/usr/lib:/usr/local/lib:/usr/lib/x86_64-linux-gnu/"
-
-    python2_sp=${HOME}/usr/lib/python2.7/site-packages/
-    if [ -d ${python2_sp} ]; then
-      export PYTHONPATH=${python2_sp}
-    fi
 
     for bash_src in "${HOME}"/bin/bash_*.sh; do
       . "${bash_src}"
@@ -1259,3 +1242,39 @@ Extendable version manager
     sshfs#<<account()>>@ns01:/home/<<account()>>/share /mnt/ns01 fuse defaults,x-systemd.nofail,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
     sshfs#<<account()>>@sv04.<<my-network()>>:/home/<<account()>> /mnt/sv04 fuse defaults,x-systemd.nofail,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
   #+end_src
+* GNU Guix
+
+#+begin_src bash :tangle (expand-tangle-target ".bash_profile")
+  export GUIX_PROFILE="$HOME/.guix-profile"
+  . "$GUIX_PROFILE/etc/profile"
+
+  export GUIX_PROFILE="$HOME/.config/guix/current"
+  . "$GUIX_PROFILE/etc/profile"
+
+  export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
+#+end_src
+
+** Channel definitions
+
+#+begin_src scheme :tangle (expand-tangle-target ".config/guix/base-channels.scm")
+  (list (channel
+         (name 'flat)
+         (url "https://github.com/flatwhatson/guix-channel.git"))
+        (channel
+         (name 'nonguix)
+         (url "https://gitlab.com/nonguix/nonguix"))
+        (channel
+         (name 'guix)
+         (url "https://git.savannah.gnu.org/git/guix.git")))
+#+end_src
+
+** Updating Channels
+
+This script makes it easy to update all channels to the latest commit based on an original channel file.
+
+: update-channels
+
+#+begin_src sh :tangle (expand-tangle-target ".local/bin/update-channels") :shebang #!/bin/sh :tangle-mode (identity #o755)
+  guix pull --channels=$HOME/.config/guix/base-channels.scm
+  guix describe --format=channels > ~/.config/guix/channels.scm
+#+end_src
