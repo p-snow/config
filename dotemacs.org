@@ -343,12 +343,12 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
 
   (setq buffer-quit-function 'winner-undo)
 
-  (defun my/next-window-expand ()
-    "Expand next window."
-    (interactive)
-    (other-window 1)
-    (delete-other-windows))
-  (global-set-key (kbd "C-x O") 'my/next-window-expand)
+  (global-set-key (kbd "M-o") 'other-window)
+
+  (windmove-default-keybindings)
+
+  ;; You can now switch windows with your shift key by pressing S-<left>, S-<right>, S-<up>, S-<down>.
+  (windmove-default-keybindings)
 #+end_src
 
 *** mode line
