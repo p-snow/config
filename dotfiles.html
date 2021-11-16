@@ -21,91 +21,86 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgb2e521c">User Information</a></li>
-<li><a href="#orga744ca6">Bash</a>
+<li><a href="#orgbf7a955">User Information</a></li>
+<li><a href="#org9f681cf">Bash</a>
 <ul>
-<li><a href="#org8efc9e9">secret parts&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></a></li>
+<li><a href="#orga1cc651">secret parts&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></a></li>
 </ul>
 </li>
-<li><a href="#org367c2ad">abcde</a></li>
-<li><a href="#orgf575f85">Git</a></li>
-<li><a href="#orge9c5517">GCompris</a>
+<li><a href="#orged53416">abcde</a></li>
+<li><a href="#org9ad1874">Git</a></li>
+<li><a href="#org7fefc65">Pass</a></li>
+<li><a href="#orgd7b6000">mpv</a></li>
+<li><a href="#orge57b2a6">unison</a></li>
+<li><a href="#orgb5f6de6">crontab</a></li>
+<li><a href="#orge79b7aa">Aspell</a></li>
+<li><a href="#orgc292bd5">asdf-vm</a>
 <ul>
-<li><a href="#orgc49cbe7">Config file</a></li>
+<li><a href="#org399440a">asdf-ruby</a></li>
+<li><a href="#org3b9988a">asdf-python</a></li>
 </ul>
 </li>
-<li><a href="#org47a2e33">Pass</a></li>
-<li><a href="#org67e5d49">mpv</a></li>
-<li><a href="#orgad7c6df">unison</a></li>
-<li><a href="#orgbb310cb">crontab</a></li>
-<li><a href="#org47ec2fc">Aspell</a></li>
-<li><a href="#orgc6bd5fd">asdf-vm</a>
+<li><a href="#orga9dfee3">xkeysnail</a>
 <ul>
-<li><a href="#org93decec">asdf-ruby</a></li>
-<li><a href="#orgab491bf">asdf-python</a></li>
+<li><a href="#orgf3470eb">how to make xkeysnail daemonize</a></li>
 </ul>
 </li>
-<li><a href="#org5a3095e">xkeysnail</a>
+<li><a href="#orga1914d2">fstab</a></li>
+<li><a href="#orge9b1577">GNU Guix</a>
 <ul>
-<li><a href="#orgfa98974">how to make xkeysnail daemonize</a></li>
-</ul>
-</li>
-<li><a href="#orga10c03a">fstab</a></li>
-<li><a href="#orgddb6df4">GNU Guix</a>
-<ul>
-<li><a href="#org6987a02">Channel definitions</a></li>
-<li><a href="#org6d91262">Updating Channels</a></li>
+<li><a href="#org723e03d">Channel definitions</a></li>
+<li><a href="#org95016bd">Updating Channels</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orgb2e521c" class="outline-2">
-<h2 id="orgb2e521c">User Information</h2>
-<div class="outline-text-2" id="text-orgb2e521c">
+<div id="outline-container-orgbf7a955" class="outline-2">
+<h2 id="orgbf7a955">User Information</h2>
+<div class="outline-text-2" id="text-orgbf7a955">
 <ul class="org-ul">
 <li><p>
 my home directory
 </p>
 <div class="org-src-container">
-<pre class="src src-bash" id="orge734744"><span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"${HOME}"</span>
+<pre class="src src-bash" id="org3fe9bce"><span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"${HOME}"</span>
 </pre>
 </div></li>
 <li><p>
 my user name on system
 </p>
 <div class="org-src-container">
-<pre class="src src-bash" id="org467fe08">whoami
+<pre class="src src-bash" id="org9b752a3">whoami
 </pre>
 </div></li>
 <li><p>
 my email address
 </p>
 <div class="org-src-container">
-<pre class="src src-bash" id="orgbb0f06f"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span>
+<pre class="src src-bash" id="orgf8517d5"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span>
 </pre>
 </div></li>
 <li><p>
 user account part of my email
 </p>
 <div class="org-src-container">
-<pre class="src src-bash" id="orga3e0ce8"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span> | cut -d<span style="font-style: italic;">'@'</span> -f1
+<pre class="src src-bash" id="org45bd6a2"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span> | cut -d<span style="font-style: italic;">'@'</span> -f1
 </pre>
 </div></li>
 <li><p>
 network part of my email
 </p>
 <div class="org-src-container">
-<pre class="src src-bash" id="orgc160065"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span> | cut -d<span style="font-style: italic;">'@'</span> -f2
+<pre class="src src-bash" id="orgb8b3a47"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span> | cut -d<span style="font-style: italic;">'@'</span> -f2
 </pre>
 </div></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orga744ca6" class="outline-2">
-<h2 id="orga744ca6">Bash</h2>
-<div class="outline-text-2" id="text-orga744ca6">
+<div id="outline-container-org9f681cf" class="outline-2">
+<h2 id="org9f681cf">Bash</h2>
+<div class="outline-text-2" id="text-org9f681cf">
 <ul class="org-ul">
 <li><p>
 bash profile
@@ -218,9 +213,9 @@ profile
 </div></li>
 </ul>
 </div>
-<div id="outline-container-org8efc9e9" class="outline-3">
-<h3 id="org8efc9e9">secret parts&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></h3>
-<div class="outline-text-3" id="text-org8efc9e9">
+<div id="outline-container-orga1cc651" class="outline-3">
+<h3 id="orga1cc651">secret parts&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></h3>
+<div class="outline-text-3" id="text-orga1cc651">
 <p>
 &#x2013;&#x2014;BEGIN PGP MESSAGE&#x2013;&#x2014;
 </p>
@@ -242,9 +237,9 @@ Q7sbt0I=
 </div>
 </div>
 </div>
-<div id="outline-container-org367c2ad" class="outline-2">
-<h2 id="org367c2ad">abcde</h2>
-<div class="outline-text-2" id="text-org367c2ad">
+<div id="outline-container-orged53416" class="outline-2">
+<h2 id="orged53416">abcde</h2>
+<div class="outline-text-2" id="text-orged53416">
 <div class="org-src-container">
 <pre class="src src-conf"><span style="font-weight: bold; font-style: italic;">FDKAACENCOPTS</span>=<span style="font-style: italic;">'--bitrate 256k'</span>
 
@@ -253,9 +248,9 @@ Q7sbt0I=
 </div>
 </div>
 </div>
-<div id="outline-container-orgf575f85" class="outline-2">
-<h2 id="orgf575f85">Git</h2>
-<div class="outline-text-2" id="text-orgf575f85">
+<div id="outline-container-org9ad1874" class="outline-2">
+<h2 id="org9ad1874">Git</h2>
+<div class="outline-text-2" id="text-org9ad1874">
 <ul class="org-ul">
 <li><p>
 git ignore
@@ -450,7 +445,7 @@ pre-commit script is useful for checking strings to commit
 
 <p>
 forbiddens=(
-  <a id="org2378c98"></a>
+  <a id="orgb94635c"></a>
 )
 </p>
 
@@ -486,149 +481,9 @@ do
 </div>
 </div>
 
-<div id="outline-container-orge9c5517" class="outline-2">
-<h2 id="orge9c5517">GCompris</h2>
-<div class="outline-text-2" id="text-orge9c5517">
-<ul class="org-ul">
-<li><p>
-Download executable
-execute following source block to download package file and execute it to install GCompris executable file
-</p>
-<div class="org-src-container">
-<pre class="src src-sh"><span style="font-weight: bold; font-style: italic;">ver</span>=1.1
-<span style="font-weight: bold; font-style: italic;">sh_file</span>=gcompris-qt-${<span style="font-weight: bold; font-style: italic;">ver</span>}-Linux64.sh
-<span style="font-weight: bold;">if</span> [ ! -x ~/Applications/gcompris-qt-${<span style="font-weight: bold; font-style: italic;">ver</span>}-Linux/bin/gcompris-qt.sh ]; <span style="font-weight: bold;">then</span>
-  <span style="font-weight: bold;">cd</span> ~/Applications &amp;&amp; <span style="font-style: italic;">\</span>
-    curl -LJs --remote-name <span style="font-style: italic;">"https://gcompris.net/download/qt/linux/${sh_file}"</span>
-<span style="font-weight: bold;">fi</span>
-</pre>
-</div></li>
-</ul>
-</div>
-<div id="outline-container-orgc49cbe7" class="outline-3">
-<h3 id="orgc49cbe7">Config file</h3>
-<div class="outline-text-3" id="text-orgc49cbe7">
-<div class="org-src-container">
-<pre class="src src-conf">[<span style="font-weight: bold; text-decoration: underline;">Admin</span>]
-<span style="font-weight: bold; font-style: italic;">cachePath</span>=&lt;&lt;home-dir()&gt;&gt;/.cache/KDE/gcompris-qt
-<span style="font-weight: bold; font-style: italic;">downloadServerUrl</span>=https://cdn.kde.org/gcompris
-<span style="font-weight: bold; font-style: italic;">renderer</span>=auto
-<span style="font-weight: bold; font-style: italic;">userDataPath</span>=&lt;&lt;home-dir()&gt;&gt;/.local/share/GCompris
-
-[<span style="font-weight: bold; text-decoration: underline;">Favorite</span>]
-<span style="font-weight: bold; font-style: italic;">baby_tangram\BabyTangram.qml</span>=true
-<span style="font-weight: bold; font-style: italic;">babyshapes\Babyshapes.qml</span>=false
-<span style="font-weight: bold; font-style: italic;">braille_fun\BrailleFun.qml</span>=false
-<span style="font-weight: bold; font-style: italic;">canal_lock\CanalLock.qml</span>=true
-<span style="font-weight: bold; font-style: italic;">color_mix_light\ColorMixLight.qml</span>=true
-<span style="font-weight: bold; font-style: italic;">colors\Colors.qml</span>=true
-<span style="font-weight: bold; font-style: italic;">hanoi_real\HanoiReal.qml</span>=true
-<span style="font-weight: bold; font-style: italic;">maze\Maze.qml</span>=true
-<span style="font-weight: bold; font-style: italic;">play_piano\PlayPiano.qml</span>=true
-<span style="font-weight: bold; font-style: italic;">railroad\Railroad.qml</span>=true
-<span style="font-weight: bold; font-style: italic;">traffic\Traffic.qml</span>=true
-
-[<span style="font-weight: bold; text-decoration: underline;">%General</span>]
-<span style="font-weight: bold; font-style: italic;">audioEffectsVolume</span>=0.7
-<span style="font-weight: bold; font-style: italic;">backgroundMusicVolume</span>=0.2
-<span style="font-weight: bold; font-style: italic;">baseFontSize</span>=0
-<span style="font-weight: bold; font-style: italic;">defaultCursor</span>=false
-<span style="font-weight: bold; font-style: italic;">demo</span>=false
-<span style="font-weight: bold; font-style: italic;">enableAudioEffects</span>=true
-<span style="font-weight: bold; font-style: italic;">enableAudioVoices</span>=true
-<span style="font-weight: bold; font-style: italic;">enableAutomaticDownloads</span>=true
-<span style="font-weight: bold; font-style: italic;">enableBackgroundMusic</span>=true
-<span style="font-weight: bold; font-style: italic;">filterLevelMax</span>=6
-<span style="font-weight: bold; font-style: italic;">filterLevelMin</span>=1
-<span style="font-weight: bold; font-style: italic;">filteredBackgroundMusic</span>=forest.ogg
-<span style="font-weight: bold; font-style: italic;">font</span>=Andika-R.otf
-<span style="font-weight: bold; font-style: italic;">fontCapitalization</span>=0
-<span style="font-weight: bold; font-style: italic;">fontLetterSpacing</span>=0
-<span style="font-weight: bold; font-style: italic;">fullscreen</span>=false
-<span style="font-weight: bold; font-style: italic;">isCurrentFontEmbedded</span>=true
-<span style="font-weight: bold; font-style: italic;">key</span>=
-<span style="font-weight: bold; font-style: italic;">kiosk</span>=false
-<span style="font-weight: bold; font-style: italic;">locale</span>=system
-<span style="font-weight: bold; font-style: italic;">noCursor</span>=false
-<span style="font-weight: bold; font-style: italic;">previousHeight</span>=1375
-<span style="font-weight: bold; font-style: italic;">previousWidth</span>=2560
-<span style="font-weight: bold; font-style: italic;">sectionVisible</span>=true
-<span style="font-weight: bold; font-style: italic;">showLockedActivities</span>=false
-<span style="font-weight: bold; font-style: italic;">useWordset</span>=true
-<span style="font-weight: bold; font-style: italic;">virtualKeyboard</span>=false
-<span style="font-weight: bold; font-style: italic;">wordset</span>=data2/words/words.rcc
-
-[<span style="font-weight: bold; text-decoration: underline;">Internal</span>]
-<span style="font-weight: bold; font-style: italic;">exeCount</span>=139
-<span style="font-weight: bold; font-style: italic;">lastGCVersionRan</span>=10100
-
-[<span style="font-weight: bold; text-decoration: underline;">Levels</span>]
-<span style="font-weight: bold; font-style: italic;">algebra_by\AlgebraBy.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">algebra_div\AlgebraDiv.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">algebra_minus\AlgebraMinus.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">algebra_plus\AlgebraPlus.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">categorization\Categorization.qml</span>=1, 2, 3
-<span style="font-weight: bold; font-style: italic;">chronos\Chronos.qml</span>=1, 2
-<span style="font-weight: bold; font-style: italic;">clockgame\Clockgame.qml</span>=1, 2, 3, 4, 5, 6
-<span style="font-weight: bold; font-style: italic;">crane\Crane.qml</span>=1, 2, 3, 4
-<span style="font-weight: bold; font-style: italic;">details\Details.qml</span>=1, 2, 3
-<span style="font-weight: bold; font-style: italic;">enumerate\Enumerate.qml</span>=1, 2, 3, 4
-<span style="font-weight: bold; font-style: italic;">geo-country\GeoCountry.qml</span>=1, 2, 3, 4
-<span style="font-weight: bold; font-style: italic;">gnumch-equality\GnumchEquality.qml</span>=1, 2, 3, 4
-<span style="font-weight: bold; font-style: italic;">gnumch-inequality\GnumchInequality.qml</span>=1, 2, 3, 4
-<span style="font-weight: bold; font-style: italic;">guesscount\Guesscount.qml</span>=1, 2, 3, 4
-<span style="font-weight: bold; font-style: italic;">guessnumber\Guessnumber.qml</span>=1, 2, 3, 4, 5
-<span style="font-weight: bold; font-style: italic;">land_safe\LandSafe.qml</span>=1, 2
-<span style="font-weight: bold; font-style: italic;">learn_additions\Learn_additions.qml</span>=1, 2, 3
-<span style="font-weight: bold; font-style: italic;">learn_digits\Learn_digits.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9
-<span style="font-weight: bold; font-style: italic;">learn_subtractions\Learn_subtractions.qml</span>=1, 2, 3
-<span style="font-weight: bold; font-style: italic;">lightsoff\Lightsoff.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9
-<span style="font-weight: bold; font-style: italic;">magic-hat-minus\MagicHat.qml</span>=1, 2, 3, 4, 5, 6
-<span style="font-weight: bold; font-style: italic;">magic-hat-plus\MagicHatPlus.qml</span>=1, 2, 3, 4, 5, 6
-<span style="font-weight: bold; font-style: italic;">memory-enumerate\MemoryEnumerate.qml</span>=1, 2, 3, 4, 5, 6, 7, 8
-<span style="font-weight: bold; font-style: italic;">memory-math-add-minus-mult-div-tux\MemoryMathAddMinusMultDivTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">memory-math-add-minus-mult-div\MemoryMathAddMinusMultDiv.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">memory-math-add-minus-tux\MemoryMathAddMinusTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">memory-math-add-minus\MemoryMathAddMinus.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">memory-math-add-tux\MemoryMathAddTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">memory-math-add\MemoryMathAdd.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">memory-math-div-tux\MemoryMathDivTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">memory-math-div\MemoryMathDiv.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">memory-math-minus-tux\MemoryMathMinusTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">memory-math-minus\MemoryMathMinus.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">memory-math-mult-div-tux\MemoryMathMultDivTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9
-<span style="font-weight: bold; font-style: italic;">memory-math-mult-div\MemoryMathMultDiv.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9
-<span style="font-weight: bold; font-style: italic;">memory-math-mult-tux\MemoryMathMultTux.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">memory-math-mult\MemoryMathMult.qml</span>=1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-<span style="font-weight: bold; font-style: italic;">money\Money.qml</span>=1, 2, 3
-<span style="font-weight: bold; font-style: italic;">money_back\MoneyBack.qml</span>=1, 2, 3
-<span style="font-weight: bold; font-style: italic;">money_back_cents\MoneyBackCents.qml</span>=1, 2, 3
-<span style="font-weight: bold; font-style: italic;">money_cents\MoneyCents.qml</span>=1, 2, 3
-<span style="font-weight: bold; font-style: italic;">mosaic\Mosaic.qml</span>=1, 2, 3, 4
-<span style="font-weight: bold; font-style: italic;">redraw\Redraw.qml</span>=1, 2, 3
-<span style="font-weight: bold; font-style: italic;">redraw_symmetrical\RedrawSymmetrical.qml</span>=1, 2, 3
-<span style="font-weight: bold; font-style: italic;">reversecount\Reversecount.qml</span>=1, 2
-<span style="font-weight: bold; font-style: italic;">scalesboard\ScaleNumber.qml</span>=1, 2, 3, 4, 5
-<span style="font-weight: bold; font-style: italic;">scalesboard_weight\ScalesboardWeight.qml</span>=1, 2, 3, 4, 5, 6
-<span style="font-weight: bold; font-style: italic;">scalesboard_weight_avoirdupois\ScalesboardWeight.qml</span>=1, 2, 3, 4, 5, 6
-<span style="font-weight: bold; font-style: italic;">share\Share.qml</span>=1, 2, 3
-<span style="font-weight: bold; font-style: italic;">smallnumbers\Smallnumbers.qml</span>=1, 2, 3, 4, 5, 6, 7, 8
-<span style="font-weight: bold; font-style: italic;">smallnumbers2\Smallnumbers2.qml</span>=1, 2, 3, 4, 5, 6, 7, 8
-<span style="font-weight: bold; font-style: italic;">sudoku\Sudoku.qml</span>=1, 2, 3, 4
-<span style="font-weight: bold; font-style: italic;">target\Target.qml</span>=1, 2, 3, 4, 5
-
-[<span style="font-weight: bold; text-decoration: underline;">balancebox</span>]
-<span style="font-weight: bold; font-style: italic;">filePath</span>=qrc:/gcompris/src/activities/balancebox/resource/levels-default.json
-<span style="font-weight: bold; font-style: italic;">levels</span>=builtin
-<span style="font-weight: bold; font-style: italic;">progress</span>=12
-</pre>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-org47a2e33" class="outline-2">
-<h2 id="org47a2e33">Pass</h2>
-<div class="outline-text-2" id="text-org47a2e33">
+<div id="outline-container-org7fefc65" class="outline-2">
+<h2 id="org7fefc65">Pass</h2>
+<div class="outline-text-2" id="text-org7fefc65">
 <div class="org-src-container">
 <pre class="src src-conf">[<span style="font-weight: bold; text-decoration: underline;">github.com*</span>]
 <span style="font-weight: bold; font-style: italic;">username_extractor</span>=specific_line
@@ -648,9 +503,9 @@ additional environment variables
 </ul>
 </div>
 </div>
-<div id="outline-container-org67e5d49" class="outline-2">
-<h2 id="org67e5d49">mpv</h2>
-<div class="outline-text-2" id="text-org67e5d49">
+<div id="outline-container-orgd7b6000" class="outline-2">
+<h2 id="orgd7b6000">mpv</h2>
+<div class="outline-text-2" id="text-orgd7b6000">
 <ul class="org-ul">
 <li><p>
 mpv.conf
@@ -1130,9 +985,9 @@ mp.register_event("end-file", delete)
 </div>
 </div>
 
-<div id="outline-container-orgad7c6df" class="outline-2">
-<h2 id="orgad7c6df">unison</h2>
-<div class="outline-text-2" id="text-orgad7c6df">
+<div id="outline-container-orge57b2a6" class="outline-2">
+<h2 id="orge57b2a6">unison</h2>
+<div class="outline-text-2" id="text-orge57b2a6">
 <ul class="org-ul">
 <li><p>
 music directory syncing
@@ -1198,9 +1053,9 @@ doc directory backup
 </ul>
 </div>
 </div>
-<div id="outline-container-orgbb310cb" class="outline-2">
-<h2 id="orgbb310cb">crontab</h2>
-<div class="outline-text-2" id="text-orgbb310cb">
+<div id="outline-container-orgb5f6de6" class="outline-2">
+<h2 id="orgb5f6de6">crontab</h2>
+<div class="outline-text-2" id="text-orgb5f6de6">
 <ul class="org-ul">
 <li><p>
 crontab job definitions for my private PC
@@ -1234,9 +1089,9 @@ $ crontab ~/.config/crontab/pc01
 </ul>
 </div>
 </div>
-<div id="outline-container-org47ec2fc" class="outline-2">
-<h2 id="org47ec2fc">Aspell</h2>
-<div class="outline-text-2" id="text-org47ec2fc">
+<div id="outline-container-orge79b7aa" class="outline-2">
+<h2 id="orge79b7aa">Aspell</h2>
+<div class="outline-text-2" id="text-orge79b7aa">
 <p>
 aspell - interactive spell checker
 </p>
@@ -1246,9 +1101,9 @@ aspell - interactive spell checker
 </div>
 </div>
 </div>
-<div id="outline-container-orgc6bd5fd" class="outline-2">
-<h2 id="orgc6bd5fd">asdf-vm</h2>
-<div class="outline-text-2" id="text-orgc6bd5fd">
+<div id="outline-container-orgc292bd5" class="outline-2">
+<h2 id="orgc292bd5">asdf-vm</h2>
+<div class="outline-text-2" id="text-orgc292bd5">
 <p>
 Extendable version manager
 </p>
@@ -1278,9 +1133,9 @@ python 3.8.5
 </div></li>
 </ul>
 </div>
-<div id="outline-container-org93decec" class="outline-3">
-<h3 id="org93decec">asdf-ruby</h3>
-<div class="outline-text-3" id="text-org93decec">
+<div id="outline-container-org399440a" class="outline-3">
+<h3 id="org399440a">asdf-ruby</h3>
+<div class="outline-text-3" id="text-org399440a">
 <div class="org-src-container">
 <pre class="src src-conf">thor 1.1.0
 pry 0.14.1
@@ -1291,9 +1146,9 @@ streamio-ffmpeg
 </div>
 </div>
 </div>
-<div id="outline-container-orgab491bf" class="outline-3">
-<h3 id="orgab491bf">asdf-python</h3>
-<div class="outline-text-3" id="text-orgab491bf">
+<div id="outline-container-org3b9988a" class="outline-3">
+<h3 id="org3b9988a">asdf-python</h3>
+<div class="outline-text-3" id="text-org3b9988a">
 <div class="org-src-container">
 <pre class="src src-python">lxml
 jedi
@@ -1304,9 +1159,9 @@ Send2Trash
 </div>
 </div>
 </div>
-<div id="outline-container-org5a3095e" class="outline-2">
-<h2 id="org5a3095e">xkeysnail</h2>
-<div class="outline-text-2" id="text-org5a3095e">
+<div id="outline-container-orga9dfee3" class="outline-2">
+<h2 id="orga9dfee3">xkeysnail</h2>
+<div class="outline-text-2" id="text-orga9dfee3">
 <ul class="org-ul">
 <li><p>
 config.py
@@ -1474,9 +1329,9 @@ xkeysnail.service
 </div></li>
 </ul>
 </div>
-<div id="outline-container-orgfa98974" class="outline-3">
-<h3 id="orgfa98974">how to make xkeysnail daemonize</h3>
-<div class="outline-text-3" id="text-orgfa98974">
+<div id="outline-container-orgf3470eb" class="outline-3">
+<h3 id="orgf3470eb">how to make xkeysnail daemonize</h3>
+<div class="outline-text-3" id="text-orgf3470eb">
 <ol class="org-ol">
 <li>Install xkeysnail on guix</li>
 <li><p>
@@ -1491,9 +1346,9 @@ $ systemctl --user start xkeysnail
 </div>
 </div>
 </div>
-<div id="outline-container-orga10c03a" class="outline-2">
-<h2 id="orga10c03a">fstab</h2>
-<div class="outline-text-2" id="text-orga10c03a">
+<div id="outline-container-orga1914d2" class="outline-2">
+<h2 id="orga1914d2">fstab</h2>
+<div class="outline-text-2" id="text-orga1914d2">
 <ul class="org-ul">
 <li><p>
 /etc/fstab file for my personal machine
@@ -1512,9 +1367,9 @@ sshfs<span style="font-weight: bold; font-style: italic;">#</span><span style="f
 </ul>
 </div>
 </div>
-<div id="outline-container-orgddb6df4" class="outline-2">
-<h2 id="orgddb6df4">GNU Guix</h2>
-<div class="outline-text-2" id="text-orgddb6df4">
+<div id="outline-container-orge9b1577" class="outline-2">
+<h2 id="orge9b1577">GNU Guix</h2>
+<div class="outline-text-2" id="text-orge9b1577">
 <div class="org-src-container">
 <pre class="src src-bash"><span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">GUIX_PROFILE</span>=<span style="font-style: italic;">"$HOME/.guix-profile"</span>
 . <span style="font-style: italic;">"$GUIX_PROFILE/etc/profile"</span>
@@ -1527,9 +1382,9 @@ sshfs<span style="font-weight: bold; font-style: italic;">#</span><span style="f
 </div>
 </div>
 
-<div id="outline-container-org6987a02" class="outline-3">
-<h3 id="org6987a02">Channel definitions</h3>
-<div class="outline-text-3" id="text-org6987a02">
+<div id="outline-container-org723e03d" class="outline-3">
+<h3 id="org723e03d">Channel definitions</h3>
+<div class="outline-text-3" id="text-org723e03d">
 <div class="org-src-container">
 <pre class="src src-scheme">(list (channel
        (name 'flat)
@@ -1545,9 +1400,9 @@ sshfs<span style="font-weight: bold; font-style: italic;">#</span><span style="f
 </div>
 </div>
 
-<div id="outline-container-org6d91262" class="outline-3">
-<h3 id="org6d91262">Updating Channels</h3>
-<div class="outline-text-3" id="text-org6d91262">
+<div id="outline-container-org95016bd" class="outline-3">
+<h3 id="org95016bd">Updating Channels</h3>
+<div class="outline-text-3" id="text-org95016bd">
 <p>
 This script makes it easy to update all channels to the latest commit based on an original channel file.
 </p>
