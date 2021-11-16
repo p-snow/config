@@ -21,20 +21,21 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org5ca6828">Local file clean-up (tidyup)</a></li>
-<li><a href="#org58f5d0e">Database back-up script</a></li>
-<li><a href="#orgd51986d">Snapshots taking</a></li>
-<li><a href="#org6a58c64">backup scripts</a></li>
-<li><a href="#orga43572a">nhp</a></li>
-<li><a href="#org65604a4">sendmail.py</a></li>
-<li><a href="#org8f64121">pwsudo</a></li>
+<li><a href="#org9593d5e">Local file clean-up (tidyup)</a></li>
+<li><a href="#org1ee200c">Database back-up script</a></li>
+<li><a href="#org94c1041">Snapshots taking</a></li>
+<li><a href="#org42205a0">backup scripts</a></li>
+<li><a href="#org90ad2cc">nhp</a></li>
+<li><a href="#org31e06e1">sendmail.py</a></li>
+<li><a href="#orgd11b0cf">pwsudo</a></li>
+<li><a href="#org35b7ae9">gitsync</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org5ca6828" class="outline-2">
-<h2 id="org5ca6828">Local file clean-up (tidyup)</h2>
-<div class="outline-text-2" id="text-org5ca6828">
+<div id="outline-container-org9593d5e" class="outline-2">
+<h2 id="org9593d5e">Local file clean-up (tidyup)</h2>
+<div class="outline-text-2" id="text-org9593d5e">
 <ul class="org-ul">
 <li><p>
 tidyup
@@ -133,9 +134,9 @@ tidyup
 </ul>
 </div>
 </div>
-<div id="outline-container-org58f5d0e" class="outline-2">
-<h2 id="org58f5d0e">Database back-up script</h2>
-<div class="outline-text-2" id="text-org58f5d0e">
+<div id="outline-container-org1ee200c" class="outline-2">
+<h2 id="org1ee200c">Database back-up script</h2>
+<div class="outline-text-2" id="text-org1ee200c">
 <ul class="org-ul">
 <li>PostgreSQL</li>
 </ul>
@@ -156,9 +157,9 @@ pg_dump --format=custom ${<span style="font-weight: bold; font-style: italic;">P
 </div>
 </div>
 
-<div id="outline-container-orgd51986d" class="outline-2">
-<h2 id="orgd51986d">Snapshots taking</h2>
-<div class="outline-text-2" id="text-orgd51986d">
+<div id="outline-container-org94c1041" class="outline-2">
+<h2 id="org94c1041">Snapshots taking</h2>
+<div class="outline-text-2" id="text-org94c1041">
 <ul class="org-ul">
 <li><p>
 snapshot.sh
@@ -178,9 +179,9 @@ snapshot.sh
 </ul>
 </div>
 </div>
-<div id="outline-container-org6a58c64" class="outline-2">
-<h2 id="org6a58c64">backup scripts</h2>
-<div class="outline-text-2" id="text-org6a58c64">
+<div id="outline-container-org42205a0" class="outline-2">
+<h2 id="org42205a0">backup scripts</h2>
+<div class="outline-text-2" id="text-org42205a0">
 <ul class="org-ul">
 <li><p>
 back<sub>btrfs.sh</sub>
@@ -279,9 +280,9 @@ rsync exclude file for sv04
 </div>
 </div>
 
-<div id="outline-container-orga43572a" class="outline-2">
-<h2 id="orga43572a">nhp</h2>
-<div class="outline-text-2" id="text-orga43572a">
+<div id="outline-container-org90ad2cc" class="outline-2">
+<h2 id="org90ad2cc">nhp</h2>
+<div class="outline-text-2" id="text-org90ad2cc">
 <p>
 Exec command in background
 </p>
@@ -416,9 +417,9 @@ Exec command in background
 </div>
 </div>
 
-<div id="outline-container-org65604a4" class="outline-2">
-<h2 id="org65604a4">sendmail.py</h2>
-<div class="outline-text-2" id="text-org65604a4">
+<div id="outline-container-org31e06e1" class="outline-2">
+<h2 id="org31e06e1">sendmail.py</h2>
+<div class="outline-text-2" id="text-org31e06e1">
 <p>
 Utility for sendind email programatically
 </p>
@@ -469,9 +470,9 @@ sendmail(args.to, args.mailfrom, args.subject, message)
 </div>
 </div>
 
-<div id="outline-container-org8f64121" class="outline-2">
-<h2 id="org8f64121">pwsudo</h2>
-<div class="outline-text-2" id="text-org8f64121">
+<div id="outline-container-orgd11b0cf" class="outline-2">
+<h2 id="orgd11b0cf">pwsudo</h2>
+<div class="outline-text-2" id="text-orgd11b0cf">
 <div class="org-src-container">
 <pre class="src src-shell"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
 
@@ -485,6 +486,202 @@ sendmail(args.to, args.mailfrom, args.subject, message)
 <span style="font-weight: bold;">fi</span>
 </pre>
 </div>
+</div>
+</div>
+
+<div id="outline-container-org35b7ae9" class="outline-2">
+<h2 id="org35b7ae9">gitsync</h2>
+<div class="outline-text-2" id="text-org35b7ae9">
+<ul class="org-ul">
+<li><p>
+gitsync-local
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
+
+<span style="font-weight: bold;">function</span> <span style="font-weight: bold;">usage</span>() {
+  cat &lt;&lt;_EOT_
+<span style="font-weight: bold;">Usage:</span>
+<span style="font-weight: bold;">  $0 &lt;prj_root&gt;</span>
+
+<span style="font-weight: bold;">Description:</span>
+<span style="font-weight: bold;">  $0 adds file changes in git projects under root_dir to the repository</span>
+
+<span style="font-weight: bold;">Options:</span>
+<span style="font-weight: bold;">  prj_root:  a root directory that has git projects as children</span>
+
+<span style="font-weight: bold;">_EOT_</span>
+  <span style="font-weight: bold;">exit</span> 1
+}
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">parameter check</span>
+<span style="font-weight: bold;">if</span> [ $<span style="font-weight: bold; font-style: italic;">#</span> -ne 1 ]; <span style="font-weight: bold;">then</span>
+  usage
+  <span style="font-weight: bold;">exit</span> 1
+<span style="font-weight: bold;">fi</span>
+<span style="font-weight: bold; font-style: italic;">root_dir</span>=$<span style="font-weight: bold; font-style: italic;">1</span>
+
+<span style="font-weight: bold;">if</span> find ${<span style="font-weight: bold; font-style: italic;">root_dir</span>} -mindepth 1 -maxdepth 1 <span style="font-style: italic;">\(</span> -type l -o -type d <span style="font-style: italic;">\)</span> | {
+    <span style="font-weight: bold;">while </span><span style="font-weight: bold;">read</span> repo
+    <span style="font-weight: bold;">do</span>
+      <span style="font-weight: bold;">cd</span> ${<span style="font-weight: bold; font-style: italic;">repo</span>} || <span style="font-weight: bold;">continue</span>
+
+      <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">skip if this is not git repo</span>
+      git rev-parse || <span style="font-weight: bold;">continue</span>
+
+      <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"repository: ${repo}"</span>
+
+      <span style="font-weight: bold;">cd</span> <span style="font-weight: bold;">`git rev-parse --show-toplevel`</span>
+      <span style="font-weight: bold; font-style: italic;">sync_mode</span>=<span style="font-weight: bold;">`git config sync.mode`</span>
+      <span style="font-weight: bold;">case</span> <span style="font-style: italic;">"${sync_mode}"</span><span style="font-weight: bold;"> in</span>
+      <span style="font-style: italic;">"auto"</span> )
+        <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remove deleted files</span>
+        git ls-files --deleted -z | xargs -0 git rm &gt;/dev/null 2&gt;&amp;1
+        <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Add new files</span>
+        git add . &gt;/dev/null 2&gt;&amp;1
+        git commit -m <span style="font-style: italic;">"$(date)"</span>;;
+      <span style="font-style: italic;">"manual"</span> )
+        git add -u &gt;/dev/null 2&gt;&amp;1
+        git commit -m <span style="font-style: italic;">"$(date)"</span>;;
+      <span style="font-style: italic;">"none"</span> )
+      ;;
+      <span style="font-weight: bold;">esac</span>
+    <span style="font-weight: bold;">done</span>
+  }
+<span style="font-weight: bold;">then</span>
+  printf <span style="font-style: italic;">"\nAll done.\n"</span>
+<span style="font-weight: bold;">else</span>
+  printf <span style="font-style: italic;">"\nFix and redo.\n"</span>
+<span style="font-weight: bold;">fi</span>
+</pre>
+</div></li>
+
+<li><p>
+gitsync-remote
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Local bare repository name</span>
+<span style="font-weight: bold; font-style: italic;">syncrepo</span>=origin
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Display repository name only once</span>
+<span style="font-weight: bold;">log_repo</span>() {
+  [ <span style="font-style: italic;">"x$lastrepo"</span> == <span style="font-style: italic;">"x$repo"</span> ] || {
+    printf <span style="font-style: italic;">"\nREPO: ${repo}\n"</span>
+    <span style="font-weight: bold; font-style: italic;">lastrepo</span>=<span style="font-style: italic;">"$repo"</span>
+  }
+}
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Log a message for a repository</span>
+<span style="font-weight: bold;">log_msg</span>() {
+  log_repo
+  printf <span style="font-style: italic;">"  $1\n"</span>
+}
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">fast-forward reference $1 to $syncrepo/$1</span>
+<span style="font-weight: bold;">fast_forward_ref</span>() {
+  log_msg <span style="font-style: italic;">"fast-forwarding ref $1"</span>
+  <span style="font-weight: bold; font-style: italic;">current_ref</span>=$(cat .git/HEAD)
+  <span style="font-weight: bold;">if</span> [ <span style="font-style: italic;">"x$current_ref"</span> = <span style="font-style: italic;">"xref: refs/heads/$1"</span> ]
+  <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Check for dirty index</span>
+    <span style="font-weight: bold; font-style: italic;">files</span>=$(git diff-index --name-only HEAD --)
+    git merge refs/remotes/$<span style="font-weight: bold; font-style: italic;">syncrepo</span>/$<span style="font-weight: bold; font-style: italic;">1</span>
+  <span style="font-weight: bold;">else</span>
+    git branch -f $<span style="font-weight: bold; font-style: italic;">1</span> refs/remotes/$<span style="font-weight: bold; font-style: italic;">syncrepo</span>/$<span style="font-weight: bold; font-style: italic;">1</span>
+  <span style="font-weight: bold;">fi</span>
+}
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Push reference $1 to $syncrepo</span>
+<span style="font-weight: bold;">push_ref</span>() {
+  log_msg <span style="font-style: italic;">"Pushing ref $1"</span>
+  <span style="font-weight: bold;">if</span> ! git push --tags --quiet $<span style="font-weight: bold; font-style: italic;">syncrepo</span> $<span style="font-weight: bold; font-style: italic;">1</span>
+  <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold;">exit</span> 1
+  <span style="font-weight: bold;">fi</span>
+}
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Check if a ref can be moved</span>
+<span style="font-weight: bold; font-style: italic;">#   </span><span style="font-weight: bold; font-style: italic;">- fast-forwards if behind the sync repo and is fast-forwardable</span>
+<span style="font-weight: bold; font-style: italic;">#   </span><span style="font-weight: bold; font-style: italic;">- Does nothing if ref is up to date</span>
+<span style="font-weight: bold; font-style: italic;">#   </span><span style="font-weight: bold; font-style: italic;">- Pushes ref to $syncrepo if ref is ahead of syncrepo and fastforwardable</span>
+<span style="font-weight: bold; font-style: italic;">#   </span><span style="font-weight: bold; font-style: italic;">- Fails if ref and $syncrop/ref have diverged</span>
+<span style="font-weight: bold;">check_ref</span>() {
+  <span style="font-weight: bold; font-style: italic;">revlist1</span>=$(git rev-list refs/remotes/$<span style="font-weight: bold; font-style: italic;">syncrepo</span>/$<span style="font-weight: bold; font-style: italic;">1</span>..$<span style="font-weight: bold; font-style: italic;">1</span>)
+  <span style="font-weight: bold; font-style: italic;">revlist2</span>=$(git rev-list $<span style="font-weight: bold; font-style: italic;">1</span>..refs/remotes/$<span style="font-weight: bold; font-style: italic;">syncrepo</span>/$<span style="font-weight: bold; font-style: italic;">1</span>)
+  <span style="font-weight: bold;">if</span> [ <span style="font-style: italic;">"x$revlist1"</span> = <span style="font-style: italic;">"x"</span> -a <span style="font-style: italic;">"x$revlist2"</span> = <span style="font-style: italic;">"x"</span> ]
+  <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Ref $1 is up to date.</span>
+    :
+  <span style="font-weight: bold;">elif</span> [ <span style="font-style: italic;">"x$revlist1"</span> = <span style="font-style: italic;">"x"</span> ]
+  <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Ref $1 is behind $syncrepo/$1 and can be fast-forwarded.</span>
+    fast_forward_ref $<span style="font-weight: bold; font-style: italic;">1</span> || <span style="font-weight: bold;">exit</span> 1
+  <span style="font-weight: bold;">elif</span> [ <span style="font-style: italic;">"x$revlist2"</span> = <span style="font-style: italic;">"x"</span> ]
+  <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Ref $1 is ahead of $syncrepo/$1 and can be pushed.</span>
+    push_ref $<span style="font-weight: bold; font-style: italic;">1</span> || <span style="font-weight: bold;">exit</span> 1
+  <span style="font-weight: bold;">else</span>
+    log_msg <span style="font-style: italic;">"Ref $1 and $syncrepo/$1 have diverged."</span>
+    <span style="font-weight: bold;">exit</span> 1
+  <span style="font-weight: bold;">fi</span>
+}
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Check all local refs with matching refs in the $syncrepo</span>
+<span style="font-weight: bold;">check_refs</span> () {
+  git for-each-ref refs/heads/* | <span style="font-weight: bold;">while </span><span style="font-weight: bold;">read</span> sha1 commit ref
+  <span style="font-weight: bold;">do</span>
+    <span style="font-weight: bold; font-style: italic;">ref</span>=${<span style="font-weight: bold; font-style: italic;">ref</span>/refs<span style="font-style: italic;">\/</span>heads<span style="font-style: italic;">\/</span>/}
+    git for-each-ref refs/remotes/$<span style="font-weight: bold; font-style: italic;">syncrepo</span>/$<span style="font-weight: bold; font-style: italic;">ref</span> | <span style="font-weight: bold;">while </span><span style="font-weight: bold;">read</span> sha2 commit ref2
+    <span style="font-weight: bold;">do</span>
+      <span style="font-weight: bold;">if</span> [ <span style="font-style: italic;">"x$sha1"</span> != <span style="font-style: italic;">"x"</span> -a <span style="font-style: italic;">"x$sha2"</span> != <span style="font-style: italic;">"x"</span> ]
+      <span style="font-weight: bold;">then</span>
+        check_ref $<span style="font-weight: bold; font-style: italic;">ref</span> || <span style="font-weight: bold;">exit</span> 1
+      <span style="font-weight: bold;">fi</span>
+    <span style="font-weight: bold;">done</span>
+  <span style="font-weight: bold;">done</span>
+}
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">parameter check</span>
+<span style="font-weight: bold;">if</span> [ $<span style="font-weight: bold; font-style: italic;">#</span> -ne 1 ]; <span style="font-weight: bold;">then</span>
+  usage
+  <span style="font-weight: bold;">exit</span> 1
+<span style="font-weight: bold;">fi</span>
+<span style="font-weight: bold; font-style: italic;">root_dir</span>=$<span style="font-weight: bold; font-style: italic;">1</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">For all repositories under $reporoot</span>
+<span style="font-weight: bold; font-style: italic;">#   </span><span style="font-weight: bold; font-style: italic;">Check all refs matching $syncrepo and fast-forward, or push as necessary</span>
+<span style="font-weight: bold; font-style: italic;">#   </span><span style="font-weight: bold; font-style: italic;">to synchronize the ref with $syncrepo</span>
+<span style="font-weight: bold; font-style: italic;">#   </span><span style="font-weight: bold; font-style: italic;">Bail out if ref is not fastforwardable so user can fix and rerun</span>
+<span style="font-weight: bold; font-style: italic;">retval</span>=0
+<span style="font-weight: bold;">if</span> find ${<span style="font-weight: bold; font-style: italic;">root_dir</span>} -mindepth 1 -maxdepth 1 <span style="font-style: italic;">\(</span> -type l -o -type d <span style="font-style: italic;">\)</span> | {
+    <span style="font-weight: bold;">while </span><span style="font-weight: bold;">read</span> repo
+    <span style="font-weight: bold;">do</span>
+      <span style="font-weight: bold;">cd</span> ${<span style="font-weight: bold; font-style: italic;">repo</span>}
+
+      <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">continue if this is not git repo</span>
+      git rev-parse 2&gt; /dev/null || <span style="font-weight: bold;">continue</span>
+
+      <span style="font-weight: bold; font-style: italic;">upd</span>=$(git remote update $<span style="font-weight: bold; font-style: italic;">syncrepo</span> 2&gt;&amp;1 || <span style="font-weight: bold; font-style: italic;">retval</span>=1)
+      [ <span style="font-style: italic;">"x$upd"</span> = <span style="font-style: italic;">"xFetching $syncrepo"</span> ] || {
+        log_repo
+        printf <span style="font-style: italic;">"$upd\n"</span>
+      }
+      check_refs || <span style="font-weight: bold; font-style: italic;">retval</span>=1
+    <span style="font-weight: bold;">done</span>
+    <span style="font-weight: bold;">exit</span> $<span style="font-weight: bold; font-style: italic;">retval</span>
+  }
+<span style="font-weight: bold;">then</span>
+  printf <span style="font-style: italic;">"\nAll done.\n"</span>
+<span style="font-weight: bold;">else</span>
+  printf <span style="font-style: italic;">"\nFix and redo.\n"</span>
+<span style="font-weight: bold;">fi</span>
+
+<span style="font-weight: bold;">exit</span> $<span style="font-weight: bold; font-style: italic;">retval</span>
+</pre>
+</div></li>
+</ul>
 </div>
 </div>
 </div>
