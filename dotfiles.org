@@ -1152,3 +1152,101 @@ This script makes it easy to update all channels to the latest commit based on a
   guix pull --channels=$HOME/.config/guix/base-channels.scm
   guix describe --format=channels > ~/.config/guix/channels.scm
 #+end_src
+
+** Manifest for desktop environment
+
+#+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/desktop.scm")
+  (specifications->manifest
+   '("wine64"
+     "winetricks"
+     "sshfs"
+     "gimp"
+     "dav1d"
+     "xkeysnail"
+     "ripgrep"
+     "gnupg"
+     "font-adobe-source-han-sans"
+     "fontconfig"
+     "global"
+     "gcompris-qt"
+     "krita"
+     "kdenlive"
+     "lilypond"
+     "obs"
+     "make"
+     "wget"
+     "openssh"
+     "cdrtools"
+     "dvdbackup"
+     "easytag"
+     "libdvdnav"
+     "vlc"
+     "password-store"
+     "pwgen"
+     "tree"
+     "handbrake"
+     "poppler"
+     "pass-git-helper"
+     "git"
+     "stow"
+     "mpv"
+     "ffmpeg"
+     "x265"
+     "shellcheck"
+     "libdvdcss"
+     "abcde"
+     "pandoc"
+     "nss-certs"
+     "openssl"
+     "youtube-dl"
+     "imagemagick"
+     "curl"
+     "glibc-locales"
+     "libfdk"
+     ))
+#+end_src
+
+** Activating Profiles
+
+This script accepts a space-separated list of manifest file names (without extension) under the =~/.config/guix/manifests= folder and then installs those profiles for the first time.  For example:
+
+: activate-profiles desktop emacs
+
+#+begin_src sh :tangle :tangle (expand-tangle-target ".local/bin/activate-profiles") :shebang #!/bin/sh :tangle-mode (identity #o755)
+  GREEN='\033[1;32m'
+  RED='\033[1;30m'
+  NC='\033[0m'
+  GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
+
+  profiles=$*
+  if [[ $# -eq 0 ]]; then
+      profiles="$HOME/.config/guix/manifests/*.scm";
+  fi
+
+  for profile in $profiles; do
+    # Remove the path and file extension, if any
+    profileName=$(basename $profile)
+    profileName="${profileName%.*}"
+    profilePath="$GUIX_EXTRA_PROFILES/$profileName"
+    manifestPath=$HOME/.config/guix/manifests/$profileName.scm
+
+    if [ -f $manifestPath ]; then
+      echo
+      echo -e "${GREEN}Activating profile:" $manifestPath "${NC}"
+      echo
+
+      mkdir -p $profilePath
+      guix package --manifest=$manifestPath --profile="$profilePath/$profileName"
+
+      # Source the new profile
+      GUIX_PROFILE="$profilePath/$profileName"
+      if [ -f $GUIX_PROFILE/etc/profile ]; then
+          . "$GUIX_PROFILE"/etc/profile
+      else
+          echo -e "${RED}Couldn't find profile:" $GUIX_PROFILE/etc/profile "${NC}"
+      fi
+    else
+      echo "No profile found at path" $profilePath
+    fi
+  done
+#+end_src
