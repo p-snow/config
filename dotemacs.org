@@ -4783,6 +4783,13 @@ Major mode for manupulating password store file.
                                                                     (list "mpg321" alarm-sound)
                                                                     " "))))))
 #+end_src
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/volget") :tangle-mode (identity #o755)
+  #!/usr/bin/env bash
+
+  pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(($SINK + 1 )) | tail -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,'
+#+end_src
+
 *** [[https://github.com/alphapapa/ts.el/releases.atom][ts.el]]
 
 #+begin_src emacs-lisp
