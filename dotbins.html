@@ -21,24 +21,29 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org47f8633">Local file clean-up (tidyup)</a></li>
-<li><a href="#orgb2e39b7">Database back-up script</a></li>
-<li><a href="#org70478bc">Snapshots taking</a></li>
-<li><a href="#org01a46e5">backup scripts</a></li>
-<li><a href="#org8443ab3">nhp</a></li>
-<li><a href="#org753dec3">sendmail.py</a></li>
-<li><a href="#orgebc200e">pwsudo</a></li>
-<li><a href="#orgdaa87bd">gitsync</a></li>
+<li><a href="#org1c10b1b">Declutters</a></li>
+<li><a href="#org21cc438">Database back-up scripts</a></li>
+<li><a href="#org01654fe">Snapshots taking</a></li>
+<li><a href="#org27d4c2c">backup scripts</a></li>
+<li><a href="#org7acd76c">filetype</a></li>
+<li><a href="#org58f01fa">nhp</a></li>
+<li><a href="#org176945f">sendmail.py</a></li>
+<li><a href="#org63268e2">pwsudo</a></li>
+<li><a href="#org359e31e">gitsync</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org47f8633" class="outline-2">
-<h2 id="org47f8633">Local file clean-up (tidyup)</h2>
-<div class="outline-text-2" id="text-org47f8633">
+<div id="outline-container-org1c10b1b" class="outline-2">
+<h2 id="org1c10b1b">Declutters</h2>
+<div class="outline-text-2" id="text-org1c10b1b">
+<p>
+These scripts (declutter<sub>xxx</sub>) keep things decluttered.
+</p>
+
 <ul class="org-ul">
 <li><p>
-tidyup
+trash
 </p>
 <div class="org-src-container">
 <pre class="src src-python"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/env python3</span>
@@ -131,15 +136,93 @@ tidyup
                                  datetime.datetime.now()))
 </pre>
 </div></li>
+<li><p>
+home directory (ruby implementation)
+</p>
+<div class="org-src-container">
+<pre class="src src-ruby"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/env ruby</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">coding: utf-8</span>
+
+<span style="font-weight: bold; text-decoration: underline;">TRASHES</span> = [<span style="font-style: italic;">"*~"</span>, <span style="font-style: italic;">"#*#"</span>, <span style="font-style: italic;">".#*#"</span>, <span style="font-style: italic;">"._*"</span>, <span style="font-style: italic;">".DS_Store"</span>]
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">Sweep</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">sweep</span>(base_dir)
+    <span style="font-weight: bold;">puts</span> base_dir
+    <span style="font-weight: bold; text-decoration: underline;">TRASHES</span>.each <span style="font-weight: bold;">do</span> |trash|
+      tfiles = <span style="font-weight: bold; text-decoration: underline;">File</span>.join(<span style="font-style: italic;">"%s/**"</span> % base_dir, trash)
+      <span style="font-weight: bold; text-decoration: underline;">Dir</span>.glob(tfiles).each <span style="font-weight: bold;">do</span> |f|
+        <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">File</span>.delete(f) &gt; 0
+          <span style="font-weight: bold;">puts</span> <span style="font-style: italic;">"Removed: "</span> + f
+        <span style="font-weight: bold;">else</span>
+          <span style="font-weight: bold;">puts</span> <span style="font-style: italic;">"CANNOT Removed: "</span> + f
+        <span style="font-weight: bold;">end</span>
+      <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+<span style="font-weight: bold;">end</span>
+
+<span style="font-weight: bold; text-decoration: underline;">ARGV</span>.each <span style="font-weight: bold;">do</span> |arg|
+  <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">Dir</span>.exist?(arg) <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold; text-decoration: underline;">Sweep</span>.sweep(arg)
+  <span style="font-weight: bold;">end</span>
+<span style="font-weight: bold;">end</span>
+</pre>
+</div></li>
+<li><p>
+home directory (python implementation)
+</p>
+<div class="org-src-container">
+<pre class="src src-python"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/env python3</span>
+
+<span style="font-weight: bold;">import</span> sys
+<span style="font-weight: bold;">import</span> os
+<span style="font-weight: bold;">import</span> glob
+<span style="font-weight: bold;">import</span> argparse
+
+<span style="font-weight: bold; font-style: italic;">TRASH_REGEXPS</span> = [<span style="font-style: italic;">"*~"</span>, <span style="font-style: italic;">"#*"</span>, <span style="font-style: italic;">".#*"</span>, <span style="font-style: italic;">"._*"</span>, <span style="font-style: italic;">".DS_Store"</span>, <span style="font-style: italic;">"*.dvi"</span>, <span style="font-style: italic;">"*.aux"</span>, <span style="font-style: italic;">"*.bbl"</span>]
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">Sweepy</span>:
+    <span style="font-weight: bold; text-decoration: underline;">@classmethod</span>
+    <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">sweep_with_regexp</span>(<span style="font-weight: bold;">self</span>, base_dir, recursive=<span style="font-weight: bold; text-decoration: underline;">False</span>):
+        <span style="font-weight: bold;">for</span> trash_regexp <span style="font-weight: bold;">in</span> TRASH_REGEXPS:
+            <span style="font-weight: bold; font-style: italic;">files</span> = glob.glob(<span style="font-style: italic;">"%s/**/"</span> % base_dir + trash_regexp, recursive=recursive)
+            <span style="font-weight: bold;">for</span> <span style="font-weight: bold;">file</span> <span style="font-weight: bold;">in</span> files:
+                <span style="font-weight: bold;">if</span> os.path.isfile(<span style="font-weight: bold;">file</span>):
+                    os.remove(<span style="font-weight: bold;">file</span>)
+                    <span style="font-weight: bold;">print</span>(<span style="font-style: italic;">"Removed: "</span> + <span style="font-weight: bold;">file</span>)
+    <span style="font-weight: bold; text-decoration: underline;">@classmethod</span>
+    <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">sweep_broken_symlink</span>(<span style="font-weight: bold;">self</span>, base_dir, recursive=<span style="font-weight: bold; text-decoration: underline;">False</span>):
+        <span style="font-weight: bold; font-style: italic;">files</span> = glob.glob(<span style="font-style: italic;">"%s/*"</span> % base_dir, recursive=recursive)
+        <span style="font-weight: bold; font-style: italic;">dotfiles</span> = glob.glob(<span style="font-style: italic;">"%s/.*"</span> % base_dir, recursive=recursive)
+        <span style="font-weight: bold;">for</span> <span style="font-weight: bold;">file</span> <span style="font-weight: bold;">in</span> (files + dotfiles):
+            <span style="font-weight: bold;">if</span> os.path.islink(<span style="font-weight: bold;">file</span>):
+                <span style="font-weight: bold;">if</span> <span style="font-weight: bold;">not</span> os.path.exists(os.readlink(<span style="font-weight: bold;">file</span>)):
+                    os.unlink(<span style="font-weight: bold;">file</span>)
+                    <span style="font-weight: bold;">print</span>(<span style="font-style: italic;">"Unlinked: "</span> + <span style="font-weight: bold;">file</span>)
+
+<span style="font-weight: bold; font-style: italic;">parser</span> = argparse.ArgumentParser(description=<span style="font-style: italic;">'Removes all desired files'</span>)
+parser.add_argument(<span style="font-style: italic;">'dir'</span>, metavar=<span style="font-style: italic;">'dir'</span>, nargs=<span style="font-style: italic;">'?'</span>, action=<span style="font-style: italic;">'store'</span>,
+                    <span style="font-weight: bold;">help</span>=<span style="font-style: italic;">'base directory to search'</span>)
+parser.add_argument(<span style="font-style: italic;">'-r'</span>, dest=<span style="font-style: italic;">'recursive'</span>, action=<span style="font-style: italic;">"store_true"</span>, default=<span style="font-weight: bold; text-decoration: underline;">False</span>)
+<span style="font-weight: bold; font-style: italic;">args</span> = parser.parse_args()
+<span style="font-weight: bold;">if</span> args.recursive:
+    Sweepy.sweep_with_regexp(args.<span style="font-weight: bold;">dir</span>, recursive=<span style="font-weight: bold; text-decoration: underline;">True</span>)
+    Sweepy.sweep_broken_symlink(args.<span style="font-weight: bold;">dir</span>, recursive=<span style="font-weight: bold; text-decoration: underline;">True</span>)
+<span style="font-weight: bold;">else</span>:
+    Sweepy.sweep_with_regexp(args.<span style="font-weight: bold;">dir</span>, recursive=<span style="font-weight: bold; text-decoration: underline;">False</span>)
+    Sweepy.sweep_broken_symlink(args.<span style="font-weight: bold;">dir</span>, recursive=<span style="font-weight: bold; text-decoration: underline;">False</span>)
+</pre>
+</div></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orgb2e39b7" class="outline-2">
-<h2 id="orgb2e39b7">Database back-up script</h2>
-<div class="outline-text-2" id="text-orgb2e39b7">
+<div id="outline-container-org21cc438" class="outline-2">
+<h2 id="org21cc438">Database back-up scripts</h2>
+<div class="outline-text-2" id="text-org21cc438">
 <ul class="org-ul">
-<li>PostgreSQL</li>
-</ul>
+<li><p>
+PostgreSQL
+</p>
 <div class="org-src-container">
 <pre class="src src-bash"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
 
@@ -153,13 +236,35 @@ pg_dump --format=custom ${<span style="font-weight: bold; font-style: italic;">P
 
 <span style="font-weight: bold;">exit</span> 0
 </pre>
-</div>
+</div></li>
+
+<li><p>
+MySQL
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
+
+<span style="font-weight: bold; font-style: italic;">BACKUP_DIR</span>=~/var/backups/mysql
+<span style="font-weight: bold; font-style: italic;">RAW_SQL</span>=<span style="font-style: italic;">"$(date +%Y%m%d_%H%M)_backup.sql"</span>
+<span style="font-weight: bold; font-style: italic;">TAR_SQL</span>=<span style="font-style: italic;">"${RAW_SQL}.txz"</span>
+
+(
+  <span style="font-weight: bold;">cd</span> <span style="font-style: italic;">"${BACKUP_DIR}"</span> || <span style="font-weight: bold;">exit</span> 1
+  mysqldump --opt --all-databases --events --default-character-set=binary -u root &gt; <span style="font-style: italic;">"${RAW_SQL}"</span>
+  tar cfJ <span style="font-style: italic;">"${TAR_SQL}"</span> <span style="font-style: italic;">"${RAW_SQL}"</span>
+  rm -f <span style="font-style: italic;">"${RAW_SQL}"</span>
+) || <span style="font-weight: bold;">exit</span> 1
+
+<span style="font-weight: bold;">exit</span> 0
+</pre>
+</div></li>
+</ul>
 </div>
 </div>
 
-<div id="outline-container-org70478bc" class="outline-2">
-<h2 id="org70478bc">Snapshots taking</h2>
-<div class="outline-text-2" id="text-org70478bc">
+<div id="outline-container-org01654fe" class="outline-2">
+<h2 id="org01654fe">Snapshots taking</h2>
+<div class="outline-text-2" id="text-org01654fe">
 <ul class="org-ul">
 <li><p>
 snapshot.sh
@@ -179,9 +284,9 @@ snapshot.sh
 </ul>
 </div>
 </div>
-<div id="outline-container-org01a46e5" class="outline-2">
-<h2 id="org01a46e5">backup scripts</h2>
-<div class="outline-text-2" id="text-org01a46e5">
+<div id="outline-container-org27d4c2c" class="outline-2">
+<h2 id="org27d4c2c">backup scripts</h2>
+<div class="outline-text-2" id="text-org27d4c2c">
 <ul class="org-ul">
 <li><p>
 back<sub>btrfs.sh</sub>
@@ -279,10 +384,125 @@ rsync exclude file for sv04
 </ul>
 </div>
 </div>
+<div id="outline-container-org7acd76c" class="outline-2">
+<h2 id="org7acd76c">filetype</h2>
+<div class="outline-text-2" id="text-org7acd76c">
+<p>
+This program determine type of the file.
+</p>
 
-<div id="outline-container-org8443ab3" class="outline-2">
-<h2 id="org8443ab3">nhp</h2>
-<div class="outline-text-2" id="text-org8443ab3">
+<div class="org-src-container">
+<pre class="src src-ruby"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/env ruby</span>
+
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'pathname'</span>
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'uri'</span>
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'shellwords'</span>
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>
+  <span style="font-weight: bold; text-decoration: underline;">ZIP_PREFIXES</span> = [<span style="font-style: italic;">'Zip archive data'</span>]
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">type</span>(filename, file_cmd_opt = <span style="font-style: italic;">""</span>)
+    <span style="font-weight: bold;">if</span>  <span style="font-weight: bold; text-decoration: underline;">File</span>.exists?(filename)
+      local_opt = <span style="font-style: italic;">""</span>
+      <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">File</span>.symlink?(filename)
+        local_opt += <span style="font-style: italic;">"--dereference"</span>
+      <span style="font-weight: bold;">end</span>
+      <span style="font-style: italic;">`file --brief </span><span style="font-weight: bold; font-style: italic;">#{file_cmd_opt}</span><span style="font-style: italic;"> </span><span style="font-weight: bold; font-style: italic;">#{local_opt}</span><span style="font-style: italic;"> </span><span style="font-weight: bold; font-style: italic;">#{Shellwords.shellescape(filename)}</span><span style="font-style: italic;">`</span>.strip
+    <span style="font-weight: bold;">elsif</span> filename =~ <span style="font-style: italic;">/https?:\/\/www\.youtube\.com.*/</span>
+      <span style="font-style: italic;">`youtube-dl -f worst -q </span><span style="font-weight: bold; font-style: italic;">#{Shellwords.shellescape(filename)}</span><span style="font-style: italic;"> -o - 2&gt;/dev/null | file --brief </span><span style="font-weight: bold; font-style: italic;">#{file_cmd_opt}</span><span style="font-style: italic;"> -`</span>.strip
+    <span style="font-weight: bold;">elsif</span> filename =~ <span style="font-weight: bold; text-decoration: underline;">URI</span>::<span style="font-weight: bold; text-decoration: underline;">DEFAULT_PARSER</span>.make_regexp
+      <span style="font-style: italic;">`curl --location --range 0-9999 </span><span style="font-weight: bold; font-style: italic;">#{Shellwords.shellescape(filename)}</span><span style="font-style: italic;"> 2&gt;/dev/null | file --brief </span><span style="font-weight: bold; font-style: italic;">#{file_cmd_opt}</span><span style="font-style: italic;"> -`</span>.strip
+    <span style="font-weight: bold;">else</span>
+      <span style="font-style: italic;">''</span>
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">mime_type</span>(filename)
+    type(filename, <span style="font-style: italic;">"--mime-type"</span>)
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">block_device?</span>(file)
+    type(file).start_with?(<span style="font-style: italic;">'block special'</span>) &amp;&amp;
+      mime_type(file) == <span style="font-style: italic;">'inode/blockdevice'</span>
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">iso9660?</span>(file)
+    mime_type(file) == <span style="font-style: italic;">'application/x-iso9660-image'</span>
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">video_dvd_image?</span>(file)
+    iso9660?(file) &amp;&amp; type(file).start_with?(<span style="font-style: italic;">'UDF filesystem data'</span>)
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">html?</span>(file)
+    type(file).start_with?(<span style="font-style: italic;">"HTML document"</span>)
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">pdf?</span>(file)
+    type(file).start_with?(<span style="font-style: italic;">"PDF document"</span>)
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">epub?</span>(file)
+    type(file) == <span style="font-style: italic;">"EPUB document"</span>
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">mobi?</span>(file)
+    type(file).start_with?(<span style="font-style: italic;">"Mobipocket E-book"</span>)
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">pgp?</span>(file)
+    type(file).start_with?(<span style="font-style: italic;">"PGP"</span>)
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">tarpgp?</span>(file)
+    pgp?(file) &amp;&amp; file.end_with?(<span style="font-style: italic;">'.tar.gpg'</span>)
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">zip?</span>(file)
+    type(file).start_with?(*<span style="font-weight: bold; text-decoration: underline;">ZIP_PREFIXES</span>)
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">video?</span>(file)
+    mime_type(file).start_with?(<span style="font-style: italic;">"video/"</span>)
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">audio?</span>(file)
+    mime_type(file).start_with?(<span style="font-style: italic;">'audio/'</span>)
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">image?</span>(file)
+    mime_type(file).start_with?(<span style="font-style: italic;">"image/"</span>)
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">playable?</span>(file)
+    <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">File</span>.directory?(file)
+      <span style="font-weight: bold; text-decoration: underline;">Dir</span>.foreach(file) <span style="font-weight: bold;">do</span> |fname|
+        <span style="font-weight: bold;">next</span> <span style="font-weight: bold;">if</span> [<span style="font-style: italic;">"."</span>, <span style="font-style: italic;">".."</span>].include?(fname)
+        <span style="font-weight: bold;">return</span> <span style="font-weight: bold; text-decoration: underline;">false</span> <span style="font-weight: bold;">unless</span> playable?(<span style="font-style: italic;">"</span><span style="font-weight: bold; font-style: italic;">#{file}</span><span style="font-style: italic;">/</span><span style="font-weight: bold; font-style: italic;">#{fname}</span><span style="font-style: italic;">"</span>)
+      <span style="font-weight: bold;">end</span>
+      <span style="font-weight: bold; text-decoration: underline;">true</span>
+    <span style="font-weight: bold;">elsif</span> file =~ <span style="font-style: italic;">/https?:\/\/www\.youtube\.com.*/</span>
+      <span style="font-weight: bold; text-decoration: underline;">true</span>
+    <span style="font-weight: bold;">else</span>
+      type(file).start_with?(<span style="font-style: italic;">"ISO Media"</span>, <span style="font-style: italic;">"Audio file"</span>) ||
+        mime_type(file).start_with?(<span style="font-style: italic;">"video"</span>, <span style="font-style: italic;">"audio"</span>, <span style="font-style: italic;">"image"</span>)
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">dvd_dir?</span>(file)
+    <span style="font-weight: bold; text-decoration: underline;">false</span> <span style="font-weight: bold;">unless</span> mime_type(file) == <span style="font-style: italic;">'inode/directory'</span>
+    <span style="font-weight: bold; text-decoration: underline;">File</span>.exist?(<span style="font-weight: bold; text-decoration: underline;">Pathname</span>.new(file).join(<span style="font-style: italic;">"VIDEO_TS"</span>)) ||
+      <span style="font-weight: bold; text-decoration: underline;">File</span>.exist?(<span style="font-weight: bold; text-decoration: underline;">Pathname</span>.new(file).join(<span style="font-style: italic;">"video_ts"</span>))
+  <span style="font-weight: bold;">end</span>
+<span style="font-weight: bold;">end</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org58f01fa" class="outline-2">
+<h2 id="org58f01fa">nhp</h2>
+<div class="outline-text-2" id="text-org58f01fa">
 <p>
 Exec command in background
 </p>
@@ -417,9 +637,9 @@ Exec command in background
 </div>
 </div>
 
-<div id="outline-container-org753dec3" class="outline-2">
-<h2 id="org753dec3">sendmail.py</h2>
-<div class="outline-text-2" id="text-org753dec3">
+<div id="outline-container-org176945f" class="outline-2">
+<h2 id="org176945f">sendmail.py</h2>
+<div class="outline-text-2" id="text-org176945f">
 <p>
 Utility for sendind email programatically
 </p>
@@ -470,9 +690,9 @@ sendmail(args.to, args.mailfrom, args.subject, message)
 </div>
 </div>
 
-<div id="outline-container-orgebc200e" class="outline-2">
-<h2 id="orgebc200e">pwsudo</h2>
-<div class="outline-text-2" id="text-orgebc200e">
+<div id="outline-container-org63268e2" class="outline-2">
+<h2 id="org63268e2">pwsudo</h2>
+<div class="outline-text-2" id="text-org63268e2">
 <div class="org-src-container">
 <pre class="src src-shell"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
 
@@ -489,9 +709,9 @@ sendmail(args.to, args.mailfrom, args.subject, message)
 </div>
 </div>
 
-<div id="outline-container-orgdaa87bd" class="outline-2">
-<h2 id="orgdaa87bd">gitsync</h2>
-<div class="outline-text-2" id="text-orgdaa87bd">
+<div id="outline-container-org359e31e" class="outline-2">
+<h2 id="org359e31e">gitsync</h2>
+<div class="outline-text-2" id="text-org359e31e">
 <ul class="org-ul">
 <li><p>
 gitsync-local
