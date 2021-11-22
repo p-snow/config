@@ -6506,6 +6506,40 @@ Provide a function to Build a clock table summing up time by tag.
 
   (provide 'my/view-file)
 #+end_src
+**** filetype-cli
+
+Wrapper script for [[file:dotbins.org::* filetype][filetype.rb]].
+
+#+begin_src ruby :tangle (expand-tangle-target ".local/bin/filetype-cli") :tangle-mode (identity #o755)
+  #!/usr/bin/env ruby
+
+  require 'thor'
+  require_relative 'filetype'
+
+  class FileTypeCLI < Thor
+    default_command :check
+    desc "check", "check whether the file is the speicfied type."
+    option :type, aliases: "t", :type => :string, :required => true,
+           :bannar => '--type image'
+    def check(file)
+      unless FileType.respond_to?("#{options[:type]}?")
+        $stderr.print("file type '#{options[:type]}' is not valid.")
+        exit 1
+      end
+
+      status = FileType.send("#{options[:type]}?", file)
+      unless status
+        $stderr.print("#{file} is not of #{options[:type]}?")
+        exit 1
+      end
+
+      exit 0
+    end
+  end
+
+  FileTypeCLI.start(ARGV)
+#+end_src
+
 **** strip_ruby
 A program strips all ruby tags in a HTML stream. All HTML contents are expected to be from STDIN and go out as STDOUT. This procedure is mainly for html files converted from pdf and epub files.
 Stripping rules are:
@@ -6538,7 +6572,6 @@ Stripping rules are:
   CONTENT = html.tostring(ROOT, encoding="utf-8", method='html', pretty_print=True)
   print(CONTENT.decode())
 #+end_src
-
 * package management
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/straight/versions/default.el")

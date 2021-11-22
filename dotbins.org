@@ -280,6 +280,115 @@ These scripts (declutter_xxx) keep things decluttered.
       + var/backup/**
       - *
     #+end_src
+* filetype
+
+This program determine type of the file.
+
+#+begin_src ruby  :tangle (expand-tangle-target ".local/bin/filetype.rb")
+  #!/usr/bin/env ruby
+
+  require 'pathname'
+  require 'uri'
+  require 'shellwords'
+
+  class FileType
+    ZIP_PREFIXES = ['Zip archive data']
+
+    def self.type(filename, file_cmd_opt = "")
+      if  File.exists?(filename)
+        local_opt = ""
+        if File.symlink?(filename)
+          local_opt += "--dereference"
+        end
+        `file --brief #{file_cmd_opt} #{local_opt} #{Shellwords.shellescape(filename)}`.strip
+      elsif filename =~ /https?:\/\/www\.youtube\.com.*/
+        `youtube-dl -f worst -q #{Shellwords.shellescape(filename)} -o - 2>/dev/null | file --brief #{file_cmd_opt} -`.strip
+      elsif filename =~ URI::DEFAULT_PARSER.make_regexp
+        `curl --location --range 0-9999 #{Shellwords.shellescape(filename)} 2>/dev/null | file --brief #{file_cmd_opt} -`.strip
+      else
+        ''
+      end
+    end
+
+    def self.mime_type(filename)
+      type(filename, "--mime-type")
+    end
+
+    def self.block_device?(file)
+      type(file).start_with?('block special') &&
+        mime_type(file) == 'inode/blockdevice'
+    end
+
+    def self.iso9660?(file)
+      mime_type(file) == 'application/x-iso9660-image'
+    end
+
+    def self.video_dvd_image?(file)
+      iso9660?(file) && type(file).start_with?('UDF filesystem data')
+    end
+
+    def self.html?(file)
+      type(file).start_with?("HTML document")
+    end
+
+    def self.pdf?(file)
+      type(file).start_with?("PDF document")
+    end
+
+    def self.epub?(file)
+      type(file) == "EPUB document"
+    end
+
+    def self.mobi?(file)
+      type(file).start_with?("Mobipocket E-book")
+    end
+
+    def self.pgp?(file)
+      type(file).start_with?("PGP")
+    end
+
+    def self.tarpgp?(file)
+      pgp?(file) && file.end_with?('.tar.gpg')
+    end
+
+    def self.zip?(file)
+      type(file).start_with?(*ZIP_PREFIXES)
+    end
+
+    def self.video?(file)
+      mime_type(file).start_with?("video/")
+    end
+
+    def self.audio?(file)
+      mime_type(file).start_with?('audio/')
+    end
+
+    def self.image?(file)
+      mime_type(file).start_with?("image/")
+    end
+
+    def self.playable?(file)
+      if File.directory?(file)
+        Dir.foreach(file) do |fname|
+          next if [".", ".."].include?(fname)
+          return false unless playable?("#{file}/#{fname}")
+        end
+        true
+      elsif file =~ /https?:\/\/www\.youtube\.com.*/
+        true
+      else
+        type(file).start_with?("ISO Media", "Audio file") ||
+          mime_type(file).start_with?("video", "audio", "image")
+      end
+    end
+
+    def self.dvd_dir?(file)
+      false unless mime_type(file) == 'inode/directory'
+      File.exist?(Pathname.new(file).join("VIDEO_TS")) ||
+        File.exist?(Pathname.new(file).join("video_ts"))
+    end
+  end
+#+end_src
 
 * nhp
 Exec command in background
