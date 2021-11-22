@@ -5,98 +5,172 @@
 #+PROPERTY: header-args+      :mkdirp yes
 #+PROPERTY: tangle-target-dir .files
 
-* Local file clean-up (tidyup)
-- tidyup
-  #+begin_src python :tangle (expand-tangle-target ".local/bin/tidyup")
-  #!/usr/bin/env python3
+* Declutters
 
-  import os
-  import time
-  import datetime
-  import shutil
-  import glob
-  from send2trash import send2trash
+These scripts (declutter_xxx) keep things decluttered.
 
-  TRASH_DIR = os.environ['HOME'] + '/.local/share/Trash/files/'
-  TIDY_DIRS = filter(lambda x: os.path.isdir(x),
-                     list(map(lambda x: os.path.join(os.environ['HOME'], x), ['tmp', 'Downloads']))
-                     + glob.glob(os.path.join(os.environ['HOME'], 'var/tmp/*')))
+- trash
+  #+begin_src python :tangle (expand-tangle-target ".local/bin/declutter_trash")
+    #!/usr/bin/env python3
 
-  MAX_STAY_DAYS_IN_TRASH = 7
-  MAX_NEGLECTED_DAYS_IN_TIDY_DIRS = 14
+    import os
+    import time
+    import datetime
+    import shutil
+    import glob
+    from send2trash import send2trash
 
-  suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-  def humansize(nbytes):
-      i = 0
-      while nbytes >= 1024 and i < len(suffixes)-1:
-          nbytes /= 1024.
-          i += 1
-      f = ('%.2f' % nbytes).rstrip('0').rstrip('.')
-      return '%s %s' % (f, suffixes[i])
+    TRASH_DIR = os.environ['HOME'] + '/.local/share/Trash/files/'
+    TIDY_DIRS = filter(lambda x: os.path.isdir(x),
+                       list(map(lambda x: os.path.join(os.environ['HOME'], x), ['tmp', 'Downloads']))
+                       + glob.glob(os.path.join(os.environ['HOME'], 'var/tmp/*')))
 
-  def get_size(start_path = '.'):
-      total_size = 0
-      for dirpath, dirnames, filenames in os.walk(start_path):
-          for f in filenames:
-              fp = os.path.join(dirpath, f)
-              # skip if it is symbolic link
-              if not os.path.islink(fp):
-                  total_size += os.path.getsize(fp)
+    MAX_STAY_DAYS_IN_TRASH = 7
+    MAX_NEGLECTED_DAYS_IN_TIDY_DIRS = 14
 
-      return total_size
+    suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+    def humansize(nbytes):
+        i = 0
+        while nbytes >= 1024 and i < len(suffixes)-1:
+            nbytes /= 1024.
+            i += 1
+        f = ('%.2f' % nbytes).rstrip('0').rstrip('.')
+        return '%s %s' % (f, suffixes[i])
 
-  print('{0} starts at {1}\n'.format(os.path.basename(__file__),
+    def get_size(start_path = '.'):
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(start_path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                # skip if it is symbolic link
+                if not os.path.islink(fp):
+                    total_size += os.path.getsize(fp)
+
+        return total_size
+
+    print('{0} starts at {1}\n'.format(os.path.basename(__file__),
+                                       datetime.datetime.now()))
+
+    NOW = time.time()
+
+    print('--{0} starts to move files neglected more than {1} days to trash box.\n'
+          .format(os.path.basename(__file__),
+                  MAX_NEGLECTED_DAYS_IN_TIDY_DIRS))
+
+    tidyup_lists = map(lambda x: map(lambda y: os.path.join(x, y), os.listdir(x)), TIDY_DIRS)
+    for a_file in [item for sublist in tidyup_lists for item in sublist]:
+        atime = os.lstat(a_file).st_atime
+        delta_atime = datetime.timedelta(seconds=(NOW - atime))
+        if delta_atime > datetime.timedelta(days = MAX_NEGLECTED_DAYS_IN_TIDY_DIRS):
+            send2trash(a_file)
+            print('moveed to trash: {}'.format(a_file))
+
+    print('--{0} starts to remove files staying more than {1} days in trash box.'
+          .format(os.path.basename(__file__),
+                  MAX_STAY_DAYS_IN_TRASH))
+
+    rbytes_total = 0
+    for trash_file in map(lambda fname: os.path.join(TRASH_DIR, fname), os.listdir(TRASH_DIR)):
+        lstat = os.lstat(trash_file)
+        delta_time = datetime.timedelta(seconds=(NOW - max(lstat.st_atime, lstat.st_ctime)))
+        if delta_time > datetime.timedelta(days = MAX_STAY_DAYS_IN_TRASH):
+            method = 'removed'
+            fname = os.path.basename(trash_file)
+            if os.path.islink(trash_file):
+                method = 'unlinked'
+                fsize = 'N/A'
+                os.unlink(trash_file)
+            elif os.path.isfile(trash_file):
+                rbytes = os.path.getsize(trash_file)
+                rbytes_total += rbytes
+                fsize = humansize(rbytes)
+                os.remove(trash_file)
+            elif os.path.isdir(trash_file):
+                rbytes = get_size(trash_file)
+                rbytes_total += rbytes
+                fsize = humansize(rbytes)
+                fname += '/'
+                shutil.rmtree(trash_file)
+            print('{}: [{:>9}] {}'.format(method, fsize, fname))
+
+    print('--{0} removes [{1}] in total.\n'
+          .format(os.path.basename(__file__),
+                  humansize(rbytes_total)))
+
+    print('{0} ends at {1}\n'.format(os.path.basename(__file__),
                                      datetime.datetime.now()))
-
-  NOW = time.time()
-
-  print('--{0} starts to move files neglected more than {1} days to trash box.\n'
-        .format(os.path.basename(__file__),
-                MAX_NEGLECTED_DAYS_IN_TIDY_DIRS))
-
-  tidyup_lists = map(lambda x: map(lambda y: os.path.join(x, y), os.listdir(x)), TIDY_DIRS)
-  for a_file in [item for sublist in tidyup_lists for item in sublist]:
-      atime = os.lstat(a_file).st_atime
-      delta_atime = datetime.timedelta(seconds=(NOW - atime))
-      if delta_atime > datetime.timedelta(days = MAX_NEGLECTED_DAYS_IN_TIDY_DIRS):
-          send2trash(a_file)
-          print('moveed to trash: {}'.format(a_file))
-
-  print('--{0} starts to remove files staying more than {1} days in trash box.'
-        .format(os.path.basename(__file__),
-                MAX_STAY_DAYS_IN_TRASH))
-
-  rbytes_total = 0
-  for trash_file in map(lambda fname: os.path.join(TRASH_DIR, fname), os.listdir(TRASH_DIR)):
-      lstat = os.lstat(trash_file)
-      delta_time = datetime.timedelta(seconds=(NOW - max(lstat.st_atime, lstat.st_ctime)))
-      if delta_time > datetime.timedelta(days = MAX_STAY_DAYS_IN_TRASH):
-          method = 'removed'
-          fname = os.path.basename(trash_file)
-          if os.path.islink(trash_file):
-              method = 'unlinked'
-              fsize = 'N/A'
-              os.unlink(trash_file)
-          elif os.path.isfile(trash_file):
-              rbytes = os.path.getsize(trash_file)
-              rbytes_total += rbytes
-              fsize = humansize(rbytes)
-              os.remove(trash_file)
-          elif os.path.isdir(trash_file):
-              rbytes = get_size(trash_file)
-              rbytes_total += rbytes
-              fsize = humansize(rbytes)
-              fname += '/'
-              shutil.rmtree(trash_file)
-          print('{}: [{:>9}] {}'.format(method, fsize, fname))
-
-  print('--{0} removes [{1}] in total.\n'
-        .format(os.path.basename(__file__),
-                humansize(rbytes_total)))
-
-  print('{0} ends at {1}\n'.format(os.path.basename(__file__),
-                                   datetime.datetime.now()))
 #+end_src
+- home directory (ruby implementation)
+  #+begin_src ruby :tangle (expand-tangle-target ".local/bin/declutter_home")
+    #!/usr/bin/env ruby
+    # coding: utf-8
+
+    TRASHES = ["*~", "#*#", ".#*#", "._*", ".DS_Store"]
+
+    class Sweep
+      def self.sweep(base_dir)
+        puts base_dir
+        TRASHES.each do |trash|
+          tfiles = File.join("%s/**" % base_dir, trash)
+          Dir.glob(tfiles).each do |f|
+            if File.delete(f) > 0
+              puts "Removed: " + f
+            else
+              puts "CANNOT Removed: " + f
+            end
+          end
+        end
+      end
+    end
+
+    ARGV.each do |arg|
+      if Dir.exist?(arg) then
+        Sweep.sweep(arg)
+      end
+    end
+  #+end_src
+- home directory (python implementation)
+  #+begin_src python :tangle (expand-tangle-target ".local/bin/declutter_home_py")
+    #!/usr/bin/env python3
+
+    import sys
+    import os
+    import glob
+    import argparse
+
+    TRASH_REGEXPS = ["*~", "#*", ".#*", "._*", ".DS_Store", "*.dvi", "*.aux", "*.bbl"]
+
+    class Sweepy:
+        @classmethod
+        def sweep_with_regexp(self, base_dir, recursive=False):
+            for trash_regexp in TRASH_REGEXPS:
+                files = glob.glob("%s/**/" % base_dir + trash_regexp, recursive=recursive)
+                for file in files:
+                    if os.path.isfile(file):
+                        os.remove(file)
+                        print("Removed: " + file)
+        @classmethod
+        def sweep_broken_symlink(self, base_dir, recursive=False):
+            files = glob.glob("%s/*" % base_dir, recursive=recursive)
+            dotfiles = glob.glob("%s/.*" % base_dir, recursive=recursive)
+            for file in (files + dotfiles):
+                if os.path.islink(file):
+                    if not os.path.exists(os.readlink(file)):
+                        os.unlink(file)
+                        print("Unlinked: " + file)
+
+    parser = argparse.ArgumentParser(description='Removes all desired files')
+    parser.add_argument('dir', metavar='dir', nargs='?', action='store',
+                        help='base directory to search')
+    parser.add_argument('-r', dest='recursive', action="store_true", default=False)
+    args = parser.parse_args()
+    if args.recursive:
+        Sweepy.sweep_with_regexp(args.dir, recursive=True)
+        Sweepy.sweep_broken_symlink(args.dir, recursive=True)
+    else:
+        Sweepy.sweep_with_regexp(args.dir, recursive=False)
+        Sweepy.sweep_broken_symlink(args.dir, recursive=False)
+  #+end_src
 * Database back-up script
 - PostgreSQL
 #+begin_src bash :tangle (expand-tangle-target ".local/bin/postgres_backup")
