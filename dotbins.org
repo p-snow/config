@@ -171,21 +171,39 @@ These scripts (declutter_xxx) keep things decluttered.
         Sweepy.sweep_with_regexp(args.dir, recursive=False)
         Sweepy.sweep_broken_symlink(args.dir, recursive=False)
   #+end_src
-* Database back-up script
+* Database back-up scripts
 - PostgreSQL
-#+begin_src bash :tangle (expand-tangle-target ".local/bin/postgres_backup")
-  #!/usr/bin/env bash
+  #+begin_src bash :tangle (expand-tangle-target ".local/bin/postgres_backup")
+    #!/usr/bin/env bash
 
-  # Usage: $ postgres_backup <db_name> <backup_dir>
+    # Usage: $ postgres_backup <db_name> <backup_dir>
 
-  POSTGRES_DBNAME=$1
-  BACKUP_DIR=$2
-  DATE="$(date +%Y%m%d_%H%M)"
+    POSTGRES_DBNAME=$1
+    BACKUP_DIR=$2
+    DATE="$(date +%Y%m%d_%H%M)"
 
-  pg_dump --format=custom ${POSTGRES_DBNAME} > ${BACKUP_DIR}/${DATE}_${POSTGRES_DBNAME}.custom || exit 1
+    pg_dump --format=custom ${POSTGRES_DBNAME} > ${BACKUP_DIR}/${DATE}_${POSTGRES_DBNAME}.custom || exit 1
 
-  exit 0
-#+end_src
+    exit 0
+  #+end_src
+
+- MySQL
+  #+begin_src shell :tangle (expand-tangle-target ".local/bin/mysql_backup")
+    #!/usr/bin/env bash
+
+    BACKUP_DIR=~/var/backups/mysql
+    RAW_SQL="$(date +%Y%m%d_%H%M)_backup.sql"
+    TAR_SQL="${RAW_SQL}.txz"
+
+    (
+      cd "${BACKUP_DIR}" || exit 1
+      mysqldump --opt --all-databases --events --default-character-set=binary -u root > "${RAW_SQL}"
+      tar cfJ "${TAR_SQL}" "${RAW_SQL}"
+      rm -f "${RAW_SQL}"
+    ) || exit 1
+
+    exit 0
+  #+end_src
 
 * Snapshots taking
 - snapshot.sh
