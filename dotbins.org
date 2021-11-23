@@ -267,12 +267,12 @@ These scripts (declutter_xxx) keep things decluttered.
     fi
 
     # take a snapshot for sv04
-    if mountpoint ${HOME}/mnt/sv04 >/dev/null 2>&1; then
+    if mountpoint /mnt/sv04 >/dev/null 2>&1; then
       if ssh ns01 "[ -h ~/share/backups/sv04/last ]"; then
-        rsync -aPhrv $LINK --exclude-from=${HOME}/.config/rsync/exclude_sv04.txt ${HOME}/mnt/sv04/ ${DEST}/sv04/${DATETIME}
+        rsync -aPhrv $LINK --exclude-from=${HOME}/.config/rsync/exclude_sv04.txt /mnt/sv04/ ${DEST}/sv04/${DATETIME}
         ssh ns01 "(cd share/backups/sv04; unlink last; ln -s ${DATETIME} last)"
       else
-        rsync -aAXrv --exclude-from=${HOME}/.config/rsync/exclude_sv04.txt ${HOME}/mnt/sv04/ ${DEST}/sv04/${DATETIME}
+        rsync -aAXrv --exclude-from=${HOME}/.config/rsync/exclude_sv04.txt /mnt/sv04/ ${DEST}/sv04/${DATETIME}
         ssh ns01 "(cd share/backups/sv04; ln -s ${DATETIME} last)"
       fi
     fi
