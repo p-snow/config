@@ -302,7 +302,7 @@ These scripts (declutter_xxx) keep things decluttered.
 
 This program determine type of the file.
 
-#+begin_src ruby  :tangle (expand-tangle-target ".local/bin/filetype.rb")
+#+begin_src ruby :tangle (expand-tangle-target ".local/lib/filetype.rb")
   #!/usr/bin/env ruby
 
   require 'pathname'
@@ -406,6 +406,873 @@ This program determine type of the file.
         File.exist?(Pathname.new(file).join("video_ts"))
     end
   end
+#+end_src
+* mediautil
+
+Utility ruby program for manipulating image, audio and video file.
+
+#+begin_src ruby :tangle (expand-tangle-target ".local/bin/mediautil")
+  #!/usr/bin/env ruby
+
+  require 'thor'
+  require 'open3'
+  require 'fileutils'
+  require 'tempfile'
+  require 'tmpdir'
+
+  require 'filetype'
+
+  class MediaUtil < Thor
+    OUTFILE_SUFFIX = "_out"
+    DEFAULT_VIDEO_EXT = ".mp4"
+
+    class Names < Struct.new(:in_f, :out_f)
+      def in_file()
+        in_f
+      end
+      def out_file(extension = nil)
+        if out_f
+          out_f
+        else
+          bn = File.basename(in_f, ".*").gsub(/ /, '_')
+          ext = ((extension) ? extension : File.extname(in_file))
+          default_out = bn + ext
+          if File.file?(default_out)
+            10.times do |i|
+              try_name = bn + "_" + (i+1).to_s + ext
+              unless File.file?(try_name)
+                return try_name
+              end
+            end
+          end
+          default_out
+        end
+      end
+      def title()
+        File.basename(out_file, ".*")
+      end
+    end
+    class Commander < Struct.new(:log, :dry)
+      def execute(command)
+        if dry
+          puts command
+        else
+          log_str, s_code = Open3.capture2e(command)
+          if log
+            user_cmd = caller.first.scan(/`(.*)'/).flatten.first.to_s
+            log_fname = Time.now.strftime("%Y%m%d_%H%M%S_") + user_cmd + ".log"
+            File.open(log_fname, "w") do |f|
+              f.puts(log_str)
+            end
+          else
+            puts log_str
+          end
+          exit false unless s_code.success?
+          # exit false
+        end
+      end
+    end
+
+    class_option :log, aliases: "L", :type => :boolean,
+                 :desc => "log stdout and stderr instead they reveal in terminal"
+    class_option :dryrun, aliases: "D", :type => :boolean
+
+    desc "info <file>", "show information about the video file or DVD directory"
+    option :short, aliases: "s", :type => :boolean
+    def info(target)
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      if FileType.video?(target) || FileType.audio?(target)
+        commander.execute("ffprobe \"#{target}\" -hide_banner -show_entries format")
+      elsif FileType.image?(target)
+        if options[:short]
+          commander.execute("identify #{target}")
+        else
+          commander.execute("identify -verbose #{target}")
+        end
+      elsif FileType.block_device?(target) ||
+            FileType.video_dvd_image?(target) ||
+            FileType.dvd_dir?(target)
+        commander.execute("HandBrakeCLI -i \"#{target}\" --title 0")
+      else
+        STDERR.puts "Unknown Media Format"
+        exit false
+      end
+    end
+
+    default_command :encode
+    desc "encode", "encode video file"
+    option :in, aliases: "i", :type => :string, :required => true
+    option :out, aliases: "o", :type => :string
+    option :vencoder, aliases: "e", :type => :string,
+           :banner => "x265|x264",
+           :desc => "video encoder"
+    option :vquality, aliases: "q", :type => :string,
+           :banner => "24.0",
+           :desc => "video encoding quality"
+    option :aencoder, aliases: "E", :type => :string,
+           :banner => "fdk_aac",
+           :desc => "audio encoder"
+    option :aquality, aliases: "Q", :type => :string,
+           :banner => "100.0",
+           :desc => "audio encoding quality"
+    option :display, aliases: "d", :type => :string,
+           :banner => "1920:1080",
+           :desc => 'display (width:height) in which encoded video fit'
+    option :fps, aliases: "f", :type => :string,
+           :banner => "30",
+           :desc => 'max frame rate'
+    option :ffmpeg, :type => :string
+    def encode()
+      equip = Names.new(options[:in], options[:out])
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      vconf = aconf = pconf = nil
+      if options[:vencoder] || options[:vquality]
+        vconf = VideoConfig.new(options[:vencoder], options[:vquality])
+      end
+      if options[:aencoder] || options[:aquality]
+        aconf = AudioConfig.new(options[:aencoder], options[:aquality])
+      end
+      if options[:display] || options[:fps]
+        pconf = PictureConfig.new
+        pconf.fit_size(options[:display]) if options[:display]
+        pconf.decrease_framerate(options[:fps]) if options[:fps]
+      end
+
+      if FileType.video?(equip.in_file) then
+        commander.execute(FFMPEG.command([FFMPEGOptSet.new(equip.in_file, [])],
+                                         [FFMPEGOptSet.new(equip.out_file, [vconf, aconf, pconf, "-map_metadata 0", options[:ffmpeg]])]))
+      elsif FileType.audio?(equip.in_file) then
+        commander.execute(FFMPEG.command([FFMPEGOptSet.new(equip.in_file, [])],
+                                         [FFMPEGOptSet.new(equip.out_file, [aconf])]))
+      elsif FileType.image?(equip.in_file) then
+        pconf = ImageConfig.new
+        commander.execute(ImageMagick.command(equip.in_file,
+                                              equip.out_file,
+                                              pconf))
+      else
+        STDERR.puts "Unknown Media Format"
+        exit false
+      end
+    end
+
+    desc 'cdencode', 'rip and encode CD contents'
+    option :device, aliases: 'd', :type => :string,
+           :desc => 'Device file'
+    option :format, aliases: 'f', :type => :string,
+           :banner => 'ogg,m4a', :default => 'm4a',
+           :desc => 'comma separated encoding formats'
+    def cdencode()
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      abcde_args = []
+      abcde_args << "-d #{options[:device]}" if options[:device]
+      abcde_args << '-a default'
+      if options[:format] then
+        abcde_args << "-o #{options[:format]}"
+      end
+      abcde_args << '-G' # getalbumart
+      abcde_args << '-x' # Eject CD
+
+      commander.execute("abcde #{abcde_args.join(' ')}")
+    end
+
+    desc 'dvdrip', 'rip(backup) DVD contents'
+    option :device, aliases: 'd', :type => :string,
+           :desc => 'DVD device file'
+    option :out, aliases: 'o', :type => :string,
+           :desc => 'output directory name'
+    option :name, aliases: 'n', :type => :string,
+           :desc => 'root directory name of backup data'
+    def dvdrip()
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      dvdbackup_opts = ['dvdbackup']
+      dvdbackup_opts << '--input=%s' % options[:device] if options[:device]
+      dvdbackup_opts << '--output=%s' % options[:out] if options[:out]
+      dvdbackup_opts << '--name=%s' % options[:name] if options[:name]
+      dvdbackup_opts << '--mirror'
+      dvdbackup_opts << '--progress'
+      dvdbackup_opts << '--verbose'
+
+      commander.execute(dvdbackup_opts.join(' '))
+    end
+
+    desc 'dvdencode', 'encode DVD contents'
+    option :in, aliases: 'i', :type => :string, :required => true,
+           :desc => 'input source, DVD device file or backuped DVD file'
+    option :out, aliases: 'o', :type => :string,
+           :desc => 'output directory name'
+    option :vencoder, aliases: "e", :type => :string,
+           :banner => "x265|x264",
+           :desc => "video encoder"
+    option :vquality, aliases: "q", :type => :string,
+           :banner => "24.0",
+           :desc => "video encoding quality"
+    option :aencoder, aliases: "E", :type => :string,
+           :banner => "fdk_aac",
+           :desc => "audio encoder"
+    option :aquality, aliases: "Q", :type => :string,
+           :banner => "100.0",
+           :desc => "audio encoding quality"
+    option :title, aliases: 't', :type => :string,
+           :banner => '1|2|3|...',
+           :desc => 'title number'
+    option :chapters, aliases: 'c', :type => :string,
+           :banner => '1|1-3|1,3,5|...',
+           :desc => 'chapter numbers'
+    option :audio, aliases: 'a', :type => :string,
+           :banner => '1,2,3',
+           :desc => 'audio channel'
+    option :subtitle, aliases: 's', :type => :string,
+           :banner => '1,2',
+           :desc => 'subtitle channel'
+    option :handbrake, :type => :string,
+           :banner => '--handbrake \"--mixdown 5point1,stereo\"',
+           :desc => 'HandBrakeCLI options'
+    def dvdencode()
+      equip = Names.new(options[:in], options[:out])
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      if FileType.block_device?(equip.in_file) ||
+         FileType.video_dvd_image?(equip.in_file) ||
+         FileType.dvd_dir?(equip.in_file)
+        configs = []
+        if options[:vencoder] || options[:vquality]
+          configs << VideoConfig.new(options[:vencoder], options[:vquality])
+        end
+        if options[:aencoder] || options[:aquality]
+          configs << AudioConfig.new(options[:aencoder], options[:aquality])
+        end
+        dconf = DVDConfig.new
+        dconf.title = options[:title] if options[:title]
+        dconf.chapters = options[:chapters] if options[:chapters]
+        dconf.audio = options[:audio] if options[:audio]
+        dconf.subtitle = options[:subtitle] if options[:subtitle]
+        configs << dconf
+        commander.execute(HandBrakeCLI.command(equip.in_file,
+                                               equip.out_file(DEFAULT_VIDEO_EXT),
+                                               configs,
+                                               options[:handbrake]))
+      end
+    end
+
+    desc 'mount <dir>', 'Mount CD/DVD media to dir.'
+    option :device, aliases: "d", :type => :string, :required => true,
+           :desc => 'device or iso file to mount',
+           :banner => '--mount /dev/dvd|image.iso'
+    option :type, aliases: 't', :type => :string,
+           :desc => 'mount DVD-Video',
+           :banner => '--type data|video'
+    def mount(dir)
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      cmd_opts = ['mount']
+      if options[:type] == 'video' || FileType.video_dvd_image?(options[:device])
+        cmd_opts << ['-t', 'iso9660', '-o', 'loop']
+      end
+      cmd_opts << options[:device]
+      cmd_opts << dir
+
+      Dir.mkdir(dir) if !Dir.exist?(dir) && !options[:dryrun]
+      commander.execute("sudo #{cmd_opts.join(' ')}")
+    end
+
+    desc 'umount', 'unmount dir'
+    option :remove, aliases: 'r', :type => :boolean,
+           :desc => 'remove dir after unmounting'
+    def umount(dir)
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      cmd_opts = ['umount']
+      cmd_opts << dir
+
+      commander.execute("sudo #{cmd_opts.join(' ')}")
+
+      if options[:remove]
+        FileUtils.rmdir(dir)
+      end
+    end
+
+    desc 'mkiso', 'make ISO image file.'
+    option :type, aliases: 't', :type => :string, :required => true,
+           :desc => 'DVD image type. Data or Video DVD.',
+           :banner => '--type data|video'
+    option :volume, aliases: 'V', :type => :string,
+           :desc => 'Volume Label'
+    option :out, aliases: 'o', :type => :string,
+           :desc => 'ISO image file name.',
+           :banner => '--out movie.iso'
+    def mkiso(file)
+      names = Names.new(file, options[:out])
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      mkisofs_opts = ['mkisofs']
+      mkisofs_opts << ["-V", "\"#{options[:volume]}\""] if options[:volume]
+      if options[:type] == "data"
+        mkisofs_opts << ["-r", "-l", "-J"]
+      elsif options[:type]
+        mkisofs_opts << "-dvd-video"
+      else
+        exit 1
+      end
+      mkisofs_opts << ["-o", "\"#{names.out_file('.iso')}\""]
+      mkisofs_opts << "\"#{file}\""
+
+      commander.execute(mkisofs_opts.join(" "))
+    end
+
+    desc 'dvdburn <file>', 'Burn file to DVD.'
+    option :iso, aliases: 'I', :type => :boolean,
+           :desc => 'Set this option if <file> is ISO 9660 compliant.'
+    option :volume, aliases: 'V', :type => :string, :default => 'DVD_VIDEO',
+           :desc => 'Volume Label'
+    option :video, aliases: 'v', :type => :boolean,
+           :desc => 'Create DVD video image file to burn.'
+    option :speed, aliases: 's', :type => :string, :default => '4',
+           :desc => 'Burning Speed',
+           :banner => 'n'
+    option :device, aliases: 'd', :type => :string,
+           :desc => 'Device file', :default => '/dev/sr0'
+    def dvdburn(file)
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      cmd_opts = ['growisofs']
+      cmd_opts << '-dvd-compat'
+      cmd_opts << '-speed=%s' % options[:speed]
+      if FileType.iso9660?(file) || options[:iso]
+        cmd_opts << '-Z %s=%s' % [options[:device], file]
+      else
+        cmd_opts << '-Z %s' % options[:device]
+        mkisofs_opts = []
+        mkisofs_opts << ['-V', "\"#{options[:volume]}\""] if options[:volume]
+        if options[:video]
+          mkisofs_opts << '-dvd-video'
+        else # Data-DVD
+          mkisofs_opts << ['-r', '-l', '-R']
+        end
+        mkisofs_opts << file
+        cmd_opts << mkisofs_opts
+      end
+
+      commander.execute(cmd_opts.join(' '))
+    end
+
+    desc "cdburn", "burn files to CD device"
+    option :in, aliases: "i", :type => :string, :required => true,
+           :desc => "Root Directory for image file"
+    option :volume, aliases: "v", :type => :string, :required => true,
+           :desc => "Volume ID"
+    option :device, aliases: "d", :type => :string,
+           :desc => "Device file", :default => "/dev/sr0"
+    def cdburn()
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      commander.execute("mkisofs -V \"#{options[:volume]}\" -J -r #{options[:in]} | cdrecord -v dev=#{options[:device]} -waiti -")
+    end
+
+    desc "screenshot", "take a screenshot of a video at a time"
+    option :in, aliases: "i", :type => :string, :required => true
+    option :out, aliases: "o", :type => :string
+    option :time, aliases: "t", :type => :string,
+           :desc => "ex. 00:10:22.300"
+    def screenshot()
+      equip = Names.new(options[:in], options[:out])
+      commander = Commander.new(options[:log], options[:dryrun])
+      if FileType.video?(equip.in_file) then
+        args = ['ffmpeg']
+        args << ('-ss %s' % options[:time]) if options[:time]
+        args << '-i %s' % equip.in_file
+        args << '-vframes 1'
+        args << '-q:v 2'
+        args << equip.out_file('.jpg')
+        commander.execute(args.join(' '))
+      end
+    end
+
+    desc "clip", "clip a video with specific time span"
+    option :in, aliases: "i", :type => :string, :required => true
+    option :out, aliases: "o", :type => :string
+    option :time_begin, aliases: "b", :type => :string,
+           :desc => "ex. 00:10:22.300"
+    option :time_end, aliases: "e", :type => :string
+    def clip()
+      equip = Names.new(options[:in], options[:out])
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      if FileType.video?(equip.in_file) then
+        if options[:time_begin] or options[:time_end] then
+          in_opts = []
+          in_opts << "-ss #{options[:time_begin]}" if options[:time_begin]
+          in_opts << "-to #{options[:time_end]}" if options[:time_end]
+          out_opts = []
+          out_opts << "-vcodec copy"
+          out_opts << "-acodec copy"
+          out_opts << "-map_metadata 0"
+          commander.execute(FFMPEG.command([FFMPEGOptSet.new(equip.in_file, in_opts)],
+                                           [FFMPEGOptSet.new(equip.out_file, out_opts)]))
+        end
+      else
+        STDERR.puts "This Media Format is not supported on this function"
+        exit false
+      end
+    end
+
+    desc "crop", "extract a specific rectangle of a image/video"
+    option :in, aliases: "i", :type => :string, :required => true
+    option :out, aliases: "o", :type => :string
+    option :width, aliases: "w", :type => :numeric, :required => true
+    option :height, aliases: "h", :type => :numeric, :required => true
+    option :xpos, aliases: "x", :type => :numeric,
+           :desc => "x coordinate of an original image where cropped image of top-left corner overlaps"
+    option :ypos, aliases: "y", :type => :numeric
+    def crop()
+      names = Names.new(options[:in], options[:out])
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      width = options[:width]
+      height = options[:height]
+      xpos = options[:xpos] ? options[:xpos] : 0
+      ypos = options[:ypos] ? options[:ypos] : 0
+      if FileType.image?(names.in_file) then
+        opt = '-crop %dx%d+%dx%d' % [width, height, xpos, ypos]
+        commander.execute("convert #{opt} #{names.in_file} #{names.out_file}")
+      elsif FileType.video?(names.in_file) then
+        args = ['ffmpeg']
+        args << '-i %s' % names.in_file
+        args << '-vf crop=%d:%d:%d:%d' % [width, height, xpos, ypos]
+        args << "-map_metadata 0"
+        args << names.out_file
+        commander.execute(args.join(' '))
+      else
+        STDERR.puts "This Media Format is not supported on this function"
+        exit false
+      end
+    end
+
+    desc "trim", "trim a image/video with automated detection"
+    option :in, aliases: "i", :type => :string, :required => true
+    option :out, aliases: "o", :type => :string
+    option :threshold, aliases: "t", :type => :string,
+           :desc => "threshold where trimming begin and end"
+    def trim()
+      names = Names.new(options[:in], options[:out])
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      if FileType.image?(names.in_file) then
+        commander.execute("convert -trim #{names.in_file} #{names.out_file}")
+      elsif FileType.audio?(names.in_file) then
+        threshold = (options[:threshold]) ? options[:threshold] : "-40dB"
+        commander.execute("ffmpeg -i #{names.in_file} -af \"silenceremove=start_periods=1:start_duration=0:start_threshold=#{threshold}:detection=peak\" #{names.out_file}")
+      end
+    end
+
+    desc "resize", "resize the image"
+    option :in, aliases: "i", :type => :string, :required => true
+    option :out, aliases: "o", :type => :string
+    option :width, aliases: "w", :type => :string,
+           :banner => "e.g. 300",
+           :desc => "resized image width"
+    option :height, aliases: "h", :type => :string,
+           :banner => "e.g. 200",
+           :desc => "resized image height"
+    option :operation, aliases: "p", :type => :string,
+           :banner => "enlarge|shrink",
+           :desc => "permitted operation for resizing"
+    def resize()
+      names = Names.new(options[:in], options[:out])
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      if FileType.video?(names.in_file) then
+        if options[:width] and options[:height]
+          out_opts = []
+          out_opts << format("-vf scale=%s:%s,setsar=1:1", options[:width], options[:height])
+          commander.execute(FFMPEG.command([FFMPEGOptSet.new(names.in_file, [])],
+                                           [FFMPEGOptSet.new(names.out_file, out_opts)]))
+        end
+      elsif FileType.image?(names.in_file) then
+        return if options[:width] == nil && options[:height] == nil
+        if options[:operation] == "enlarge"
+          op = "<"
+        elsif options[:operation] == "shrink"
+          op = ">"
+        else
+          op = ""
+        end
+        geometry = format("%sx%s%s", options[:width], options[:height], op)
+        commander.execute("convert -resize #{geometry} #{names.in_file} #{names.out_file}")
+      end
+    end
+
+    desc "concat", "concat multiple files"
+    option :in, aliases: "i", :type => :array, :required => true
+    option :out, aliases: "o", :type => :string
+    def concat()
+      names = Names.new(options[:in][0], options[:out])
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      srcs = options[:in]
+      output = names.out_file
+
+      if srcs.all? { |src| FileType.video?(src) }
+        src_list = ""
+        src_file = Tempfile.open()
+        chap_file = Tempfile.open()
+        chap_file.write("### Create Chapterfile ###\n")
+        files_to_remove = []
+        time_accumulated = Time.new(0)
+        srcs.each_with_index do |src, index|
+          valid_src =
+            if src =~ /^\p{Ascii}+$/
+              src
+            else
+              Dir::Tmpname.create('base') do |src_dup|
+                FileUtils.cp(src, src_dup)
+                files_to_remove << src_dup
+                src_dup
+              end
+            end
+          src_file.write("file '#{File.expand_path(valid_src)}'\n")
+          chap_file.write("CHAPTER#{index + 1}=#{time_accumulated.strftime('%H:%M:%S.%L')}\n")
+          chap_file.write("CHAPTER#{index + 1}NAME=#{File.basename(src, File.extname(src))}\n")
+          duration = `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "#{src}"`.strip().to_f()
+          time_accumulated += duration
+        end
+        src_file.flush
+        commander.execute("ffmpeg -n -f concat -safe 0 -i #{src_file.path} -c:v copy -c:a copy -c:s copy -map 0:v -map 0:a -map 0:s? #{output}")
+        src_file.close
+        chap_file.flush
+        commander.execute("MP4Box -chap #{chap_file.path} #{output}")
+        chap_file.close
+        src_file.unlink
+        chap_file.unlink
+        FileUtils.rm_f(files_to_remove)
+      elsif srcs.all? { |src| FileType.image?(src) }
+        commander.execute "convert #{srcs.join(' ')} #{output}"
+      else
+        STDERR.puts "This Media Format is not supported on this function"
+        exit false
+      end
+    end
+
+    desc "diff", "measure the difference by providing SSIM value"
+    option :out, aliases: "o", :type => :string
+    def diff(file1, file2)
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      if ((FileType.video?(file1) and FileType.video?(file2)) or
+          (FileType.image?(file1) and FileType.image?(file2))) then
+        if options[:out] then
+          commander.execute("ffmpeg -i #{file1} -i #{file2} -filter_complex ssim=#{options[:out]} -an -f null -")
+        else
+          commander.execute("ffmpeg -i #{file1} -i #{file2} -filter_complex ssim -an -f null -")
+        end
+      end
+    end
+
+    desc "mux", "mux to one file which has streams correspond with input files"
+    option :video, aliases: "v", :type => :string, :required => true
+    option :audio, aliases: "a", :type => :string, :required => true
+    option :audio_delay, aliases: "d", :type => :string
+    option :out, aliases: "o", :type => :string
+    def mux()
+      names = Names.new(options[:video], options[:out])
+      commander = Commander.new(options[:log], options[:dryrun])
+
+      in_optsets = []
+      in_optsets << FFMPEGOptSet.new(options[:video], [])
+      aconf = []
+      aconf << "-itsoffset #{options[:audio_delay]}" if options[:audio_delay]
+      in_optsets << FFMPEGOptSet.new(options[:audio], aconf)
+      commander.execute(FFMPEG.command(in_optsets,
+                                       [FFMPEGOptSet.new(names.out_file, [])]))
+    end
+  end
+
+  class MainConfig
+    attr_accessor :start, :end
+  end
+
+  class VideoConfig
+    attr_accessor :encoder, :quality, :preset, :tune, :profile, :level
+
+    DEFAULT_ENCODER = 'x265'
+    DEFAULT_QUALITY = '26.0'
+
+    def initialize(encoder, quality)
+      @encoder = (encoder ? encoder : DEFAULT_ENCODER)
+      @quality = (quality ? quality : DEFAULT_QUALITY)
+      case @encoder
+      when "x265"
+        @preset = "veryslow"
+        @tune = "ssim"
+        @profile = "main"
+        @level = nil
+      when "x264"
+        @preset = "veryslow"
+        @tune = "film"
+        @profile = "main"
+        @level = "4.1"
+      end
+    end
+  end
+
+  class PictureConfig
+    # conversion options
+    attr_accessor :vf_opts, :fps
+
+    def initialize()
+      @vf_opts = []
+      @vf_opts << "format=yuv420p"
+    end
+
+    # down-size to fit to display (width:heigh) in keeping aspect ratio
+    def fit_size(display_size)
+      @vf_opts << "scale=#{display_size}:force_original_aspect_ratio=decrease"
+      @vf_opts << "pad=((iw+1)/2)*2:((ih+1)/2)*2" # avoid width/height to odd
+    end
+
+    def decrease_framerate(fps)
+      @fps = fps
+    end
+  end
+
+  class AudioConfig
+    attr_accessor :encoder, :quality
+
+    # DEFAULT_ENCODER = 'fdk_aac'
+    DEFAULT_ENCODER = 'flac'
+    DEFAULT_QUALITY = '100.0'
+
+    def initialize(encoder, quality)
+      @encoder = (encoder ? encoder : DEFAULT_ENCODER)
+      @quality = (quality ? quality : DEFAULT_QUALITY)
+    end
+  end
+
+  class DVDConfig
+    attr_accessor :title, :chapters, :audio, :subtitle, :options
+    attr_accessor :chapter_marker
+
+    def initialize
+      @chapter_marker = true
+    end
+  end
+
+  class ImageConfig
+    attr_reader :quality # 1~100
+  end
+
+  class FFMPEGOptSet < Struct.new(:fname, :optset)
+  end
+
+  class FFMPEG
+    def self.command(in_optsets, out_optsets)
+      opts = ["ffmpeg"]
+
+      infilep = proc do |fname, optset|
+        opt_arr = []
+        optset.each do |opt|
+          if opt.instance_of?(String)
+            opt_arr << opt
+          end
+        end
+        opt_arr << ["-i", "\"#{fname}\""]
+        next opt_arr
+      end
+      in_optsets.each do |in_optset|
+        opts << infilep.call(in_optset.fname, in_optset.optset)
+      end
+
+      outfilep = proc do |fname, optset|
+        oopts = []
+        optset.each do |opt|
+          if opt.instance_of?(VideoConfig)
+            oopts << format("-vcodec lib%s", opt.encoder)
+            oopts << format("-crf %s", opt.quality)
+            oopts << format("-preset %s", opt.preset) if opt.preset
+            oopts << format("-tune %s", opt.tune) if opt.tune
+            # Currently, ffmpeg ​does not support setting profiles on x265
+            oopts << format("-profile:v %s", opt.profile) if opt.profile && opt.encoder == 'x264'
+            oopts << format("-level %s", opt.level) if opt.level
+          elsif opt.instance_of?(AudioConfig)
+            oopts << format("-acodec lib%s", opt.encoder) if opt.encoder
+            oopts << format("-aq %s", opt.quality) if opt.quality
+          elsif opt.instance_of?(PictureConfig)
+            oopts << format("-vf \"%s\"", opt.vf_opts.join(",")) if opt.vf_opts && opt.vf_opts.any?
+            oopts << format("-r %s", opt.fps) if opt.fps
+          elsif opt.instance_of?(String)
+            oopts << opt
+          end
+        end
+        oopts << "\"#{fname}\""
+        next oopts
+      end
+      out_optsets.each do |out_optset|
+        opts << outfilep.call(out_optset.fname, out_optset.optset)
+      end
+
+      opts.join(" ")
+    end
+  end
+
+  class HandBrakeCLI
+    def self.command(input, output, configs, raw_option)
+      cmd_opts = ["HandBrakeCLI"]
+      cmd_opts << format("--input \"%s\"", input)
+      cmd_opts << format("--output \"%s\"", output)
+      configs.each do |config|
+        if config.instance_of?(VideoConfig)
+          cmd_opts << format("--encoder %s", config.encoder)
+          cmd_opts << format("--quality %s", config.quality)
+          cmd_opts << format("--encoder-preset %s", config.preset) if config.preset
+          cmd_opts << format("--encoder-tune %s", config.tune) if config.tune
+          cmd_opts << format("--encoder-profile %s", config.profile) if config.profile
+          cmd_opts << format("--encoder-level %s", config.level) if config.level
+        elsif config.instance_of?(AudioConfig)
+          cmd_opts << format("--aencoder %s", config.encoder)
+          cmd_opts << format("--aq %s", config.quality) if config.quality
+        elsif config.instance_of?(DVDConfig)
+          cmd_opts << (config.title ? format("--title %s", config.title) : "--main-feature")
+          cmd_opts << format("--chapters %s", config.chapters) if config.chapters
+          cmd_opts << "--markers" if config.chapter_marker
+          cmd_opts << (config.audio ? format("--audio %s", config.audio) : "--all-audio" )
+          cmd_opts << (config.subtitle ? format("--subtitle %s", config.subtitle) : "--all-subtitles" )
+        end
+      end
+
+      cmd_opts << raw_option if raw_option
+
+      cmd_opts.join(" ")
+    end
+  end
+
+  class ImageMagick
+    COMMAND = "convert %s %s %s %s "
+
+    def self.command(input, output, pconfig, raw_option="")
+      input_opt = ""
+      output_opt = ""
+      if pconfig.instance_of?(ImageConfig) then
+        input_opt += "-quality %s" % pconfig.quality if pconfig.quality
+        s = COMMAND % [input, input_opt, output, output_opt]
+        s
+      end
+    end
+  end
+
+  MediaUtil.start(ARGV)
+#+end_src
+* genalbum
+
+Personal script for encoding family pictures and movies.
+
+#+begin_src ruby :tangle (expand-tangle-target ".local/bin/genalbum")
+  #!/usr/bin/env ruby
+
+  require 'fileutils'
+  require 'time'
+  require 'exifr'
+  require 'streamio-ffmpeg'
+  require 'pathname'
+  require 'thor'
+
+  PICTURE_FILE_EXTS = [".jpg"]
+  MOVIE_FILE_EXTS = [".mp4"]
+  ALBUM_DIR_NAME = "album/"
+  RENAME_DIR_NAME = "rename/"
+  WEB_DIR_NAME = "album_web/"
+  IMG_PREFIX = "img_"
+
+  class GenAlbum < Thor
+    default_command :album
+    desc "[album] -i <img_dir>", "generate album"
+    option :in, aliases: "i", :type => :string, :required => true
+    def album
+      src_path = File.expand_path(options[:in], Dir.pwd)
+      dest_path = ALBUM_DIR_NAME
+
+      FileUtils.mkdir_p(dest_path) unless FileTest.exist?(dest_path)
+
+      Dir.glob(src_path + "/*").each do |img_file|
+        basename = File::basename(img_file)
+        src_file = src_path + "/" + basename
+        dest_file = dest_path + "/" + basename
+        ext = File.extname(img_file)
+        if PICTURE_FILE_EXTS.index(ext.downcase) != nil then
+          system("convert -resize \"4096x>\" -quality 92 #{src_file} #{dest_file}")
+        elsif MOVIE_FILE_EXTS.index(ext.downcase) != nil then
+          system("mediautil encode -i #{src_file} -o #{dest_file} -q 22.0 -Q 100.0")
+        end
+      end
+    end
+
+    desc "web -i <img_dir>", "generate lightweight album for web"
+    option :in, aliases: "i", :type => :string, :required => true
+    def web
+      src_path = File.expand_path(options[:in], Dir.pwd)
+      dest_path = WEB_DIR_NAME
+
+      FileUtils.mkdir_p(dest_path) unless FileTest.exist?(dest_path)
+
+      Dir.glob(src_path + "/*").each do |img_file|
+        basename = File::basename(img_file)
+        src_file = src_path + "/" + basename
+        dest_file = dest_path + "/" + basename
+        ext = File.extname(img_file)
+        if PICTURE_FILE_EXTS.index(ext.downcase) != nil then
+          system("convert -resize \"1024x>\" -quality 80 #{src_file} #{dest_file}")
+        elsif MOVIE_FILE_EXTS.index(ext.downcase) != nil then
+          system("mediautil encode -i #{src_file} -o #{dest_file} -q 26.0 -Q 100.0")
+        end
+      end
+    end
+
+    desc "renmae -i <img_dir>", "rename image files in chlonological order"
+    option :in, aliases: "i", :type => :string, :required => true
+    option :out, aliases: "o", :type => :string
+    def rename
+      src_path = File.expand_path(options[:in], Dir.pwd)
+      dest_path = ((options[:out]) ? options[:out] : RENAME_DIR_NAME)
+
+      FileUtils.mkdir_p(dest_path) unless FileTest.exist?(dest_path)
+
+      img_time = {}
+      Dir.glob(src_path + "/*").each do |img_file|
+        ext = File.extname(img_file)
+        if PICTURE_FILE_EXTS.index(ext.downcase) != nil then
+          pic = EXIFR::JPEG.new(img_file)
+          if pic.exif? && pic.date_time_original then
+            img_time[img_file] = pic.date_time_original
+          else
+            img_time[img_file] = Time.now
+          end
+        elsif MOVIE_FILE_EXTS.index(ext.downcase) != nil then
+          movie = FFMPEG::Movie.new(img_file)
+          time = movie.creation_time
+          if time then
+            img_time[img_file] = time
+          else
+            img_time[img_file] = Time.now
+          end
+        end
+      end
+      img_time = img_time.sort_by{ |_, v| v }
+
+      digit = img_time.length.to_s.length
+      digit = 2 if digit < 2
+      img_time.each_with_index do |(img, time), i|
+        ext = File.extname(img).downcase
+        base = IMG_PREFIX + "%0#{digit}d" % (i + 1) + ext
+        src_file = img
+        dest_file = dest_path + "/" + base
+        system("cp #{src_file} #{dest_file}")
+      end
+    end
+  end
+
+  GenAlbum.start(ARGV)
 #+end_src
 
 * nhp
