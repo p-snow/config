@@ -21,22 +21,24 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org1c10b1b">Declutters</a></li>
-<li><a href="#org21cc438">Database back-up scripts</a></li>
-<li><a href="#org01654fe">Snapshots taking</a></li>
-<li><a href="#org27d4c2c">backup scripts</a></li>
-<li><a href="#org7acd76c">filetype</a></li>
-<li><a href="#org58f01fa">nhp</a></li>
-<li><a href="#org176945f">sendmail.py</a></li>
-<li><a href="#org63268e2">pwsudo</a></li>
-<li><a href="#org359e31e">gitsync</a></li>
+<li><a href="#orgae86ffb">Declutters</a></li>
+<li><a href="#org7726efc">Database back-up scripts</a></li>
+<li><a href="#org4894490">Snapshots taking</a></li>
+<li><a href="#org1289c4b">backup scripts</a></li>
+<li><a href="#orgab439e6">filetype</a></li>
+<li><a href="#orgc08ee8f">mediautil</a></li>
+<li><a href="#orgdbf364c">genalbum</a></li>
+<li><a href="#orge556bb4">nhp</a></li>
+<li><a href="#org4e2c550">sendmail.py</a></li>
+<li><a href="#org2559ad5">pwsudo</a></li>
+<li><a href="#orgf58afc8">gitsync</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org1c10b1b" class="outline-2">
-<h2 id="org1c10b1b">Declutters</h2>
-<div class="outline-text-2" id="text-org1c10b1b">
+<div id="outline-container-orgae86ffb" class="outline-2">
+<h2 id="orgae86ffb">Declutters</h2>
+<div class="outline-text-2" id="text-orgae86ffb">
 <p>
 These scripts (declutter<sub>xxx</sub>) keep things decluttered.
 </p>
@@ -216,9 +218,9 @@ parser.add_argument(<span style="font-style: italic;">'-r'</span>, dest=<span st
 </ul>
 </div>
 </div>
-<div id="outline-container-org21cc438" class="outline-2">
-<h2 id="org21cc438">Database back-up scripts</h2>
-<div class="outline-text-2" id="text-org21cc438">
+<div id="outline-container-org7726efc" class="outline-2">
+<h2 id="org7726efc">Database back-up scripts</h2>
+<div class="outline-text-2" id="text-org7726efc">
 <ul class="org-ul">
 <li><p>
 PostgreSQL
@@ -262,9 +264,9 @@ MySQL
 </div>
 </div>
 
-<div id="outline-container-org01654fe" class="outline-2">
-<h2 id="org01654fe">Snapshots taking</h2>
-<div class="outline-text-2" id="text-org01654fe">
+<div id="outline-container-org4894490" class="outline-2">
+<h2 id="org4894490">Snapshots taking</h2>
+<div class="outline-text-2" id="text-org4894490">
 <ul class="org-ul">
 <li><p>
 snapshot.sh
@@ -284,9 +286,9 @@ snapshot.sh
 </ul>
 </div>
 </div>
-<div id="outline-container-org27d4c2c" class="outline-2">
-<h2 id="org27d4c2c">backup scripts</h2>
-<div class="outline-text-2" id="text-org27d4c2c">
+<div id="outline-container-org1289c4b" class="outline-2">
+<h2 id="org1289c4b">backup scripts</h2>
+<div class="outline-text-2" id="text-org1289c4b">
 <ul class="org-ul">
 <li><p>
 back<sub>btrfs.sh</sub>
@@ -341,12 +343,12 @@ ssh -q -o <span style="font-weight: bold; font-style: italic;">BatchMode</span>=
 <span style="font-weight: bold;">fi</span>
 
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">take a snapshot for sv04</span>
-<span style="font-weight: bold;">if</span> mountpoint ${<span style="font-weight: bold; font-style: italic;">HOME</span>}/mnt/sv04 &gt;/dev/null 2&gt;&amp;1; <span style="font-weight: bold;">then</span>
+<span style="font-weight: bold;">if</span> mountpoint /mnt/sv04 &gt;/dev/null 2&gt;&amp;1; <span style="font-weight: bold;">then</span>
   <span style="font-weight: bold;">if</span> ssh ns01 <span style="font-style: italic;">"[ -h ~/share/backups/sv04/last ]"</span>; <span style="font-weight: bold;">then</span>
-    rsync -aPhrv $<span style="font-weight: bold; font-style: italic;">LINK</span> --exclude-from=${<span style="font-weight: bold; font-style: italic;">HOME</span>}/.config/rsync/exclude_sv04.txt ${<span style="font-weight: bold; font-style: italic;">HOME</span>}/mnt/sv04/ ${<span style="font-weight: bold; font-style: italic;">DEST</span>}/sv04/${<span style="font-weight: bold; font-style: italic;">DATETIME</span>}
+    rsync -aPhrv $<span style="font-weight: bold; font-style: italic;">LINK</span> --exclude-from=${<span style="font-weight: bold; font-style: italic;">HOME</span>}/.config/rsync/exclude_sv04.txt /mnt/sv04/ ${<span style="font-weight: bold; font-style: italic;">DEST</span>}/sv04/${<span style="font-weight: bold; font-style: italic;">DATETIME</span>}
     ssh ns01 <span style="font-style: italic;">"(cd share/backups/sv04; unlink last; ln -s ${DATETIME} last)"</span>
   <span style="font-weight: bold;">else</span>
-    rsync -aAXrv --exclude-from=${<span style="font-weight: bold; font-style: italic;">HOME</span>}/.config/rsync/exclude_sv04.txt ${<span style="font-weight: bold; font-style: italic;">HOME</span>}/mnt/sv04/ ${<span style="font-weight: bold; font-style: italic;">DEST</span>}/sv04/${<span style="font-weight: bold; font-style: italic;">DATETIME</span>}
+    rsync -aAXrv --exclude-from=${<span style="font-weight: bold; font-style: italic;">HOME</span>}/.config/rsync/exclude_sv04.txt /mnt/sv04/ ${<span style="font-weight: bold; font-style: italic;">DEST</span>}/sv04/${<span style="font-weight: bold; font-style: italic;">DATETIME</span>}
     ssh ns01 <span style="font-style: italic;">"(cd share/backups/sv04; ln -s ${DATETIME} last)"</span>
   <span style="font-weight: bold;">fi</span>
 <span style="font-weight: bold;">fi</span>
@@ -384,9 +386,9 @@ rsync exclude file for sv04
 </ul>
 </div>
 </div>
-<div id="outline-container-org7acd76c" class="outline-2">
-<h2 id="org7acd76c">filetype</h2>
-<div class="outline-text-2" id="text-org7acd76c">
+<div id="outline-container-orgab439e6" class="outline-2">
+<h2 id="orgab439e6">filetype</h2>
+<div class="outline-text-2" id="text-orgab439e6">
 <p>
 This program determine type of the file.
 </p>
@@ -499,10 +501,889 @@ This program determine type of the file.
 </div>
 </div>
 </div>
+<div id="outline-container-orgc08ee8f" class="outline-2">
+<h2 id="orgc08ee8f">mediautil</h2>
+<div class="outline-text-2" id="text-orgc08ee8f">
+<p>
+Utility ruby program for manipulating image, audio and video file.
+</p>
 
-<div id="outline-container-org58f01fa" class="outline-2">
-<h2 id="org58f01fa">nhp</h2>
-<div class="outline-text-2" id="text-org58f01fa">
+<div class="org-src-container">
+<pre class="src src-ruby"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/env ruby</span>
+
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'thor'</span>
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'open3'</span>
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'fileutils'</span>
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'tempfile'</span>
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'tmpdir'</span>
+
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'filetype'</span>
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">MediaUtil</span> &lt; <span style="font-weight: bold; text-decoration: underline;">Thor</span>
+  <span style="font-weight: bold; text-decoration: underline;">OUTFILE_SUFFIX</span> = <span style="font-style: italic;">"_out"</span>
+  <span style="font-weight: bold; text-decoration: underline;">DEFAULT_VIDEO_EXT</span> = <span style="font-style: italic;">".mp4"</span>
+
+  <span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">Names</span> &lt; <span style="font-weight: bold; text-decoration: underline;">Struct</span>.new(<span style="font-weight: bold; text-decoration: underline;">:in_f</span>, <span style="font-weight: bold; text-decoration: underline;">:out_f</span>)
+    <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">in_file</span>()
+      in_f
+    <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">out_file</span>(extension = <span style="font-weight: bold; text-decoration: underline;">nil</span>)
+      <span style="font-weight: bold;">if</span> out_f
+        out_f
+      <span style="font-weight: bold;">else</span>
+        bn = <span style="font-weight: bold; text-decoration: underline;">File</span>.basename(in_f, <span style="font-style: italic;">".*"</span>).gsub(<span style="font-style: italic;">/ /</span>, <span style="font-style: italic;">'_'</span>)
+        ext = ((extension) ? extension : <span style="font-weight: bold; text-decoration: underline;">File</span>.extname(in_file))
+        default_out = bn + ext
+        <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">File</span>.file?(default_out)
+          10.times <span style="font-weight: bold;">do</span> |i|
+            try_name = bn + <span style="font-style: italic;">"_"</span> + (i+1).to_s + ext
+            <span style="font-weight: bold;">unless</span> <span style="font-weight: bold; text-decoration: underline;">File</span>.file?(try_name)
+              <span style="font-weight: bold;">return</span> try_name
+            <span style="font-weight: bold;">end</span>
+          <span style="font-weight: bold;">end</span>
+        <span style="font-weight: bold;">end</span>
+        default_out
+      <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">title</span>()
+      <span style="font-weight: bold; text-decoration: underline;">File</span>.basename(out_file, <span style="font-style: italic;">".*"</span>)
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">Commander</span> &lt; <span style="font-weight: bold; text-decoration: underline;">Struct</span>.new(<span style="font-weight: bold; text-decoration: underline;">:log</span>, <span style="font-weight: bold; text-decoration: underline;">:dry</span>)
+    <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">execute</span>(command)
+      <span style="font-weight: bold;">if</span> dry
+        <span style="font-weight: bold;">puts</span> command
+      <span style="font-weight: bold;">else</span>
+        log_str, s_code = <span style="font-weight: bold; text-decoration: underline;">Open3</span>.capture2e(command)
+        <span style="font-weight: bold;">if</span> log
+          user_cmd = <span style="font-weight: bold;">caller</span>.first.scan(<span style="font-style: italic;">/`(.*)'/</span>).flatten.first.to_s
+          log_fname = <span style="font-weight: bold; text-decoration: underline;">Time</span>.now.strftime(<span style="font-style: italic;">"%Y%m%d_%H%M%S_"</span>) + user_cmd + <span style="font-style: italic;">".log"</span>
+          <span style="font-weight: bold; text-decoration: underline;">File</span>.open(log_fname, <span style="font-style: italic;">"w"</span>) <span style="font-weight: bold;">do</span> |f|
+            f.puts(log_str)
+          <span style="font-weight: bold;">end</span>
+        <span style="font-weight: bold;">else</span>
+          <span style="font-weight: bold;">puts</span> log_str
+        <span style="font-weight: bold;">end</span>
+        <span style="font-weight: bold;">exit</span> <span style="font-weight: bold; text-decoration: underline;">false</span> <span style="font-weight: bold;">unless</span> s_code.success?
+        <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">exit false</span>
+      <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  class_option <span style="font-weight: bold; text-decoration: underline;">:log</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"L"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:boolean</span>,
+               <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"log stdout and stderr instead they reveal in terminal"</span>
+  class_option <span style="font-weight: bold; text-decoration: underline;">:dryrun</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"D"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:boolean</span>
+
+  desc <span style="font-style: italic;">"info &lt;file&gt;"</span>, <span style="font-style: italic;">"show information about the video file or DVD directory"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:short</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"s"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:boolean</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">info</span>(target)
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.video?(target) || <span style="font-weight: bold; text-decoration: underline;">FileType</span>.audio?(target)
+      commander.execute(<span style="font-style: italic;">"ffprobe \"</span><span style="font-weight: bold; font-style: italic;">#{target}</span><span style="font-style: italic;">\" -hide_banner -show_entries format"</span>)
+    <span style="font-weight: bold;">elsif</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.image?(target)
+      <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:short</span>]
+        commander.execute(<span style="font-style: italic;">"identify </span><span style="font-weight: bold; font-style: italic;">#{target}</span><span style="font-style: italic;">"</span>)
+      <span style="font-weight: bold;">else</span>
+        commander.execute(<span style="font-style: italic;">"identify -verbose </span><span style="font-weight: bold; font-style: italic;">#{target}</span><span style="font-style: italic;">"</span>)
+      <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">elsif</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.block_device?(target) ||
+          <span style="font-weight: bold; text-decoration: underline;">FileType</span>.video_dvd_image?(target) ||
+          <span style="font-weight: bold; text-decoration: underline;">FileType</span>.dvd_dir?(target)
+      commander.execute(<span style="font-style: italic;">"HandBrakeCLI -i \"</span><span style="font-weight: bold; font-style: italic;">#{target}</span><span style="font-style: italic;">\" --title 0"</span>)
+    <span style="font-weight: bold;">else</span>
+      <span style="font-weight: bold; text-decoration: underline;">STDERR</span>.puts <span style="font-style: italic;">"Unknown Media Format"</span>
+      <span style="font-weight: bold;">exit</span> <span style="font-weight: bold; text-decoration: underline;">false</span>
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  default_command <span style="font-weight: bold; text-decoration: underline;">:encode</span>
+  desc <span style="font-style: italic;">"encode"</span>, <span style="font-style: italic;">"encode video file"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:in</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"i"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:out</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"o"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:vencoder</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"e"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">"x265|x264"</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"video encoder"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:vquality</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"q"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">"24.0"</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"video encoding quality"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:aencoder</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"E"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">"fdk_aac"</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"audio encoder"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:aquality</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"Q"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">"100.0"</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"audio encoding quality"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:display</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"d"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">"1920:1080"</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'display (width:height) in which encoded video fit'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:fps</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"f"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">"30"</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'max frame rate'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:ffmpeg</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">encode</span>()
+    equip = <span style="font-weight: bold; text-decoration: underline;">Names</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:in</span>], options[<span style="font-weight: bold; text-decoration: underline;">:out</span>])
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    vconf = aconf = pconf = <span style="font-weight: bold; text-decoration: underline;">nil</span>
+    <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:vencoder</span>] || options[<span style="font-weight: bold; text-decoration: underline;">:vquality</span>]
+      vconf = <span style="font-weight: bold; text-decoration: underline;">VideoConfig</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:vencoder</span>], options[<span style="font-weight: bold; text-decoration: underline;">:vquality</span>])
+    <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:aencoder</span>] || options[<span style="font-weight: bold; text-decoration: underline;">:aquality</span>]
+      aconf = <span style="font-weight: bold; text-decoration: underline;">AudioConfig</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:aencoder</span>], options[<span style="font-weight: bold; text-decoration: underline;">:aquality</span>])
+    <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:display</span>] || options[<span style="font-weight: bold; text-decoration: underline;">:fps</span>]
+      pconf = <span style="font-weight: bold; text-decoration: underline;">PictureConfig</span>.new
+      pconf.fit_size(options[<span style="font-weight: bold; text-decoration: underline;">:display</span>]) <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:display</span>]
+      pconf.decrease_framerate(options[<span style="font-weight: bold; text-decoration: underline;">:fps</span>]) <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:fps</span>]
+    <span style="font-weight: bold;">end</span>
+
+    <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.video?(equip.in_file) <span style="font-weight: bold;">then</span>
+      commander.execute(<span style="font-weight: bold; text-decoration: underline;">FFMPEG</span>.command([<span style="font-weight: bold; text-decoration: underline;">FFMPEGOptSet</span>.new(equip.in_file, [])],
+                                       [<span style="font-weight: bold; text-decoration: underline;">FFMPEGOptSet</span>.new(equip.out_file, [vconf, aconf, pconf, <span style="font-style: italic;">"-map_metadata 0"</span>, options[<span style="font-weight: bold; text-decoration: underline;">:ffmpeg</span>]])]))
+    <span style="font-weight: bold;">elsif</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.audio?(equip.in_file) <span style="font-weight: bold;">then</span>
+      commander.execute(<span style="font-weight: bold; text-decoration: underline;">FFMPEG</span>.command([<span style="font-weight: bold; text-decoration: underline;">FFMPEGOptSet</span>.new(equip.in_file, [])],
+                                       [<span style="font-weight: bold; text-decoration: underline;">FFMPEGOptSet</span>.new(equip.out_file, [aconf])]))
+    <span style="font-weight: bold;">elsif</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.image?(equip.in_file) <span style="font-weight: bold;">then</span>
+      pconf = <span style="font-weight: bold; text-decoration: underline;">ImageConfig</span>.new
+      commander.execute(<span style="font-weight: bold; text-decoration: underline;">ImageMagick</span>.command(equip.in_file,
+                                            equip.out_file,
+                                            pconf))
+    <span style="font-weight: bold;">else</span>
+      <span style="font-weight: bold; text-decoration: underline;">STDERR</span>.puts <span style="font-style: italic;">"Unknown Media Format"</span>
+      <span style="font-weight: bold;">exit</span> <span style="font-weight: bold; text-decoration: underline;">false</span>
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">'cdencode'</span>, <span style="font-style: italic;">'rip and encode CD contents'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:device</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'d'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'Device file'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:format</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'f'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">'ogg,m4a'</span>, <span style="font-weight: bold; text-decoration: underline;">:default</span> =&gt; <span style="font-style: italic;">'m4a'</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'comma separated encoding formats'</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">cdencode</span>()
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    abcde_args = []
+    abcde_args &lt;&lt; <span style="font-style: italic;">"-d </span><span style="font-weight: bold; font-style: italic;">#{options[:device]}</span><span style="font-style: italic;">"</span> <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:device</span>]
+    abcde_args &lt;&lt; <span style="font-style: italic;">'-a default'</span>
+    <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:format</span>] <span style="font-weight: bold;">then</span>
+      abcde_args &lt;&lt; <span style="font-style: italic;">"-o </span><span style="font-weight: bold; font-style: italic;">#{options[:format]}</span><span style="font-style: italic;">"</span>
+    <span style="font-weight: bold;">end</span>
+    abcde_args &lt;&lt; <span style="font-style: italic;">'-G'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">getalbumart</span>
+    abcde_args &lt;&lt; <span style="font-style: italic;">'-x'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Eject CD</span>
+
+    commander.execute(<span style="font-style: italic;">"abcde </span><span style="font-weight: bold; font-style: italic;">#{abcde_args.join(' ')}</span><span style="font-style: italic;">"</span>)
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">'dvdrip'</span>, <span style="font-style: italic;">'rip(backup) DVD contents'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:device</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'d'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'DVD device file'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:out</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'o'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'output directory name'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:name</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'n'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'root directory name of backup data'</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">dvdrip</span>()
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    dvdbackup_opts = [<span style="font-style: italic;">'dvdbackup'</span>]
+    dvdbackup_opts &lt;&lt; <span style="font-style: italic;">'--input=%s'</span> % options[<span style="font-weight: bold; text-decoration: underline;">:device</span>] <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:device</span>]
+    dvdbackup_opts &lt;&lt; <span style="font-style: italic;">'--output=%s'</span> % options[<span style="font-weight: bold; text-decoration: underline;">:out</span>] <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:out</span>]
+    dvdbackup_opts &lt;&lt; <span style="font-style: italic;">'--name=%s'</span> % options[<span style="font-weight: bold; text-decoration: underline;">:name</span>] <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:name</span>]
+    dvdbackup_opts &lt;&lt; <span style="font-style: italic;">'--mirror'</span>
+    dvdbackup_opts &lt;&lt; <span style="font-style: italic;">'--progress'</span>
+    dvdbackup_opts &lt;&lt; <span style="font-style: italic;">'--verbose'</span>
+
+    commander.execute(dvdbackup_opts.join(<span style="font-style: italic;">' '</span>))
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">'dvdencode'</span>, <span style="font-style: italic;">'encode DVD contents'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:in</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'i'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'input source, DVD device file or backuped DVD file'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:out</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'o'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'output directory name'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:vencoder</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"e"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">"x265|x264"</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"video encoder"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:vquality</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"q"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">"24.0"</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"video encoding quality"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:aencoder</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"E"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">"fdk_aac"</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"audio encoder"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:aquality</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"Q"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">"100.0"</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"audio encoding quality"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:title</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'t'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">'1|2|3|...'</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'title number'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:chapters</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'c'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">'1|1-3|1,3,5|...'</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'chapter numbers'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:audio</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'a'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">'1,2,3'</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'audio channel'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:subtitle</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'s'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">'1,2'</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'subtitle channel'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:handbrake</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">'--handbrake \"--mixdown 5point1,stereo\"'</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'HandBrakeCLI options'</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">dvdencode</span>()
+    equip = <span style="font-weight: bold; text-decoration: underline;">Names</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:in</span>], options[<span style="font-weight: bold; text-decoration: underline;">:out</span>])
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.block_device?(equip.in_file) ||
+       <span style="font-weight: bold; text-decoration: underline;">FileType</span>.video_dvd_image?(equip.in_file) ||
+       <span style="font-weight: bold; text-decoration: underline;">FileType</span>.dvd_dir?(equip.in_file)
+      configs = []
+      <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:vencoder</span>] || options[<span style="font-weight: bold; text-decoration: underline;">:vquality</span>]
+        configs &lt;&lt; <span style="font-weight: bold; text-decoration: underline;">VideoConfig</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:vencoder</span>], options[<span style="font-weight: bold; text-decoration: underline;">:vquality</span>])
+      <span style="font-weight: bold;">end</span>
+      <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:aencoder</span>] || options[<span style="font-weight: bold; text-decoration: underline;">:aquality</span>]
+        configs &lt;&lt; <span style="font-weight: bold; text-decoration: underline;">AudioConfig</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:aencoder</span>], options[<span style="font-weight: bold; text-decoration: underline;">:aquality</span>])
+      <span style="font-weight: bold;">end</span>
+      dconf = <span style="font-weight: bold; text-decoration: underline;">DVDConfig</span>.new
+      dconf.title = options[<span style="font-weight: bold; text-decoration: underline;">:title</span>] <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:title</span>]
+      dconf.chapters = options[<span style="font-weight: bold; text-decoration: underline;">:chapters</span>] <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:chapters</span>]
+      dconf.audio = options[<span style="font-weight: bold; text-decoration: underline;">:audio</span>] <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:audio</span>]
+      dconf.subtitle = options[<span style="font-weight: bold; text-decoration: underline;">:subtitle</span>] <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:subtitle</span>]
+      configs &lt;&lt; dconf
+      commander.execute(<span style="font-weight: bold; text-decoration: underline;">HandBrakeCLI</span>.command(equip.in_file,
+                                             equip.out_file(<span style="font-weight: bold; text-decoration: underline;">DEFAULT_VIDEO_EXT</span>),
+                                             configs,
+                                             options[<span style="font-weight: bold; text-decoration: underline;">:handbrake</span>]))
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">'mount &lt;dir&gt;'</span>, <span style="font-style: italic;">'Mount CD/DVD media to dir.'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:device</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"d"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'device or iso file to mount'</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">'--mount /dev/dvd|image.iso'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:type</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'t'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'mount DVD-Video'</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">'--type data|video'</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">mount</span>(dir)
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    cmd_opts = [<span style="font-style: italic;">'mount'</span>]
+    <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:type</span>] == <span style="font-style: italic;">'video'</span> || <span style="font-weight: bold; text-decoration: underline;">FileType</span>.video_dvd_image?(options[<span style="font-weight: bold; text-decoration: underline;">:device</span>])
+      cmd_opts &lt;&lt; [<span style="font-style: italic;">'-t'</span>, <span style="font-style: italic;">'iso9660'</span>, <span style="font-style: italic;">'-o'</span>, <span style="font-style: italic;">'loop'</span>]
+    <span style="font-weight: bold;">end</span>
+    cmd_opts &lt;&lt; options[<span style="font-weight: bold; text-decoration: underline;">:device</span>]
+    cmd_opts &lt;&lt; dir
+
+    <span style="font-weight: bold; text-decoration: underline;">Dir</span>.mkdir(dir) <span style="font-weight: bold;">if</span> !<span style="font-weight: bold; text-decoration: underline;">Dir</span>.exist?(dir) &amp;&amp; !options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>]
+    commander.execute(<span style="font-style: italic;">"sudo </span><span style="font-weight: bold; font-style: italic;">#{cmd_opts.join(' ')}</span><span style="font-style: italic;">"</span>)
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">'umount'</span>, <span style="font-style: italic;">'unmount dir'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:remove</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'r'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:boolean</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'remove dir after unmounting'</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">umount</span>(dir)
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    cmd_opts = [<span style="font-style: italic;">'umount'</span>]
+    cmd_opts &lt;&lt; dir
+
+    commander.execute(<span style="font-style: italic;">"sudo </span><span style="font-weight: bold; font-style: italic;">#{cmd_opts.join(' ')}</span><span style="font-style: italic;">"</span>)
+
+    <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:remove</span>]
+      <span style="font-weight: bold; text-decoration: underline;">FileUtils</span>.rmdir(dir)
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">'mkiso'</span>, <span style="font-style: italic;">'make ISO image file.'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:type</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'t'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'DVD image type. Data or Video DVD.'</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">'--type data|video'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:volume</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'V'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'Volume Label'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:out</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'o'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'ISO image file name.'</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">'--out movie.iso'</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">mkiso</span>(file)
+    names = <span style="font-weight: bold; text-decoration: underline;">Names</span>.new(file, options[<span style="font-weight: bold; text-decoration: underline;">:out</span>])
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    mkisofs_opts = [<span style="font-style: italic;">'mkisofs'</span>]
+    mkisofs_opts &lt;&lt; [<span style="font-style: italic;">"-V"</span>, <span style="font-style: italic;">"\"</span><span style="font-weight: bold; font-style: italic;">#{options[:volume]}</span><span style="font-style: italic;">\""</span>] <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:volume</span>]
+    <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:type</span>] == <span style="font-style: italic;">"data"</span>
+      mkisofs_opts &lt;&lt; [<span style="font-style: italic;">"-r"</span>, <span style="font-style: italic;">"-l"</span>, <span style="font-style: italic;">"-J"</span>]
+    <span style="font-weight: bold;">elsif</span> options[<span style="font-weight: bold; text-decoration: underline;">:type</span>]
+      mkisofs_opts &lt;&lt; <span style="font-style: italic;">"-dvd-video"</span>
+    <span style="font-weight: bold;">else</span>
+      <span style="font-weight: bold;">exit</span> 1
+    <span style="font-weight: bold;">end</span>
+    mkisofs_opts &lt;&lt; [<span style="font-style: italic;">"-o"</span>, <span style="font-style: italic;">"\"</span><span style="font-weight: bold; font-style: italic;">#{names.out_file('.iso')}</span><span style="font-style: italic;">\""</span>]
+    mkisofs_opts &lt;&lt; <span style="font-style: italic;">"\"</span><span style="font-weight: bold; font-style: italic;">#{file}</span><span style="font-style: italic;">\""</span>
+
+    commander.execute(mkisofs_opts.join(<span style="font-style: italic;">" "</span>))
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">'dvdburn &lt;file&gt;'</span>, <span style="font-style: italic;">'Burn file to DVD.'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:iso</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'I'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:boolean</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'Set this option if &lt;file&gt; is ISO 9660 compliant.'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:volume</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'V'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:default</span> =&gt; <span style="font-style: italic;">'DVD_VIDEO'</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'Volume Label'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:video</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'v'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:boolean</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'Create DVD video image file to burn.'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:speed</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'s'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:default</span> =&gt; <span style="font-style: italic;">'4'</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'Burning Speed'</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">'n'</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:device</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">'d'</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">'Device file'</span>, <span style="font-weight: bold; text-decoration: underline;">:default</span> =&gt; <span style="font-style: italic;">'/dev/sr0'</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">dvdburn</span>(file)
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    cmd_opts = [<span style="font-style: italic;">'growisofs'</span>]
+    cmd_opts &lt;&lt; <span style="font-style: italic;">'-dvd-compat'</span>
+    cmd_opts &lt;&lt; <span style="font-style: italic;">'-speed=%s'</span> % options[<span style="font-weight: bold; text-decoration: underline;">:speed</span>]
+    <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.iso9660?(file) || options[<span style="font-weight: bold; text-decoration: underline;">:iso</span>]
+      cmd_opts &lt;&lt; <span style="font-style: italic;">'-Z %s=%s'</span> % [options[<span style="font-weight: bold; text-decoration: underline;">:device</span>], file]
+    <span style="font-weight: bold;">else</span>
+      cmd_opts &lt;&lt; <span style="font-style: italic;">'-Z %s'</span> % options[<span style="font-weight: bold; text-decoration: underline;">:device</span>]
+      mkisofs_opts = []
+      mkisofs_opts &lt;&lt; [<span style="font-style: italic;">'-V'</span>, <span style="font-style: italic;">"\"</span><span style="font-weight: bold; font-style: italic;">#{options[:volume]}</span><span style="font-style: italic;">\""</span>] <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:volume</span>]
+      <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:video</span>]
+        mkisofs_opts &lt;&lt; <span style="font-style: italic;">'-dvd-video'</span>
+      <span style="font-weight: bold;">else</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Data-DVD</span>
+        mkisofs_opts &lt;&lt; [<span style="font-style: italic;">'-r'</span>, <span style="font-style: italic;">'-l'</span>, <span style="font-style: italic;">'-R'</span>]
+      <span style="font-weight: bold;">end</span>
+      mkisofs_opts &lt;&lt; file
+      cmd_opts &lt;&lt; mkisofs_opts
+    <span style="font-weight: bold;">end</span>
+
+    commander.execute(cmd_opts.join(<span style="font-style: italic;">' '</span>))
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">"cdburn"</span>, <span style="font-style: italic;">"burn files to CD device"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:in</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"i"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"Root Directory for image file"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:volume</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"v"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"Volume ID"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:device</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"d"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"Device file"</span>, <span style="font-weight: bold; text-decoration: underline;">:default</span> =&gt; <span style="font-style: italic;">"/dev/sr0"</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">cdburn</span>()
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    commander.execute(<span style="font-style: italic;">"mkisofs -V \"</span><span style="font-weight: bold; font-style: italic;">#{options[:volume]}</span><span style="font-style: italic;">\" -J -r </span><span style="font-weight: bold; font-style: italic;">#{options[:in]}</span><span style="font-style: italic;"> | cdrecord -v dev=</span><span style="font-weight: bold; font-style: italic;">#{options[:device]}</span><span style="font-style: italic;"> -waiti -"</span>)
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">"screenshot"</span>, <span style="font-style: italic;">"take a screenshot of a video at a time"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:in</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"i"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:out</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"o"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:time</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"t"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"ex. 00:10:22.300"</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">screenshot</span>()
+    equip = <span style="font-weight: bold; text-decoration: underline;">Names</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:in</span>], options[<span style="font-weight: bold; text-decoration: underline;">:out</span>])
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+    <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.video?(equip.in_file) <span style="font-weight: bold;">then</span>
+      args = [<span style="font-style: italic;">'ffmpeg'</span>]
+      args &lt;&lt; (<span style="font-style: italic;">'-ss %s'</span> % options[<span style="font-weight: bold; text-decoration: underline;">:time</span>]) <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:time</span>]
+      args &lt;&lt; <span style="font-style: italic;">'-i %s'</span> % equip.in_file
+      args &lt;&lt; <span style="font-style: italic;">'-vframes 1'</span>
+      args &lt;&lt; <span style="font-style: italic;">'-q:v 2'</span>
+      args &lt;&lt; equip.out_file(<span style="font-style: italic;">'.jpg'</span>)
+      commander.execute(args.join(<span style="font-style: italic;">' '</span>))
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">"clip"</span>, <span style="font-style: italic;">"clip a video with specific time span"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:in</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"i"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:out</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"o"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:time_begin</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"b"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"ex. 00:10:22.300"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:time_end</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"e"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">clip</span>()
+    equip = <span style="font-weight: bold; text-decoration: underline;">Names</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:in</span>], options[<span style="font-weight: bold; text-decoration: underline;">:out</span>])
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.video?(equip.in_file) <span style="font-weight: bold;">then</span>
+      <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:time_begin</span>] <span style="font-weight: bold;">or</span> options[<span style="font-weight: bold; text-decoration: underline;">:time_end</span>] <span style="font-weight: bold;">then</span>
+        in_opts = []
+        in_opts &lt;&lt; <span style="font-style: italic;">"-ss </span><span style="font-weight: bold; font-style: italic;">#{options[:time_begin]}</span><span style="font-style: italic;">"</span> <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:time_begin</span>]
+        in_opts &lt;&lt; <span style="font-style: italic;">"-to </span><span style="font-weight: bold; font-style: italic;">#{options[:time_end]}</span><span style="font-style: italic;">"</span> <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:time_end</span>]
+        out_opts = []
+        out_opts &lt;&lt; <span style="font-style: italic;">"-vcodec copy"</span>
+        out_opts &lt;&lt; <span style="font-style: italic;">"-acodec copy"</span>
+        out_opts &lt;&lt; <span style="font-style: italic;">"-map_metadata 0"</span>
+        commander.execute(<span style="font-weight: bold; text-decoration: underline;">FFMPEG</span>.command([<span style="font-weight: bold; text-decoration: underline;">FFMPEGOptSet</span>.new(equip.in_file, in_opts)],
+                                         [<span style="font-weight: bold; text-decoration: underline;">FFMPEGOptSet</span>.new(equip.out_file, out_opts)]))
+      <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">else</span>
+      <span style="font-weight: bold; text-decoration: underline;">STDERR</span>.puts <span style="font-style: italic;">"This Media Format is not supported on this function"</span>
+      <span style="font-weight: bold;">exit</span> <span style="font-weight: bold; text-decoration: underline;">false</span>
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">"crop"</span>, <span style="font-style: italic;">"extract a specific rectangle of a image/video"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:in</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"i"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:out</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"o"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:width</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"w"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:numeric</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:height</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"h"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:numeric</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:xpos</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"x"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:numeric</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"x coordinate of an original image where cropped image of top-left corner overlaps"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:ypos</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"y"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:numeric</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">crop</span>()
+    names = <span style="font-weight: bold; text-decoration: underline;">Names</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:in</span>], options[<span style="font-weight: bold; text-decoration: underline;">:out</span>])
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    width = options[<span style="font-weight: bold; text-decoration: underline;">:width</span>]
+    height = options[<span style="font-weight: bold; text-decoration: underline;">:height</span>]
+    xpos = options[<span style="font-weight: bold; text-decoration: underline;">:xpos</span>] ? options[<span style="font-weight: bold; text-decoration: underline;">:xpos</span>] : 0
+    ypos = options[<span style="font-weight: bold; text-decoration: underline;">:ypos</span>] ? options[<span style="font-weight: bold; text-decoration: underline;">:ypos</span>] : 0
+    <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.image?(names.in_file) <span style="font-weight: bold;">then</span>
+      opt = <span style="font-style: italic;">'-crop %dx%d+%dx%d'</span> % [width, height, xpos, ypos]
+      commander.execute(<span style="font-style: italic;">"convert </span><span style="font-weight: bold; font-style: italic;">#{opt}</span><span style="font-style: italic;"> </span><span style="font-weight: bold; font-style: italic;">#{names.in_file}</span><span style="font-style: italic;"> </span><span style="font-weight: bold; font-style: italic;">#{names.out_file}</span><span style="font-style: italic;">"</span>)
+    <span style="font-weight: bold;">elsif</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.video?(names.in_file) <span style="font-weight: bold;">then</span>
+      args = [<span style="font-style: italic;">'ffmpeg'</span>]
+      args &lt;&lt; <span style="font-style: italic;">'-i %s'</span> % names.in_file
+      args &lt;&lt; <span style="font-style: italic;">'-vf crop=%d:%d:%d:%d'</span> % [width, height, xpos, ypos]
+      args &lt;&lt; <span style="font-style: italic;">"-map_metadata 0"</span>
+      args &lt;&lt; names.out_file
+      commander.execute(args.join(<span style="font-style: italic;">' '</span>))
+    <span style="font-weight: bold;">else</span>
+      <span style="font-weight: bold; text-decoration: underline;">STDERR</span>.puts <span style="font-style: italic;">"This Media Format is not supported on this function"</span>
+      <span style="font-weight: bold;">exit</span> <span style="font-weight: bold; text-decoration: underline;">false</span>
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">"trim"</span>, <span style="font-style: italic;">"trim a image/video with automated detection"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:in</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"i"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:out</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"o"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:threshold</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"t"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"threshold where trimming begin and end"</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">trim</span>()
+    names = <span style="font-weight: bold; text-decoration: underline;">Names</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:in</span>], options[<span style="font-weight: bold; text-decoration: underline;">:out</span>])
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.image?(names.in_file) <span style="font-weight: bold;">then</span>
+      commander.execute(<span style="font-style: italic;">"convert -trim </span><span style="font-weight: bold; font-style: italic;">#{names.in_file}</span><span style="font-style: italic;"> </span><span style="font-weight: bold; font-style: italic;">#{names.out_file}</span><span style="font-style: italic;">"</span>)
+    <span style="font-weight: bold;">elsif</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.audio?(names.in_file) <span style="font-weight: bold;">then</span>
+      threshold = (options[<span style="font-weight: bold; text-decoration: underline;">:threshold</span>]) ? options[<span style="font-weight: bold; text-decoration: underline;">:threshold</span>] : <span style="font-style: italic;">"-40dB"</span>
+      commander.execute(<span style="font-style: italic;">"ffmpeg -i </span><span style="font-weight: bold; font-style: italic;">#{names.in_file}</span><span style="font-style: italic;"> -af \"silenceremove=start_periods=1:start_duration=0:start_threshold=</span><span style="font-weight: bold; font-style: italic;">#{threshold}</span><span style="font-style: italic;">:detection=peak\" </span><span style="font-weight: bold; font-style: italic;">#{names.out_file}</span><span style="font-style: italic;">"</span>)
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">"resize"</span>, <span style="font-style: italic;">"resize the image"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:in</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"i"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:out</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"o"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:width</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"w"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">"e.g. 300"</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"resized image width"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:height</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"h"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">"e.g. 200"</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"resized image height"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:operation</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"p"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:banner</span> =&gt; <span style="font-style: italic;">"enlarge|shrink"</span>,
+         <span style="font-weight: bold; text-decoration: underline;">:desc</span> =&gt; <span style="font-style: italic;">"permitted operation for resizing"</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">resize</span>()
+    names = <span style="font-weight: bold; text-decoration: underline;">Names</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:in</span>], options[<span style="font-weight: bold; text-decoration: underline;">:out</span>])
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.video?(names.in_file) <span style="font-weight: bold;">then</span>
+      <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:width</span>] <span style="font-weight: bold;">and</span> options[<span style="font-weight: bold; text-decoration: underline;">:height</span>]
+        out_opts = []
+        out_opts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"-vf scale=%s:%s,setsar=1:1"</span>, options[<span style="font-weight: bold; text-decoration: underline;">:width</span>], options[<span style="font-weight: bold; text-decoration: underline;">:height</span>])
+        commander.execute(<span style="font-weight: bold; text-decoration: underline;">FFMPEG</span>.command([<span style="font-weight: bold; text-decoration: underline;">FFMPEGOptSet</span>.new(names.in_file, [])],
+                                         [<span style="font-weight: bold; text-decoration: underline;">FFMPEGOptSet</span>.new(names.out_file, out_opts)]))
+      <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">elsif</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.image?(names.in_file) <span style="font-weight: bold;">then</span>
+      <span style="font-weight: bold;">return</span> <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:width</span>] == <span style="font-weight: bold; text-decoration: underline;">nil</span> &amp;&amp; options[<span style="font-weight: bold; text-decoration: underline;">:height</span>] == <span style="font-weight: bold; text-decoration: underline;">nil</span>
+      <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:operation</span>] == <span style="font-style: italic;">"enlarge"</span>
+        op = <span style="font-style: italic;">"&lt;"</span>
+      <span style="font-weight: bold;">elsif</span> options[<span style="font-weight: bold; text-decoration: underline;">:operation</span>] == <span style="font-style: italic;">"shrink"</span>
+        op = <span style="font-style: italic;">"&gt;"</span>
+      <span style="font-weight: bold;">else</span>
+        op = <span style="font-style: italic;">""</span>
+      <span style="font-weight: bold;">end</span>
+      geometry = <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"%sx%s%s"</span>, options[<span style="font-weight: bold; text-decoration: underline;">:width</span>], options[<span style="font-weight: bold; text-decoration: underline;">:height</span>], op)
+      commander.execute(<span style="font-style: italic;">"convert -resize </span><span style="font-weight: bold; font-style: italic;">#{geometry}</span><span style="font-style: italic;"> </span><span style="font-weight: bold; font-style: italic;">#{names.in_file}</span><span style="font-style: italic;"> </span><span style="font-weight: bold; font-style: italic;">#{names.out_file}</span><span style="font-style: italic;">"</span>)
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">"concat"</span>, <span style="font-style: italic;">"concat multiple files"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:in</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"i"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:array</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:out</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"o"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">concat</span>()
+    names = <span style="font-weight: bold; text-decoration: underline;">Names</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:in</span>][0], options[<span style="font-weight: bold; text-decoration: underline;">:out</span>])
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    srcs = options[<span style="font-weight: bold; text-decoration: underline;">:in</span>]
+    output = names.out_file
+
+    <span style="font-weight: bold;">if</span> srcs.all? { |src| <span style="font-weight: bold; text-decoration: underline;">FileType</span>.video?(src) }
+      src_list = <span style="font-style: italic;">""</span>
+      src_file = <span style="font-weight: bold; text-decoration: underline;">Tempfile</span>.open()
+      chap_file = <span style="font-weight: bold; text-decoration: underline;">Tempfile</span>.open()
+      chap_file.write(<span style="font-style: italic;">"### Create Chapterfile ###\n"</span>)
+      files_to_remove = []
+      time_accumulated = <span style="font-weight: bold; text-decoration: underline;">Time</span>.new(0)
+      srcs.each_with_index <span style="font-weight: bold;">do</span> |src, index|
+        valid_src =
+          <span style="font-weight: bold;">if</span> src =~ <span style="font-style: italic;">/^\p{Ascii}+$/</span>
+            src
+          <span style="font-weight: bold;">else</span>
+            <span style="font-weight: bold; text-decoration: underline;">Dir</span>::<span style="font-weight: bold; text-decoration: underline;">Tmpname</span>.create(<span style="font-style: italic;">'base'</span>) <span style="font-weight: bold;">do</span> |src_dup|
+              <span style="font-weight: bold; text-decoration: underline;">FileUtils</span>.cp(src, src_dup)
+              files_to_remove &lt;&lt; src_dup
+              src_dup
+            <span style="font-weight: bold;">end</span>
+          <span style="font-weight: bold;">end</span>
+        src_file.write(<span style="font-style: italic;">"file '</span><span style="font-weight: bold; font-style: italic;">#{File.expand_path(valid_src)}</span><span style="font-style: italic;">'\n"</span>)
+        chap_file.write(<span style="font-style: italic;">"CHAPTER</span><span style="font-weight: bold; font-style: italic;">#{index + 1}</span><span style="font-style: italic;">=</span><span style="font-weight: bold; font-style: italic;">#{time_accumulated.strftime('%H:%M:%S.%L')}</span><span style="font-style: italic;">\n"</span>)
+        chap_file.write(<span style="font-style: italic;">"CHAPTER</span><span style="font-weight: bold; font-style: italic;">#{index + 1}</span><span style="font-style: italic;">NAME=</span><span style="font-weight: bold; font-style: italic;">#{File.basename(src, File.extname(src))}</span><span style="font-style: italic;">\n"</span>)
+        duration = <span style="font-style: italic;">`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "</span><span style="font-weight: bold; font-style: italic;">#{src}</span><span style="font-style: italic;">"`</span>.strip().to_f()
+        time_accumulated += duration
+      <span style="font-weight: bold;">end</span>
+      src_file.flush
+      commander.execute(<span style="font-style: italic;">"ffmpeg -n -f concat -safe 0 -i </span><span style="font-weight: bold; font-style: italic;">#{src_file.path}</span><span style="font-style: italic;"> -c:v copy -c:a copy -c:s copy -map 0:v -map 0:a -map 0:s? </span><span style="font-weight: bold; font-style: italic;">#{output}</span><span style="font-style: italic;">"</span>)
+      src_file.close
+      chap_file.flush
+      commander.execute(<span style="font-style: italic;">"MP4Box -chap </span><span style="font-weight: bold; font-style: italic;">#{chap_file.path}</span><span style="font-style: italic;"> </span><span style="font-weight: bold; font-style: italic;">#{output}</span><span style="font-style: italic;">"</span>)
+      chap_file.close
+      src_file.unlink
+      chap_file.unlink
+      <span style="font-weight: bold; text-decoration: underline;">FileUtils</span>.rm_f(files_to_remove)
+    <span style="font-weight: bold;">elsif</span> srcs.all? { |src| <span style="font-weight: bold; text-decoration: underline;">FileType</span>.image?(src) }
+      commander.execute <span style="font-style: italic;">"convert </span><span style="font-weight: bold; font-style: italic;">#{srcs.join(' ')}</span><span style="font-style: italic;"> </span><span style="font-weight: bold; font-style: italic;">#{output}</span><span style="font-style: italic;">"</span>
+    <span style="font-weight: bold;">else</span>
+      <span style="font-weight: bold; text-decoration: underline;">STDERR</span>.puts <span style="font-style: italic;">"This Media Format is not supported on this function"</span>
+      <span style="font-weight: bold;">exit</span> <span style="font-weight: bold; text-decoration: underline;">false</span>
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">"diff"</span>, <span style="font-style: italic;">"measure the difference by providing SSIM value"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:out</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"o"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">diff</span>(file1, file2)
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    <span style="font-weight: bold;">if</span> ((<span style="font-weight: bold; text-decoration: underline;">FileType</span>.video?(file1) <span style="font-weight: bold;">and</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.video?(file2)) <span style="font-weight: bold;">or</span>
+        (<span style="font-weight: bold; text-decoration: underline;">FileType</span>.image?(file1) <span style="font-weight: bold;">and</span> <span style="font-weight: bold; text-decoration: underline;">FileType</span>.image?(file2))) <span style="font-weight: bold;">then</span>
+      <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:out</span>] <span style="font-weight: bold;">then</span>
+        commander.execute(<span style="font-style: italic;">"ffmpeg -i </span><span style="font-weight: bold; font-style: italic;">#{file1}</span><span style="font-style: italic;"> -i </span><span style="font-weight: bold; font-style: italic;">#{file2}</span><span style="font-style: italic;"> -filter_complex ssim=</span><span style="font-weight: bold; font-style: italic;">#{options[:out]}</span><span style="font-style: italic;"> -an -f null -"</span>)
+      <span style="font-weight: bold;">else</span>
+        commander.execute(<span style="font-style: italic;">"ffmpeg -i </span><span style="font-weight: bold; font-style: italic;">#{file1}</span><span style="font-style: italic;"> -i </span><span style="font-weight: bold; font-style: italic;">#{file2}</span><span style="font-style: italic;"> -filter_complex ssim -an -f null -"</span>)
+      <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">"mux"</span>, <span style="font-style: italic;">"mux to one file which has streams correspond with input files"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:video</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"v"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:audio</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"a"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:audio_delay</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"d"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:out</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"o"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">mux</span>()
+    names = <span style="font-weight: bold; text-decoration: underline;">Names</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:video</span>], options[<span style="font-weight: bold; text-decoration: underline;">:out</span>])
+    commander = <span style="font-weight: bold; text-decoration: underline;">Commander</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:log</span>], options[<span style="font-weight: bold; text-decoration: underline;">:dryrun</span>])
+
+    in_optsets = []
+    in_optsets &lt;&lt; <span style="font-weight: bold; text-decoration: underline;">FFMPEGOptSet</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:video</span>], [])
+    aconf = []
+    aconf &lt;&lt; <span style="font-style: italic;">"-itsoffset </span><span style="font-weight: bold; font-style: italic;">#{options[:audio_delay]}</span><span style="font-style: italic;">"</span> <span style="font-weight: bold;">if</span> options[<span style="font-weight: bold; text-decoration: underline;">:audio_delay</span>]
+    in_optsets &lt;&lt; <span style="font-weight: bold; text-decoration: underline;">FFMPEGOptSet</span>.new(options[<span style="font-weight: bold; text-decoration: underline;">:audio</span>], aconf)
+    commander.execute(<span style="font-weight: bold; text-decoration: underline;">FFMPEG</span>.command(in_optsets,
+                                     [<span style="font-weight: bold; text-decoration: underline;">FFMPEGOptSet</span>.new(names.out_file, [])]))
+  <span style="font-weight: bold;">end</span>
+<span style="font-weight: bold;">end</span>
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">MainConfig</span>
+  <span style="font-weight: bold;">attr_accessor</span> <span style="font-weight: bold; text-decoration: underline;">:start</span>, <span style="font-weight: bold; text-decoration: underline;">:end</span>
+<span style="font-weight: bold;">end</span>
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">VideoConfig</span>
+  <span style="font-weight: bold;">attr_accessor</span> <span style="font-weight: bold; text-decoration: underline;">:encoder</span>, <span style="font-weight: bold; text-decoration: underline;">:quality</span>, <span style="font-weight: bold; text-decoration: underline;">:preset</span>, <span style="font-weight: bold; text-decoration: underline;">:tune</span>, <span style="font-weight: bold; text-decoration: underline;">:profile</span>, <span style="font-weight: bold; text-decoration: underline;">:level</span>
+
+  <span style="font-weight: bold; text-decoration: underline;">DEFAULT_ENCODER</span> = <span style="font-style: italic;">'x265'</span>
+  <span style="font-weight: bold; text-decoration: underline;">DEFAULT_QUALITY</span> = <span style="font-style: italic;">'26.0'</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">initialize</span>(encoder, quality)
+    <span style="font-weight: bold; font-style: italic;">@encoder</span> = (encoder ? encoder : <span style="font-weight: bold; text-decoration: underline;">DEFAULT_ENCODER</span>)
+    <span style="font-weight: bold; font-style: italic;">@quality</span> = (quality ? quality : <span style="font-weight: bold; text-decoration: underline;">DEFAULT_QUALITY</span>)
+    <span style="font-weight: bold;">case</span> <span style="font-weight: bold; font-style: italic;">@encoder</span>
+    <span style="font-weight: bold;">when</span> <span style="font-style: italic;">"x265"</span>
+      <span style="font-weight: bold; font-style: italic;">@preset</span> = <span style="font-style: italic;">"veryslow"</span>
+      <span style="font-weight: bold; font-style: italic;">@tune</span> = <span style="font-style: italic;">"ssim"</span>
+      <span style="font-weight: bold; font-style: italic;">@profile</span> = <span style="font-style: italic;">"main"</span>
+      <span style="font-weight: bold; font-style: italic;">@level</span> = <span style="font-weight: bold; text-decoration: underline;">nil</span>
+    <span style="font-weight: bold;">when</span> <span style="font-style: italic;">"x264"</span>
+      <span style="font-weight: bold; font-style: italic;">@preset</span> = <span style="font-style: italic;">"veryslow"</span>
+      <span style="font-weight: bold; font-style: italic;">@tune</span> = <span style="font-style: italic;">"film"</span>
+      <span style="font-weight: bold; font-style: italic;">@profile</span> = <span style="font-style: italic;">"main"</span>
+      <span style="font-weight: bold; font-style: italic;">@level</span> = <span style="font-style: italic;">"4.1"</span>
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+<span style="font-weight: bold;">end</span>
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">PictureConfig</span>
+  <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">conversion options</span>
+  <span style="font-weight: bold;">attr_accessor</span> <span style="font-weight: bold; text-decoration: underline;">:vf_opts</span>, <span style="font-weight: bold; text-decoration: underline;">:fps</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">initialize</span>()
+    <span style="font-weight: bold; font-style: italic;">@vf_opts</span> = []
+    <span style="font-weight: bold; font-style: italic;">@vf_opts</span> &lt;&lt; <span style="font-style: italic;">"format=yuv420p"</span>
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">down-size to fit to display (width:heigh) in keeping aspect ratio</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">fit_size</span>(display_size)
+    <span style="font-weight: bold; font-style: italic;">@vf_opts</span> &lt;&lt; <span style="font-style: italic;">"scale=</span><span style="font-weight: bold; font-style: italic;">#{display_size}</span><span style="font-style: italic;">:force_original_aspect_ratio=decrease"</span>
+    <span style="font-weight: bold; font-style: italic;">@vf_opts</span> &lt;&lt; <span style="font-style: italic;">"pad=((iw+1)/2)*2:((ih+1)/2)*2"</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">avoid width/height to odd</span>
+  <span style="font-weight: bold;">end</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">decrease_framerate</span>(fps)
+    <span style="font-weight: bold; font-style: italic;">@fps</span> = fps
+  <span style="font-weight: bold;">end</span>
+<span style="font-weight: bold;">end</span>
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">AudioConfig</span>
+  <span style="font-weight: bold;">attr_accessor</span> <span style="font-weight: bold; text-decoration: underline;">:encoder</span>, <span style="font-weight: bold; text-decoration: underline;">:quality</span>
+
+  <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">DEFAULT_ENCODER = 'fdk_aac'</span>
+  <span style="font-weight: bold; text-decoration: underline;">DEFAULT_ENCODER</span> = <span style="font-style: italic;">'flac'</span>
+  <span style="font-weight: bold; text-decoration: underline;">DEFAULT_QUALITY</span> = <span style="font-style: italic;">'100.0'</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">initialize</span>(encoder, quality)
+    <span style="font-weight: bold; font-style: italic;">@encoder</span> = (encoder ? encoder : <span style="font-weight: bold; text-decoration: underline;">DEFAULT_ENCODER</span>)
+    <span style="font-weight: bold; font-style: italic;">@quality</span> = (quality ? quality : <span style="font-weight: bold; text-decoration: underline;">DEFAULT_QUALITY</span>)
+  <span style="font-weight: bold;">end</span>
+<span style="font-weight: bold;">end</span>
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">DVDConfig</span>
+  <span style="font-weight: bold;">attr_accessor</span> <span style="font-weight: bold; text-decoration: underline;">:title</span>, <span style="font-weight: bold; text-decoration: underline;">:chapters</span>, <span style="font-weight: bold; text-decoration: underline;">:audio</span>, <span style="font-weight: bold; text-decoration: underline;">:subtitle</span>, <span style="font-weight: bold; text-decoration: underline;">:options</span>
+  <span style="font-weight: bold;">attr_accessor</span> <span style="font-weight: bold; text-decoration: underline;">:chapter_marker</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">initialize</span>
+    <span style="font-weight: bold; font-style: italic;">@chapter_marker</span> = <span style="font-weight: bold; text-decoration: underline;">true</span>
+  <span style="font-weight: bold;">end</span>
+<span style="font-weight: bold;">end</span>
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">ImageConfig</span>
+  <span style="font-weight: bold;">attr_reader</span> <span style="font-weight: bold; text-decoration: underline;">:quality</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">1~100</span>
+<span style="font-weight: bold;">end</span>
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">FFMPEGOptSet</span> &lt; <span style="font-weight: bold; text-decoration: underline;">Struct</span>.new(<span style="font-weight: bold; text-decoration: underline;">:fname</span>, <span style="font-weight: bold; text-decoration: underline;">:optset</span>)
+<span style="font-weight: bold;">end</span>
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">FFMPEG</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">command</span>(in_optsets, out_optsets)
+    opts = [<span style="font-style: italic;">"ffmpeg"</span>]
+
+    infilep = <span style="font-weight: bold;">proc</span> <span style="font-weight: bold;">do</span> |fname, optset|
+      opt_arr = []
+      optset.each <span style="font-weight: bold;">do</span> |opt|
+        <span style="font-weight: bold;">if</span> opt.instance_of?(<span style="font-weight: bold; text-decoration: underline;">String</span>)
+          opt_arr &lt;&lt; opt
+        <span style="font-weight: bold;">end</span>
+      <span style="font-weight: bold;">end</span>
+      opt_arr &lt;&lt; [<span style="font-style: italic;">"-i"</span>, <span style="font-style: italic;">"\"</span><span style="font-weight: bold; font-style: italic;">#{fname}</span><span style="font-style: italic;">\""</span>]
+      <span style="font-weight: bold;">next</span> opt_arr
+    <span style="font-weight: bold;">end</span>
+    in_optsets.each <span style="font-weight: bold;">do</span> |in_optset|
+      opts &lt;&lt; infilep.call(in_optset.fname, in_optset.optset)
+    <span style="font-weight: bold;">end</span>
+
+    outfilep = <span style="font-weight: bold;">proc</span> <span style="font-weight: bold;">do</span> |fname, optset|
+      oopts = []
+      optset.each <span style="font-weight: bold;">do</span> |opt|
+        <span style="font-weight: bold;">if</span> opt.instance_of?(<span style="font-weight: bold; text-decoration: underline;">VideoConfig</span>)
+          oopts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"-vcodec lib%s"</span>, opt.encoder)
+          oopts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"-crf %s"</span>, opt.quality)
+          oopts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"-preset %s"</span>, opt.preset) <span style="font-weight: bold;">if</span> opt.preset
+          oopts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"-tune %s"</span>, opt.tune) <span style="font-weight: bold;">if</span> opt.tune
+          <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Currently, ffmpeg &#8203;does not support setting profiles on x265</span>
+          oopts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"-profile:v %s"</span>, opt.profile) <span style="font-weight: bold;">if</span> opt.profile &amp;&amp; opt.encoder == <span style="font-style: italic;">'x264'</span>
+          oopts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"-level %s"</span>, opt.level) <span style="font-weight: bold;">if</span> opt.level
+        <span style="font-weight: bold;">elsif</span> opt.instance_of?(<span style="font-weight: bold; text-decoration: underline;">AudioConfig</span>)
+          oopts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"-acodec lib%s"</span>, opt.encoder) <span style="font-weight: bold;">if</span> opt.encoder
+          oopts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"-aq %s"</span>, opt.quality) <span style="font-weight: bold;">if</span> opt.quality
+        <span style="font-weight: bold;">elsif</span> opt.instance_of?(<span style="font-weight: bold; text-decoration: underline;">PictureConfig</span>)
+          oopts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"-vf \"%s\""</span>, opt.vf_opts.join(<span style="font-style: italic;">","</span>)) <span style="font-weight: bold;">if</span> opt.vf_opts &amp;&amp; opt.vf_opts.any?
+          oopts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"-r %s"</span>, opt.fps) <span style="font-weight: bold;">if</span> opt.fps
+        <span style="font-weight: bold;">elsif</span> opt.instance_of?(<span style="font-weight: bold; text-decoration: underline;">String</span>)
+          oopts &lt;&lt; opt
+        <span style="font-weight: bold;">end</span>
+      <span style="font-weight: bold;">end</span>
+      oopts &lt;&lt; <span style="font-style: italic;">"\"</span><span style="font-weight: bold; font-style: italic;">#{fname}</span><span style="font-style: italic;">\""</span>
+      <span style="font-weight: bold;">next</span> oopts
+    <span style="font-weight: bold;">end</span>
+    out_optsets.each <span style="font-weight: bold;">do</span> |out_optset|
+      opts &lt;&lt; outfilep.call(out_optset.fname, out_optset.optset)
+    <span style="font-weight: bold;">end</span>
+
+    opts.join(<span style="font-style: italic;">" "</span>)
+  <span style="font-weight: bold;">end</span>
+<span style="font-weight: bold;">end</span>
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">HandBrakeCLI</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">command</span>(input, output, configs, raw_option)
+    cmd_opts = [<span style="font-style: italic;">"HandBrakeCLI"</span>]
+    cmd_opts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--input \"%s\""</span>, input)
+    cmd_opts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--output \"%s\""</span>, output)
+    configs.each <span style="font-weight: bold;">do</span> |config|
+      <span style="font-weight: bold;">if</span> config.instance_of?(<span style="font-weight: bold; text-decoration: underline;">VideoConfig</span>)
+        cmd_opts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--encoder %s"</span>, config.encoder)
+        cmd_opts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--quality %s"</span>, config.quality)
+        cmd_opts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--encoder-preset %s"</span>, config.preset) <span style="font-weight: bold;">if</span> config.preset
+        cmd_opts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--encoder-tune %s"</span>, config.tune) <span style="font-weight: bold;">if</span> config.tune
+        cmd_opts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--encoder-profile %s"</span>, config.profile) <span style="font-weight: bold;">if</span> config.profile
+        cmd_opts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--encoder-level %s"</span>, config.level) <span style="font-weight: bold;">if</span> config.level
+      <span style="font-weight: bold;">elsif</span> config.instance_of?(<span style="font-weight: bold; text-decoration: underline;">AudioConfig</span>)
+        cmd_opts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--aencoder %s"</span>, config.encoder)
+        cmd_opts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--aq %s"</span>, config.quality) <span style="font-weight: bold;">if</span> config.quality
+      <span style="font-weight: bold;">elsif</span> config.instance_of?(<span style="font-weight: bold; text-decoration: underline;">DVDConfig</span>)
+        cmd_opts &lt;&lt; (config.title ? <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--title %s"</span>, config.title) : <span style="font-style: italic;">"--main-feature"</span>)
+        cmd_opts &lt;&lt; <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--chapters %s"</span>, config.chapters) <span style="font-weight: bold;">if</span> config.chapters
+        cmd_opts &lt;&lt; <span style="font-style: italic;">"--markers"</span> <span style="font-weight: bold;">if</span> config.chapter_marker
+        cmd_opts &lt;&lt; (config.audio ? <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--audio %s"</span>, config.audio) : <span style="font-style: italic;">"--all-audio"</span> )
+        cmd_opts &lt;&lt; (config.subtitle ? <span style="font-weight: bold;">format</span>(<span style="font-style: italic;">"--subtitle %s"</span>, config.subtitle) : <span style="font-style: italic;">"--all-subtitles"</span> )
+      <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">end</span>
+
+    cmd_opts &lt;&lt; raw_option <span style="font-weight: bold;">if</span> raw_option
+
+    cmd_opts.join(<span style="font-style: italic;">" "</span>)
+  <span style="font-weight: bold;">end</span>
+<span style="font-weight: bold;">end</span>
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">ImageMagick</span>
+  <span style="font-weight: bold; text-decoration: underline;">COMMAND</span> = <span style="font-style: italic;">"convert %s %s %s %s "</span>
+
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">self</span>.<span style="font-weight: bold;">command</span>(input, output, pconfig, raw_option=<span style="font-style: italic;">""</span>)
+    input_opt = <span style="font-style: italic;">""</span>
+    output_opt = <span style="font-style: italic;">""</span>
+    <span style="font-weight: bold;">if</span> pconfig.instance_of?(<span style="font-weight: bold; text-decoration: underline;">ImageConfig</span>) <span style="font-weight: bold;">then</span>
+      input_opt += <span style="font-style: italic;">"-quality %s"</span> % pconfig.quality <span style="font-weight: bold;">if</span> pconfig.quality
+      s = <span style="font-weight: bold; text-decoration: underline;">COMMAND</span> % [input, input_opt, output, output_opt]
+      s
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+<span style="font-weight: bold;">end</span>
+
+<span style="font-weight: bold; text-decoration: underline;">MediaUtil</span>.start(<span style="font-weight: bold; text-decoration: underline;">ARGV</span>)
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgdbf364c" class="outline-2">
+<h2 id="orgdbf364c">genalbum</h2>
+<div class="outline-text-2" id="text-orgdbf364c">
+<p>
+Personal script for encoding family pictures and movies.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-ruby"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/env ruby</span>
+
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'fileutils'</span>
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'time'</span>
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'exifr'</span>
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'streamio-ffmpeg'</span>
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'pathname'</span>
+<span style="font-weight: bold;">require</span> <span style="font-style: italic;">'thor'</span>
+
+<span style="font-weight: bold; text-decoration: underline;">PICTURE_FILE_EXTS</span> = [<span style="font-style: italic;">".jpg"</span>]
+<span style="font-weight: bold; text-decoration: underline;">MOVIE_FILE_EXTS</span> = [<span style="font-style: italic;">".mp4"</span>]
+<span style="font-weight: bold; text-decoration: underline;">ALBUM_DIR_NAME</span> = <span style="font-style: italic;">"album/"</span>
+<span style="font-weight: bold; text-decoration: underline;">RENAME_DIR_NAME</span> = <span style="font-style: italic;">"rename/"</span>
+<span style="font-weight: bold; text-decoration: underline;">WEB_DIR_NAME</span> = <span style="font-style: italic;">"album_web/"</span>
+<span style="font-weight: bold; text-decoration: underline;">IMG_PREFIX</span> = <span style="font-style: italic;">"img_"</span>
+
+<span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">GenAlbum</span> &lt; <span style="font-weight: bold; text-decoration: underline;">Thor</span>
+  default_command <span style="font-weight: bold; text-decoration: underline;">:album</span>
+  desc <span style="font-style: italic;">"[album] -i &lt;img_dir&gt;"</span>, <span style="font-style: italic;">"generate album"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:in</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"i"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">album</span>
+    src_path = <span style="font-weight: bold; text-decoration: underline;">File</span>.expand_path(options[<span style="font-weight: bold; text-decoration: underline;">:in</span>], <span style="font-weight: bold; text-decoration: underline;">Dir</span>.pwd)
+    dest_path = <span style="font-weight: bold; text-decoration: underline;">ALBUM_DIR_NAME</span>
+
+    <span style="font-weight: bold; text-decoration: underline;">FileUtils</span>.mkdir_p(dest_path) <span style="font-weight: bold;">unless</span> <span style="font-weight: bold; text-decoration: underline;">FileTest</span>.exist?(dest_path)
+
+    <span style="font-weight: bold; text-decoration: underline;">Dir</span>.glob(src_path + <span style="font-style: italic;">"/*"</span>).each <span style="font-weight: bold;">do</span> |img_file|
+      basename = <span style="font-weight: bold; text-decoration: underline;">File</span>::basename(img_file)
+      src_file = src_path + <span style="font-style: italic;">"/"</span> + basename
+      dest_file = dest_path + <span style="font-style: italic;">"/"</span> + basename
+      ext = <span style="font-weight: bold; text-decoration: underline;">File</span>.extname(img_file)
+      <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">PICTURE_FILE_EXTS</span>.index(ext.downcase) != <span style="font-weight: bold; text-decoration: underline;">nil</span> <span style="font-weight: bold;">then</span>
+        <span style="font-weight: bold;">system</span>(<span style="font-style: italic;">"convert -resize \"4096x&gt;\" -quality 92 </span><span style="font-weight: bold; font-style: italic;">#{src_file}</span><span style="font-style: italic;"> </span><span style="font-weight: bold; font-style: italic;">#{dest_file}</span><span style="font-style: italic;">"</span>)
+      <span style="font-weight: bold;">elsif</span> <span style="font-weight: bold; text-decoration: underline;">MOVIE_FILE_EXTS</span>.index(ext.downcase) != <span style="font-weight: bold; text-decoration: underline;">nil</span> <span style="font-weight: bold;">then</span>
+        <span style="font-weight: bold;">system</span>(<span style="font-style: italic;">"mediautil encode -i </span><span style="font-weight: bold; font-style: italic;">#{src_file}</span><span style="font-style: italic;"> -o </span><span style="font-weight: bold; font-style: italic;">#{dest_file}</span><span style="font-style: italic;"> -q 22.0 -Q 100.0"</span>)
+      <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">"web -i &lt;img_dir&gt;"</span>, <span style="font-style: italic;">"generate lightweight album for web"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:in</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"i"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">web</span>
+    src_path = <span style="font-weight: bold; text-decoration: underline;">File</span>.expand_path(options[<span style="font-weight: bold; text-decoration: underline;">:in</span>], <span style="font-weight: bold; text-decoration: underline;">Dir</span>.pwd)
+    dest_path = <span style="font-weight: bold; text-decoration: underline;">WEB_DIR_NAME</span>
+
+    <span style="font-weight: bold; text-decoration: underline;">FileUtils</span>.mkdir_p(dest_path) <span style="font-weight: bold;">unless</span> <span style="font-weight: bold; text-decoration: underline;">FileTest</span>.exist?(dest_path)
+
+    <span style="font-weight: bold; text-decoration: underline;">Dir</span>.glob(src_path + <span style="font-style: italic;">"/*"</span>).each <span style="font-weight: bold;">do</span> |img_file|
+      basename = <span style="font-weight: bold; text-decoration: underline;">File</span>::basename(img_file)
+      src_file = src_path + <span style="font-style: italic;">"/"</span> + basename
+      dest_file = dest_path + <span style="font-style: italic;">"/"</span> + basename
+      ext = <span style="font-weight: bold; text-decoration: underline;">File</span>.extname(img_file)
+      <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">PICTURE_FILE_EXTS</span>.index(ext.downcase) != <span style="font-weight: bold; text-decoration: underline;">nil</span> <span style="font-weight: bold;">then</span>
+        <span style="font-weight: bold;">system</span>(<span style="font-style: italic;">"convert -resize \"1024x&gt;\" -quality 80 </span><span style="font-weight: bold; font-style: italic;">#{src_file}</span><span style="font-style: italic;"> </span><span style="font-weight: bold; font-style: italic;">#{dest_file}</span><span style="font-style: italic;">"</span>)
+      <span style="font-weight: bold;">elsif</span> <span style="font-weight: bold; text-decoration: underline;">MOVIE_FILE_EXTS</span>.index(ext.downcase) != <span style="font-weight: bold; text-decoration: underline;">nil</span> <span style="font-weight: bold;">then</span>
+        <span style="font-weight: bold;">system</span>(<span style="font-style: italic;">"mediautil encode -i </span><span style="font-weight: bold; font-style: italic;">#{src_file}</span><span style="font-style: italic;"> -o </span><span style="font-weight: bold; font-style: italic;">#{dest_file}</span><span style="font-style: italic;"> -q 26.0 -Q 100.0"</span>)
+      <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+
+  desc <span style="font-style: italic;">"renmae -i &lt;img_dir&gt;"</span>, <span style="font-style: italic;">"rename image files in chlonological order"</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:in</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"i"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>, <span style="font-weight: bold; text-decoration: underline;">:required</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">true</span>
+  option <span style="font-weight: bold; text-decoration: underline;">:out</span>, <span style="font-weight: bold; text-decoration: underline;">aliases:</span> <span style="font-style: italic;">"o"</span>, <span style="font-weight: bold; text-decoration: underline;">:type</span> =&gt; <span style="font-weight: bold; text-decoration: underline;">:string</span>
+  <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">rename</span>
+    src_path = <span style="font-weight: bold; text-decoration: underline;">File</span>.expand_path(options[<span style="font-weight: bold; text-decoration: underline;">:in</span>], <span style="font-weight: bold; text-decoration: underline;">Dir</span>.pwd)
+    dest_path = ((options[<span style="font-weight: bold; text-decoration: underline;">:out</span>]) ? options[<span style="font-weight: bold; text-decoration: underline;">:out</span>] : <span style="font-weight: bold; text-decoration: underline;">RENAME_DIR_NAME</span>)
+
+    <span style="font-weight: bold; text-decoration: underline;">FileUtils</span>.mkdir_p(dest_path) <span style="font-weight: bold;">unless</span> <span style="font-weight: bold; text-decoration: underline;">FileTest</span>.exist?(dest_path)
+
+    img_time = {}
+    <span style="font-weight: bold; text-decoration: underline;">Dir</span>.glob(src_path + <span style="font-style: italic;">"/*"</span>).each <span style="font-weight: bold;">do</span> |img_file|
+      ext = <span style="font-weight: bold; text-decoration: underline;">File</span>.extname(img_file)
+      <span style="font-weight: bold;">if</span> <span style="font-weight: bold; text-decoration: underline;">PICTURE_FILE_EXTS</span>.index(ext.downcase) != <span style="font-weight: bold; text-decoration: underline;">nil</span> <span style="font-weight: bold;">then</span>
+        pic = <span style="font-weight: bold; text-decoration: underline;">EXIFR</span>::<span style="font-weight: bold; text-decoration: underline;">JPEG</span>.new(img_file)
+        <span style="font-weight: bold;">if</span> pic.exif? &amp;&amp; pic.date_time_original <span style="font-weight: bold;">then</span>
+          img_time[img_file] = pic.date_time_original
+        <span style="font-weight: bold;">else</span>
+          img_time[img_file] = <span style="font-weight: bold; text-decoration: underline;">Time</span>.now
+        <span style="font-weight: bold;">end</span>
+      <span style="font-weight: bold;">elsif</span> <span style="font-weight: bold; text-decoration: underline;">MOVIE_FILE_EXTS</span>.index(ext.downcase) != <span style="font-weight: bold; text-decoration: underline;">nil</span> <span style="font-weight: bold;">then</span>
+        movie = <span style="font-weight: bold; text-decoration: underline;">FFMPEG</span>::<span style="font-weight: bold; text-decoration: underline;">Movie</span>.new(img_file)
+        time = movie.creation_time
+        <span style="font-weight: bold;">if</span> time <span style="font-weight: bold;">then</span>
+          img_time[img_file] = time
+        <span style="font-weight: bold;">else</span>
+          img_time[img_file] = <span style="font-weight: bold; text-decoration: underline;">Time</span>.now
+        <span style="font-weight: bold;">end</span>
+      <span style="font-weight: bold;">end</span>
+    <span style="font-weight: bold;">end</span>
+    img_time = img_time.sort_by{ |_, v| v }
+
+    digit = img_time.length.to_s.length
+    digit = 2 <span style="font-weight: bold;">if</span> digit &lt; 2
+    img_time.each_with_index <span style="font-weight: bold;">do</span> |(img, time), i|
+      ext = <span style="font-weight: bold; text-decoration: underline;">File</span>.extname(img).downcase
+      base = <span style="font-weight: bold; text-decoration: underline;">IMG_PREFIX</span> + <span style="font-style: italic;">"%0</span><span style="font-weight: bold; font-style: italic;">#{digit}</span><span style="font-style: italic;">d"</span> % (i + 1) + ext
+      src_file = img
+      dest_file = dest_path + <span style="font-style: italic;">"/"</span> + base
+      <span style="font-weight: bold;">system</span>(<span style="font-style: italic;">"cp </span><span style="font-weight: bold; font-style: italic;">#{src_file}</span><span style="font-style: italic;"> </span><span style="font-weight: bold; font-style: italic;">#{dest_file}</span><span style="font-style: italic;">"</span>)
+    <span style="font-weight: bold;">end</span>
+  <span style="font-weight: bold;">end</span>
+<span style="font-weight: bold;">end</span>
+
+<span style="font-weight: bold; text-decoration: underline;">GenAlbum</span>.start(<span style="font-weight: bold; text-decoration: underline;">ARGV</span>)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge556bb4" class="outline-2">
+<h2 id="orge556bb4">nhp</h2>
+<div class="outline-text-2" id="text-orge556bb4">
 <p>
 Exec command in background
 </p>
@@ -637,9 +1518,9 @@ Exec command in background
 </div>
 </div>
 
-<div id="outline-container-org176945f" class="outline-2">
-<h2 id="org176945f">sendmail.py</h2>
-<div class="outline-text-2" id="text-org176945f">
+<div id="outline-container-org4e2c550" class="outline-2">
+<h2 id="org4e2c550">sendmail.py</h2>
+<div class="outline-text-2" id="text-org4e2c550">
 <p>
 Utility for sendind email programatically
 </p>
@@ -690,9 +1571,9 @@ sendmail(args.to, args.mailfrom, args.subject, message)
 </div>
 </div>
 
-<div id="outline-container-org63268e2" class="outline-2">
-<h2 id="org63268e2">pwsudo</h2>
-<div class="outline-text-2" id="text-org63268e2">
+<div id="outline-container-org2559ad5" class="outline-2">
+<h2 id="org2559ad5">pwsudo</h2>
+<div class="outline-text-2" id="text-org2559ad5">
 <div class="org-src-container">
 <pre class="src src-shell"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
 
@@ -709,9 +1590,9 @@ sendmail(args.to, args.mailfrom, args.subject, message)
 </div>
 </div>
 
-<div id="outline-container-org359e31e" class="outline-2">
-<h2 id="org359e31e">gitsync</h2>
-<div class="outline-text-2" id="text-org359e31e">
+<div id="outline-container-orgf58afc8" class="outline-2">
+<h2 id="orgf58afc8">gitsync</h2>
+<div class="outline-text-2" id="text-orgf58afc8">
 <ul class="org-ul">
 <li><p>
 gitsync-local
