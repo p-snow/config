@@ -118,9 +118,9 @@
 
     # if running bash
     if [ -n "$BASH_VERSION" ]; then
-        # include .bashrc if it exists
-        if [ -f "$HOME/.bashrc" ]; then
-            . "$HOME/.bashrc"
+        # include .bash_profile if it exists
+        if [ -f "$HOME/.bash_profile" ]; then
+            . "$HOME/.bash_profile"
         fi
     fi
 
@@ -897,7 +897,7 @@ Q7sbt0I=
     HOME=<<home-dir()>>
 
     0 1 * * * /bin/bash <<home-dir()>>/.local/bin/snapshot.sh >> $LOG_DIR/snapshot.log 2>&1
-    0 2 * * * /bin/bash -c "source $LOCAL_BIN_DIR/init_asdf.sh && $LOCAL_BIN_DIR/declutter_trash >> $LOG_DIR/declutter_trash.log 2>&1"
+    0 2 * * * /bin/bash -c "source <<home-dir()>>/.bash_profile; $LOCAL_BIN_DIR/declutter_trash >> $LOG_DIR/declutter_trash.log 2>&1"
     0 3,15 * * * /bin/bash -c "source <<home-dir()>>/.bash_profile; gitsync-local <<home-dir()>>/git/ >> $LOG_DIR/gitsync-local.log 2>&1"
     5 3,15 * * * /bin/bash -c "source <<home-dir()>>/.bash_profile; gitsync-remote <<home-dir()>>/git/ >> $LOG_DIR/gitsync-remote.log 2>&1"
   #+end_src
@@ -909,16 +909,13 @@ aspell - interactive spell checker
 #+begin_src conf :tangle (expand-tangle-target ".aspell.conf")
   lang en_US
 #+end_src
+* obs
 * asdf-vm
 Extendable version manager
-- initializing script
-  #+begin_src shell :tangle (expand-tangle-target ".local/bin/init_asdf.sh") :tangle-mode (identity #o775)
-    . $HOME/.asdf/asdf.sh
-    . $HOME/.asdf/completions/asdf.bash
-  #+end_src
 - call for init script in bashrc
   #+begin_src bash :tangle (expand-tangle-target ".bashrc")
-    . ${HOME}/.local/bin/init_asdf.sh
+    . $HOME/.asdf/asdf.sh
+    . $HOME/.asdf/completions/asdf.bash
 
     export RUBYLIB=${RUBYLIB}:${HOME}/.local/lib
   #+end_src
