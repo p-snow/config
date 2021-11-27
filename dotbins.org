@@ -613,6 +613,9 @@ Utility ruby program for manipulating image, audio and video file.
     option :vquality, aliases: "q", :type => :string,
            :banner => "24.0",
            :desc => "video encoding quality"
+    option :vbitrate, aliases: "b", :type => :string,
+           :banner => "1000",
+           :desc => "video bitrate in kbps"
     option :aencoder, aliases: "E", :type => :string,
            :banner => "fdk_aac",
            :desc => "audio encoder"
@@ -645,12 +648,8 @@ Utility ruby program for manipulating image, audio and video file.
          FileType.video_dvd_image?(equip.in_file) ||
          FileType.dvd_dir?(equip.in_file)
         configs = []
-        if options[:vencoder] || options[:vquality]
-          configs << VideoConfig.new(options[:vencoder], options[:vquality])
-        end
-        if options[:aencoder] || options[:aquality] || options[:abitrate]
-          configs << AudioConfig.new(options[:aencoder], options[:aquality], options[:abitrate])
-        end
+        configs << VideoConfig.new(options[:vencoder], options[:vquality], options[:vbitrate])
+        configs << AudioConfig.new(options[:aencoder], options[:aquality], options[:abitrate])
         dconf = DVDConfig.new
         dconf.title = options[:title] if options[:title]
         dconf.chapters = options[:chapters] if options[:chapters]
@@ -1001,16 +1000,19 @@ Utility ruby program for manipulating image, audio and video file.
   end
 
   class VideoConfig
-    attr_accessor :encoder, :quality, :preset, :tune, :profile, :level
+    attr_accessor :encode, :quality, :bitrate, :preset, :tune, :profile, :level
 
-    DEFAULT_ENCODER = 'libx265'
+    DEFAULT_ENCODE = 'vp9'
     DEFAULT_QUALITY = '26'
-    DEFAULT_BITRATE = ''
+    DEFAULT_BITRATE = '1000'
 
-    def initialize(encoder, quality)
-      @encoder = (encoder ? encoder : DEFAULT_ENCODER)
-      @quality = (quality ? quality : DEFAULT_QUALITY)
-      case @encoder
+    def initialize(encode, quality=nil, bitrate=nil)
+      # @encode = (encode ? encode : DEFAULT_ENCODE)
+      @encode = encode
+      @quality = quality
+      @bitrate = bitrate
+
+      case @encode
       when "x265"
         @preset = "veryslow"
         @tune = "ssim"
@@ -1046,30 +1048,31 @@ Utility ruby program for manipulating image, audio and video file.
   end
 
   class AudioConfig
-    attr_accessor :encoder, :quality, :bitrate
+    attr_accessor :encode, :quality, :bitrate
 
-    DEFAULT_ENCODER = 'libopus'
+    DEFAULT_ENCODE = 'opus'
     DEFAULT_QUALITY = '100'
     DEFAULT_BITRATE = '128'
 
-    def initialize(encoder, quality=nil, bitrate=nil)
-      @encoder = (encoder ? encoder : DEFAULT_ENCODER)
-      @quality = (quality ? quality : DEFAULT_QUALITY)
-      @bitrate = (bitrate ? bitrate : DEFAULT_QUALITY)
+    def initialize(encode, quality=nil, bitrate=nil)
+      # @encode = (encode ? encode : DEFAULT_ENCODE)
+      @encode = encode
+      @quality = quality
+      @bitrate = bitrate
     end
 
     def quality
-      case @encoder
-      when 'libopus'
+      case @encode
+      when 'opus'
       else
         @quality
       end
     end
 
     def bitrate
-      case @encoder
-      when 'libopus'
-        @bitrate
+      case @encode
+      when 'opus'
+        (@bitrate ? @bitrate : DEFAULT_BITRATE)
       else
         @bitrate
       end
@@ -1114,17 +1117,42 @@ Utility ruby program for manipulating image, audio and video file.
         oopts = []
         optset.each do |opt|
           if opt.instance_of?(VideoConfig)
-            oopts << format("-vcodec %s", opt.encoder)
-            oopts << format("-crf %s", opt.quality)
-            oopts << format("-preset %s", opt.preset) if opt.preset
-            oopts << format("-tune %s", opt.tune) if opt.tune
-            # Currently, ffmpeg ​does not support setting profiles on x265
-            oopts << format("-profile:v %s", opt.profile) if opt.profile && opt.encoder == 'x264'
-            oopts << format("-level %s", opt.level) if opt.level
+            case opt.encode
+            when 'vp9'
+              oopts << format("-c:v libvpx-vp9")
+              if opt.quality
+                oopts << format("-crf %s", opt.quality)
+                oopts << format("-b:v 0")
+              elsif opt.bitrate
+                oopts << format("-b:v %s", opt.bitrate)
+              end
+            when 'h265'
+              oopts << format("-c:v libx265")
+              oopts << format("-crf %s", opt.quality)
+              oopts << format("-preset %s", opt.preset) if opt.preset
+              oopts << format("-tune %s", opt.tune) if opt.tune
+              # Currently, ffmpeg ​does not support setting profiles on x265
+              oopts << format("-profile:v %s", opt.profile) if opt.profile && opt.encoder == 'x264'
+              oopts << format("-level %s", opt.level) if opt.level
+            else
+              oopts << format("-c:v copy")
+            end
           elsif opt.instance_of?(AudioConfig)
-            oopts << format("-acodec %s", opt.encoder) if opt.encoder
-            oopts << format("-aq %s", opt.quality) if opt.quality
-            oopts << format("-ab %s", opt.bitrate) if opt.bitrate
+            case opt.encode
+            when 'opus'
+              oopts << format("-c:a lib%s", opt.encode)
+              oopts << format("-b:a %sk", opt.bitrate) if opt.bitrate
+            when 'aac'
+              oopts << format("-c:a libfdk_aac")
+              if opt.quality
+                oopts << format("-aq %s", opt.quality)
+                oopts << format("-b:a 0")
+              elsif opt.bitrate
+                oopts << format("-b:a %s", opt.bitrate)
+              end
+            else
+              oopts << format("-c:a copy")
+            end
           elsif opt.instance_of?(PictureConfig)
             oopts << format("-vf \"%s\"", opt.vf_opts.join(",")) if opt.vf_opts && opt.vf_opts.any?
             oopts << format("-r %s", opt.fps) if opt.fps
@@ -1150,16 +1178,41 @@ Utility ruby program for manipulating image, audio and video file.
       cmd_opts << format("--output \"%s\"", output)
       configs.each do |config|
         if config.instance_of?(VideoConfig)
-          cmd_opts << format("--encoder %s", config.encoder)
-          cmd_opts << format("--quality %s", config.quality) if config.quality
-          cmd_opts << format("--encoder-preset %s", config.preset) if config.preset
-          cmd_opts << format("--encoder-tune %s", config.tune) if config.tune
-          cmd_opts << format("--encoder-profile %s", config.profile) if config.profile
-          cmd_opts << format("--encoder-level %s", config.level) if config.level
+          case config.encode
+          when 'vp9'
+            cmd_opts << format("--encoder VP9")
+            if config.quality
+              cmd_opts << format("--quality %s", config.quality)
+              cmd_opts << format("--vb 0")
+            elsif config.bitrate
+              cmd_opts << format("--vb %s", config.bitrate)
+            end
+            cmd_opts << format("--encoder-preset veryslow")
+          when 'h265'
+            cmd_opts << format("--encoder %s", config.encode)
+            cmd_opts << format("--quality %s", config.quality) if config.quality
+            cmd_opts << format("--encoder-preset %s", config.preset) if config.preset
+            cmd_opts << format("--encoder-tune %s", config.tune) if config.tune
+            cmd_opts << format("--encoder-profile %s", config.profile) if config.profile
+            cmd_opts << format("--encoder-level %s", config.level) if config.level
+          end
         elsif config.instance_of?(AudioConfig)
-          cmd_opts << format("--aencoder %s", config.encoder)
-          cmd_opts << format("--aq %s", config.quality) if config.quality
-          cmd_opts << format("--ab %s", config.bitrate) if config.bitrate
+          case config.encode
+          when 'opus'
+            cmd_opts << format("--aencoder %s", config.encode)
+            cmd_opts << format("--aq %s", config.quality) if config.quality
+            cmd_opts << format("--ab %s", config.bitrate) if config.bitrate
+          when 'aac'
+            cmd_opts << format("--aencoder ca_haac")
+            if config.quality
+              cmd_opts << format("--aq %s", config.quality)
+              cmd_opts << format("--ab 0")
+            elsif config.bitrate
+              cmd_opts << format("--ab %s", config.bitrate)
+            end
+          else
+            cmd_opts << format("--aencoder copy")
+          end
         elsif config.instance_of?(DVDConfig)
           cmd_opts << (config.title ? format("--title %s", config.title) : "--main-feature")
           cmd_opts << format("--chapters %s", config.chapters) if config.chapters
@@ -1169,6 +1222,7 @@ Utility ruby program for manipulating image, audio and video file.
         end
       end
 
+      cmd_opts << "-x cpu-used=4 threads=7"
       cmd_opts << raw_option if raw_option
 
       cmd_opts.join(" ")
