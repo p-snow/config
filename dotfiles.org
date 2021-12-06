@@ -51,7 +51,6 @@
     export VIEWER=less
 
     USER_PATHS=(
-      "${HOME}/bin"
       "${HOME}/usr/bin"
       "${HOME}/.local/bin"
     )
@@ -61,9 +60,12 @@
       fi
     done
 
-    for bash_src in "${HOME}"/bin/bash_*.sh; do
-      . "${bash_src}"
-    done
+    if [ -e $HOME/.bash_aliases ]; then
+      source $HOME/.bash_aliases
+    fi
+    if [ -e $HOME/.bash_functions ]; then
+      source $HOME/.bash_functions
+    fi
 
     case ${TERM} in
     linux) export LANG="C";;
@@ -104,6 +106,98 @@
     export WINEARCH=win64
     export WINEPREFIX=~/.wine
   #+END_SRC
+- aliases
+  #+begin_src bash :tangle (expand-tangle-target ".bash_aliases")
+    alias ..="cd ../"
+    alias l="ls -F"
+    alias ll="l -lh"
+    alias la="l -a"
+    alias lal="l -alh"
+    alias lld="l -ld"
+    alias cp="cp -i"
+    alias mv="mv -i"
+    alias rm="rm -i"
+    alias rmf="rm -rf"
+    alias mkdir="mkdir -pv"
+    alias rmdir="rmdir -v"
+    alias ff='find . -type f -iname'
+
+    alias cputemp='cat /sys/class/thermal/thermal_zone0/temp'
+    alias ipaddr="hostname -I | cut -f1 -d' '"
+  #+end_src
+- functions
+  #+begin_src bash :tangle (expand-tangle-target ".bash_functions")
+    function cl() {
+        DIR="$*";
+            # if no DIR given, go home
+            if [ $# -lt 1 ]; then
+              DIR=$HOME;
+        fi;
+
+        builtin cd "${DIR}" && \
+          # use your preferred ls command
+          ls -F --color=auto
+    }
+
+    function cpuinfo {
+      cores=$(nproc)
+      frequency=$(grep MHz /proc/cpuinfo | head -1 | awk -F ' ' '{print $4" MHz"}')
+      model=$(grep "model name" /proc/cpuinfo | head -1 | sed -r 's/^.{13}//')
+      echo "CPU Model: $model"
+      echo "CPU Cores: $cores"
+      echo "Frequency: $frequency"
+    }
+
+    function dual() {
+      if [ $# -eq 0 ]; then
+        du_arg="./* ./.[^.]*"
+      else
+        du_arg=""
+        for v in "$@"
+        do
+          if [ -f ${v} ]; then
+            du_arg="${du_arg} ${v}"
+          elif [ -d ${v} ]; then
+            du_arg="${du_arg} ${v}/* ${v}/.[^.]*"
+          fi
+        done
+      fi
+
+      ionice -c2 -n7 nice -n19 du -sc ${du_arg} 2>/dev/null
+    }
+
+    function mkcdir() {
+      mkdir -p -- "$1" && cd -P -- "$1"
+    }
+
+    function rms() {
+      read -p 'shred all files - are you sure (y/n) ? ' ans
+      test x$ans == xy && (
+        for file in "$@"; do
+          if [ -f "${file}" ]; then
+            shred -uzv "${file}"
+          elif [ -d "${file}" ]; then
+            find "${file}" -type f -exec shred -uzv {} \;
+            rm -rf "${file}"
+          fi
+        done
+      )
+    }
+
+    # A simple script to check on system resources
+    function chksys() {
+      clear
+
+      echo "Memory Usage:"
+      /usr/bin/free -h
+
+      echo $'\n'$"Disk Usage:"
+      /bin/df -h /dev/sd[a-z][1-9] 2>/dev/null
+
+      echo $'\n'$"Uptime:"
+      /usr/bin/uptime
+    }
+  #+end_src
 - profile
   #+BEGIN_SRC bash :tangle (expand-tangle-target ".profile")
     # ~/.profile: executed by the command interpreter for login shells.
