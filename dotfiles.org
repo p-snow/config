@@ -1294,6 +1294,7 @@ This script makes it easy to update all channels to the latest commit based on a
      "curl"
      "glibc-locales"
      "pulseaudio"
+     <<packages>>
      ))
 #+end_src
 
@@ -1348,3 +1349,14 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
   It is better to write my own one for my reproducible system.
   + [[https://github.com/skk-dev/skktools][skktools]]
   + ibus-skk
+* Jack
+
+#+begin_src scheme :noweb-ref packages
+  "qjackctl"
+  "qsynth"
+  "jack-keyboard"
+#+end_src
+
+#+begin_src conf :tangle (expand-tangle-target ".jackdrc")
+  /usr/bin/jackd -dalsa -dhw:0 -r44100 -p1024 -n3 -Xseq
+#+end_src
