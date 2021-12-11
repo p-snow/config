@@ -510,6 +510,9 @@ Utility ruby program for manipulating image, audio and video file.
     option :vquality, aliases: "q", :type => :string,
            :banner => "24.0",
            :desc => "video encoding quality"
+    option :vbitrate, aliases: "b", :type => :string,
+           :banner => "1000",
+           :desc => "video encoding bitrate in kbps"
     option :aencoder, aliases: "E", :type => :string,
            :banner => "fdk_aac",
            :desc => "audio encoder"
@@ -532,7 +535,7 @@ Utility ruby program for manipulating image, audio and video file.
 
       vconf = aconf = pconf = nil
       if options[:vencoder] || options[:vquality]
-        vconf = VideoConfig.new(options[:vencoder], options[:vquality])
+        vconf = VideoConfig.new(options[:vencoder], options[:vquality], options[:vbitrate])
       end
       if options[:aencoder] || options[:aquality]
         aconf = AudioConfig.new(options[:aencoder], options[:aquality], options[:abitrate])
@@ -1007,7 +1010,6 @@ Utility ruby program for manipulating image, audio and video file.
     DEFAULT_BITRATE = '1000'
 
     def initialize(encode, quality=nil, bitrate=nil)
-      # @encode = (encode ? encode : DEFAULT_ENCODE)
       @encode = encode
       @quality = quality
       @bitrate = bitrate
@@ -1118,6 +1120,11 @@ Utility ruby program for manipulating image, audio and video file.
         optset.each do |opt|
           if opt.instance_of?(VideoConfig)
             case opt.encode
+            when 'av1'
+              oopts << format("-c:v librav1e")
+              if opt.bitrate
+                oopts << format("-b:v %sk", opt.bitrate)
+              end
             when 'vp9'
               oopts << format("-c:v libvpx-vp9")
               if opt.quality
@@ -1188,13 +1195,22 @@ Utility ruby program for manipulating image, audio and video file.
               cmd_opts << format("--vb %s", config.bitrate)
             end
             cmd_opts << format("--encoder-preset veryslow")
-          when 'h265'
-            cmd_opts << format("--encoder %s", config.encode)
-            cmd_opts << format("--quality %s", config.quality) if config.quality
+          when 'h265' || 'hevc'
+            cmd_opts << format("--encoder x265")
+            if config.quality
+              cmd_opts << format("--quality %s", config.quality)
+              cmd_opts << format("--vb 0")
+            elsif config.bitrate
+              cmd_opts << format("--vb %s", config.bitrate)
+            end
             cmd_opts << format("--encoder-preset %s", config.preset) if config.preset
             cmd_opts << format("--encoder-tune %s", config.tune) if config.tune
             cmd_opts << format("--encoder-profile %s", config.profile) if config.profile
             cmd_opts << format("--encoder-level %s", config.level) if config.level
+          else
+            cmd_opts << format("--encoder %s", config.encode) if config.encode
+            cmd_opts << format("--quality %s", config.quality) if config.quality
+            cmd_opts << format("--vb %s", config.bitrate) if config.bitrate
           end
         elsif config.instance_of?(AudioConfig)
           case config.encode
@@ -1222,7 +1238,6 @@ Utility ruby program for manipulating image, audio and video file.
         end
       end
 
-      cmd_opts << "-x cpu-used=4 threads=7"
       cmd_opts << raw_option if raw_option
 
       cmd_opts.join(" ")
