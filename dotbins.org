@@ -62,8 +62,12 @@ These scripts (declutter_xxx) keep things decluttered.
         atime = os.lstat(a_file).st_atime
         delta_atime = datetime.timedelta(seconds=(NOW - atime))
         if delta_atime > datetime.timedelta(days = MAX_NEGLECTED_DAYS_IN_TIDY_DIRS):
-            send2trash(a_file)
-            print('moveed to trash: {}'.format(a_file))
+            try:
+                send2trash(a_file)
+            except Error as error:
+                print(error)
+            else:
+                print('moveed to trash: {}'.format(a_file))
 
     print('--{0} starts to remove files staying more than {1} days in trash box.'
           .format(os.path.basename(__file__),
