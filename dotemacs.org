@@ -3865,8 +3865,13 @@ you are required to locate that package where emacs can search.
     :bind (:map magit-status-mode-map
                 ("C-j" . magit-visit-thing)
                 ("/"   . magit-file-checkout)
+                (";"   . magit-list-repositories)
                 :map magit-log-mode-map
-                ("C-j" . magit-visit-thing)))
+                ("C-j" . magit-visit-thing)
+                :map magit-repolist-mode-map
+                ("C-j" . magit-repolist-status))
+    :custom
+    (magit-repository-directories '(("~/git" . 1))))
 #+end_src
 
 **** [[https://github.com/magit/git-modes/releases.atom][git-modes]]
