@@ -3242,8 +3242,8 @@ speed commands and hydra-org.
       ("c" org-capture)
       ("t" org-set-tags-command)
       ("j" org-clock-goto)
-      ("h" consult-org-agenda)
-      ("g" consult-outline)
+      ("g" consult-org-agenda)
+      ("h" consult-outline)
       ("ee" my/org-english-capture)
       ("ed" my/org-english-drill)
       ("eD" my/org-english-drill-resume)
@@ -3324,7 +3324,9 @@ speed commands and hydra-org.
           :map minibuffer-local-map
           ("C-c h" . consult-history)
           :map help-map
-          ("a" . consult-apropos))
+          ("a" . consult-apropos)
+          :map org-mode-map
+          ("C-c h" . consult-org-heading))
     :custom
     (consult-line-start-from-top t)
     (consult-project-root-function #'project-root-function))
