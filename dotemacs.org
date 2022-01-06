@@ -5517,7 +5517,7 @@ Learning Workflow for English words:
            (sentence (sentence-at-point)))
       (kill-new (if (and (stringp sentence)
                          (stringp word))
-                    (replace-regexp-in-string word (format "[%s]" word)
+                    (replace-regexp-in-string word (format "[%s||%c]" word (string-to-char word))
                                               sentence)
                   ""))
       (cond
