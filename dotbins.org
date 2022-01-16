@@ -64,7 +64,7 @@ These scripts (declutter_xxx) keep things decluttered.
         if delta_atime > datetime.timedelta(days = MAX_NEGLECTED_DAYS_IN_TIDY_DIRS):
             try:
                 send2trash(a_file)
-            except Error as error:
+            except OSError as error:
                 print(error)
             else:
                 print('moveed to trash: {}'.format(a_file))
