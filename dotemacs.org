@@ -2065,8 +2065,9 @@ dMv+byk5Rw==
     ;; image
     (setq org-image-actual-width 100)
 
-    ;; structure template
+    ;; structure templates
     (add-to-list 'org-structure-template-alist (cons "sh" "src shell"))
+    (add-to-list 'org-structure-template-alist (cons "tx" "src text"))
     (add-to-list 'org-structure-template-alist (cons "el" "src emacs-lisp"))
     (add-to-list 'org-structure-template-alist (cons "py" "src python")))
 #+end_src
@@ -2417,12 +2418,12 @@ dMv+byk5Rw==
         entry (id "adcd63ea-f81a-4909-b659-6e5794052fcc")
         "* %? [/] :project:\n %U\n  - [ ] insert ID property if necessary"
         :prepend t :jump-to-captured t)
-       ("m" "Memo"
+       ("n" "Note"
         entry (file+datetree ,my/org-archive-file)
         "* %? %^g\n %U\n" :tree-type week)
-       ("j" "Jotting down"
+       ("m" "Memo"
         entry (file "~/org/note/memo.org")
-        "* %^{Title: }\n%U\n%?"
+        "* %U\n%?"
         :jump-to-captured t)
        ("s" "Someday memo")
        ("ss" "any"
