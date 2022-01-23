@@ -611,7 +611,7 @@ fDDHS5Vq5UvYutk=
                             'face 'skk-candidate
                             candidate)))
        candidate))
-    ;; C-q for hankaku-kana input mode
+    ;; bind C-q for hankaku-kana input mode
     (skk-use-jisx0201-input-method t)
     ;; dynamic conversion
     (skk-dcomp-activate nil)
@@ -642,7 +642,8 @@ fDDHS5Vq5UvYutk=
   ;; -*- mode:emacs-lisp; -*-
   (setq skk-rom-kana-rule-list
         (append skk-rom-kana-rule-list
-                '(("xka" nil ("ヵ" . "ヵ"))
+                '(("!" nil skk-purge-from-jisyo)
+                  ("xka" nil ("ヵ" . "ヵ"))
                   ("xke" nil ("ヶ" . "ヶ"))
                   ("n" nil nil)
                   ("nn" nil ("ナノ" . "なの"))
