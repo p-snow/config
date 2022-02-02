@@ -2429,7 +2429,7 @@ dMv+byk5Rw==
         "* %? %^g\n %U\n" :tree-type week)
        ("m" "Memo"
         entry (file "~/org/note/memo.org")
-        "* %U\n#+begin_src %^{Lnaguage|text}\n%i\n#+end_src"
+        "* %U\n#+begin_src %^{Lnaguage|text}\n%(my-org-capture-filter-memo \"%i\")\n#+end_src"
         :jump-to-captured t
         :immediate-finish t)
        ("s" "Someday memo")
@@ -2463,6 +2463,13 @@ dMv+byk5Rw==
        ("M" "Append memo to clocking task"
         item (clock)
         "- %i%?"))))
+
+  (defun my-org-capture-filter-memo (&optional str)
+    "Replace semantic representation in `org-mode' with plain string in STR."
+    (cond
+     ((stringp str)
+      (replace-regexp-in-string "^\\(*+ \\)" ",\\1" str))
+     (t "")))
 
   (defun org-goto-clocking-or-today ()
     "Go to currently clocking entry.
