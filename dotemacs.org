@@ -3662,8 +3662,9 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 #+begin_src emacs-lisp
   (use-package tex-mode
     :mode ("\\.tex$" . latex-mode)
-    :hook (latex-mode . (lambda ()
-                          (setq-local counsel-dash-docsets '("LaTeX")))))
+    :hook ((latex-mode . (lambda ()
+                           (setq-local counsel-dash-docsets '("LaTeX"))))
+           (tex-mode . (lambda () (setq ispell-parser 'tex)))))
 #+end_src
 
 *** [[https://github.com/fxbois/web-mode/releases.atom][web-mode]]
