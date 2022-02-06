@@ -1044,9 +1044,19 @@ fDDHS5Vq5UvYutk=
 #+begin_src emacs-lisp
   (use-package tramp
     :defer t
+    :custom
+    (tramp-default-method "ssh")
     :config
     (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
     (add-to-list 'tramp-remote-path "~/bin"))
+
+  (defun sudo ()
+    "Use TRAMP to `sudo' the current buffer"
+    (interactive)
+    (when buffer-file-name
+      (find-alternate-file
+       (concat "/sudo:root@localhost:"
+               buffer-file-name))))
 #+end_src
 
 *** view
