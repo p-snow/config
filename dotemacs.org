@@ -4894,21 +4894,26 @@ to avoid accidental data loss.
 *** lookup functions
 
 #+begin_src emacs-lisp
-  (defmacro define-lookup-function (fun search-prefix &optional word-fixed &rest post-process)
+  (defmacro define-lookup-function (fun search-prefix)
     "Create lookup function named FUN using SEARCH-PREFIX for querying.
 
   if WORD-FIXED is given, use it as a search word."
     (declare (indent 1))
-    `(defun ,fun (word)
-       (interactive (list (cond
-                           (,word-fixed)
-                           ((use-region-p)
-                            (buffer-substring (region-beginning) (region-end)))
-                           (t (read-string "Enter URL or keywords: ")))))
+    `(defun ,fun (word &optional arg)
+       "Issue search query with WORD.
+
+  Use a string in region for WORD if region is active.
+  If called with prefix argument, prompt the user to input WORD regardless region is active or not."
+       (interactive (let ((region-str (when (use-region-p)
+                                        (buffer-substring (region-beginning) (region-end)))))
+                      (list (cond
+                             ((and (stringp region-str)
+                                   (equal current-prefix-arg nil))
+                              region-str)
+                             (t
+                              (read-string "Enter URL or keywords: " region-str))))))
        (let ((eww-search-prefix ,search-prefix))
-         (eww word 4)
-         (call-interactively)
-         ,@post-process)))
+         (eww word 4))))
 
   (define-lookup-function lookup-google "https://www.google.com/search?q=")
   (define-lookup-function lookup-wikipedia-en "https://en.wikipedia.org/wiki/")
@@ -4918,8 +4923,7 @@ to avoid accidental data loss.
   (define-lookup-function lookup-duckduckgo "https://duckduckgo.com/html/?kl=jp-jp&k1=-1&kc=1&kf=-1&q=")
   (define-lookup-function lookup-eijiro "https://eow.alc.co.jp/search?q=")
   (define-lookup-function lookup-weblio "https://www.weblio.jp/content/")
-  (define-lookup-function lookup-youtube "https://www.youtube.com/results?search_query="
-                          nil (eww-browse-with-external-browser))
+  (define-lookup-function lookup-youtube "https://www.youtube.com/results?search_query=")
 
   (with-eval-after-load 'hydra
     (defhydra hydra-lookup (global-map "C-c l"
