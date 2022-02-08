@@ -1706,6 +1706,9 @@ dMv+byk5Rw==
     (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
     (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion))
 
+  (use-package dired-x
+    :after dired)
+
   (defun my/advice-dired-control-deletion (oldfun &rest r)
     "Enable file deleting functions to control deleting procedure
   whether files are going to be in trash box."
