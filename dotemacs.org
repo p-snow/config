@@ -2290,32 +2290,6 @@ dMv+byk5Rw==
                               ((org-ql-block-header "Doable things"))))
         ((org-agenda-sorting-strategy
           '(todo-state-up priority-down deadline-up))))
-       ("n" "Anniversary"
-        ((org-ql-search-block `(heading ,(let ((week-ago (decode-time)))
-                                           (cl-incf (nth 3 week-ago) -7)
-                                           (format-time-string "%Y-%m-%d %A"
-                                                               (apply #'encode-time
-                                                                      week-ago))))
-                              ((org-ql-block-header "One week ago")))
-         (org-ql-search-block `(heading ,(let ((month-ago (decode-time)))
-                                           (cl-incf (nth 4 month-ago) -1)
-                                           (format-time-string "%Y-%m-%d %A"
-                                                               (apply #'encode-time
-                                                                      month-ago))))
-                              ((org-ql-block-header "One month ago")))
-         (org-ql-search-block `(heading ,(let ((half-a-year-ago (decode-time)))
-                                           (cl-incf (nth 4 half-a-year-ago) -6)
-                                           (format-time-string "%Y-%m-%d %A"
-                                                               (apply #'encode-time
-                                                                      half-a-year-ago))))
-                              ((org-ql-block-header "Half a year ago")))
-         (org-ql-search-block `(heading ,(let ((year-ago (decode-time)))
-                                           (cl-incf (nth 5 year-ago) -1)
-                                           (format-time-string "%Y-%m-%d %A"
-                                                               (apply #'encode-time
-                                                                      year-ago))))
-                              ((org-ql-block-header "One year ago"))))
-        ((org-agenda-files `,(my/org-archive-files))))
        ("t" "All tasks"
         ((org-ql-search-block `(todo ,org-warning-keyword-0)
                               ((org-ql-block-header "Urgent task")))
