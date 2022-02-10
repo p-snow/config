@@ -46,8 +46,6 @@
   #+BEGIN_SRC bash :tangle (expand-tangle-target ".bashrc")
     #!/usr/bin/env bash
 
-    export EDITOR=~/usr/bin/emacsclient
-    export GIT_EDITOR=~/usr/bin/emacsclient
     export VIEWER=less
 
     USER_PATHS=(
@@ -67,23 +65,11 @@
       source $HOME/.bash_functions
     fi
 
-    case ${TERM} in
-    linux) export LANG="C";;
-    ,*)     export LANG="ja_JP.UTF-8";;
-    esac
-    export LC_MESSAGES="C"
-
     # prompt
     MACHINE=$(echo $(uname -n) | awk -F . '{print $1}')
     PS1="[\u@${MACHINE}:\\W]\n\$ "
 
     # function/variable used in libvterm/emacs
-
-    vterm_prompt_end(){
-      vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
-    }
-    PS1=$PS1'\[$(vterm_prompt_end)\]'
-
     vterm_printf(){
       if [ -n "$TMUX" ]; then
         # Tell tmux to pass the escape sequences through
@@ -97,11 +83,23 @@
       fi
     }
 
+    vterm_prompt_end(){
+      vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
+    }
+
     PROMPT_COMMAND='echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
 
-
-    export GTAGSCONF=${HOME}/usr/share/gtags/gtags.conf
-    export GTAGSLABEL=pygments
+    case ${TERM} in
+    dumb)
+      ;;
+    xterm-256color)
+      export LANG=en_US.UTF-8
+      PS1=$PS1'\[$(vterm_prompt_end)\]'
+      ;;
+    ,*)
+      export LANG=ja_JP.UTF-8
+      ;;
+    esac
 
     export WINEARCH=win64
     export WINEPREFIX=~/.wine
