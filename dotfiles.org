@@ -1015,6 +1015,15 @@ Extendable version manager
     ruby 2.6.8
     python 3.8.5
   #+end_src
+
+  steps to install tools for specific versions
+  1. install plugins
+     : $ asdf plugin add ruby
+     : $ asdf plugin add python
+
+  2. install tools
+     : $ cd ~ && asdf install
+
 ** asdf-ruby
 #+begin_src conf :comments noweb :tangle (expand-tangle-target ".default-gems")
   thor 1.1.0
@@ -1232,70 +1241,66 @@ Extendable version manager
          (url "https://git.savannah.gnu.org/git/guix.git")))
 #+end_src
 
-** Updating Channels
-
-This script makes it easy to update all channels to the latest commit based on an original channel file.
-
-: update-channels
-
-#+begin_src sh :tangle (expand-tangle-target ".local/bin/update-channels") :shebang #!/bin/sh :tangle-mode (identity #o755)
-  guix pull --channels=$HOME/.config/guix/base-channels.scm
-  guix describe --format=channels > ~/.config/guix/channels.scm
-#+end_src
-
 ** Manifest for desktop environment
-
-#+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/desktop.scm")
-  (specifications->manifest
-   '("wine64"
-     "winetricks"
-     "sshfs"
-     "gimp"
-     "dav1d"
-     "xkeysnail"
-     "ripgrep"
-     "gnupg"
-     "font-adobe-source-han-sans"
-     "fontconfig"
-     "global"
-     "gcompris-qt"
-     "krita"
-     "kdenlive"
-     "lilypond"
-     "obs"
-     "make"
-     "wget"
-     "openssh"
-     "cdrtools"
-     "dvdbackup"
-     "easytag"
-     "libdvdnav"
-     "vlc"
-     "password-store"
-     "pwgen"
-     "tree"
-     "handbrake"
-     "poppler"
-     "pass-git-helper"
-     "git"
-     "stow"
-     "mpv"
-     "ffmpeg"
-     "shellcheck"
-     "libdvdcss"
-     "abcde"
-     "pandoc"
-     "nss-certs"
-     "openssl"
-     "youtube-dl"
-     "imagemagick"
-     "curl"
-     "glibc-locales"
-     "pulseaudio"
-     <<packages>>
-     ))
-#+end_src
-
+- desktop
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/desktop.scm")
+    (specifications->manifest
+     '("sshfs"
+       "xkeysnail"
+       "ripgrep"
+       "gnupg"
+       "font-adobe-source-han-sans"
+       "fontconfig"
+       "global"
+       "lilypond"
+       "make"
+       "wget"
+       "openssh"
+       "password-store"
+       "pwgen"
+       "tree"
+       "poppler"
+       "pass-git-helper"
+       "git"
+       "stow"
+       "shellcheck"
+       "abcde"
+       "pandoc"
+       "nss-certs"
+       "openssl"
+       "imagemagick"
+       "curl"
+       "glibc-locales"
+       "pulseaudio"
+       <<desktop-pkgs>>))
+  #+end_src
+- media
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/media.scm")
+    (specifications->manifest
+     '("krita"
+       "gimp"
+       "kdenlive"
+       "obs"
+       "cdrtools"
+       "dvdbackup"
+       "easytag"
+       "libdvdnav"
+       "vlc"
+       "handbrake"
+       "youtube-dl"
+       "mpv"
+       "ffmpeg"
+       "libdvdcss"
+       "gcompris-qt"
+       "dav1d"
+       <<media-pkgs>>))
+  #+end_src
+- wine
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/wine.scm")
+    (specifications->manifest
+     '("wine64"
+       "winetricks"))
+  #+end_src
 ** Activating Profiles
 
 This script accepts a space-separated list of manifest file names (without extension) under the =~/.config/guix/manifests= folder and then installs those profiles for the first time.  For example:
@@ -1340,6 +1345,17 @@ This script accepts a space-separated list of manifest file names (without exten
     fi
   done
 #+end_src
+** Updating Channels
+
+This script makes it easy to update all channels to the latest commit based on an original channel file.
+
+: update-channels
+
+#+begin_src sh :tangle (expand-tangle-target ".local/bin/update-channels") :shebang #!/bin/sh :tangle-mode (identity #o755)
+  guix pull --channels=$HOME/.config/guix/base-channels.scm
+  guix describe --format=channels > ~/.config/guix/channels.scm
+#+end_src
+
 * SKK
 
 SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
@@ -1349,7 +1365,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
   + ibus-skk
 * Jack
 
-#+begin_src scheme :noweb-ref packages
+#+begin_src scheme :noweb-ref media-pkgs
   "qjackctl"
   "qsynth"
   "jack-keyboard"
