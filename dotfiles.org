@@ -1219,6 +1219,7 @@ Extendable version manager
 
 #+begin_src bash :tangle (expand-tangle-target ".bash_profile")
   GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
+  # comment out next line if you'd like to acticate all profiles under ~/.guix-extra-profiles
   ACTIVE_PROFILE_NAMES=(base emacs)
 
   if [ ${#ACTIVE_PROFILE_NAMES[@]} -eq 0 ]; then
@@ -1312,6 +1313,13 @@ Extendable version manager
            "gcompris-qt"
            "dav1d"
            <<media-pkgs>>))
+  #+end_src
+- devel (software development)
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/devel.scm")
+    (specifications->manifest
+     '("llvm"
+       "cmake"
+       <<devel-pkgs>>))
   #+end_src
 - wine
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/wine.scm")
