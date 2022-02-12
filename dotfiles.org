@@ -1218,6 +1218,18 @@ Extendable version manager
 * GNU Guix
 
 #+begin_src bash :tangle (expand-tangle-target ".bash_profile")
+  GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
+  ACTIVE_PROFILES=(desktop emacs)
+
+  for profile in ${ACTIVE_PROFILES[@]}; do
+    profile_path=${GUIX_EXTRA_PROFILES}/${profile}
+
+    GUIX_PROFILE="${profile_path}/${profile}"
+    if [ -f ${GUIX_PROFILE}/etc/profile ]; then
+      . "${GUIX_PROFILE}"/etc/profile
+    fi
+  done
+
   export GUIX_PROFILE="$HOME/.guix-profile"
   . "$GUIX_PROFILE/etc/profile"
 
@@ -1241,14 +1253,14 @@ Extendable version manager
          (url "https://git.savannah.gnu.org/git/guix.git")))
 #+end_src
 
-** Manifest for desktop environment
-- desktop
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/desktop.scm")
+** Manifests for desktop environment
+- base
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/base.scm")
     (specifications->manifest
      '("sshfs"
        "xkeysnail"
        "ripgrep"
-       "gnupg"
+       ;; "gnupg"
        "font-adobe-source-han-sans"
        "fontconfig"
        "global"
@@ -1264,7 +1276,6 @@ Extendable version manager
        "git"
        "stow"
        "shellcheck"
-       "abcde"
        "pandoc"
        "nss-certs"
        "openssl"
@@ -1276,24 +1287,25 @@ Extendable version manager
   #+end_src
 - media
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/media.scm")
-    (specifications->manifest
-     '("krita"
-       "gimp"
-       "kdenlive"
-       "obs"
-       "cdrtools"
-       "dvdbackup"
-       "easytag"
-       "libdvdnav"
-       "vlc"
-       "handbrake"
-       "youtube-dl"
-       "mpv"
-       "ffmpeg"
-       "libdvdcss"
-       "gcompris-qt"
-       "dav1d"
-       <<media-pkgs>>))
+        (specifications->manifest
+         '("abcde"
+           "krita"
+           "gimp"
+           "kdenlive"
+           "obs"
+           "cdrtools"
+           "dvdbackup"
+           "easytag"
+           "libdvdnav"
+           "vlc"
+           "handbrake"
+           "youtube-dl"
+           "mpv"
+           "ffmpeg"
+           "libdvdcss"
+           "gcompris-qt"
+           "dav1d"
+           <<media-pkgs>>))
   #+end_src
 - wine
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/wine.scm")
@@ -1352,8 +1364,8 @@ This script makes it easy to update all channels to the latest commit based on a
 : update-channels
 
 #+begin_src sh :tangle (expand-tangle-target ".local/bin/update-channels") :shebang #!/bin/sh :tangle-mode (identity #o755)
-  guix pull --channels=$HOME/.config/guix/base-channels.scm
-  guix describe --format=channels > ~/.config/guix/channels.scm
+    guix pull --channels=$HOME/.config/guix/base-channels.scm
+    guix describe --format=channels > ~/.config/guix/channels.scm
 #+end_src
 
 * SKK
