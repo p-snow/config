@@ -1219,12 +1219,18 @@ Extendable version manager
 
 #+begin_src bash :tangle (expand-tangle-target ".bash_profile")
   GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
-  ACTIVE_PROFILES=(desktop emacs)
+  ACTIVE_PROFILE_NAMES=(base emacs)
 
-  for profile in ${ACTIVE_PROFILES[@]}; do
-    profile_path=${GUIX_EXTRA_PROFILES}/${profile}
+  if [ ${#ACTIVE_PROFILE_NAMES[@]} -eq 0 ]; then
+    profiles="${GUIX_EXTRA_PROFILES}/*";
+  else
+    for name in ${ACTIVE_PROFILE_NAMES[@]}; do
+      profiles=("${profiles[@]}" "${GUIX_EXTRA_PROFILES}/${name}")
+    done
+  fi
 
-    GUIX_PROFILE="${profile_path}/${profile}"
+  for profile in ${profiles[@]}; do
+    GUIX_PROFILE="${profile}/$(basename ${profile})"
     if [ -f ${GUIX_PROFILE}/etc/profile ]; then
       . "${GUIX_PROFILE}"/etc/profile
     fi
@@ -1253,7 +1259,7 @@ Extendable version manager
          (url "https://git.savannah.gnu.org/git/guix.git")))
 #+end_src
 
-** Manifests for desktop environment
+** Manifests
 - base
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/base.scm")
     (specifications->manifest
@@ -1283,7 +1289,7 @@ Extendable version manager
        "curl"
        "glibc-locales"
        "pulseaudio"
-       <<desktop-pkgs>>))
+       <<base-pkgs>>))
   #+end_src
 - media
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/media.scm")
@@ -1317,7 +1323,7 @@ Extendable version manager
 
 This script accepts a space-separated list of manifest file names (without extension) under the =~/.config/guix/manifests= folder and then installs those profiles for the first time.  For example:
 
-: activate-profiles desktop emacs
+: activate-profiles base emacs
 
 #+begin_src sh :tangle :tangle (expand-tangle-target ".local/bin/activate-profiles") :shebang #!/bin/sh :tangle-mode (identity #o755)
   GREEN='\033[1;32m'
