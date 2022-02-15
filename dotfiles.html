@@ -21,99 +21,100 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org9151652">Noweb References</a></li>
-<li><a href="#org3d13fb4">Bash</a>
+<li><a href="#org958d516">Noweb References</a></li>
+<li><a href="#orga35b172">Bash</a>
 <ul>
-<li><a href="#org862289d">secret parts&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></a></li>
+<li><a href="#org6b227b6">secret parts&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></a></li>
 </ul>
 </li>
-<li><a href="#org2d29c96">abcde</a></li>
-<li><a href="#org02a97ed">Git</a></li>
-<li><a href="#org502aac5">Pass</a></li>
-<li><a href="#org60d00f8">mpv</a></li>
-<li><a href="#org9cb2226">unison</a></li>
-<li><a href="#orgdea9047">crontab</a></li>
-<li><a href="#orgc45d2dd">Aspell</a></li>
-<li><a href="#org2a4b1b9">asdf-vm</a>
+<li><a href="#org0ded148">SSH</a></li>
+<li><a href="#org8915296">abcde</a></li>
+<li><a href="#orgcb5b44c">Git</a></li>
+<li><a href="#orgba93f2d">Pass</a></li>
+<li><a href="#org943f090">mpv</a></li>
+<li><a href="#org57baa98">unison</a></li>
+<li><a href="#org11dc547">crontab</a></li>
+<li><a href="#org4756553">Aspell</a></li>
+<li><a href="#org6a413fa">asdf-vm</a>
 <ul>
-<li><a href="#orga1c84a2">asdf-ruby</a></li>
-<li><a href="#org10a7950">asdf-python</a></li>
+<li><a href="#org1ee354e">asdf-ruby</a></li>
+<li><a href="#org0b127b0">asdf-python</a></li>
 </ul>
 </li>
-<li><a href="#org7200ccd">xkeysnail</a>
+<li><a href="#orgd3aa58a">xkeysnail</a>
 <ul>
-<li><a href="#orgcdc4fad">how to make xkeysnail daemonize</a></li>
+<li><a href="#orga7165d7">how to make xkeysnail daemonize</a></li>
 </ul>
 </li>
-<li><a href="#orgf6551a1">fstab</a></li>
-<li><a href="#orgb6858f9">GnuPG (gpg)</a></li>
-<li><a href="#org538ff09">GNU Guix</a>
+<li><a href="#orgf38b473">fstab</a></li>
+<li><a href="#orgc32deb9">GnuPG (gpg)</a></li>
+<li><a href="#org6a9a6f3">GNU Guix</a>
 <ul>
-<li><a href="#orgcba5a8d">Channel definitions</a></li>
-<li><a href="#org975e38a">Manifests</a></li>
-<li><a href="#orgcb51e8c">Activating Profiles</a></li>
-<li><a href="#orgc9622b8">Updating Channels</a></li>
+<li><a href="#org04f5d31">Channel definitions</a></li>
+<li><a href="#orgdf16bd0">Manifests</a></li>
+<li><a href="#org57f402c">Activating Profiles</a></li>
+<li><a href="#orgbb60060">Updating Channels</a></li>
 </ul>
 </li>
-<li><a href="#org7e94f36">SKK</a></li>
-<li><a href="#orga7fec90">Jack</a></li>
+<li><a href="#orgebb8550">SKK</a></li>
+<li><a href="#org4de5743">Jack</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org9151652" class="outline-2">
-<h2 id="org9151652">Noweb References</h2>
-<div class="outline-text-2" id="text-org9151652">
+<div id="outline-container-org958d516" class="outline-2">
+<h2 id="org958d516">Noweb References</h2>
+<div class="outline-text-2" id="text-org958d516">
 <ul class="org-ul">
 <li><p>
 my home directory
 </p>
 <div class="org-src-container">
-<pre class="src src-bash" id="org532e540"><span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"${HOME}"</span>
+<pre class="src src-bash" id="orgc41d4a0"><span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"${HOME}"</span>
 </pre>
 </div></li>
 <li><p>
 my user name on system
 </p>
 <div class="org-src-container">
-<pre class="src src-bash" id="orga38c226">whoami
+<pre class="src src-bash" id="org7066def">whoami
 </pre>
 </div></li>
 <li><p>
 my email address
 </p>
 <div class="org-src-container">
-<pre class="src src-bash" id="orgbe3b8d6"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span>
+<pre class="src src-bash" id="orgf4cce20"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span>
 </pre>
 </div></li>
 <li><p>
 user account part of my email
 </p>
 <div class="org-src-container">
-<pre class="src src-bash" id="org79c4de3"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span> | cut -d<span style="font-style: italic;">'@'</span> -f1
+<pre class="src src-bash" id="org28a58cc"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span> | cut -d<span style="font-style: italic;">'@'</span> -f1
 </pre>
 </div></li>
 <li><p>
 network part of my email
 </p>
 <div class="org-src-container">
-<pre class="src src-bash" id="org65f5600"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span> | cut -d<span style="font-style: italic;">'@'</span> -f2
+<pre class="src src-bash" id="orgee4aae4"><span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">"${EMAIL}"</span> | cut -d<span style="font-style: italic;">'@'</span> -f2
 </pre>
 </div></li>
 <li><p>
 utility functions
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp" id="org836456e">(* h 60 60)
+<pre class="src src-emacs-lisp" id="orgea9536a">(* h 60 60)
 </pre>
 </div></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org3d13fb4" class="outline-2">
-<h2 id="org3d13fb4">Bash</h2>
-<div class="outline-text-2" id="text-org3d13fb4">
+<div id="outline-container-orga35b172" class="outline-2">
+<h2 id="orga35b172">Bash</h2>
+<div class="outline-text-2" id="text-orga35b172">
 <ul class="org-ul">
 <li><p>
 bash profile
@@ -324,9 +325,9 @@ profile
 </div></li>
 </ul>
 </div>
-<div id="outline-container-org862289d" class="outline-3">
-<h3 id="org862289d">secret parts&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></h3>
-<div class="outline-text-3" id="text-org862289d">
+<div id="outline-container-org6b227b6" class="outline-3">
+<h3 id="org6b227b6">secret parts&#xa0;&#xa0;&#xa0;<span class="tag"><span class="crypt">crypt</span></span></h3>
+<div class="outline-text-3" id="text-org6b227b6">
 <p>
 &#x2013;&#x2014;BEGIN PGP MESSAGE&#x2013;&#x2014;
 </p>
@@ -348,9 +349,19 @@ Q7sbt0I=
 </div>
 </div>
 </div>
-<div id="outline-container-org2d29c96" class="outline-2">
-<h2 id="org2d29c96">abcde</h2>
-<div class="outline-text-2" id="text-org2d29c96">
+
+<div id="outline-container-org0ded148" class="outline-2">
+<h2 id="org0ded148">SSH</h2>
+<div class="outline-text-2" id="text-org0ded148">
+<div class="org-src-container">
+<pre class="src src-conf">Include config.d/*
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org8915296" class="outline-2">
+<h2 id="org8915296">abcde</h2>
+<div class="outline-text-2" id="text-org8915296">
 <div class="org-src-container">
 <pre class="src src-conf"><span style="font-weight: bold; font-style: italic;">FDKAACENCOPTS</span>=<span style="font-style: italic;">'--bitrate 256k'</span>
 
@@ -359,9 +370,9 @@ Q7sbt0I=
 </div>
 </div>
 </div>
-<div id="outline-container-org02a97ed" class="outline-2">
-<h2 id="org02a97ed">Git</h2>
-<div class="outline-text-2" id="text-org02a97ed">
+<div id="outline-container-orgcb5b44c" class="outline-2">
+<h2 id="orgcb5b44c">Git</h2>
+<div class="outline-text-2" id="text-orgcb5b44c">
 <ul class="org-ul">
 <li><p>
 git ignore
@@ -556,7 +567,7 @@ pre-commit script is useful for checking strings to commit
 
 <p>
 forbiddens=(
-  <a id="orgbffe468"></a>
+  <a id="org0767dcb"></a>
 )
 </p>
 
@@ -592,9 +603,9 @@ do
 </div>
 </div>
 
-<div id="outline-container-org502aac5" class="outline-2">
-<h2 id="org502aac5">Pass</h2>
-<div class="outline-text-2" id="text-org502aac5">
+<div id="outline-container-orgba93f2d" class="outline-2">
+<h2 id="orgba93f2d">Pass</h2>
+<div class="outline-text-2" id="text-orgba93f2d">
 <div class="org-src-container">
 <pre class="src src-conf">[<span style="font-weight: bold; text-decoration: underline;">github.com*</span>]
 <span style="font-weight: bold; font-style: italic;">username_extractor</span>=specific_line
@@ -614,9 +625,9 @@ additional environment variables
 </ul>
 </div>
 </div>
-<div id="outline-container-org60d00f8" class="outline-2">
-<h2 id="org60d00f8">mpv</h2>
-<div class="outline-text-2" id="text-org60d00f8">
+<div id="outline-container-org943f090" class="outline-2">
+<h2 id="org943f090">mpv</h2>
+<div class="outline-text-2" id="text-org943f090">
 <ul class="org-ul">
 <li><p>
 mpv.conf
@@ -1096,9 +1107,9 @@ mp.register_event("end-file", delete)
 </div>
 </div>
 
-<div id="outline-container-org9cb2226" class="outline-2">
-<h2 id="org9cb2226">unison</h2>
-<div class="outline-text-2" id="text-org9cb2226">
+<div id="outline-container-org57baa98" class="outline-2">
+<h2 id="org57baa98">unison</h2>
+<div class="outline-text-2" id="text-org57baa98">
 <ul class="org-ul">
 <li><p>
 music directory syncing
@@ -1164,9 +1175,9 @@ doc directory backup
 </ul>
 </div>
 </div>
-<div id="outline-container-orgdea9047" class="outline-2">
-<h2 id="orgdea9047">crontab</h2>
-<div class="outline-text-2" id="text-orgdea9047">
+<div id="outline-container-org11dc547" class="outline-2">
+<h2 id="org11dc547">crontab</h2>
+<div class="outline-text-2" id="text-org11dc547">
 <ul class="org-ul">
 <li><p>
 crontab job definitions for my private PC
@@ -1200,9 +1211,9 @@ $ crontab ~/.config/crontab/pc01
 </ul>
 </div>
 </div>
-<div id="outline-container-orgc45d2dd" class="outline-2">
-<h2 id="orgc45d2dd">Aspell</h2>
-<div class="outline-text-2" id="text-orgc45d2dd">
+<div id="outline-container-org4756553" class="outline-2">
+<h2 id="org4756553">Aspell</h2>
+<div class="outline-text-2" id="text-org4756553">
 <p>
 aspell - interactive spell checker
 </p>
@@ -1212,9 +1223,9 @@ aspell - interactive spell checker
 </div>
 </div>
 </div>
-<div id="outline-container-org2a4b1b9" class="outline-2">
-<h2 id="org2a4b1b9">asdf-vm</h2>
-<div class="outline-text-2" id="text-org2a4b1b9">
+<div id="outline-container-org6a413fa" class="outline-2">
+<h2 id="org6a413fa">asdf-vm</h2>
+<div class="outline-text-2" id="text-org6a413fa">
 <p>
 Extendable version manager
 </p>
@@ -1262,9 +1273,9 @@ $ cd ~ &amp;&amp; asdf install
 </ul>
 </div>
 
-<div id="outline-container-orga1c84a2" class="outline-3">
-<h3 id="orga1c84a2">asdf-ruby</h3>
-<div class="outline-text-3" id="text-orga1c84a2">
+<div id="outline-container-org1ee354e" class="outline-3">
+<h3 id="org1ee354e">asdf-ruby</h3>
+<div class="outline-text-3" id="text-org1ee354e">
 <div class="org-src-container">
 <pre class="src src-conf">thor 1.1.0
 pry 0.14.1
@@ -1275,9 +1286,9 @@ streamio-ffmpeg
 </div>
 </div>
 </div>
-<div id="outline-container-org10a7950" class="outline-3">
-<h3 id="org10a7950">asdf-python</h3>
-<div class="outline-text-3" id="text-org10a7950">
+<div id="outline-container-org0b127b0" class="outline-3">
+<h3 id="org0b127b0">asdf-python</h3>
+<div class="outline-text-3" id="text-org0b127b0">
 <div class="org-src-container">
 <pre class="src src-python">lxml
 jedi
@@ -1288,9 +1299,9 @@ Send2Trash
 </div>
 </div>
 </div>
-<div id="outline-container-org7200ccd" class="outline-2">
-<h2 id="org7200ccd">xkeysnail</h2>
-<div class="outline-text-2" id="text-org7200ccd">
+<div id="outline-container-orgd3aa58a" class="outline-2">
+<h2 id="orgd3aa58a">xkeysnail</h2>
+<div class="outline-text-2" id="text-orgd3aa58a">
 <ul class="org-ul">
 <li><p>
 config.py
@@ -1458,9 +1469,9 @@ xkeysnail.service
 </div></li>
 </ul>
 </div>
-<div id="outline-container-orgcdc4fad" class="outline-3">
-<h3 id="orgcdc4fad">how to make xkeysnail daemonize</h3>
-<div class="outline-text-3" id="text-orgcdc4fad">
+<div id="outline-container-orga7165d7" class="outline-3">
+<h3 id="orga7165d7">how to make xkeysnail daemonize</h3>
+<div class="outline-text-3" id="text-orga7165d7">
 <ol class="org-ol">
 <li>Install xkeysnail on guix</li>
 <li><p>
@@ -1475,9 +1486,9 @@ $ systemctl --user start xkeysnail
 </div>
 </div>
 </div>
-<div id="outline-container-orgf6551a1" class="outline-2">
-<h2 id="orgf6551a1">fstab</h2>
-<div class="outline-text-2" id="text-orgf6551a1">
+<div id="outline-container-orgf38b473" class="outline-2">
+<h2 id="orgf38b473">fstab</h2>
+<div class="outline-text-2" id="text-orgf38b473">
 <ul class="org-ul">
 <li><p>
 /etc/fstab file for my personal machine
@@ -1496,9 +1507,13 @@ sshfs<span style="font-weight: bold; font-style: italic;">#</span><span style="f
 </ul>
 </div>
 </div>
-<div id="outline-container-orgb6858f9" class="outline-2">
-<h2 id="orgb6858f9">GnuPG (gpg)</h2>
-<div class="outline-text-2" id="text-orgb6858f9">
+<div id="outline-container-orgc32deb9" class="outline-2">
+<h2 id="orgc32deb9">GnuPG (gpg)</h2>
+<div class="outline-text-2" id="text-orgc32deb9">
+<p>
+<a href="https://wiki.archlinux.org/title/GnuPG">GnuPG - ArchWiki</a>
+</p>
+
 <ul class="org-ul">
 <li><p>
 gpg config
@@ -1519,13 +1534,29 @@ enable-ssh-support
 <span style="font-weight: bold; font-style: italic;">default-cache-ttl-ssh &lt;&lt;hours-in-sec(h</span>=48)&gt;&gt;
 </pre>
 </div></li>
+<li><p>
+mandatory config to use pinentry-curses for gpg-agent
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell"><span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">GPG_TTY</span>=$(tty)
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Refresh gpg-agent tty in case user switches into an X session</span>
+gpg-connect-agent updatestartuptty /bye &gt;/dev/null
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-conf">Match host * exec <span style="font-style: italic;">"gpg-connect-agent UPDATESTARTUPTTY /bye"</span>
+</pre>
+</div></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org538ff09" class="outline-2">
-<h2 id="org538ff09">GNU Guix</h2>
-<div class="outline-text-2" id="text-org538ff09">
+<div id="outline-container-org6a9a6f3" class="outline-2">
+<h2 id="org6a9a6f3">GNU Guix</h2>
+<div class="outline-text-2" id="text-org6a9a6f3">
 <div class="org-src-container">
 <pre class="src src-bash"><span style="font-weight: bold; font-style: italic;">GUIX_EXTRA_PROFILES</span>=$<span style="font-weight: bold; font-style: italic;">HOME</span>/.guix-extra-profiles
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">uncomment next line if you'd like to acticate specific profiles under ~/.guix-extra-profiles</span>
@@ -1557,9 +1588,9 @@ enable-ssh-support
 </div>
 </div>
 
-<div id="outline-container-orgcba5a8d" class="outline-3">
-<h3 id="orgcba5a8d">Channel definitions</h3>
-<div class="outline-text-3" id="text-orgcba5a8d">
+<div id="outline-container-org04f5d31" class="outline-3">
+<h3 id="org04f5d31">Channel definitions</h3>
+<div class="outline-text-3" id="text-org04f5d31">
 <div class="org-src-container">
 <pre class="src src-scheme">(list (channel
        (name 'flat)
@@ -1575,9 +1606,9 @@ enable-ssh-support
 </div>
 </div>
 
-<div id="outline-container-org975e38a" class="outline-3">
-<h3 id="org975e38a">Manifests</h3>
-<div class="outline-text-3" id="text-org975e38a">
+<div id="outline-container-orgdf16bd0" class="outline-3">
+<h3 id="orgdf16bd0">Manifests</h3>
+<div class="outline-text-3" id="text-orgdf16bd0">
 <ul class="org-ul">
 <li><p>
 base
@@ -1664,9 +1695,9 @@ wine
 </ul>
 </div>
 </div>
-<div id="outline-container-orgcb51e8c" class="outline-3">
-<h3 id="orgcb51e8c">Activating Profiles</h3>
-<div class="outline-text-3" id="text-orgcb51e8c">
+<div id="outline-container-org57f402c" class="outline-3">
+<h3 id="org57f402c">Activating Profiles</h3>
+<div class="outline-text-3" id="text-org57f402c">
 <p>
 This script accepts a space-separated list of manifest file names (without extension) under the <code>~/.config/guix/manifests</code> folder and then installs those profiles for the first time.  For example:
 </p>
@@ -1717,9 +1748,9 @@ activate-profiles base emacs
 </div>
 </div>
 </div>
-<div id="outline-container-orgc9622b8" class="outline-3">
-<h3 id="orgc9622b8">Updating Channels</h3>
-<div class="outline-text-3" id="text-orgc9622b8">
+<div id="outline-container-orgbb60060" class="outline-3">
+<h3 id="orgbb60060">Updating Channels</h3>
+<div class="outline-text-3" id="text-orgbb60060">
 <p>
 This script makes it easy to update all channels to the latest commit based on an original channel file.
 </p>
@@ -1737,9 +1768,9 @@ guix describe --format=channels &gt; ~/.config/guix/channels.scm
 </div>
 </div>
 </div>
-<div id="outline-container-org7e94f36" class="outline-2">
-<h2 id="org7e94f36">SKK</h2>
-<div class="outline-text-2" id="text-org7e94f36">
+<div id="outline-container-orgebb8550" class="outline-2">
+<h2 id="orgebb8550">SKK</h2>
+<div class="outline-text-2" id="text-orgebb8550">
 <p>
 SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 </p>
@@ -1753,9 +1784,9 @@ It is better to write my own one for my reproducible system.
 </ul>
 </div>
 </div>
-<div id="outline-container-orga7fec90" class="outline-2">
-<h2 id="orga7fec90">Jack</h2>
-<div class="outline-text-2" id="text-orga7fec90">
+<div id="outline-container-org4de5743" class="outline-2">
+<h2 id="org4de5743">Jack</h2>
+<div class="outline-text-2" id="text-org4de5743">
 <div class="org-src-container">
 <pre class="src src-scheme"><span style="font-style: italic;">"qjackctl"</span>
 <span style="font-style: italic;">"qsynth"</span>
