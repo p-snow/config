@@ -247,6 +247,11 @@ i4IvaH/QeyE4KQkwJ25yAl6/juJZfXsA9uiWlH9hWhYBMyG+zYxx/kepJqtStCV0
 Q7sbt0I=
 =sBHC
 -----END PGP MESSAGE-----
+
+* SSH
+#+begin_src conf  :tangle (expand-tangle-target ".ssh/config")
+  Include config.d/*
+#+end_src
 * abcde
 #+BEGIN_SRC conf :tangle (expand-tangle-target ".abcde.conf")
   FDKAACENCOPTS='--bitrate 256k'
@@ -1222,6 +1227,8 @@ Extendable version manager
     sshfs#<<account()>>@sv04.<<my-network()>>:/home/<<account()>> /mnt/sv04 fuse defaults,x-systemd.nofail,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
   #+end_src
 * GnuPG (gpg)
+[[https://wiki.archlinux.org/title/GnuPG][GnuPG - ArchWiki]]
+
 - gpg config
   #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".gnupg/gpg.conf")
     with-keygrip
@@ -1234,6 +1241,18 @@ Extendable version manager
     enable-ssh-support
     default-cache-ttl <<hours-in-sec(h=24)>>
     default-cache-ttl-ssh <<hours-in-sec(h=48)>>
+  #+end_src
+- mandatory config to use pinentry-curses for gpg-agent
+
+  #+begin_src shell :tangle (expand-tangle-target ".bashrc")
+    export GPG_TTY=$(tty)
+
+    # Refresh gpg-agent tty in case user switches into an X session
+    gpg-connect-agent updatestartuptty /bye >/dev/null
+  #+end_src
+
+  #+begin_src conf :tangle (expand-tangle-target ".ssh/config")
+    Match host * exec "gpg-connect-agent UPDATESTARTUPTTY /bye"
   #+end_src
 
 * GNU Guix
