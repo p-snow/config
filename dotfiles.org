@@ -1272,7 +1272,6 @@ Extendable version manager
        "fontconfig"
        "global"
        "lilypond"
-       "make"
        "wget"
        "openssh"
        "password-store"
@@ -1294,31 +1293,34 @@ Extendable version manager
   #+end_src
 - media
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/media.scm")
-        (specifications->manifest
-         '("abcde"
-           "krita"
-           "gimp"
-           "kdenlive"
-           "obs"
-           "cdrtools"
-           "dvdbackup"
-           "easytag"
-           "libdvdnav"
-           "vlc"
-           "handbrake"
-           "youtube-dl"
-           "mpv"
-           "ffmpeg"
-           "libdvdcss"
-           "gcompris-qt"
-           "dav1d"
-           <<media-pkgs>>))
+    (specifications->manifest
+     '("abcde"
+       "krita"
+       "gimp"
+       "kdenlive"
+       "obs"
+       "cdrtools"
+       "dvdbackup"
+       "easytag"
+       "libdvdnav"
+       "vlc"
+       "handbrake"
+       "youtube-dl"
+       "mpv"
+       "ffmpeg"
+       "libdvdcss"
+       "gcompris-qt"
+       "dav1d"
+       "ddrescue"
+       <<media-pkgs>>))
   #+end_src
 - devel (software development)
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/devel.scm")
     (specifications->manifest
-     '("llvm"
+     '("make"
+       "llvm"
        "cmake"
+       "libtool"
        <<devel-pkgs>>))
   #+end_src
 - wine
