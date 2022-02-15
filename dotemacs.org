@@ -489,6 +489,25 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
   (electric-indent-mode 1)
 #+end_src
 
+*** comments
+
+This command was introduced at [[https://irreal.org/blog/?p=10318][here]] to insert comment box with fixed width based on [[help:fill-column][fill-column]].
+
+#+begin_src emacs-lisp
+  (defun my/comment-box (b e)
+    "Draw a box comment around the region but arrange for the region
+  to extend to at least the fill column. Place the point after the
+  comment box."
+    (interactive "r")
+    (let ((e (copy-marker e t)))
+      (goto-char b)
+      (end-of-line)
+      (insert-char ?  (- fill-column (current-column)))
+      (comment-box b e 1)
+      (goto-char e)
+      (set-marker e nil)))
+#+end_src
+
 *** performance
 
 #+begin_src emacs-lisp
