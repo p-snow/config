@@ -7,7 +7,7 @@
 
 #+STARTUP: hideblocks
 
-* User Information
+* Noweb References
 - my home directory
   #+name: home-dir
   #+begin_src bash
@@ -33,6 +33,12 @@
   #+begin_src bash
     echo -n "${EMAIL}" | cut -d'@' -f2
   #+end_src
+- utility functions
+  #+name: hours-in-sec
+  #+begin_src emacs-lisp :var h=1
+    (* h 60 60)
+  #+end_src
+
 * Bash
 - bash profile
   #+BEGIN_SRC bash :tangle (expand-tangle-target ".bash_profile")
@@ -1215,6 +1221,21 @@ Extendable version manager
     sshfs#<<account()>>@ns01:/home/<<account()>>/share /mnt/ns01 fuse defaults,x-systemd.nofail,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
     sshfs#<<account()>>@sv04.<<my-network()>>:/home/<<account()>> /mnt/sv04 fuse defaults,x-systemd.nofail,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
   #+end_src
+* GnuPG (gpg)
+- gpg config
+  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".gnupg/gpg.conf")
+    with-keygrip
+  #+end_src
+- gpg-agent config
+  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".gnupg/gpg-agent.conf")
+    pinentry-program /usr/bin/pinentry-curses
+    allow-emacs-pinentry
+    allow-loopback-pinentry
+    enable-ssh-support
+    default-cache-ttl <<hours-in-sec(h=24)>>
+    default-cache-ttl-ssh <<hours-in-sec(h=48)>>
+  #+end_src
+
 * GNU Guix
 
 #+begin_src bash :tangle (expand-tangle-target ".bashrc")
@@ -1383,7 +1404,6 @@ This script makes it easy to update all channels to the latest commit based on a
     guix pull --channels=$HOME/.config/guix/base-channels.scm
     guix describe --format=channels > ~/.config/guix/channels.scm
 #+end_src
-
 * SKK
 
 SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
