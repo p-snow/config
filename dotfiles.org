@@ -1197,13 +1197,13 @@ Extendable version manager
 
     [Service]
     KillMode=process
-    ExecStart=%h/.local/bin/pwsudo %h/.guix-profile/bin/xkeysnail --watch --quiet %h/.config/xkeysnail/config.py
-    ExecStop=%h/.local/bin/pwsudo /usr/bin/killall xkeysnail
+    ExecStart=/bin/bash -ic '%h/.local/bin/pwsudo %h/.guix-extra-profiles/base/base/bin/xkeysnail --watch --quiet %h/.config/xkeysnail/config.py'
     ExecStartPre=/usr/bin/xhost +SI:localuser:root
     Type=simple
     Restart=always
     # Update DISPLAY to be the same as `echo $DISPLAY` on your graphical terminal.
     Environment=DISPLAY=:0
+    EnvironmentFile=%h/.bashrc
 
     [Install]
     # WantedBy=graphical.target
