@@ -23,6 +23,8 @@ These process must be evaluated beforehand.
 #+begin_src emacs-lisp
   (setf user-emacs-directory
         (expand-file-name (file-name-as-directory "~/share/emacs")))
+  (setf user-emacs-directory-default
+        (expand-file-name (file-name-as-directory "~/.emacs.d")))
 #+end_src
 *** package.el
 
@@ -4733,6 +4735,8 @@ Major mode for manupulating password store file.
     ((prog-mode org-mode shell-mode) . yas-minor-mode-on)
     :custom
     (yas-triggers-in-field t)
+    (yas-snippet-dirs
+     `(,(expand-file-name "snippets" user-emacs-directory-default)))
     :config
     ;; work around code
     (yas-reload-all))
