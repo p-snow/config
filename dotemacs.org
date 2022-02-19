@@ -18,6 +18,12 @@
 
 These process must be evaluated beforehand.
 
+*** global variable definitions
+
+#+begin_src emacs-lisp
+  (setf user-emacs-directory
+        (expand-file-name (file-name-as-directory "~/share/emacs")))
+#+end_src
 *** package.el
 
 #+begin_src emacs-lisp
@@ -141,12 +147,6 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/init.el")
 :END:
-
-*** global variable definitions
-
-#+begin_src emacs-lisp
-  (setf user-emacs-directory (file-name-as-directory "~/var/lib/emacs"))
-#+end_src
 
 *** loading lisp files
 
@@ -6610,7 +6610,7 @@ Stripping rules are:
 #+end_src
 * package management
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/straight/versions/default.el")
+:header-args+: :tangle (expand-tangle-target "~/share/emacs/straight/versions/default.el")
 :END:
 
 #+begin_src emacs-lisp :comments noweb :tangle-mode (identity #o644)
