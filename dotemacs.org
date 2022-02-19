@@ -351,6 +351,16 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
   (windmove-default-keybindings)
 #+end_src
 
+*** buffers
+
+Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
+
+#+begin_src emacs-lisp
+  (substitute-key-definition 'list-buffers
+                             'ibuffer
+                             global-map)
+#+end_src
+
 *** mode line
 
 #+begin_src emacs-lisp
