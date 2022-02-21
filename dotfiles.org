@@ -1217,14 +1217,23 @@ Extendable version manager
 * fstab
 - /etc/fstab file for my personal machine
   #+begin_src conf :noweb tangle :tangle ~/tmp/pc01.fstab
-    PARTUUID=2b97745f-01 /mnt/ssd01/ btrfs noauto,x-systemd.automount,x-systemd.device-timeout=5,nofail 0 2
+    # subvolumes in nvme SSD
+    PARTUUID=df1c4a4c-e0c9-48fb-b5e0-826fb274bd94 /mnt/nvme01/ btrfs x-systemd.defaults,nofail,subvolid=5 0 2
+
+    PARTUUID=df1c4a4c-e0c9-48fb-b5e0-826fb274bd94 <<home-dir()>>/data btrfs noauto,x-systemd.automount,x-systemd.device-timeout=5,nofail,relatime,space_cache,compress=zstd,subvolid=376 0 0
+
+    # btrfs subvolumes in external SSD
+    UUID=98422431-b089-4dc0-b326-2693c19ace4e /mnt/ssd01/ btrfs noauto,x-systemd.automount,x-systemd.device-timeout=5,nofail,subvolid=5 0 2
+
     PARTUUID=2b97745f-01 <<home-dir()>>/doc btrfs noauto,x-systemd.automount,x-systemd.device-timeout=5,nofail,relatime,space_cache,compress=zstd,subvolid=710 0 0
-    PARTUUID=2b97745f-01 <<home-dir()>>/work btrfs noauto,x-systemd.automount,x-systemd.device-timeout=5,nofail,relatime,space_cache,compress=zstd,subvolid=717 0 0
+    PARTUUID=2b97745f-01 <<home-dir()>>/share btrfs noauto,x-systemd.automount,x-systemd.device-timeout=5,nofail,relatime,space_cache,compress=zstd,subvolid=1547 0 0
 
-    PARTUUID=4a49c08b-01 /mnt/hdd01 btrfs noauto,x-systemd.automount,x-systemd.device-timeout=5,nofail,relatime,space_cache,subvolid=5,subvol=/ 0 2
+    # btrfs subvolumes in external HDD
+    PARTUUID=71f7ecd2-01 /mnt/hdd01 ext4 defaults 0 2
 
-    sshfs#<<account()>>@ns01:/home/<<account()>>/share /mnt/ns01 fuse defaults,x-systemd.nofail,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
-    sshfs#<<account()>>@sv04.<<my-network()>>:/home/<<account()>> /mnt/sv04 fuse defaults,x-systemd.nofail,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
+
+    <<home-dir()>>/.guix-extra-profiles/base/base/bin/sshfs#<<account()>>@ns01:/home/<<account()>>/share /mnt/ns01 fuse defaults,x-systemd.nofail,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
+    <<home-dir()>>/.guix-extra-profiles/base/base/bin/sshfs#<<account()>>@sv04.<<my-network()>>:/home/<<account()>> /mnt/sv04 fuse defaults,x-systemd.nofail,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
   #+end_src
 * GnuPG (gpg)
 [[https://wiki.archlinux.org/title/GnuPG][GnuPG - ArchWiki]]
