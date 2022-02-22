@@ -21,24 +21,24 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgd7ac055">Declutters</a></li>
-<li><a href="#org37dfe27">Database back-up scripts</a></li>
-<li><a href="#org21199a2">Snapshots taking</a></li>
-<li><a href="#org1359f73">backup scripts</a></li>
-<li><a href="#org4216bab">filetype</a></li>
-<li><a href="#orgc93a395">mediautil</a></li>
-<li><a href="#orgd40016e">genalbum</a></li>
-<li><a href="#org6748c2d">nhp</a></li>
-<li><a href="#org09cf482">sendmail.py</a></li>
-<li><a href="#org5e0cf10">pwsudo</a></li>
-<li><a href="#orge6cb054">gitsync</a></li>
+<li><a href="#org2e73cc7">Declutters</a></li>
+<li><a href="#org8172b05">Database back-up scripts</a></li>
+<li><a href="#org74b53ff">Snapshots taking</a></li>
+<li><a href="#orgb727003">backup scripts</a></li>
+<li><a href="#org7e98d8c">filetype</a></li>
+<li><a href="#org577095c">mediautil</a></li>
+<li><a href="#org51030c8">genalbum</a></li>
+<li><a href="#org7b5f604">nhp</a></li>
+<li><a href="#orgd452f23">sendmail.py</a></li>
+<li><a href="#org5408c19">pwsudo</a></li>
+<li><a href="#org0b068c7">gitsync</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orgd7ac055" class="outline-2">
-<h2 id="orgd7ac055">Declutters</h2>
-<div class="outline-text-2" id="text-orgd7ac055">
+<div id="outline-container-org2e73cc7" class="outline-2">
+<h2 id="org2e73cc7">Declutters</h2>
+<div class="outline-text-2" id="text-org2e73cc7">
 <p>
 These scripts (declutter<sub>xxx</sub>) keep things decluttered.
 </p>
@@ -60,7 +60,7 @@ trash
 <span style="font-weight: bold; font-style: italic;">TRASH_DIR</span> = os.environ[<span style="font-style: italic;">'HOME'</span>] + <span style="font-style: italic;">'/.local/share/Trash/files/'</span>
 <span style="font-weight: bold; font-style: italic;">TIDY_DIRS</span> = <span style="font-weight: bold;">filter</span>(<span style="font-weight: bold;">lambda</span> x: os.path.isdir(x),
                    <span style="font-weight: bold;">list</span>(<span style="font-weight: bold;">map</span>(<span style="font-weight: bold;">lambda</span> x: os.path.join(os.environ[<span style="font-style: italic;">'HOME'</span>], x), [<span style="font-style: italic;">'tmp'</span>, <span style="font-style: italic;">'Downloads'</span>]))
-                   + glob.glob(os.path.join(os.environ[<span style="font-style: italic;">'HOME'</span>], <span style="font-style: italic;">'var/tmp/*'</span>)))
+                   + glob.glob(os.path.join(os.environ[<span style="font-style: italic;">'HOME'</span>], <span style="font-style: italic;">'share/tmp/*'</span>)))
 
 <span style="font-weight: bold; font-style: italic;">MAX_STAY_DAYS_IN_TRASH</span> = 7
 <span style="font-weight: bold; font-style: italic;">MAX_NEGLECTED_DAYS_IN_TIDY_DIRS</span> = 14
@@ -222,9 +222,9 @@ parser.add_argument(<span style="font-style: italic;">'-r'</span>, dest=<span st
 </ul>
 </div>
 </div>
-<div id="outline-container-org37dfe27" class="outline-2">
-<h2 id="org37dfe27">Database back-up scripts</h2>
-<div class="outline-text-2" id="text-org37dfe27">
+<div id="outline-container-org8172b05" class="outline-2">
+<h2 id="org8172b05">Database back-up scripts</h2>
+<div class="outline-text-2" id="text-org8172b05">
 <ul class="org-ul">
 <li><p>
 PostgreSQL
@@ -250,7 +250,7 @@ MySQL
 <div class="org-src-container">
 <pre class="src src-shell"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
 
-<span style="font-weight: bold; font-style: italic;">BACKUP_DIR</span>=~/var/backups/mysql
+<span style="font-weight: bold; font-style: italic;">BACKUP_DIR</span>=~/share/backups/mysql
 <span style="font-weight: bold; font-style: italic;">RAW_SQL</span>=<span style="font-style: italic;">"$(date +%Y%m%d_%H%M)_backup.sql"</span>
 <span style="font-weight: bold; font-style: italic;">TAR_SQL</span>=<span style="font-style: italic;">"${RAW_SQL}.txz"</span>
 
@@ -268,9 +268,9 @@ MySQL
 </div>
 </div>
 
-<div id="outline-container-org21199a2" class="outline-2">
-<h2 id="org21199a2">Snapshots taking</h2>
-<div class="outline-text-2" id="text-org21199a2">
+<div id="outline-container-org74b53ff" class="outline-2">
+<h2 id="org74b53ff">Snapshots taking</h2>
+<div class="outline-text-2" id="text-org74b53ff">
 <ul class="org-ul">
 <li><p>
 snapshot.sh
@@ -290,9 +290,9 @@ snapshot.sh
 </ul>
 </div>
 </div>
-<div id="outline-container-org1359f73" class="outline-2">
-<h2 id="org1359f73">backup scripts</h2>
-<div class="outline-text-2" id="text-org1359f73">
+<div id="outline-container-orgb727003" class="outline-2">
+<h2 id="orgb727003">backup scripts</h2>
+<div class="outline-text-2" id="text-orgb727003">
 <ul class="org-ul">
 <li><p>
 back<sub>btrfs.sh</sub>
@@ -390,9 +390,9 @@ rsync exclude file for sv04
 </ul>
 </div>
 </div>
-<div id="outline-container-org4216bab" class="outline-2">
-<h2 id="org4216bab">filetype</h2>
-<div class="outline-text-2" id="text-org4216bab">
+<div id="outline-container-org7e98d8c" class="outline-2">
+<h2 id="org7e98d8c">filetype</h2>
+<div class="outline-text-2" id="text-org7e98d8c">
 <p>
 This program determine type of the file.
 </p>
@@ -505,9 +505,9 @@ This program determine type of the file.
 </div>
 </div>
 </div>
-<div id="outline-container-orgc93a395" class="outline-2">
-<h2 id="orgc93a395">mediautil</h2>
-<div class="outline-text-2" id="text-orgc93a395">
+<div id="outline-container-org577095c" class="outline-2">
+<h2 id="org577095c">mediautil</h2>
+<div class="outline-text-2" id="text-org577095c">
 <p>
 Utility ruby program for manipulating image, audio and video file.
 </p>
@@ -1364,9 +1364,9 @@ Utility ruby program for manipulating image, audio and video file.
 </div>
 </div>
 </div>
-<div id="outline-container-orgd40016e" class="outline-2">
-<h2 id="orgd40016e">genalbum</h2>
-<div class="outline-text-2" id="text-orgd40016e">
+<div id="outline-container-org51030c8" class="outline-2">
+<h2 id="org51030c8">genalbum</h2>
+<div class="outline-text-2" id="text-org51030c8">
 <p>
 Personal script for encoding family pictures and movies.
 </p>
@@ -1481,9 +1481,9 @@ Personal script for encoding family pictures and movies.
 </div>
 </div>
 
-<div id="outline-container-org6748c2d" class="outline-2">
-<h2 id="org6748c2d">nhp</h2>
-<div class="outline-text-2" id="text-org6748c2d">
+<div id="outline-container-org7b5f604" class="outline-2">
+<h2 id="org7b5f604">nhp</h2>
+<div class="outline-text-2" id="text-org7b5f604">
 <p>
 Exec command in background
 </p>
@@ -1576,7 +1576,7 @@ Exec command in background
   <span style="font-weight: bold;">exit</span> 1
 <span style="font-weight: bold;">fi</span>
 
-<span style="font-weight: bold; font-style: italic;">LOG_DIR</span>=${<span style="font-weight: bold; font-style: italic;">HOME</span>}/var/log/$(basename <span style="font-style: italic;">"$0"</span>)
+<span style="font-weight: bold; font-style: italic;">LOG_DIR</span>=${<span style="font-weight: bold; font-style: italic;">HOME</span>}/.local/state/log/$(basename <span style="font-style: italic;">"$0"</span>)
 <span style="font-weight: bold; font-style: italic;">fname_default</span>=$(date <span style="font-style: italic;">'+%Y%m%d_%H%M%S'</span>)_$(basename <span style="font-style: italic;">"$0"</span>)-$(basename <span style="font-style: italic;">"$1"</span>)
 
 <span style="font-weight: bold;">if</span> [ ! -d <span style="font-style: italic;">"${LOG_DIR}"</span> ]; <span style="font-weight: bold;">then</span>
@@ -1618,9 +1618,9 @@ Exec command in background
 </div>
 </div>
 
-<div id="outline-container-org09cf482" class="outline-2">
-<h2 id="org09cf482">sendmail.py</h2>
-<div class="outline-text-2" id="text-org09cf482">
+<div id="outline-container-orgd452f23" class="outline-2">
+<h2 id="orgd452f23">sendmail.py</h2>
+<div class="outline-text-2" id="text-orgd452f23">
 <p>
 Utility for sendind email programatically
 </p>
@@ -1671,9 +1671,9 @@ sendmail(args.to, args.mailfrom, args.subject, message)
 </div>
 </div>
 
-<div id="outline-container-org5e0cf10" class="outline-2">
-<h2 id="org5e0cf10">pwsudo</h2>
-<div class="outline-text-2" id="text-org5e0cf10">
+<div id="outline-container-org5408c19" class="outline-2">
+<h2 id="org5408c19">pwsudo</h2>
+<div class="outline-text-2" id="text-org5408c19">
 <div class="org-src-container">
 <pre class="src src-shell"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
 
@@ -1690,9 +1690,9 @@ sendmail(args.to, args.mailfrom, args.subject, message)
 </div>
 </div>
 
-<div id="outline-container-orge6cb054" class="outline-2">
-<h2 id="orge6cb054">gitsync</h2>
-<div class="outline-text-2" id="text-orge6cb054">
+<div id="outline-container-org0b068c7" class="outline-2">
+<h2 id="org0b068c7">gitsync</h2>
+<div class="outline-text-2" id="text-org0b068c7">
 <ul class="org-ul">
 <li><p>
 gitsync-local
