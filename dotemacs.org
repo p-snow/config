@@ -585,7 +585,7 @@ fDDHS5Vq5UvYutk=
 *** [[https://github.com/skk-dev/ddskk/releases.atom][ddskk]]
 
 #+begin_src emacs-lisp
-  (defvar skk-data-dir (expand-file-name "~/var/lib/skk"))
+  (defvar skk-data-dir (expand-file-name "~/share/skk"))
 
   (use-package ddskk
     :straight t
@@ -1185,7 +1185,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     (interactive)
     (let ((source (plist-get eww-data :source))
           (src-html (make-temp-file "source-"))
-          (dst-org (expand-file-name (format "%s.org" (org-id-uuid)) "~/var/tmp/eww"))
+          (dst-org (expand-file-name (format "%s.org" (org-id-uuid)) "~/share/tmp"))
           (coding-system-for-write 'utf-8-unix)
           (org-startup-folded t))
       (with-temp-buffer
@@ -1320,7 +1320,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 
 You need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-message-store.html][issue 'mu init' command]] before using mu4e.
 Command in practice presumably looks like:
-: mu init --maildir=~/var/mail --muhome ~/var/lib/mu --my-address=jim@example.com
+: mu init --maildir=~/share/mail --muhome=~/share/mu --my-address=jim@example.com
 
 #+begin_src scheme :noweb-ref emacs-pkgs
   "mu"
@@ -1442,36 +1442,36 @@ Command in practice presumably looks like:
 
 -----BEGIN PGP MESSAGE-----
 
-hQEMA9uWvE5LJ2ejAQf/SAyyJGi3rfr2CpSC9cqiUy4CszLD4lNAuYDKZ0Zcsu1a
-K7EEA/zfEgd8AZIvCLJoE5TU7HFtAWtuVJRxYUFhGX5uttQE7ukrmIZsKh1gHrqD
-9hlY070RAQ8D/L4rbROJVsoYhg+E9owco6kX9MppTTJlu146UmvV09lrIp33bJFG
-UaUKiNVItSX8pzuBKyHolLqTEP11cR8wzBIYjyO7DvMvj6Lgk1vQph1X9Lfqk35e
-bI1Unf1H/t2Z6WuDOvfpbVh5x8n9oIXl0lLjDkuiyNET3xIdAgbgJGlixLcKwqBX
-8BycC4r7FV2fpqRkcNvWCWOjt2Do/a/caSLBZjeSu9LqAbEuo9wiCAqLBuW3V0tH
-/9lI7P8t6dUYI8K4VWU/u3egfLe5fbbM68VDT+ZEYMyunF4clw/LROx3SYHqh3Ye
-aFTl5g0V5bhG6XOPNfD8WSIlx0FVxvBKHTuq9dms1rTBf+hO48zvl2hlkyeXTkC0
-PL6JeDjiWOaUGwKFfFBG/em/mayuUrdltrFgTi7wdZ01Ydv0RfDKdPRe3GiX2XMY
-e+qVnCNDQ6GGMrc5dnqA+qQC5rSyxP81Jb6rCDl4Py5/TCzRdrVmqRL9Rmqxynf8
-badHyHyOcd0kXaphqxR4t2l1Ppbp5maaxjOxcBXcsrc4dVla97gpC1AkHns0GMEL
-ZXjAUGJjdQJ9xbnMSCC9r871576WbZybkldXzr9YMUAUc04z98mxes678ooV0qbk
-u+SJOv6uBH2OoLbuD8PMs7FAhvl/c0qcuLfAMaqoKH4xgjzEqiurZ5wtnqgisKEr
-1jc1mM6J3R003fEDyi4RMza/be4anYIz5hH5uz6CWqSVp5EA36stQdENmkmzM31I
-JzCLZcI1XlbRoVRDspyq48CArHEMqxDUn9wil5tgLGRq15gANcu+7MSeQ2gcOTG+
-mP5EQmpnDOLCKepwltIm8WQtkIT7RDLJE260DkwXWuAlW/CtQO5TGgaTqRVv1A/3
-5OgTGDhXSWSejyA2XuSbiJtyjW+8HSrDv0CZSzo8N0m5WBbM6xqoQAfAZ2m6T0X6
-lyilVyRmOj72oy0tIApX0+vt+QvrTvD9iPt8LOnNR2YyEPei4GipOVx9yeBrLSQk
-RlMGC+rFLgbkwaEBDx4vZS29bsl3o8MucdwcnK7ow4fXd2jAqndT8NRLK9QIhXwg
-pPMU2xsxcgZCXkhAc66sWOP/vLoL3Cn74OXVACb8nT8fC4mWyefLguSnmsiX3vyI
-OX4Qtz2KxxygRDa13bNdg/zk/k6KkHKAy6lCKiPfr+AWRnQKbXVtRRdPVd6yADuq
-bW2BUZEpehu3Gw9pZ9UxdKNqCT5coHLlND32Su+1VyTuZrTOIfTxS39GOV93uSzY
-pS8N2sKgC9UJ0bCaaJ1JaWaFcNb7rygSjYSrMZ+BSnX1K9RTl/ENrovVxP73/+v1
-tAkBojuhvhYIyNYXUCGc9NU2pQxbOeIjhqaNOzmyRzpwuYEmFWUS/Y/Eyqt5XzSD
-U/kx+2Wzd97YgjGpMwJmWdk2bBNSIQ5gCeU2QGeLNnMbr4mLP0frfHWkuo61iN2W
-EcpcEillBEzi38UWA14cj5ASCkSQpn2WZUcozCv2cbSYT4n/sy55wl6t0YDJVWTZ
-fbaJxAK0C8ziZYenirZvaroVRDXyvj1kkICkJGcnLidp0W2Y6G3OUmnOtk60bLF/
-YjnaKMBLOLN1k5wMmUcWCPQzX8FCskFJoaiGzDbXeyZ/UnDqJpKSGxMG9yLZzyid
-lDAmxVslTY94qV4=
-=1X9o
+hQEMA9uWvE5LJ2ejAQf/Su1s2xPa4S8xBtNdhRq1Sy4IK/P/jxT1oqSF9blsm1qG
+2HcqmAYs/wCcGSxQTHGqS78sP6lu99kwcUpJ6ki2jLQ2vKb2DTQkszHhCGVO07Ks
+LFxljWqfLj20/wfTEg95QSdOqJcdQ3kTD3DM4DG6QrA7H8F5zoCvUpkKeAvmTO44
+rFPRB+PbnpmFSt8nqCJU9Wz/LD6FOQSAcHbwQTWn/wvF7U54pWJxAVLo9VZAbBoU
+ePHEhPk2L60a1jq6eq90PuJtZkFbNRWiK6UKN7Kseys8KGkRG7hXrCDF0T3OW63z
+t/zx2QoNf+tyoXHGQdW12K94/8qZI9WQajupXW3+BtLqAR1GTrKzP6ee6Kx5ejdw
+elg76+qMnaKhiGz0R1uJgBvbeVr/LjZCunMBHDsOralXniIBo+XJZYS28Ka2JI/f
+t4qGrx5bwBzgIE8D9hk/kMNQ3BTQCnsH2eBx/q46bBu+/tiIawkNn5wEbwMSpfLi
+gNibaIoSjzjn4D9e3C6PzT5gHcn3UsPihTwL2HXamQJq3ejZTp/CIA7YZDjorckx
+BKafl16Ll5XaJ00WTCInOesn7M18Vt4b/ARo8tDaxKl4AQXXIy4zblUGnpJjVYI7
+4hpjdRLB3zNkoSuQqc++cwp5VCIhVs5LqcM8IowviWsFIrfj2x2Gs+jiQNGcH/im
+iSjqpMIrU6FYh1zyvGcuCHLt5m3Hc5JiZSTSZChhoDifjIq8hEeM9GxD1z7GKjq8
+53iFyEXqDkH4npWVsbaf1HRk+lL920pkt7i9Ur/1BR/CFMR+dqcGagU9Kku4jNp4
+PA/NMsdqaeTay8cKaRZgGK/UOtjLdjjUpipXotZUFhxX0kmSaq8Qq7xtDfvlIklM
+rTnwHwSYaHgOIPGwXAi2prpp++nsQU1KhrhDMGLLAfum2pE/7x0jFzVY6aBjX0cp
+vfVP/Yxs2D7ZOJUU23y8VtQsJqcJIP9/Sjtox541890jv3Nope4Kpo7UwcG7N7Gz
++ifJlduvbnBKV4krM5cM2m9TLsJG3LClOgh8mkRVTrUYGikobDJ43icjl4CVT4Yc
+gNn5A7WYVLHKfjHPNLA+0uFfj+kXVA+SD7xxmg9PkeXNIPQiB7Ez8fb73DRPyG3p
+nM/xIOmtGUuY8WMCleSLF2IXU1CZiTVhN02rfV6oSfeq/nvE4EfBmPmpPy1mz9S3
+q9bkwV2UGqw9DzxcQsAIMz7q25T/tYf1qQl+Em4ZmiiAxNAij9/+xF19y6Y5MqgS
+dmaFOcVzRiuq0/EOujEiz4EFEKeyU4SBX+KIovUG9dodd7AdZAn9wQ7zLm04A1LL
+F8MS94H6nMvNvXv9Oah4yqlxf1rGSoUKie7tNPXhacLRtGG3uefHfCs5AbvxatXc
+VV1k6AlarhVIf+6NDhs9+yYBpInLeGDF+tsdx6wXFB6c//7QzbW+7c48xk1TpGiu
+DjQwbHihrNC+E+yRCpG01yrh8J196jZiSsp1t7fgALbMAVXfMBC0y54B+NpWbUTc
+brfmc/wwfCtY8jnXEAwD8MeOhKgKZu/2pavDtREw74NmB8IygO/Rz0VE3Q802ADY
+plLgBU8U22zXBCXumkjepm2dslWzP0e/jndYrxNAwNB10bWLuc2zkVQrrGSZnIj3
+cvEoRndsq82ENkijyFcJw9qFNB1c4hWiNV/7MiF7uO/8wqVa5NbS3/Hkj5goWh4g
+qzfDO+v68+Pal3UaU+St5EXSO3/iJMXK4PPdyAQb+4LsA9GAR82NHs3LO5hKYqMh
+QnFq5wn2GR7s
+=67og
 -----END PGP MESSAGE-----
 
 ** [[https://github.com/skeeto/elfeed/releases.atom][elfeed]]
@@ -1501,7 +1501,7 @@ lDAmxVslTY94qV4=
     (elfeed-search-checked-title-face ((t (:foreground "darkblue"))))
     :custom
     (elfeed-use-curl t)
-    (elfeed-db-directory (expand-file-name "~/var/lib/elfeed"))
+    (elfeed-db-directory (expand-file-name "~/share/emacs/elfeed"))
     (elfeed-search-date-format '("%Y%m%d" 8 :left))
     (elfeed-search-title-min-width 100)
     (elfeed-search-title-max-width 120)
@@ -2960,7 +2960,7 @@ org-roam v2
     :custom
     (org-roam-directory (expand-file-name "note" org-directory))
     ;; DB does not have to be with org files since it is derived from org files uniquely
-    (org-roam-db-location (expand-file-name "org-roam.db" "~/var/lib/org-roam"))
+    (org-roam-db-location (expand-file-name "org-roam.db" "~/share/emacs/org-roam"))
     (org-roam-buffer-position 'bottom))
 #+end_src
 *** [[https://gitlab.com/phillord/org-drill/-/tags?format=atom][org-drill]]
@@ -3035,7 +3035,7 @@ org-roam v2
               (org-babel-lob-ingest f)))
           '("agenda" "index" "wiki")))
 
-  (defvar org-readable-directory "~/var/tmp/readable"
+  (defvar org-readable-directory "~/share/tmp"
     "A directory where generated html files are located in org-readable.")
 
   (defun org-readable ()
@@ -4185,7 +4185,7 @@ CAUTION: An unexpected incident might occur if twittering-icon-mode call lay at 
     :after hydra
     :commands twit
     :init
-    (defvar my/twittering-resource-dir "~/var/lib/twmode")
+    (defvar my/twittering-resource-dir "~/share/emacs/twmode")
     :hook
     (twittering-mode . twittering-icon-mode)
     :custom
@@ -5187,7 +5187,7 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
 *** media file handling
 
 #+begin_src emacs-lisp
-  (defvar my/download-video-dir "~/Videos" "Directory where downloaded video locate.")
+  (defvar my/download-video-dir "~/data/media/video" "Directory where downloaded video locate.")
 
   (defun my/download-video (url &optional filename playlistp)
     "Download video from `URL'.
@@ -5245,7 +5245,7 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
                    (alert (format "Downloaded: %s" (or filename-lex url-lex)) :severity 'normal :style 'fringe)
                  (alert (format "Failed(%d): %s" exit-status (or filename-lex url-lex)) :severity 'urgent :style 'fringe)))))))))
 
-  (defvar my/download-audio-dir "~/Audio" "Directory where downloaded audio locate.")
+  (defvar my/download-audio-dir "~/data/media/audio" "Directory where downloaded audio locate.")
 
   (defun my/download-audio (url &optional filename)
     "Download audio from `URL'.
@@ -5387,7 +5387,7 @@ MvHkcNaUqgU+pTSh/vqm38/pmqk1BE6mPp1dNMllXv1QUW4=
 
   readonly DIC="${HOME}/usr/share/hts/dic"
   readonly VOICE="${HOME}/usr/share/hts/voice/mei_normal.htsvoice"
-  readonly AUDIO_FILE=`mktemp ${HOME}/var/tmp/jsay_XXXXXXXX.wav`
+  readonly AUDIO_FILE=`mktemp ${HOME}/share/tmp/jsay_XXXXXXXX.wav`
 
   open_jtalk -x ${DIC} -m ${VOICE} -ow ${AUDIO_FILE}
   aplay --quiet ${AUDIO_FILE}
@@ -5402,7 +5402,7 @@ MvHkcNaUqgU+pTSh/vqm38/pmqk1BE6mPp1dNMllXv1QUW4=
   #!/usr/bin/env bash
 
   readonly VOICE="${HOME}/usr/share/hts/voice/cmu_us_arctic_slt.htsvoice"
-  readonly AUDIO_FILE=`mktemp ${HOME}/var/tmp/esay_XXXXXXXX.wav`
+  readonly AUDIO_FILE=`mktemp ${HOME}/share/tmp/esay_XXXXXXXX.wav`
 
   flite_hts_engine -m ${VOICE} -o ${AUDIO_FILE}
   aplay --quiet ${AUDIO_FILE}
@@ -6388,7 +6388,7 @@ Provide a function to Build a clock table summing up time by tag.
 *** view-file
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/view-file.el")
-  (defcustom my/view-file--temp-dir "~/var/tmp/view-file"
+  (defcustom my/view-file--temp-dir "~/share/tmp"
     "Directory in which we will work for uncompresssing, decrypting and htmlize.")
   (defvar my/view-file--open-file nil
     "Target file which we will actually open.

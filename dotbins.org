@@ -23,7 +23,7 @@ These scripts (declutter_xxx) keep things decluttered.
     TRASH_DIR = os.environ['HOME'] + '/.local/share/Trash/files/'
     TIDY_DIRS = filter(lambda x: os.path.isdir(x),
                        list(map(lambda x: os.path.join(os.environ['HOME'], x), ['tmp', 'Downloads']))
-                       + glob.glob(os.path.join(os.environ['HOME'], 'var/tmp/*')))
+                       + glob.glob(os.path.join(os.environ['HOME'], 'share/tmp/*')))
 
     MAX_STAY_DAYS_IN_TRASH = 7
     MAX_NEGLECTED_DAYS_IN_TIDY_DIRS = 14
@@ -195,7 +195,7 @@ These scripts (declutter_xxx) keep things decluttered.
   #+begin_src shell :tangle (expand-tangle-target ".local/bin/mysql_backup")
     #!/usr/bin/env bash
 
-    BACKUP_DIR=~/var/backups/mysql
+    BACKUP_DIR=~/share/backups/mysql
     RAW_SQL="$(date +%Y%m%d_%H%M)_backup.sql"
     TAR_SQL="${RAW_SQL}.txz"
 
@@ -1466,7 +1466,7 @@ Exec command in background
     exit 1
   fi
 
-  LOG_DIR=${HOME}/var/log/$(basename "$0")
+  LOG_DIR=${HOME}/.local/state/log/$(basename "$0")
   fname_default=$(date '+%Y%m%d_%H%M%S')_$(basename "$0")-$(basename "$1")
 
   if [ ! -d "${LOG_DIR}" ]; then
