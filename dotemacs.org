@@ -4522,10 +4522,10 @@ helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
       (let (beg
             results
             (define-word-limit 10))
-        (re-search-forward "<span class=\"squareCircle description\">\n意味・対訳</span>" nil t)
+        (re-search-forward "<span class=\"squareCircle description\">\n[[:blank:]]*意味・対訳</span>" nil t)
         (save-excursion
           (setq beg (re-search-forward "</div>" nil t)))
-        (while (re-search-forward "<span class=\"content-explanation ej\">\n\\([^<]*\\)</span>" beg t)
+        (while (re-search-forward "<span class=\"content-explanation  ej\">\n[[:blank:]]*\\([^<]*\\)</span>" beg t)
           (push (match-string 1) results))
         (when (setq results (nreverse results))
           (define-word--convert-html-tag-to-face (define-word--join-results results))))))
