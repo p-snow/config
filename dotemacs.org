@@ -5591,7 +5591,8 @@ Learning Workflow for English words:
   (defun my/org-english-insert-english-translation ()
     "Insert English translation into org capture entry."
     (let* ((url (format "http://wordnik.com/words/%s" (downcase org-english-word)))
-           (buffer (url-retrieve-synchronously url t t)))
+           (buffer (url-retrieve-synchronously url t t))
+           (vertico-sort-function nil))
       (with-temp-buffer
         (url-insert-buffer-contents buffer url)
         (completing-read "match" (split-string (funcall 'my/define-word--parse-wordnik) "\n")))))
