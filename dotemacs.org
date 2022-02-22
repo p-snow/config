@@ -1185,7 +1185,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     (interactive)
     (let ((source (plist-get eww-data :source))
           (src-html (make-temp-file "source-"))
-          (dst-org (expand-file-name (format "%s.org" (org-id-uuid)) "~/share/tmp"))
+          (dst-org (expand-file-name (format "%s.org" (org-id-uuid)) "~/tmp"))
           (coding-system-for-write 'utf-8-unix)
           (org-startup-folded t))
       (with-temp-buffer
@@ -3035,7 +3035,7 @@ org-roam v2
               (org-babel-lob-ingest f)))
           '("agenda" "index" "wiki")))
 
-  (defvar org-readable-directory "~/share/tmp"
+  (defvar org-readable-directory "~/tmp"
     "A directory where generated html files are located in org-readable.")
 
   (defun org-readable ()
@@ -5387,7 +5387,7 @@ MvHkcNaUqgU+pTSh/vqm38/pmqk1BE6mPp1dNMllXv1QUW4=
 
   readonly DIC="${HOME}/usr/share/hts/dic"
   readonly VOICE="${HOME}/usr/share/hts/voice/mei_normal.htsvoice"
-  readonly AUDIO_FILE=`mktemp ${HOME}/share/tmp/jsay_XXXXXXXX.wav`
+  readonly AUDIO_FILE=`mktemp ${HOME}/tmp/jsay_XXXXXXXX.wav`
 
   open_jtalk -x ${DIC} -m ${VOICE} -ow ${AUDIO_FILE}
   aplay --quiet ${AUDIO_FILE}
@@ -5402,7 +5402,7 @@ MvHkcNaUqgU+pTSh/vqm38/pmqk1BE6mPp1dNMllXv1QUW4=
   #!/usr/bin/env bash
 
   readonly VOICE="${HOME}/usr/share/hts/voice/cmu_us_arctic_slt.htsvoice"
-  readonly AUDIO_FILE=`mktemp ${HOME}/share/tmp/esay_XXXXXXXX.wav`
+  readonly AUDIO_FILE=`mktemp ${HOME}/tmp/esay_XXXXXXXX.wav`
 
   flite_hts_engine -m ${VOICE} -o ${AUDIO_FILE}
   aplay --quiet ${AUDIO_FILE}
@@ -6389,7 +6389,7 @@ Provide a function to Build a clock table summing up time by tag.
 *** view-file
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/view-file.el")
-  (defcustom my/view-file--temp-dir "~/share/tmp"
+  (defcustom my/view-file--temp-dir "~/tmp"
     "Directory in which we will work for uncompresssing, decrypting and htmlize.")
   (defvar my/view-file--open-file nil
     "Target file which we will actually open.

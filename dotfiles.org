@@ -993,16 +993,12 @@ Q7sbt0I=
     MAILTO="<<email()>>"
 
     BIN_DIR="<<home-dir()>>/bin"
-    LOCAL_BIN_DIR="<<home-dir()>>/.local/bin"
     LOG_DIR="<<home-dir()>>/.local/state/log"
 
-    PATH=<<home-dir()>>/usr/bin:<<home-dir()>>/.local/bin:<<home-dir()>>/.anyenv/envs/pyenv/shims:/bin:/usr/bin:/usr/sbin
-    HOME=<<home-dir()>>
-
-    0 1 * * * /bin/bash <<home-dir()>>/.local/bin/snapshot.sh >> $LOG_DIR/snapshot.log 2>&1
-    0 2 * * * /bin/bash -c "source <<home-dir()>>/.bash_profile; $LOCAL_BIN_DIR/declutter_trash >> $LOG_DIR/declutter_trash.log 2>&1"
-    0 3,15 * * * /bin/bash -c "source <<home-dir()>>/.bash_profile; gitsync-local <<home-dir()>>/git/ >> $LOG_DIR/gitsync-local.log 2>&1"
-    5 3,15 * * * /bin/bash -c "source <<home-dir()>>/.bash_profile; gitsync-remote <<home-dir()>>/git/ >> $LOG_DIR/gitsync-remote.log 2>&1"
+    0 1 * * * /bin/bash -ci "snapshot.sh >> $LOG_DIR/snapshot.log 2>&1"
+    0 2 * * * /bin/bash -ci "declutter_trash >> $LOG_DIR/declutter_trash.log 2>&1"
+    0 3,15 * * * /bin/bash -ci "gitsync-local <<home-dir()>>/repos/ >> $LOG_DIR/gitsync-local.log 2>&1"
+    5 3,15 * * * /bin/bash -ci "gitsync-remote <<home-dir()>>/repos/ >> $LOG_DIR/gitsync-remote.log 2>&1"
   #+end_src
 - how to activate cron jobs
   1. load cron job definition file
