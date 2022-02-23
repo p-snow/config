@@ -21,24 +21,24 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgd3cf5e5">Declutters</a></li>
-<li><a href="#org941518a">Database back-up scripts</a></li>
-<li><a href="#org74e3d0e">Snapshots taking</a></li>
-<li><a href="#org8ac6f03">backup scripts</a></li>
-<li><a href="#org79d75eb">filetype</a></li>
-<li><a href="#org0d6d82b">mediautil</a></li>
-<li><a href="#org942982e">genalbum</a></li>
-<li><a href="#orgc9100cb">nhp</a></li>
-<li><a href="#orgb9b6755">sendmail.py</a></li>
-<li><a href="#org9284f4c">pwsudo</a></li>
-<li><a href="#orgfb708e9">gitsync</a></li>
+<li><a href="#org3a1076a">Declutters</a></li>
+<li><a href="#orgd13c5ef">Database back-up scripts</a></li>
+<li><a href="#org79f64d5">Snapshots taking</a></li>
+<li><a href="#orge8b8c26">backup scripts</a></li>
+<li><a href="#orgbc4ca68">filetype</a></li>
+<li><a href="#org5861991">mediautil</a></li>
+<li><a href="#org38d1416">genalbum</a></li>
+<li><a href="#org3f04b51">nhp</a></li>
+<li><a href="#orgeab7dde">sendmail.py</a></li>
+<li><a href="#org45a58dd">pwsudo</a></li>
+<li><a href="#org7624912">gitsync</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orgd3cf5e5" class="outline-2">
-<h2 id="orgd3cf5e5">Declutters</h2>
-<div class="outline-text-2" id="text-orgd3cf5e5">
+<div id="outline-container-org3a1076a" class="outline-2">
+<h2 id="org3a1076a">Declutters</h2>
+<div class="outline-text-2" id="text-org3a1076a">
 <p>
 These scripts (declutter<sub>xxx</sub>) keep things decluttered.
 </p>
@@ -222,9 +222,9 @@ parser.add_argument(<span style="font-style: italic;">'-r'</span>, dest=<span st
 </ul>
 </div>
 </div>
-<div id="outline-container-org941518a" class="outline-2">
-<h2 id="org941518a">Database back-up scripts</h2>
-<div class="outline-text-2" id="text-org941518a">
+<div id="outline-container-orgd13c5ef" class="outline-2">
+<h2 id="orgd13c5ef">Database back-up scripts</h2>
+<div class="outline-text-2" id="text-orgd13c5ef">
 <ul class="org-ul">
 <li><p>
 PostgreSQL
@@ -268,9 +268,9 @@ MySQL
 </div>
 </div>
 
-<div id="outline-container-org74e3d0e" class="outline-2">
-<h2 id="org74e3d0e">Snapshots taking</h2>
-<div class="outline-text-2" id="text-org74e3d0e">
+<div id="outline-container-org79f64d5" class="outline-2">
+<h2 id="org79f64d5">Snapshots taking</h2>
+<div class="outline-text-2" id="text-org79f64d5">
 <ul class="org-ul">
 <li><p>
 snapshot.sh
@@ -299,42 +299,76 @@ snapshot.sh
 </ul>
 </div>
 </div>
-<div id="outline-container-org8ac6f03" class="outline-2">
-<h2 id="org8ac6f03">backup scripts</h2>
-<div class="outline-text-2" id="text-org8ac6f03">
+<div id="outline-container-orge8b8c26" class="outline-2">
+<h2 id="orge8b8c26">backup scripts</h2>
+<div class="outline-text-2" id="text-orge8b8c26">
 <ul class="org-ul">
 <li><p>
 back<sub>btrfs.sh</sub>
 </p>
 <div class="org-src-container">
 <pre class="src src-shell"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
+<span style="font-weight: bold;">set</span> -euo pipefail
 
-<span style="font-weight: bold; font-style: italic;">src_dev</span>=/mnt/ssd01
-<span style="font-weight: bold; font-style: italic;">src_snap_dir</span>=<span style="font-style: italic;">"${src_dev}"</span>/snapshots/doc
-<span style="font-weight: bold; font-style: italic;">src_back_dir</span>=<span style="font-style: italic;">"${src_dev}"</span>/backups/doc
-<span style="font-weight: bold; font-style: italic;">dst_dev</span>=/mnt/hdd01
-<span style="font-weight: bold; font-style: italic;">dst_back_dir</span>=<span style="font-style: italic;">"${dst_dev}"</span>/backups/doc
+<span style="font-weight: bold; font-style: italic;">MNT_SSD</span>=/mnt/ssd01
+<span style="font-weight: bold; font-style: italic;">MNT_NVME</span>=/mnt/nvme01
+<span style="font-weight: bold; font-style: italic;">MNT_HDD</span>=/mnt/hdd01
 
-<span style="font-weight: bold; font-style: italic;">parent</span>=$(ls -d <span style="font-style: italic;">"${src_back_dir}"</span>/* 2&gt;/dev/null | sort | tail -1 | xargs basename)
-<span style="font-weight: bold; font-style: italic;">snap_earliest</span>=$(ls -d <span style="font-style: italic;">"${src_snap_dir}"</span>/* 2&gt;/dev/null | sort | head -1 | xargs basename)
-<span style="font-weight: bold; font-style: italic;">snap_latest</span>=$(ls -d <span style="font-style: italic;">"${src_snap_dir}"</span>/* 2&gt;/dev/null | sort | tail -1 | xargs basename)
+<span style="font-weight: bold;">function</span> <span style="font-weight: bold;">backup_subvol</span>() {
+  local <span style="font-weight: bold; font-style: italic;">_src_snap_dir</span>=$<span style="font-weight: bold; font-style: italic;">1</span>
+  local <span style="font-weight: bold; font-style: italic;">_src_back_dir</span>=$<span style="font-weight: bold; font-style: italic;">2</span>
+  local <span style="font-weight: bold; font-style: italic;">_dst_back_dir</span>=$<span style="font-weight: bold; font-style: italic;">3</span>
 
-<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">backup root snapshot if nothing exists</span>
-<span style="font-weight: bold;">if</span> [ -z <span style="font-style: italic;">"${parent}"</span> ] &amp;&amp; [ -n <span style="font-style: italic;">"${snap_earliest}"</span> ]; <span style="font-weight: bold;">then</span>
-  btrfs subvolume snapshot -r <span style="font-style: italic;">"${src_snap_dir}/${snap_earliest}"</span> <span style="font-style: italic;">"${src_back_dir}/${snap_earliest}"</span>
-  pwsudo btrfs send <span style="font-style: italic;">"${src_back_dir}/${snap_earliest}"</span> | sudo btrfs receive <span style="font-style: italic;">"${dst_back_dir}"</span>
-  <span style="font-weight: bold; font-style: italic;">parent</span>=<span style="font-style: italic;">"${snap_earliest}"</span>
-<span style="font-weight: bold;">fi</span>
+  <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"Name: $(basename ${_src_back_dir})"</span>
 
-<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">backup latest snapshot by sending differential data</span>
-<span style="font-weight: bold;">if</span> [ -n <span style="font-style: italic;">"${parent}"</span> ] &amp;&amp; [[ <span style="font-style: italic;">"${parent}"</span> &lt; <span style="font-style: italic;">"${snap_latest}"</span> ]]; <span style="font-weight: bold;">then</span>
-  btrfs subvolume snapshot -r <span style="font-style: italic;">"${src_snap_dir}/${snap_latest}"</span> <span style="font-style: italic;">"${src_back_dir}/${snap_latest}"</span>
-  <span style="font-weight: bold;">if </span><span style="font-weight: bold;">type</span> sudo btrfs subv show <span style="font-style: italic;">"${dst_back_dir}/${parent}"</span> &gt;/dev/null 2&gt;&amp;1 ; <span style="font-weight: bold;">then</span>
-    pwsudo btrfs send -p <span style="font-style: italic;">"${src_back_dir}/${parent}"</span> <span style="font-style: italic;">"${src_back_dir}/${snap_latest}"</span> | sudo btrfs receive <span style="font-style: italic;">"${dst_back_dir}"</span>
-  <span style="font-weight: bold;">else</span>
-    pwsudo btrfs send <span style="font-style: italic;">"${src_back_dir}/${snap_latest}"</span> | sudo btrfs receive <span style="font-style: italic;">"${dst_back_dir}"</span>
+  mkdir -pv <span style="font-style: italic;">"${_src_back_dir}"</span>
+  mkdir -pv <span style="font-style: italic;">"${_dst_back_dir}"</span>
+
+  <span style="font-weight: bold; font-style: italic;">src_back_last</span>=$((ls -d <span style="font-style: italic;">"${_src_back_dir}"</span>/* 2&gt;/dev/null | sort | tail -1 | xargs basename) || <span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">""</span>)
+  <span style="font-weight: bold; font-style: italic;">snap_last</span>=$(ls -d <span style="font-style: italic;">"${_src_snap_dir}"</span>/* 2&gt;/dev/null | sort | tail -1 | xargs basename || <span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">""</span>)
+
+  <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">create readonly clone of last snapshot</span>
+  <span style="font-weight: bold;">if</span> [[ <span style="font-style: italic;">"${src_back_last}"</span> &lt; <span style="font-style: italic;">"${snap_last}"</span> ]]; <span style="font-weight: bold;">then</span>
+    btrfs subv snap -r <span style="font-style: italic;">"${_src_snap_dir}/${snap_last}"</span> <span style="font-style: italic;">"${_src_back_dir}/${src_back_last}"</span>
   <span style="font-weight: bold;">fi</span>
-<span style="font-weight: bold;">fi</span>
+
+  <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">determine parent btrfs subvolume</span>
+  <span style="font-weight: bold; font-style: italic;">parent</span>=
+  <span style="font-weight: bold; font-style: italic;">dst_backs</span>=$(ls -d <span style="font-style: italic;">"${_dst_back_dir}"</span>/* 2&gt;/dev/null | sort || <span style="font-weight: bold;">echo</span> -n <span style="font-style: italic;">""</span>)
+  <span style="font-weight: bold;">if</span> [ ${#<span style="font-weight: bold; font-style: italic;">dst_backs</span>} -ne 0 ]; <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold;">for</span> dst_back<span style="font-weight: bold;"> in</span> <span style="font-style: italic;">"${dst_backs[@]}"</span>; <span style="font-weight: bold;">do</span>
+      <span style="font-weight: bold; font-style: italic;">test</span>=$(basename ${<span style="font-weight: bold; font-style: italic;">dst_back</span>})
+      <span style="font-weight: bold;">if</span> [ -d <span style="font-style: italic;">"${_src_back_dir}/${test}"</span> ]; <span style="font-weight: bold;">then</span>
+        <span style="font-weight: bold; font-style: italic;">parent</span>=${<span style="font-weight: bold;">test</span>}
+      <span style="font-weight: bold;">fi</span>
+    <span style="font-weight: bold;">done</span>
+  <span style="font-weight: bold;">fi</span>
+
+  <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">determine subvolume to send in source device</span>
+  <span style="font-weight: bold; font-style: italic;">subvol</span>=
+  <span style="font-weight: bold;">if</span> [ ${#<span style="font-weight: bold; font-style: italic;">src_back_last</span>} -ne 0 ]; <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold;">if</span> [[ <span style="font-style: italic;">"${parent}"</span> &lt; <span style="font-style: italic;">"${src_back_last}"</span> ]] &amp;&amp; [ ! -d <span style="font-style: italic;">"${_dst_back_dir}/${src_back_last}"</span> ]; <span style="font-weight: bold;">then</span>
+      <span style="font-weight: bold; font-style: italic;">subvol</span>=${<span style="font-weight: bold; font-style: italic;">src_back_last</span>}
+    <span style="font-weight: bold;">fi</span>
+  <span style="font-weight: bold;">fi</span>
+
+  <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"Parent: ${parent}"</span>
+  <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"Subvol: ${subvol}"</span>
+
+  <span style="font-weight: bold;">if</span> [ -n <span style="font-style: italic;">"${parent}"</span> ] &amp;&amp; [ -n <span style="font-style: italic;">"${subvol}"</span> ]; <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"Invoke incremental backup"</span>
+    pwsudo btrfs send -p <span style="font-style: italic;">"${_src_back_dir}/${parent}"</span> <span style="font-style: italic;">"${_src_back_dir}/${subvol}"</span> | sudo btrfs receive <span style="font-style: italic;">"${_dst_back_dir}"</span>
+  <span style="font-weight: bold;">elif</span> [ -z <span style="font-style: italic;">"${parent}"</span> ] &amp;&amp; [ -n <span style="font-style: italic;">"${subvol}"</span> ]; <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"Invoke full backup"</span>
+    pwsudo btrfs send <span style="font-style: italic;">"${_src_back_dir}/${subvol}"</span> | sudo btrfs receive <span style="font-style: italic;">"${_dst_back_dir}"</span>
+  <span style="font-weight: bold;">fi</span>
+
+  <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"--------"</span>
+}
+
+backup_subvol <span style="font-style: italic;">"${MNT_SSD}"</span>/snapshots/doc <span style="font-style: italic;">"${MNT_SSD}"</span>/backups/doc <span style="font-style: italic;">"${MNT_HDD}"</span>/backups/doc
+backup_subvol <span style="font-style: italic;">"${MNT_SSD}"</span>/snapshots/share <span style="font-style: italic;">"${MNT_SSD}"</span>/backups/share <span style="font-style: italic;">"${MNT_HDD}"</span>/backups/share
+backup_subvol <span style="font-style: italic;">"${MNT_NVME}"</span>/snapshots/data <span style="font-style: italic;">"${MNT_NVME}"</span>/backups/data <span style="font-style: italic;">"${MNT_HDD}"</span>/backups/data
 </pre>
 </div></li>
 <li><p>
@@ -403,9 +437,9 @@ rsync exclude file for sv04
 </ul>
 </div>
 </div>
-<div id="outline-container-org79d75eb" class="outline-2">
-<h2 id="org79d75eb">filetype</h2>
-<div class="outline-text-2" id="text-org79d75eb">
+<div id="outline-container-orgbc4ca68" class="outline-2">
+<h2 id="orgbc4ca68">filetype</h2>
+<div class="outline-text-2" id="text-orgbc4ca68">
 <p>
 This program determine type of the file.
 </p>
@@ -518,9 +552,9 @@ This program determine type of the file.
 </div>
 </div>
 </div>
-<div id="outline-container-org0d6d82b" class="outline-2">
-<h2 id="org0d6d82b">mediautil</h2>
-<div class="outline-text-2" id="text-org0d6d82b">
+<div id="outline-container-org5861991" class="outline-2">
+<h2 id="org5861991">mediautil</h2>
+<div class="outline-text-2" id="text-org5861991">
 <p>
 Utility ruby program for manipulating image, audio and video file.
 </p>
@@ -1377,9 +1411,9 @@ Utility ruby program for manipulating image, audio and video file.
 </div>
 </div>
 </div>
-<div id="outline-container-org942982e" class="outline-2">
-<h2 id="org942982e">genalbum</h2>
-<div class="outline-text-2" id="text-org942982e">
+<div id="outline-container-org38d1416" class="outline-2">
+<h2 id="org38d1416">genalbum</h2>
+<div class="outline-text-2" id="text-org38d1416">
 <p>
 Personal script for encoding family pictures and movies.
 </p>
@@ -1494,9 +1528,9 @@ Personal script for encoding family pictures and movies.
 </div>
 </div>
 
-<div id="outline-container-orgc9100cb" class="outline-2">
-<h2 id="orgc9100cb">nhp</h2>
-<div class="outline-text-2" id="text-orgc9100cb">
+<div id="outline-container-org3f04b51" class="outline-2">
+<h2 id="org3f04b51">nhp</h2>
+<div class="outline-text-2" id="text-org3f04b51">
 <p>
 Exec command in background
 </p>
@@ -1631,9 +1665,9 @@ Exec command in background
 </div>
 </div>
 
-<div id="outline-container-orgb9b6755" class="outline-2">
-<h2 id="orgb9b6755">sendmail.py</h2>
-<div class="outline-text-2" id="text-orgb9b6755">
+<div id="outline-container-orgeab7dde" class="outline-2">
+<h2 id="orgeab7dde">sendmail.py</h2>
+<div class="outline-text-2" id="text-orgeab7dde">
 <p>
 Utility for sendind email programatically
 </p>
@@ -1684,9 +1718,9 @@ sendmail(args.to, args.mailfrom, args.subject, message)
 </div>
 </div>
 
-<div id="outline-container-org9284f4c" class="outline-2">
-<h2 id="org9284f4c">pwsudo</h2>
-<div class="outline-text-2" id="text-org9284f4c">
+<div id="outline-container-org45a58dd" class="outline-2">
+<h2 id="org45a58dd">pwsudo</h2>
+<div class="outline-text-2" id="text-org45a58dd">
 <div class="org-src-container">
 <pre class="src src-shell"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> bash</span>
 
@@ -1703,9 +1737,9 @@ sendmail(args.to, args.mailfrom, args.subject, message)
 </div>
 </div>
 
-<div id="outline-container-orgfb708e9" class="outline-2">
-<h2 id="orgfb708e9">gitsync</h2>
-<div class="outline-text-2" id="text-orgfb708e9">
+<div id="outline-container-org7624912" class="outline-2">
+<h2 id="org7624912">gitsync</h2>
+<div class="outline-text-2" id="text-org7624912">
 <ul class="org-ul">
 <li><p>
 gitsync-local
