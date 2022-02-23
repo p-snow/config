@@ -235,33 +235,67 @@ These scripts (declutter_xxx) keep things decluttered.
 - back_btrfs.sh
   #+begin_src shell :tangle (expand-tangle-target ".local/bin/back_btrfs.sh")
     #!/usr/bin/env bash
+    set -euo pipefail
 
-    src_dev=/mnt/ssd01
-    src_snap_dir="${src_dev}"/snapshots/doc
-    src_back_dir="${src_dev}"/backups/doc
-    dst_dev=/mnt/hdd01
-    dst_back_dir="${dst_dev}"/backups/doc
+    MNT_SSD=/mnt/ssd01
+    MNT_NVME=/mnt/nvme01
+    MNT_HDD=/mnt/hdd01
 
-    parent=$(ls -d "${src_back_dir}"/* 2>/dev/null | sort | tail -1 | xargs basename)
-    snap_earliest=$(ls -d "${src_snap_dir}"/* 2>/dev/null | sort | head -1 | xargs basename)
-    snap_latest=$(ls -d "${src_snap_dir}"/* 2>/dev/null | sort | tail -1 | xargs basename)
+    function backup_subvol() {
+      local _src_snap_dir=$1
+      local _src_back_dir=$2
+      local _dst_back_dir=$3
 
-    # backup root snapshot if nothing exists
-    if [ -z "${parent}" ] && [ -n "${snap_earliest}" ]; then
-      btrfs subvolume snapshot -r "${src_snap_dir}/${snap_earliest}" "${src_back_dir}/${snap_earliest}"
-      pwsudo btrfs send "${src_back_dir}/${snap_earliest}" | sudo btrfs receive "${dst_back_dir}"
-      parent="${snap_earliest}"
-    fi
+      echo "Name: $(basename ${_src_back_dir})"
 
-    # backup latest snapshot by sending differential data
-    if [ -n "${parent}" ] && [[ "${parent}" < "${snap_latest}" ]]; then
-      btrfs subvolume snapshot -r "${src_snap_dir}/${snap_latest}" "${src_back_dir}/${snap_latest}"
-      if type sudo btrfs subv show "${dst_back_dir}/${parent}" >/dev/null 2>&1 ; then
-        pwsudo btrfs send -p "${src_back_dir}/${parent}" "${src_back_dir}/${snap_latest}" | sudo btrfs receive "${dst_back_dir}"
-      else
-        pwsudo btrfs send "${src_back_dir}/${snap_latest}" | sudo btrfs receive "${dst_back_dir}"
+      mkdir -pv "${_src_back_dir}"
+      mkdir -pv "${_dst_back_dir}"
+
+      src_back_last=$((ls -d "${_src_back_dir}"/* 2>/dev/null | sort | tail -1 | xargs basename) || echo -n "")
+      snap_last=$(ls -d "${_src_snap_dir}"/* 2>/dev/null | sort | tail -1 | xargs basename || echo -n "")
+
+      # create readonly clone of last snapshot
+      if [[ "${src_back_last}" < "${snap_last}" ]]; then
+        btrfs subv snap -r "${_src_snap_dir}/${snap_last}" "${_src_back_dir}/${src_back_last}"
       fi
-    fi
+
+      # determine parent btrfs subvolume
+      parent=
+      dst_backs=$(ls -d "${_dst_back_dir}"/* 2>/dev/null | sort || echo -n "")
+      if [ ${#dst_backs} -ne 0 ]; then
+        for dst_back in "${dst_backs[@]}"; do
+          test=$(basename ${dst_back})
+          if [ -d "${_src_back_dir}/${test}" ]; then
+            parent=${test}
+          fi
+        done
+      fi
+
+      # determine subvolume to send in source device
+      subvol=
+      if [ ${#src_back_last} -ne 0 ]; then
+        if [[ "${parent}" < "${src_back_last}" ]] && [ ! -d "${_dst_back_dir}/${src_back_last}" ]; then
+          subvol=${src_back_last}
+        fi
+      fi
+
+      echo "Parent: ${parent}"
+      echo "Subvol: ${subvol}"
+
+      if [ -n "${parent}" ] && [ -n "${subvol}" ]; then
+        echo "Invoke incremental backup"
+        pwsudo btrfs send -p "${_src_back_dir}/${parent}" "${_src_back_dir}/${subvol}" | sudo btrfs receive "${_dst_back_dir}"
+      elif [ -z "${parent}" ] && [ -n "${subvol}" ]; then
+        echo "Invoke full backup"
+        pwsudo btrfs send "${_src_back_dir}/${subvol}" | sudo btrfs receive "${_dst_back_dir}"
+      fi
+
+      echo "--------"
+    }
+
+    backup_subvol "${MNT_SSD}"/snapshots/doc "${MNT_SSD}"/backups/doc "${MNT_HDD}"/backups/doc
+    backup_subvol "${MNT_SSD}"/snapshots/share "${MNT_SSD}"/backups/share "${MNT_HDD}"/backups/share
+    backup_subvol "${MNT_NVME}"/snapshots/data "${MNT_NVME}"/backups/data "${MNT_HDD}"/backups/data
   #+end_src
 - back_rsync.sh
   #+begin_src shell :tangle (expand-tangle-target ".local/bin/back_rsync.sh")
