@@ -1268,8 +1268,9 @@ Extendable version manager
   # uncomment next line if you'd like to acticate specific profiles under ~/.guix-extra-profiles
   # ACTIVE_PROFILE_NAMES=(base emacs)
 
+  profiles=
   if [ ${#ACTIVE_PROFILE_NAMES[@]} -eq 0 ]; then
-    profiles="${GUIX_EXTRA_PROFILES}/*";
+    profiles="${GUIX_EXTRA_PROFILES}/*"
   else
     for name in ${ACTIVE_PROFILE_NAMES[@]}; do
       profiles=("${profiles[@]}" "${GUIX_EXTRA_PROFILES}/${name}")
