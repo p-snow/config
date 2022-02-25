@@ -1211,13 +1211,23 @@ Extendable version manager
    : $ systemctl --user enable xkeysnail
    : $ systemctl --user start xkeysnail
 * fstab
-- /etc/fstab file for my personal machine
+- /etc/fstab for pc01, my main production machine
   #+begin_src conf :noweb tangle :tangle ~/tmp/pc01.fstab
     # subvolumes in nvme SSD
     PARTUUID=df1c4a4c-e0c9-48fb-b5e0-826fb274bd94 /mnt/nvme01/ btrfs x-systemd.defaults,nofail,subvolid=5 0 2
 
     PARTUUID=df1c4a4c-e0c9-48fb-b5e0-826fb274bd94 <<home-dir()>>/data btrfs noauto,x-systemd.automount,x-systemd.device-timeout=5,nofail,relatime,space_cache,compress=zstd,subvolid=376 0 0
 
+    <<fstab-common>>
+  #+end_src
+
+- /etc/fstab for pc02, my sub machine
+  #+begin_src conf :noweb tangle :tangle ~/tmp/pc02.fstab
+    <<fstab-common>>
+  #+end_src
+
+- detachable devices
+  #+begin_src conf :noweb yes :noweb-ref fstab-common
     # btrfs subvolumes in external SSD
     UUID=98422431-b089-4dc0-b326-2693c19ace4e /mnt/ssd01/ btrfs x-systemd.defaults,nofail,subvolid=5 0 2
 
@@ -1231,6 +1241,7 @@ Extendable version manager
     <<home-dir()>>/.guix-extra-profiles/base/base/bin/sshfs#<<account()>>@ns01:/home/<<account()>>/share /mnt/ns01 fuse defaults,x-systemd.nofail,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
     <<home-dir()>>/.guix-extra-profiles/base/base/bin/sshfs#<<account()>>@sv04.<<my-network()>>:/home/<<account()>> /mnt/sv04 fuse defaults,x-systemd.nofail,allow_other,nonempty,IdentityFile=<<home-dir()>>/.ssh/id_rsa,ServerAliveInterval=60,_netdev 0 2
   #+end_src
+
 * GnuPG (gpg)
 [[https://wiki.archlinux.org/title/GnuPG][GnuPG - ArchWiki]]
 
