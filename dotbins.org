@@ -211,6 +211,14 @@ These scripts (declutter_xxx) keep things decluttered.
 
 * Snapshots taking
 - snapshot.sh
+
+  A structure described below is expected under all devices.
+
+  /mountpoint/
+  ├── backups
+  ├── incumbents
+  └── snapshots
+
   #+begin_src shell :tangle (expand-tangle-target ".local/bin/snapshot.sh")
     #!/usr/bin/env bash
     set -euo pipefail
@@ -219,6 +227,10 @@ These scripts (declutter_xxx) keep things decluttered.
     BTRFS_MNTS=("/mnt/ssd01"
                 "/mnt/nvme01")
 
+    # back up server data beforehand
+    rsync -arhv sv04:~/var/backup ~/share/sv04
+
+    # take snapshots for all btrfs subvolumes
     for btrfs_mnt in ${BTRFS_MNTS[@]}; do
       if mountpoint ${btrfs_mnt} >/dev/null 2>&1; then
         for subv in ${btrfs_mnt}/incumbents/*; do
@@ -309,13 +321,13 @@ These scripts (declutter_xxx) keep things decluttered.
     ssh -q -o BatchMode="yes" -o ConnectTimeout=10 ns01 "(cd ~/share/backups; mkdir -p pc01 sv04; exit)" || exit 1
 
     # take a snapshot for pc01
-    if ssh ns01 "[ -h ~/share/backups/pc01/last ]"; then
-      rsync -aPhrv $LINK --exclude-from=${HOME}/.config/rsync/exclude_pc01.txt ${HOME}/ ${DEST}/pc01/${DATETIME}
-      ssh ns01 "(cd share/backups/pc01; unlink last; ln -s ${DATETIME} last)"
-    else
-      rsync -aAXrv --exclude-from=${HOME}/.config/rsync/exclude_pc01.txt ${HOME}/ ${DEST}/pc01/${DATETIME}
-      ssh ns01 "(cd share/backups/pc01; ln -s ${DATETIME} last)"
-    fi
+    # if ssh ns01 "[ -h ~/share/backups/pc01/last ]"; then
+    #   rsync -aPhrv $LINK --exclude-from=${HOME}/.config/rsync/exclude_pc01.txt ${HOME}/ ${DEST}/pc01/${DATETIME}
+    #   ssh ns01 "(cd share/backups/pc01; unlink last; ln -s ${DATETIME} last)"
+    # else
+    #   rsync -aAXrv --exclude-from=${HOME}/.config/rsync/exclude_pc01.txt ${HOME}/ ${DEST}/pc01/${DATETIME}
+    #   ssh ns01 "(cd share/backups/pc01; ln -s ${DATETIME} last)"
+    # fi
 
     # take a snapshot for sv04
     if mountpoint /mnt/sv04 >/dev/null 2>&1; then
