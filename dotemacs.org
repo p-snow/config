@@ -4872,9 +4872,9 @@ to avoid accidental data loss.
 
   (defun kill-emacs-auto ()
     "Kill Emacs if remaining machine power lower than `battery-load-low'."
-    (let* ((data (and battery-status-function (funcall battery-status-function)))
-           (percentage (car (read-from-string (cdr (assq ?p data)))))
-           (power (cdr (assq ?L data))))
+    (when-let* ((data (and battery-status-function (funcall battery-status-function)))
+                (percentage (car (read-from-string (cdr (assq ?p data)))))
+                (power (cdr (assq ?L data))))
       (when (and (< percentage battery-load-low)
                  (string= power "BAT"))
         (save-buffers-kill-emacs t))))
