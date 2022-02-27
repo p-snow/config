@@ -431,6 +431,7 @@ Q7sbt0I=
             name = p-snow
     [credential]
             helper = <<home-dir()>>/.guix-extra-profiles/base/base/bin/pass-git-helper -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
+    <<git-config>>
   #+END_SRC
 - pre-commit
   pre-commit script is useful for checking strings to commit
@@ -451,6 +452,28 @@ Q7sbt0I=
       fi
     done
   #+end_src
+
+* ghq
+
+[[https://github.com/x-motemen/ghq][ghq]] is management system for remote git repositories.
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "ghq"
+#+end_src
+
+#+begin_src gitconfig :noweb-ref git-config
+  [ghq]
+          root = ~/ghq
+#+end_src
+
+#+begin_src conf :tangle (expand-tangle-target ".config/ghq")
+  [github.com*]
+  username_extractor=specific_line
+  line_username=2
+  target=github.com
+  # username_extractor=entry_name
+#+end_src
+
 
 * Pass
 #+begin_src conf :tangle (expand-tangle-target ".config/pass-git-helper/git-pass-mapping.ini")
