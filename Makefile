@@ -12,18 +12,10 @@ tangle: $(TANGLE_EL)
 detangle: $(DETANGLE_EL)
 	$(EMACS) --quick --script $<
 
-install:
-	stow --target=$(HOME) --verbose $(STOW_DIR)
-
-uninstall: $(STOW_DIR)
-	stow --delete --target=$(HOME) --verbose $(STOW_DIR)
-
 publish: $(PUBLISH_EL)
 	$(EMACS) --quick --script $<
 
-all: tangle install
+all: tangle
 
-
-.PHONY: install
 
 ### Makefile ends here
