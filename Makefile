@@ -5,7 +5,6 @@ EMACS	  = emacs
 TANGLE_EL	= ./tangle.el
 DETANGLE_EL	= ./detangle.el
 PUBLISH_EL	= ./publish.el
-STOW_DIR	= .files
 
 tangle: $(TANGLE_EL)
 	$(EMACS) --quick --script $<

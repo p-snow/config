@@ -6,5 +6,5 @@
                                             (seq ".gpg" string-end)))
                                     file))
                   (directory-files-recursively
-                   ".files" "."))))
+                   "~/ghq/github.com/p-snow/.files" "."))))
   (mapc #'org-babel-detangle src-files))
