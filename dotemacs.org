@@ -5160,7 +5160,7 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
     (cond
      ((or (string-match "\\([^/]+\\.pdf\\)" url)
           (string-match "\\([^/]+\\.epub\\)" url))
-      (let ((dl-file (expand-file-name (match-string 0 url)
+      (let ((dl-file (expand-file-name (match-string 1 url)
                                        temporary-file-directory)))
         (call-process-shell-command (format "curl %s -s -o %s" url dl-file))
         (my/view-file dl-file)
@@ -6395,7 +6395,7 @@ Provide a function to Build a clock table summing up time by tag.
 *** view-file
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/view-file.el")
-  (defcustom my/view-file--temp-dir "~/tmp"
+  (defcustom my/view-file--temp-dir "~/tmp/view-file"
     "Directory in which we will work for uncompresssing, decrypting and htmlize.")
   (defvar my/view-file--open-file nil
     "Target file which we will actually open.
@@ -6455,7 +6455,7 @@ Provide a function to Build a clock table summing up time by tag.
 
     ;; convert pdf/epub to html
     (let* ((dirname-html
-            (expand-file-name (file-relative-name my/view-file--open-file "~")
+            (expand-file-name (file-relative-name my/view-file--open-file "/")
                               (expand-file-name my/view-file--temp-dir)))
            (filename-html
             (concat (file-name-as-directory dirname-html)
