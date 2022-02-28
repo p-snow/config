@@ -947,8 +947,10 @@ fDDHS5Vq5UvYutk=
      '(holiday nil nil nil nil nil japanese-holiday-saturday))
     :config
     (require 'japanese-holidays)
+    ;; add 'holiday-general-holidays to calendar-holidays
+    ;; if you want holidays in the U.S. to be counted as your holidays.
     (setf calendar-holidays
-          (append japanese-holidays holiday-general-holidays holiday-local-holidays holiday-other-holidays))
+          (append japanese-holidays holiday-local-holidays holiday-other-holidays))
     (bind-keys :map calendar-mode-map
                ("v" . my/calendar-show-items)))
 
