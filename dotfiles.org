@@ -1012,7 +1012,7 @@ Q7sbt0I=
   #+end_src
 * crontab
 - crontab job definitions for my private PC
-  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/crontab/pc01")
+  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/crontab/desktop")
     MAILTO="<<email()>>"
 
     BIN_DIR="<<home-dir()>>/bin"
@@ -1020,12 +1020,11 @@ Q7sbt0I=
 
     0 1 * * * /bin/bash -ci "snapshot.sh >> $LOG_DIR/snapshot.log 2>&1"
     0 2 * * * /bin/bash -ci "declutter_trash >> $LOG_DIR/declutter_trash.log 2>&1"
-    0 3,15 * * * /bin/bash -ci "gitsync-local <<home-dir()>>/repos/ >> $LOG_DIR/gitsync-local.log 2>&1"
-    5 3,15 * * * /bin/bash -ci "gitsync-remote <<home-dir()>>/repos/ >> $LOG_DIR/gitsync-remote.log 2>&1"
+    0 9,21 * * * /bin/bash -ci "sync_repos.sh >> $LOG_DIR/sync_repos.log 2>&1"
   #+end_src
 - how to activate cron jobs
   1. load cron job definition file
-     : $ crontab ~/.config/crontab/pc01
+     : $ crontab ~/.config/crontab/desktop
 * Aspell
 aspell - interactive spell checker
 #+begin_src conf :tangle (expand-tangle-target ".aspell.conf")
