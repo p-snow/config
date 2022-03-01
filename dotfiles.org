@@ -1216,7 +1216,7 @@ Extendable version manager
 
     [Service]
     KillMode=process
-    ExecStart=/bin/bash -ic '%h/.local/bin/pwsudo %h/.guix-extra-profiles/base/base/bin/xkeysnail --watch --quiet %h/.config/xkeysnail/config.py'
+    ExecStart=/bin/bash -ic '%h/.local/bin/pwsudo %h/.guix-extra-profiles/desktop/desktop/bin/xkeysnail --watch --quiet %h/.config/xkeysnail/config.py'
     ExecStartPre=/usr/bin/xhost +SI:localuser:root
     Type=simple
     Restart=always
@@ -1346,13 +1346,9 @@ Extendable version manager
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/base.scm")
     (specifications->manifest
      '("sshfs"
-       "xkeysnail"
        "ripgrep"
        ;; "gnupg"
-       "font-adobe-source-han-sans"
-       "fontconfig"
        "global"
-       "lilypond"
        "wget"
        "openssh"
        "password-store"
@@ -1366,12 +1362,23 @@ Extendable version manager
        "pandoc"
        "nss-certs"
        "openssl"
-       "imagemagick"
        "curl"
        "glibc-locales"
-       "pulseaudio"
        "htop"
        <<base-pkgs>>))
+  #+end_src
+- desktop
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/desktop.scm")
+    (specifications->manifest
+     '("lilypond"
+       "ddrescue"
+       "font-adobe-source-han-sans"
+       "fontconfig"
+       "xkeysnail"
+       "imagemagick"
+       "pulseaudio"
+       "gparted"
+       <<desktop-pkgs>>))
   #+end_src
 - media
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/media.scm")
@@ -1393,7 +1400,6 @@ Extendable version manager
        "libdvdcss"
        "gcompris-qt"
        "dav1d"
-       "ddrescue"
        <<media-pkgs>>))
   #+end_src
 - devel (software development)
