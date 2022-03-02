@@ -1377,16 +1377,7 @@ Extendable version manager
        "imagemagick"
        "pulseaudio"
        "gparted"
-       <<desktop-pkgs>>))
-  #+end_src
-- media
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/media.scm")
-    (specifications->manifest
-     '("abcde"
-       "krita"
-       "gimp"
-       "kdenlive"
-       "obs"
+       "abcde"
        "cdrtools"
        "dvdbackup"
        "easytag"
@@ -1397,8 +1388,18 @@ Extendable version manager
        "mpv"
        "ffmpeg"
        "libdvdcss"
-       "gcompris-qt"
        "dav1d"
+       <<desktop-pkgs>>))
+  #+end_src
+  #+INCLUDE: "./dotbins.org"
+- media
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/media.scm")
+    (specifications->manifest
+     '("krita"
+       "gimp"
+       "kdenlive"
+       "obs"
+       "gcompris-qt"
        <<media-pkgs>>))
   #+end_src
 - devel (software development)
