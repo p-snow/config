@@ -8475,7 +8475,6 @@ These scripts (declutter_xxx) keep things decluttered.
     set -euo pipefail
 
     MNT_SSD=/mnt/ssd01
-    MNT_NVME=/mnt/nvme01
     MNT_HDD=/mnt/hdd01
 
     function backup_subvol() {
@@ -8532,7 +8531,6 @@ These scripts (declutter_xxx) keep things decluttered.
 
     backup_subvol "${MNT_SSD}"/snapshots/doc "${MNT_SSD}"/backups/doc "${MNT_HDD}"/backups/doc
     backup_subvol "${MNT_SSD}"/snapshots/share "${MNT_SSD}"/backups/share "${MNT_HDD}"/backups/share
-    backup_subvol "${MNT_NVME}"/snapshots/data "${MNT_NVME}"/backups/data "${MNT_HDD}"/backups/data
   #+end_src
 - back_rsync.sh
   #+begin_src shell :tangle (expand-tangle-target ".local/bin/back_rsync.sh")
