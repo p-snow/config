@@ -279,6 +279,8 @@ Disclaimers: There are some face definitions which use an extra large font since
 
   (use-package face-remap
     :diminish buffer-face-mode
+    :custom
+    (text-scale-mode-step 1.0625)
     :config
     (buffer-face-mode 1))
 
@@ -475,14 +477,6 @@ Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[h
 #+begin_src emacs-lisp
   (setf scroll-step 1)
 
-  (setf text-scale-mode-step 1.0625)
-
-  ;; let the cursor blinking
-  (setf blink-cursor-blinks 15)
-  (setf blink-cursor-delay 0.7)
-  (setf blink-cursor-interval 0.35)
-  (blink-cursor-mode 1)
-
   ;; use emacs in full screen mode
   (when (member (window-system) '(x ns w32))
     (set-frame-parameter nil 'fullscreen 'fullboth))
@@ -503,6 +497,18 @@ Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[h
                      (visual-line-mode))))
     :config
     (global-visual-line-mode 0))
+#+end_src
+
+***** cursor
+
+#+begin_src emacs-lisp
+  ;; make cursor blinking
+  (setf blink-cursor-blinks 15)
+  (setf blink-cursor-delay 0.7)
+  (setf blink-cursor-interval 0.35)
+  (blink-cursor-mode 1)
+
+  (global-hl-line-mode 1)
 #+end_src
 
 ***** display buffer
