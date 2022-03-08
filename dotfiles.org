@@ -7118,30 +7118,10 @@ Q7sbt0I=
     ## Build dir ##
     build/
   #+END_SRC
-- git attributes
-  #+BEGIN_SRC gitattributes :tangle (expand-tangle-target ".config/git/info/attributes")
-    ,*.c diff=cpp
-    ,*.h diff=cpp
-    ,*.cpp diff=cpp
-    ,*.hpp diff=cpp
-    ,*.cs diff=csharp
-    ,*.m diff=objc
-    ,*.java diff=java
-    ,*.html diff=html
-    ,*.xml diff=html
-    ,*.pl diff=perl
-    ,*.pm diff=perl
-    ,*.t diff=perl
-    ,*.php diff=php
-    ,*.ptml diff=php
-    ,*.py diff=python
-    ,*.rb diff=ruby
-    ,*.js diff=java
-    ,*.csv encoding=cp932
-    ,*.json diff=json
-    ,*.gpg filter=gpg diff=gpg
-  #+END_SRC
 - git config
+
+  [[https://magit.vc/manual/magit/How-to-show-diffs-for-gpg_002dencrypted-files_003f.html][This page]] show you how to get diffs of gpg files in Magit.
+
   #+BEGIN_SRC gitconfig :noweb tangle :tangle (expand-tangle-target ".config/git/config")
     [core]
             excludesfile = <<home-dir()>>/.config/git/info/ignore
@@ -7191,25 +7171,29 @@ Q7sbt0I=
             helper = <<home-dir()>>/.guix-extra-profiles/base/base/bin/pass-git-helper -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
     <<git-config>>
   #+END_SRC
-- pre-commit
-  pre-commit script is useful for checking strings to commit
-  # #+begin_src bash :noweb tangle :tangle ./.git/hooks/pre-commit :tangle-mode (identity #o775)
-    #!/usr/bin/env bash
-
-    forbiddens=(
-      <<home-dir()>>
-    )
-
-    . "$(git --exec-path)/git-sh-setup" # for die
-    for forbidden in ${forbiddens[@]}
-    do
-      if git diff-index -p -M --cached HEAD -- \
-          | grep '^+' \
-          | grep "${forbidden}"; then
-        die Blocking commit because string "${forbidden}" detected in patch
-      fi
-    done
-  #+end_src
+- git attributes
+  #+BEGIN_SRC gitattributes :tangle (expand-tangle-target ".config/git/info/attributes")
+    ,*.c diff=cpp
+    ,*.h diff=cpp
+    ,*.cpp diff=cpp
+    ,*.hpp diff=cpp
+    ,*.cs diff=csharp
+    ,*.m diff=objc
+    ,*.java diff=java
+    ,*.html diff=html
+    ,*.xml diff=html
+    ,*.pl diff=perl
+    ,*.pm diff=perl
+    ,*.t diff=perl
+    ,*.php diff=php
+    ,*.ptml diff=php
+    ,*.py diff=python
+    ,*.rb diff=ruby
+    ,*.js diff=java
+    ,*.csv encoding=cp932
+    ,*.json diff=json
+    ,*.gpg filter=gpg diff=gpg
+  #+END_SRC
 
 ** ghq
 

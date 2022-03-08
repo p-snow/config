@@ -7,6 +7,7 @@ DETANGLE_EL	= ./detangle.el
 PUBLISH_EL	= ./publish.el
 
 tangle: $(TANGLE_EL)
+	@git config --local core.hooksPath git-hooks
 	$(EMACS) --quick --script $<
 
 detangle: $(DETANGLE_EL)

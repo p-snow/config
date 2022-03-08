@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+forbiddens=(
+  ${HOME}
+  $(whoami)
+  $(echo -n "${EMAIL}" | cut -d'@' -f1)
+  $(echo -n "${EMAIL}" | cut -d'@' -f2)
+)
+
+. "$(git --exec-path)/git-sh-setup" # for die
+for forbidden in ${forbiddens[@]}
+do
+  if git diff-index -p -M --cached HEAD -- \
+      | grep '^+' \
+      | grep "${forbidden}"; then
+    die Blocking commit because string "${forbidden}" detected in patch
+  fi
+done
