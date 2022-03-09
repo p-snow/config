@@ -6778,23 +6778,6 @@ Stripping rules are:
   :beta
 #+end_src
 
-*** emacs profile for guix
-
-This is a manifest file for guix to install required packages whose name is declared in each section.
-Packages sitting preliminarily are required to accomplish my workflows with Emacs.
-
-#+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/emacs.scm")
-  (specifications->manifest
-   '("emacs"
-     ;; "emacs-no-x-toolkit"
-     <<emacs-pkgs>>
-     "zstd"
-     "isync"
-     "sqlite"
-     "stunnel"
-     "wordnet"))
-#+end_src
-
 ** Bash
 - bash profile
   #+BEGIN_SRC bash :tangle (expand-tangle-target ".bash_profile")
@@ -8105,6 +8088,18 @@ Extendable version manager
        "shellcheck"
        "global"
        <<devel-pkgs>>))
+  #+end_src
+- emacs
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/emacs.scm")
+    (specifications->manifest
+     '("emacs"
+       ;; "emacs-no-x-toolkit"
+       <<emacs-pkgs>>
+       "zstd"
+       "isync"
+       "sqlite"
+       "stunnel"
+       "wordnet"))
   #+end_src
 - wine
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/wine.scm")
