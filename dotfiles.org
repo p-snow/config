@@ -74,20 +74,17 @@ These process must be evaluated beforehand.
   (setq package-enable-at-startup nil)
   (package-initialize t)
 
-  (let ((pkg-emacs-ver-dir
-         (locate-user-emacs-file
-          (concat "package/" emacs-version))))
-    (add-to-list 'load-path (setq package-user-dir (expand-file-name "elpa" pkg-emacs-ver-dir)))
-    (add-to-list 'load-path (expand-file-name "elisp" pkg-emacs-ver-dir)))
+  (setq package-user-dir (expand-file-name "elpa" user-emacs-directory-default))
 #+end_src
 
 ***** [[https://github.com/raxod502/straight.el/releases.atom][straight.el]]
 
 #+begin_src emacs-lisp
-  (setq straight-recipes-gnu-elpa-use-mirror t)
+  (setq straight-recipes-gnu-elpa-use-mirror t
+        straight-base-dir user-emacs-directory-default)
 
   (let ((bootstrap-file
-         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory-default))
         (bootstrap-version 4))
     (unless (file-exists-p bootstrap-file)
       (with-current-buffer
