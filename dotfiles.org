@@ -504,7 +504,10 @@ Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[h
   (setf blink-cursor-interval 0.35)
   (blink-cursor-mode 1)
 
-  (global-hl-line-mode 1)
+  (use-package hl-line
+    :hook (vterm-mode . (lambda () (hl-line-mode -1)))
+    :config
+    (hl-line-mode 1))
 #+end_src
 
 ***** display buffer
