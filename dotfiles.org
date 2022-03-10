@@ -1387,7 +1387,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
       print(out_root_str)
 #+end_src
 
-**** [[https://github.com/djcb/mu/releases.atom][mu4e]]
+**** mu4e
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/mu4e.el")
 :END:
@@ -1466,11 +1466,14 @@ Command in practice presumably looks like:
       (imagemagick-register-types)))
 #+end_src
 
-***** [[https://github.com/iqbalansari/mu4e-alert/releases.atom][mu4e-alert]]
+***** mu4e-alert
+
+#+begin_src scheme :noweb-ref emacs-pkgs
+  "emacs-mu4e-alert"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package mu4e-alert
-    :straight t
     :hook (after-init . (lambda ()
                           (mu4e-alert-enable-notifications)
                           (mu4e-alert-enable-mode-line-display)))
