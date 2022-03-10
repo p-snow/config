@@ -635,21 +635,18 @@ fDDHS5Vq5UvYutk=
 ***** [[https://github.com/skk-dev/ddskk/releases.atom][ddskk]]
 
 #+begin_src emacs-lisp
-  (defvar skk-data-dir (expand-file-name "~/share/skk"))
-
   (use-package ddskk
     :straight t
     :defer t
-    :bind (("C-x C-j" . skk-mode)
-           ("C-x j" . skk-mode)
-           ("C-c j" . skk-mode))
+    :bind ("C-x j" . skk-mode)
     :init
+    (defvar skk-data-dir (expand-file-name "~/share/skk"))
+    (custom-set-variables '(default-input-method "japanese-skk"))
     (defface skk-candidate `((t . (:font "fontset-default"
                                          :height ,(my-adjust-font-size 860))))
       "Default face for ddskk candidates."
       :group 'skk-dcomp)
     :custom
-    (default-input-method "japanese-skk")
     (skk-kakutei-key (kbd "C-m"))
     (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
     (skk-init-file "~/.emacs.d/lisp/ddskk/init.el")
