@@ -1740,11 +1740,16 @@ QnFq5wn2GR7s
       (mapc #'elfeed-search-update-entry entries)))
 #+end_src
 
-***** [[https://github.com/remyhonig/elfeed-org/releases.atom][elfeed-org]]
+***** elfeed-org
+
+[[https://github.com/remyhonig/elfeed-org][elfeed-org]] allow me to express feeds for elfeed in org file.
+
+#+begin_src scheme :noweb-ref emacs-pkgs
+  "emacs-elfeed-org"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package elfeed-org
-    :straight t
     :after (elfeed org)
     :custom
     (rmh-elfeed-org-files '("~/org/index/feed.org" "~/org/config/dotfiles.org"))
@@ -1752,6 +1757,21 @@ QnFq5wn2GR7s
     (rmh-elfeed-org-auto-ignore-invalid-feeds t)
     :config
     (elfeed-org))
+#+end_src
+
+Packages managed by other than guix (i.e. straight.el or apt) are encouraged to register feed since updating information channel is desirable to exist.
+
+#+begin_src emacs-lisp :noweb yes
+  (advice-add #'rmh-elfeed-org-process
+              :after #'my/elfeed-org-add-feeds)
+
+  (defun my/elfeed-org-add-feeds (rmh-elfeed-org-files rmh-elfeed-org-tree-id)
+    "Add feeds in addition to feeds in `rmh-elfeed-org-files'.
+
+  This function needs to be invoked after `rmh-elfeed-org-process' which clear all feeds."
+    (setf elfeed-feeds
+          (append elfeed-feeds
+                  '(<<elfeed-feeds>>))))
 #+end_src
 
 ***** personal tagging rules                  :crypt:
@@ -4643,9 +4663,13 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
       (exec-path-from-shell-initialize)))
 #+end_src
 
-***** [[https://github.com/emacs-jp/migemo/releases.atom][migemo]]
+***** migemo
 
-migemo allows us to search incrementally Japanese words using roma-ji expression.
+migemo allows me to search incrementally Japanese words using roma-ji expression.
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/emacs-jp/migemo/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package migemo
@@ -4667,7 +4691,7 @@ migemo allows us to search incrementally Japanese words using roma-ji expression
     (migemo-init))
 #+end_src
 
-****** [[https://github.com/ROCKTAKEY/ivy-migemo/releases.atom][ivy-migemo]] :ARCHIVE:ignore:
+****** ivy-migemo                   :ARCHIVE:ignore:
 
 #+begin_src emacs-lisp
   (use-package ivy-migemo
