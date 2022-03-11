@@ -1902,11 +1902,14 @@ dMv+byk5Rw==
             files)))
 #+end_src
 
-***** [[https://github.com/stsquad/dired-rsync/releases.atom][dired-rsync]]
+***** dired-rsync
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-dired-rsync"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package dired-rsync
-    :straight t
     :after dired
     :bind (:map dired-mode-map
                 ("C-c C-r" . dired-rsync))
@@ -1914,7 +1917,11 @@ dMv+byk5Rw==
     (dired-rsync-options "-auz --info=progress2"))
 #+end_src
 
-***** [[https://github.com/crocket/dired-single/releases.atom][dired-single]]
+***** dired-single
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/crocket/dired-single/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package dired-single
@@ -1925,17 +1932,19 @@ dMv+byk5Rw==
                 ("^" . dired-single-up-directory)))
 #+end_src
 
-***** [[https://github.com/Fuco1/dired-hacks/releases.atom][dired-hacks]]
+***** dired-hacks
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-dired-hacks"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package dired-subtree
-    :straight t
     :after dired
     :bind (:map dired-mode-map
                 ("TAB" . dired-subtree-cycle)))
 
   (use-package dired-narrow
-    :straight t
     :after dired
     :bind
     (:map dired-mode-map
@@ -1944,7 +1953,11 @@ dMv+byk5Rw==
           ("C-j" . exit-minibuffer)))
 #+end_src
 
-***** [[https://github.com/mattiasb/dired-hide-dotfiles/releases.atom][dired-hide-dotfiles]]
+***** dired-hide-dotfiles
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/mattiasb/dired-hide-dotfiles/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package dired-hide-dotfiles
@@ -1955,19 +1968,6 @@ dMv+byk5Rw==
                 ("." . dired-hide-dotfiles-mode))
     :config
     (dired-hide-dotfiles-mode -1))
-#+end_src
-
-***** [[https://github.com/emacs-straight/dired-du/releases.atom][dired-du]]
-
-#+begin_src emacs-lisp
-  (use-package dired-du
-    :straight t
-    :after dired
-    :diminish ((dired-du-mode . "du"))
-    :bind (:map dired-mode-map
-                ("C-M-S-u" . dired-du-mode))
-    :custom
-    (dired-du-size-format t))
 #+end_src
 
 **** Shells
