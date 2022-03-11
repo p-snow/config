@@ -4049,11 +4049,20 @@ you are required to locate that package where emacs can search.
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/packages.el")
 :END:
 
-***** [[https://github.com/magit/magit/releases.atom][Magit]] :maintaining:
+***** Magit
+
+[[https://github.com/magit/magit][Magit]] is git front end for emacs which is outstandingly powerful.
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-magit"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/magit/magit/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package magit
-    :straight t
     :delight
     (magit-status-mode " MG")
     (magit-revision-mode " MG")
@@ -4069,18 +4078,24 @@ you are required to locate that package where emacs can search.
     (magit-repository-directories '(("~/git" . 1))))
 #+end_src
 
-****** [[https://github.com/magit/git-modes/releases.atom][git-modes]]
+****** git-modes
 
-#+begin_src emacs-lisp
-  (use-package git-modes
-    :straight t)
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-git-modes"
 #+end_src
 
-****** [[https://github.com/magit/orgit/releases.atom][orgit]]
+#+begin_src emacs-lisp
+  (use-package git-modes)
+#+end_src
+
+****** orgit
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-orgit"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package orgit
-    :straight t
     :after (magit org)
     :custom
     (orgit-remote "github"))
