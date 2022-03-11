@@ -3036,11 +3036,20 @@ org-contrib is a set of 3rd party add-ons for org-mode.
     :after ox)
 #+end_src
 
-***** [[https://github.com/alphapapa/org-ql/releases.atom][org-ql]]
+***** org-ql
+
+[[https://github.com/alphapapa/org-ql][Org QL]] enables me to issue queries to search org entries with either SQL-like format or plain search strings.
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-ql"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/alphapapa/org-ql/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package org-ql
-    :straight t
     :after org
     :custom
     (org-ql-search-directories-files-recursive t)
@@ -3092,13 +3101,21 @@ org-roam v2
     (org-roam-db-location (expand-file-name "org-roam.db" "~/share/emacs/org-roam"))
     (org-roam-buffer-position 'bottom))
 #+end_src
-***** [[https://gitlab.com/phillord/org-drill/-/tags?format=atom][org-drill]]
+***** org-drill
+
+[[https://gitlab.com/phillord/org-drill][org-drill]] helps me to learn english words and phrases. [[https://youtu.be/SGzdFtN_NqE][This video]] introduces how I use org-drill.
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-drill"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://gitlab.com/phillord/org-drill/-/tags?format=atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package org-drill
-    :init (straight-use-package 'persist)
-    :after (org persist)
-    :straight t
+    :after org
     :custom
     (org-drill-spaced-repetition-algorithm 'sm5)
     (org-drill-sm5-initial-interval 10.0)
@@ -3107,7 +3124,6 @@ org-roam v2
     (org-drill-days-before-old 20)
     (org-drill-learn-fraction 0.65)
     (org-drill-overdue-interval-factor 1.6))
-
 #+end_src
 ***** [[https://github.com/org-mime/org-mime/releases.atom][org-mime]]
 
@@ -4787,11 +4803,16 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
           (rx (group-n 1 (in "a-zA-Z0-9"))
               (group-n 2 (category japanese)))))
 #+end_src
-***** [[https://github.com/justbur/emacs-which-key/releases.atom][emacs-which-key]]
+***** which-key
+
+[[https://github.com/justbur/emacs-which-key][which-key]] guides me "which key is available" after current key stroke in the mini buffer.
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-which-key"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package which-key
-    :straight t
     :diminish which-key-mode
     :custom
     (which-key-use-C-h-commands t)
@@ -4889,7 +4910,6 @@ Major mode for manupulating password store file.
 
 #+begin_src emacs-lisp
   (use-package pdf-tools
-    :straight t
     :delight
     (pdf-view-mode " PV")
     :mode ("\\.pdf$" . pdf-view-mode)
