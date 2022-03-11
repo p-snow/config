@@ -3861,11 +3861,14 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
                       (match-string 1 item))))))))))
 #+end_src
 
-****** [[https://github.com/emacsorphanage/company-jedi/releases.atom][company-jedi]]
+****** emacs-project
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-company-jedi"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package company-jedi
-    :straight t
     :after python
     :hook (python-mode . my/python-mode-hook)
     :custom
@@ -3901,11 +3904,14 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
                    ruby-forward-sexp nil)))
 #+end_src
 
-***** [[https://github.com/nonsequitur/inf-ruby/releases.atom][inf-ruby]]
+***** inf-ruby
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-inf-ruby"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package inf-ruby
-    :straight t
     :config
     (setq inf-ruby-default-implementation "pry")
     (add-to-list 'inf-ruby-implementations '("pry" . "pry"))
@@ -3914,18 +3920,24 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     (setq inf-ruby-prompt-pattern "^\\[[0-9]+\\] pry\\((.*)\\)[>*\"'] *"))
 #+end_src
 
-***** [[https://github.com/yoshiki/yaml-mode/releases.atom][yaml-mode]]
+***** yaml-mode
 
-#+begin_src emacs-lisp
-  (use-package yaml-mode
-    :straight t)
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-yaml-mode"
 #+end_src
 
-***** [[https://github.com/immerrr/lua-mode/releases.atom][lua-mode]]
+#+begin_src emacs-lisp
+  (use-package yaml-mode)
+#+end_src
+
+***** lua-mode
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-lua-mode"
+#+end_src
 
 #+begin_src emacs-lisp
-  (use-package lua-mode
-    :straight t)
+  (use-package lua-mode)
 #+end_src
 
 ***** perl-mode
@@ -3945,11 +3957,14 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
            (tex-mode . (lambda () (setq ispell-parser 'tex)))))
 #+end_src
 
-***** [[https://github.com/fxbois/web-mode/releases.atom][web-mode]]
+***** web-mode
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-web-mode"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package web-mode
-    :straight t
     :delight " WB"
     :mode (("\\.phtml$"     . web-mode)
            ("\\.tpl\\.php$" . web-mode)
@@ -3980,11 +3995,14 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     (css-indent-offset 2))
 #+end_src
 
-***** [[https://github.com/mooz/js2-mode/releases.atom][js2-mode]]
+***** js2-mode
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-js2-mode"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package js2-mode
-    :straight t
     :delight " J2"
     :mode (("\\.js\\(on\\)?\\'" . js2-mode)
            ("\\.eslintrc\\'"    . js2-mode))
@@ -4053,9 +4071,12 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 Use hosting version of project.el on GitHub via straight until Emacs 28 which ships with latest version of project.el is released.
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-project"
+#+end_src
+
 #+begin_src emacs-lisp
-  (use-package project
-    :straight t)
+  (use-package project)
 #+end_src
 
 ***** grep
@@ -4096,11 +4117,14 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
            (log-view-mode . auto-revert-tail-mode)))
 #+end_src
 
-***** [[https://github.com/skuro/plantuml-mode/releases.atom][plantuml-mode]]
+***** plantuml-mode
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-plantuml-mode"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package plantuml-mode
-    :straight t
     :delight " UM"
     :hook
     (plantuml-mode . (lambda ()
@@ -4206,7 +4230,6 @@ you are required to locate that package where emacs can search.
 
 #+begin_src emacs-lisp
   (use-package projectile
-    :straight t
     :hook
     (find-file . projectile-mode-switch-dwim)
     :bind-keymap
@@ -4240,7 +4263,6 @@ you are required to locate that package where emacs can search.
 
 #+begin_src emacs-lisp
   (use-package counsel-projectile
-    :straight t
     :after projectile
     :config
     (bind-keys :map projectile-command-map
