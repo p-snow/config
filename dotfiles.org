@@ -1570,14 +1570,23 @@ QnFq5wn2GR7s
 =67og
 -----END PGP MESSAGE-----
 
-**** [[https://github.com/skeeto/elfeed/releases.atom][elfeed]]
+**** elfeed
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/elfeed.el")
 :END:
 
+[[https://github.com/skeeto/elfeed][Elfeed]] is a powerful RSS feed reader with tag capability which is one of core software in my input workflow.
+
+#+begin_src scheme :noweb-ref emacs-pkgs
+  "emacs-elfeed"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/skeeto/elfeed/releases.atom" soft_update)
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package elfeed
-    :straight t
     :delight
     (elfeed-show-mode   " EF")
     (elfeed-search-mode " EF")
@@ -1790,7 +1799,8 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
   This function needs to be invoked after `rmh-elfeed-org-process' which clear all feeds."
     (setf elfeed-feeds
           (append elfeed-feeds
-                  '(<<elfeed-feeds>>))))
+                  '(;; s-exps for feeds will be inserted here
+                    <<elfeed-feeds>>))))
 #+end_src
 
 ***** personal tagging rules                  :crypt:
