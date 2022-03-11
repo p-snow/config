@@ -574,6 +574,10 @@ This command was introduced at [[https://irreal.org/blog/?p=10318][here]] to ins
 
 ***** killing                                  :kill:
 
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/purcell/whole-line-or-region/releases.atom" soft_update)
+#+end_src
+
 #+begin_src emacs-lisp
   (custom-set-variables '(yank-pop-change-selection t))
 
@@ -613,156 +617,6 @@ X6ZcttmYDN6lOUgHrrwW7nUBxm7qXRocRr9SVWz2+Qsg5/Hu18/gJ73J5xW4/Q9Y
 fDDHS5Vq5UvYutk=
 =3/h5
 -----END PGP MESSAGE-----
-
-***** [[https://github.com/skk-dev/ddskk/releases.atom][ddskk]]
-
-#+begin_src emacs-lisp
-  (use-package ddskk
-    :straight t
-    :defer t
-    :bind ("C-x j" . skk-mode)
-    :init
-    (defvar skk-data-dir (expand-file-name "~/share/skk"))
-    (custom-set-variables '(default-input-method "japanese-skk"))
-    (defface skk-candidate `((t . (:font "fontset-default"
-                                         :height ,(my-adjust-font-size 860))))
-      "Default face for ddskk candidates."
-      :group 'skk-dcomp)
-    :custom
-    (skk-kakutei-key (kbd "C-m"))
-    (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
-    (skk-init-file "~/.emacs.d/lisp/ddskk/init.el")
-    (skk-byte-compile-init-file t)
-    (skk-tut-file
-     (expand-file-name "etc/SKK.tut" (straight--repos-dir "ddskk")))
-    ;; cursor color
-    (skk-use-color-cursor t)
-    (skk-cursor-hiragana-color "orange")
-    (skk-cursor-katakana-color "SpringGreen3")
-    (skk-cursor-latin-color "DodgerBlue3")
-    (skk-cursor-jisx0201-color "purple3")
-    ;; mode line string
-    (skk-latin-mode-string "A")
-    (skk-hiragana-mode-string "あ")
-    (skk-katakana-mode-string "ア")
-    (skk-jisx0201-mode-string "ｱ")
-    (skk-jisx0208-latin-mode-string "Ａ")
-    ;; AZIK
-    (skk-use-azik t)
-    (skk-azik-keyboard-type 'us101)
-    ;; conversion
-    (skk-egg-like-newline t)
-    (skk-henkan-strict-okuri-precedence t)
-    (skk-check-okurigana-on-touroku t)
-    (skk-show-annotation nil)
-    ;; how candidates behave
-    (skk-show-candidates-always-pop-to-buffer t)
-    (skk-henkan-number-to-display-candidates 10)
-    (skk-show-candidates-nth-henkan-char 3)
-    (skk-henkan-show-candidates-keys
-     '(?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?0))
-    ;; set face for candidates list
-    (skk-treat-candidate-appearance-function
-     (lambda (candidate listing-p)
-       (cond
-        ((string-match ";" candidate)
-         (put-text-property 0 (match-beginning 0)
-                            'face 'skk-candidate
-                            candidate)
-         (put-text-property (match-beginning 0)
-                            (length candidate) 'face 'shadow candidate))
-        (t
-         (put-text-property 0 (length candidate)
-                            'face 'skk-candidate
-                            candidate)))
-       candidate))
-    ;; bind C-q for hankaku-kana input mode
-    (skk-use-jisx0201-input-method t)
-    ;; dynamic conversion
-    (skk-dcomp-activate nil)
-    (skk-dcomp-multiple-activate nil)
-    ;; config file
-    (skk-record-file (expand-file-name "record" skk-data-dir))
-    (skk-emacs-id-file (expand-file-name "emacs-id" skk-data-dir))
-    ;; jisyo
-    (skk-share-private-jisyo t)
-    (skk-compare-jisyo-size-when-saving nil)
-    (skk-save-jisyo-instantly t)
-    ;; jisyo file/directory
-    (skk-jisyo (expand-file-name "jisyo" skk-data-dir))
-    (skk-backup-jisyo (expand-file-name "jisyo.bak" skk-data-dir))
-    (skk-large-jisyo (expand-file-name "large-jisyo" skk-data-dir))
-    ;; jisyo server
-    (skk-server-host "localhost")
-    (skk-server-portnum 1178)
-    (skk-server-inhibit-startup-server t)
-    ;; study
-    (skk-study-file (expand-file-name "study" skk-data-dir))
-    (skk-study-backup-file (expand-file-name "study.bak" skk-data-dir)))
-#+end_src
-
-****** skk-init-file
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/lisp/ddskk/init.el")
-  ;; -*- mode:emacs-lisp; -*-
-  (setq skk-rom-kana-rule-list
-        (append skk-rom-kana-rule-list
-                '(("!" nil skk-purge-from-jisyo)
-                  ("xka" nil ("ヵ" . "ヵ"))
-                  ("xke" nil ("ヶ" . "ヶ"))
-                  ("n" nil nil)
-                  ("nn" nil ("ナノ" . "なの"))
-                  ("nm" nil ("ノミ" . "のみ"))
-                  ("ks" nil ("コソ" . "こそ"))
-                  ("kz" nil ("コノ" . "この"))
-                  ("ym" nil ("ヤマ" . "やま"))
-                  ("yk" nil ("ユキ" . "ゆき"))
-                  ("tga" nil ("タガ" . "たが"))
-                  ("vj" nil ("ヴン" . "ぶん"))
-                  ;; followings are for preventing from changing to zenkaku eisu mode by pressing 'L'
-                  ("bL" nil ("ボン" . "ぼん"))
-                  ("byL" nil ("ビョン" . "びょん"))
-                  ("cL" nil ("チョン" . "ちょん"))
-                  ("dL" nil ("ドン" . "どん"))
-                  ("fL" nil ("フォン" . "ふぉん"))
-                  ("gL" nil ("ゴン" . "ごん"))
-                  ("gyL" nil ("ギョン" . "ぎょん"))
-                  ("hL" nil ("ホン" . "ほん"))
-                  ("hgL" nil ("ヒョン" . "ひょん"))
-                  ("hyL" nil ("ヒョン" . "ひょん"))
-                  ("jL" nil ("ジョン" . "じょん"))
-                  ("kL" nil ("コン" . "こん"))
-                  ("kgL" nil ("キョン" . "きょん"))
-                  ("kyL" nil ("キョン" . "きょん"))
-                  ("mL" nil ("モン" . "もん"))
-                  ("mgL" nil ("ミョン" . "みょん"))
-                  ("myL" nil ("ミョン" . "みょん"))
-                  ("nL" nil ("ノン" . "のん"))
-                  ("ngL" nil ("ニョン" . "にょん"))
-                  ("nyL" nil ("ニョン" . "にょん"))
-                  ("pL" nil ("ポン" . "ぽん"))
-                  ("pgL" nil ("ピョン" . "ぴょん"))
-                  ("pyL" nil ("ピョン" . "ぴょん"))
-                  ("rL" nil ("ロン" . "ろん"))
-                  ("ryL" nil ("リョン" . "りょん"))
-                  ("sL" nil ("ソン" . "そん"))
-                  ("syL" nil ("ション" . "しょん"))
-                  ("tL" nil ("トン" . "とん"))
-                  ("tyL" nil ("チョン" . "ちょん"))
-                  ("vL" nil ("ヴォン" . "う゛ぉん"))
-                  ("wL" nil ("ウォン" . "うぉん"))
-                  ("xL" nil ("ション" . "しょん"))
-                  ("xxL" nil ("→" . "→"))
-                  ("yL" nil ("ヨン" . "よん"))
-                  ("zL" nil ("ゾン" . "ぞん"))
-                  ("zyL" nil ("ジョン" . "じょん")))))
-
-  (add-hook 'skk-azik-load-hook
-            (lambda ()
-              (dolist (key '("kA" "kE" "tU" "wA"))
-                (setq skk-rom-kana-rule-list
-                      (skk-del-alist key skk-rom-kana-rule-list)))))
-#+end_src
 
 ***** fundamental key bindings
 
@@ -1184,6 +1038,166 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     (show-paren-delay 0.25)
     :config
     (show-paren-mode -1))
+#+end_src
+
+**** input method
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/input-method.el")
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-ddskk"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/skk-dev/ddskk/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package ddskk
+    :defer t
+    :bind ("C-x j" . skk-mode)
+    :init
+    (defvar skk-data-dir (expand-file-name "~/share/skk"))
+    (custom-set-variables '(default-input-method "japanese-skk"))
+    (defface skk-candidate `((t . (:font "fontset-default"
+                                         :height ,(my-adjust-font-size 860))))
+      "Default face for ddskk candidates."
+      :group 'skk-dcomp)
+    :custom
+    (skk-kakutei-key (kbd "C-m"))
+    (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
+    (skk-init-file "~/.emacs.d/lisp/ddskk/init.el")
+    (skk-byte-compile-init-file t)
+    (skk-tut-file
+     (expand-file-name "etc/SKK.tut" (straight--repos-dir "ddskk")))
+    ;; cursor color
+    (skk-use-color-cursor t)
+    (skk-cursor-hiragana-color "orange")
+    (skk-cursor-katakana-color "SpringGreen3")
+    (skk-cursor-latin-color "DodgerBlue3")
+    (skk-cursor-jisx0201-color "purple3")
+    ;; mode line string
+    (skk-latin-mode-string "A")
+    (skk-hiragana-mode-string "あ")
+    (skk-katakana-mode-string "ア")
+    (skk-jisx0201-mode-string "ｱ")
+    (skk-jisx0208-latin-mode-string "Ａ")
+    ;; AZIK
+    (skk-use-azik t)
+    (skk-azik-keyboard-type 'us101)
+    ;; conversion
+    (skk-egg-like-newline t)
+    (skk-henkan-strict-okuri-precedence t)
+    (skk-check-okurigana-on-touroku t)
+    (skk-show-annotation nil)
+    ;; how candidates behave
+    (skk-show-candidates-always-pop-to-buffer t)
+    (skk-henkan-number-to-display-candidates 10)
+    (skk-show-candidates-nth-henkan-char 3)
+    (skk-henkan-show-candidates-keys
+     '(?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?0))
+    ;; set face for candidates list
+    (skk-treat-candidate-appearance-function
+     (lambda (candidate listing-p)
+       (cond
+        ((string-match ";" candidate)
+         (put-text-property 0 (match-beginning 0)
+                            'face 'skk-candidate
+                            candidate)
+         (put-text-property (match-beginning 0)
+                            (length candidate) 'face 'shadow candidate))
+        (t
+         (put-text-property 0 (length candidate)
+                            'face 'skk-candidate
+                            candidate)))
+       candidate))
+    ;; bind C-q for hankaku-kana input mode
+    (skk-use-jisx0201-input-method t)
+    ;; dynamic conversion
+    (skk-dcomp-activate nil)
+    (skk-dcomp-multiple-activate nil)
+    ;; config file
+    (skk-record-file (expand-file-name "record" skk-data-dir))
+    (skk-emacs-id-file (expand-file-name "emacs-id" skk-data-dir))
+    ;; jisyo
+    (skk-share-private-jisyo t)
+    (skk-compare-jisyo-size-when-saving nil)
+    (skk-save-jisyo-instantly t)
+    ;; jisyo file/directory
+    (skk-jisyo (expand-file-name "jisyo" skk-data-dir))
+    (skk-backup-jisyo (expand-file-name "jisyo.bak" skk-data-dir))
+    (skk-large-jisyo (expand-file-name "large-jisyo" skk-data-dir))
+    ;; jisyo server
+    (skk-server-host "localhost")
+    (skk-server-portnum 1178)
+    (skk-server-inhibit-startup-server t)
+    ;; study
+    (skk-study-file (expand-file-name "study" skk-data-dir))
+    (skk-study-backup-file (expand-file-name "study.bak" skk-data-dir)))
+#+end_src
+
+***** skk-init-file
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/lisp/ddskk/init.el")
+  ;; -*- mode:emacs-lisp; -*-
+  (setq skk-rom-kana-rule-list
+        (append skk-rom-kana-rule-list
+                '(("!" nil skk-purge-from-jisyo)
+                  ("xka" nil ("ヵ" . "ヵ"))
+                  ("xke" nil ("ヶ" . "ヶ"))
+                  ("n" nil nil)
+                  ("nn" nil ("ナノ" . "なの"))
+                  ("nm" nil ("ノミ" . "のみ"))
+                  ("ks" nil ("コソ" . "こそ"))
+                  ("kz" nil ("コノ" . "この"))
+                  ("ym" nil ("ヤマ" . "やま"))
+                  ("yk" nil ("ユキ" . "ゆき"))
+                  ("tga" nil ("タガ" . "たが"))
+                  ("vj" nil ("ヴン" . "ぶん"))
+                  ;; followings are for preventing from changing to zenkaku eisu mode by pressing 'L'
+                  ("bL" nil ("ボン" . "ぼん"))
+                  ("byL" nil ("ビョン" . "びょん"))
+                  ("cL" nil ("チョン" . "ちょん"))
+                  ("dL" nil ("ドン" . "どん"))
+                  ("fL" nil ("フォン" . "ふぉん"))
+                  ("gL" nil ("ゴン" . "ごん"))
+                  ("gyL" nil ("ギョン" . "ぎょん"))
+                  ("hL" nil ("ホン" . "ほん"))
+                  ("hgL" nil ("ヒョン" . "ひょん"))
+                  ("hyL" nil ("ヒョン" . "ひょん"))
+                  ("jL" nil ("ジョン" . "じょん"))
+                  ("kL" nil ("コン" . "こん"))
+                  ("kgL" nil ("キョン" . "きょん"))
+                  ("kyL" nil ("キョン" . "きょん"))
+                  ("mL" nil ("モン" . "もん"))
+                  ("mgL" nil ("ミョン" . "みょん"))
+                  ("myL" nil ("ミョン" . "みょん"))
+                  ("nL" nil ("ノン" . "のん"))
+                  ("ngL" nil ("ニョン" . "にょん"))
+                  ("nyL" nil ("ニョン" . "にょん"))
+                  ("pL" nil ("ポン" . "ぽん"))
+                  ("pgL" nil ("ピョン" . "ぴょん"))
+                  ("pyL" nil ("ピョン" . "ぴょん"))
+                  ("rL" nil ("ロン" . "ろん"))
+                  ("ryL" nil ("リョン" . "りょん"))
+                  ("sL" nil ("ソン" . "そん"))
+                  ("syL" nil ("ション" . "しょん"))
+                  ("tL" nil ("トン" . "とん"))
+                  ("tyL" nil ("チョン" . "ちょん"))
+                  ("vL" nil ("ヴォン" . "う゛ぉん"))
+                  ("wL" nil ("ウォン" . "うぉん"))
+                  ("xL" nil ("ション" . "しょん"))
+                  ("xxL" nil ("→" . "→"))
+                  ("yL" nil ("ヨン" . "よん"))
+                  ("zL" nil ("ゾン" . "ぞん"))
+                  ("zyL" nil ("ジョン" . "じょん")))))
+
+  (add-hook 'skk-azik-load-hook
+            (lambda ()
+              (dolist (key '("kA" "kE" "tU" "wA"))
+                (setq skk-rom-kana-rule-list
+                      (skk-del-alist key skk-rom-kana-rule-list)))))
 #+end_src
 
 **** theme
