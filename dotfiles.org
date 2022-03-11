@@ -2013,9 +2013,16 @@ dMv+byk5Rw==
 
 ***** vterm
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-vterm"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/akermu/emacs-libvterm/releases.atom" soft_update)
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package vterm
-    :straight t
     :commands (vterm)
     :delight " VT"
     :diminish ((vterm-copy-mode . "vc"))
@@ -3516,27 +3523,41 @@ speed commands and hydra-org.
       ("C-g" nil "quit")))
 #+end_src
 
-**** completion
+**** Completion framework
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/completion.el")
 :END:
 
-***** [[https://github.com/minad/vertico/releases.atom][vertico]]
+***** vertico
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-vertico"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/minad/vertico/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package vertico
-    :straight t
     :config
     (bind-keys :map vertico-map
                ("M-w" . vertico-save))
     (vertico-mode))
 #+end_src
 
-***** [[https://github.com/minad/consult/releases.atom][consult]]
+***** consult
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-consult"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/minad/consult/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package consult
-    :straight t
     :after vertico
     :bind
     (:map global-map
@@ -3586,20 +3607,30 @@ speed commands and hydra-org.
 
 ****** consult-dir
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-consult-dir"
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package consult-dir
-    :straight t
     :bind (("C-x C-d" . consult-dir)
            :map vertico-map
            ("C-x C-d" . consult-dir)
            ("C-x C-j" . consult-dir-jump-file)))
 #+end_src
 
-***** [[https://github.com/oantolin/embark/releases.atom][embark]]
+***** embark
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-embark"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/oantolin/embark/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package embark
-    :straight t
     :bind (("C-." . embark-act)
            ("M-." . embark-dwim)
            ("<help> B" . embark-bindings))
@@ -3617,11 +3648,18 @@ speed commands and hydra-org.
     (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
 
-***** [[https://github.com/minad/marginalia/releases.atom][marginalia]]
+***** marginalia
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-marginalia"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/minad/marginalia/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package marginalia
-    :straight t
     :custom
     (marginalia-align-offset nil)
     (marginalia-truncate-width 180)
@@ -3631,11 +3669,18 @@ speed commands and hydra-org.
     (marginalia-mode))
 #+end_src
 
-***** [[https://github.com/oantolin/orderless/releases.atom][orderless]]
+***** orderless
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-orderless"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/oantolin/orderless/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package orderless
-    :straight t
     :custom (completion-styles '(orderless)))
 #+end_src
 
