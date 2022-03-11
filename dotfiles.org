@@ -4130,10 +4130,14 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
     (plantuml-jar-path "/usr/share/plantuml/plantuml.jar"))
 #+end_src
 
-***** [[https://github.com/lilypond/lilypond/releases.atom][lilypond]]
+***** lilypond
 
 [[https://lilypond.org/unix.html][LilyPond]] elisp package is included in source tarball available at [[https://lilypond.org/download/source][here]],
 you are required to locate that package where emacs can search.
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/lilypond/lilypond/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package lilypond-mode
@@ -4281,11 +4285,14 @@ you are required to locate that package where emacs can search.
   ;; (use-package ripgrep :straight t)
 #+end_src
 
-***** [[https://github.com/mhayashi1120/Emacs-wgrep/releases.atom][Emacs-wgrep]]
+***** wgrep
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-wgrep"
+#+end_src
 
 #+begin_src emacs-lisp
-  (use-package wgrep
-    :straight t)
+  (use-package wgrep)
 #+end_src
 
 ***** dumb-jump
@@ -4306,15 +4313,22 @@ you are required to locate that package where emacs can search.
            ("M-g l" . dumb-jump-quick-look)))
 #+end_src
 
-***** [[https://github.com/benma/visual-regexp.el/releases.atom][visual-regexp.el]]
+***** visual-regexp
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-visual-regexp"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package visual-regexp
-    :straight t
     :bind ("C-%" . vr/query-replace))
 #+end_src
 
-****** [[https://github.com/benma/visual-regexp-steroids.el/releases.atom][visual-regexp-steroids.el]]
+****** visual-regexp-steroids
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/benma/visual-regexp-steroids.el/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package visual-regexp-steroids
@@ -4324,11 +4338,14 @@ you are required to locate that package where emacs can search.
     (setq vr/engine 'python))
 #+end_src
 
-***** [[https://github.com/abo-abo/avy/releases.atom][avy]]
+***** avy
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-avy"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package avy
-    :straight t
     :bind (("M-a" . avy-goto-char-timer)
            :map isearch-mode-map
            ("C-a" . avy-isearch)))
@@ -4345,10 +4362,12 @@ Handy commands
 - press DEL to remedy unbalanced parenthes
 - press C-q ( to insert ( char manually
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-paredit"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package paredit
-    :straight t
     :bind (:map paredit-mode-map
                 ("C-h" . paredit-backward-delete)
                 ("C-M-g" .  paredit-splice-sexp)
@@ -4389,29 +4408,35 @@ Handy commands
       (advice-add fun :around #'my/paredit-fix-transient-mark-mode))
   #+end_src
 
-***** [[https://github.com/emacs-lsp/lsp-mode/releases.atom][lsp-mode]]
+***** lsp-mode
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-lsp-mode"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package lsp-mode
-    :straight t
     :commands (lsp lsp-deferred)
     :hook ((python-mode) . lsp-deferred))
 #+end_src
 
-****** [[https://github.com/emacs-lsp/lsp-ivy/releases.atom][lsp-ivy]] :ARCHIVE:ignore:
+****** lsp-ivy                      :ARCHIVE:ignore:
 
 #+begin_src emacs-lisp
-  (use-package lsp-ivy
-    :straight t
-    :after lsp
-    :hook (lsp-mode . lsp-ivy-mode))
+  ;; (use-package lsp-ivy
+  ;;   :straight t
+  ;;   :after lsp
+  ;;   :hook (lsp-mode . lsp-ivy-mode))
 #+end_src
 
-***** [[https://github.com/company-mode/company-mode/releases.atom][company-mode]]
+***** company-mode
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-company"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package company
-    :straight t
     :hook (prog-mode . company-mode)
     :bind (:map company-active-map
                 ("C-j" . company-complete-selection)
@@ -4421,11 +4446,14 @@ Handy commands
                 ("C-p" . company-select-previous)))
 #+end_src
 
-***** [[https://github.com/flycheck/flycheck/releases.atom][flycheck]]
+***** flycheck
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-flycheck"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package flycheck
-    :straight t
     :diminish
     :hook ((c-mode sh-mode emacs-lisp-mode ruby-mode python-mode js2-mode sql-mode) . flycheck-mode)
     :custom
@@ -4616,7 +4644,11 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
           (t (open-url uri))))))
 #+end_src
 
-***** [[https://github.com/remyferre/comment-dwim-2/releases.atom][comment-dwim-2]] :programs:
+***** comment-dwim-2
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/remyferre/comment-dwim-2/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package comment-dwim-2
@@ -4630,9 +4662,12 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
 
 ***** undo-tree
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-undo-tree"
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package undo-tree
-    :straight t
     :diminish undo-tree-mode
     :hook
     (after-init . global-undo-tree-mode)
@@ -4646,31 +4681,36 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
                                                            (window-width . 15))))))
 #+end_src
 
-***** [[https://github.com/emacsorphanage/quickrun/releases.atom][quickrun]] :programs:
+***** quickrun                              :ARCHIVE:
 
 #+begin_src emacs-lisp
-  (use-package quickrun
-    :straight t)
+  ;; (use-package quickrun)
 #+end_src
 
-***** [[https://github.com/magnars/expand-region.el/releases.atom][expand-region.el]] :mark:
+***** expand-region
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-expand-region"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package expand-region
-    :straight t
     :bind (("C-,"   . er/expand-region)
            ("C-M-," . er/contract-region))
     :config
     (push 'er/mark-outside-pairs er/try-expand-list))
 #+end_src
 
-***** [[https://github.com/Wilfred/helpful/releases.atom][helpful]] :help:
+***** helpful
 
 helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-helpful"
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package helpful
-    :straight t
     :bind
     (:map help-map
           ("f" . helpful-callable)
@@ -4696,7 +4736,11 @@ helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
       (message "COPY: %s" symbol)))
 #+end_src
 
-***** [[https://github.com/abo-abo/define-word/releases.atom][define-word]]
+***** define-word
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/abo-abo/define-word/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package define-word
@@ -4828,21 +4872,28 @@ helpful-mode shows  than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
           (define-word--convert-html-tag-to-face (define-word--join-results results))))))
 #+end_src
 
-***** [[https://github.com/hpdeifel/synosaurus/releases.atom][synosaurus]]
+***** synosaurus
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-synosaurus"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package synosaurus
-    :straight t
     :custom
     (synosaurus-choose-method 'default))
 #+end_src
 
-***** [[https://github.com/purcell/exec-path-from-shell/releases.atom][exec-path-from-shell]]
+***** exec-path-from-shell
+
 A GNU Emacs library to ensure environment variables inside Emacs look the same as in the user's shell.
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-exec-path-from-shell"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package exec-path-from-shell
-    :straight t
     :config
     (when (memq window-system '(mac))
       (exec-path-from-shell-initialize)))
@@ -4880,12 +4931,16 @@ migemo allows me to search incrementally Japanese words using roma-ji expression
 
 #+begin_src emacs-lisp
   (use-package ivy-migemo
-    :straight t
     :after migemo)
 #+end_src
 
-***** [[https://github.com/nflath/hungry-delete/releases.atom][hungry-delete]]
+***** hungry-delete
+
 Aggressively delete successive white spaces.
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/nflath/hungry-delete/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package hungry-delete
@@ -4894,35 +4949,49 @@ Aggressively delete successive white spaces.
     :config
     (global-hungry-delete-mode 1))
 #+end_src
-***** [[https://github.com/Malabarba/aggressive-indent-mode/releases.atom][aggressive-indent-mode]]
+
+***** aggressive-indent-mode
 :PROPERTIES:
 :ID:       4a58219c-74dd-4135-b56d-876b0db2cd83
 :END:
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-aggressive-indent"
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package aggressive-indent
-    :straight t
     :diminish (aggressive-indent-mode . "ai")
     :hook (emacs-lisp-mode . aggressive-indent-mode))
 #+end_src
-***** [[https://github.com/emacsmirror/adaptive-wrap/releases.atom][adaptive-wrap]]
+***** adaptive-wrap
 
 adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major modes.
 
-#+begin_src emacs-lisp
-  (use-package adaptive-wrap
-    :straight t)
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-adaptive-wrap"
 #+end_src
 
-***** [[https://github.com/iqbalansari/restart-emacs/releases.atom][restart-emacs]]
+#+begin_src emacs-lisp
+  (use-package adaptive-wrap)
+#+end_src
+
+***** restart-emacs
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-restart-emacs"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package restart-emacs
-    :straight t
     :bind (("C-M-<delete>"   . restart-emacs)
            ("C-M-S-<delete>" . save-buffers-kill-emacs)))
 #+end_src
-***** [[https://github.com/coldnew/pangu-spacing/releases.atom][pangu-spacing]]
+***** pangu-spacing
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/coldnew/pangu-spacing/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package pangu-spacing
@@ -4959,40 +5028,52 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
     (which-key-mode 1)
     (which-key-setup-side-window-bottom))
 #+end_src
-***** [[https://github.com/abo-abo/hydra/releases.atom][hydra]]
+***** hydra
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-hydra"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package hydra
-    :straight t
     :custom
     (hydra-is-helpful nil))
 #+end_src
-***** [[https://github.com/NicolasPetton/pass/releases.atom][pass]]
+***** pass
 
 Major mode for manupulating password store file.
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-pass"
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package pass
-    :straight t
     :config
     (bind-keys :map pass-mode-map
                ("C-j" . pass-view)))
 #+end_src
 
-***** [[https://github.com/zx2c4/password-store/releases.atom][password-store]]
+***** password-store
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-password-store"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package password-store
-    :straight t
     :custom
     (password-store-time-before-clipboard-restore 25))
 #+end_src
 
 ***** nov.el
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-nov-el"
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package nov
-    :straight t
     :demand t
     :mode ("\\.epub$" . nov-mode)
     :hook (nov-mode . nov-abbreviate-file-name)
@@ -5013,11 +5094,14 @@ Major mode for manupulating password store file.
     "Shorten `nov-file-name' using `directory-abbrev-alist'."
     (setq nov-file-name (abbreviate-file-name nov-file-name)))
 #+end_src
-***** [[https://github.com/joaotavora/yasnippet/releases.atom][yasnippet]]
+***** yasnippet
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-yasnippet"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package yasnippet
-    :straight t
     :delight (snippet-mode " SN")
     :diminish (yas-minor-mode . "ys")
     :hook
@@ -5030,11 +5114,14 @@ Major mode for manupulating password store file.
     ;; work around code
     (yas-reload-all))
 #+end_src
-****** [[https://github.com/AndreaCrotti/yasnippet-snippets/releases.atom][yasnippet-snippets]]
+****** yasnippet-snippets
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-yasnippet-snippets"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package yasnippet-snippets
-    :straight t
     :after yasnippet)
 #+end_src
 ***** pdf-tools
@@ -5055,11 +5142,14 @@ Major mode for manupulating password store file.
     (pdf-view-display-size 'fit-width))
 #+end_src
 
-***** [[https://github.com/emacs-straight/rainbow-mode/releases.atom][rainbow-mode]]
+***** rainbow-mode
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-rainbow-mode"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package rainbow-mode
-    :straight t
     :diminish
     (rainbow-mode . "rb")
     :hook
@@ -5070,15 +5160,15 @@ Major mode for manupulating password store file.
     (rainbow-latex-colors t)
     (rainbow-ansi-colors t))
 #+end_src
-***** [[https://github.com/jwiegley/alert/releases.atom][alert]]
+***** alert
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "mpg321"
+  "emacs-alert"
 #+end_src
 
 #+begin_src emacs-lisp
   (use-package alert
-    :straight t
     :config
     (set-face-background 'alert-saved-fringe-face nil)
     (alert-add-rule :status '(buried)
@@ -5122,14 +5212,17 @@ Major mode for manupulating password store file.
   pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(($SINK + 1 )) | tail -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,'
 #+end_src
 
-***** [[https://github.com/alphapapa/ts.el/releases.atom][ts.el]]
+***** ts
 
-#+begin_src emacs-lisp
-  (use-package ts
-    :straight t)
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-ts"
 #+end_src
 
-***** [[https://github.com/SebastienWae/app-launcher/releases.atom][app-launcher]]
+#+begin_src emacs-lisp
+  (use-package ts)
+#+end_src
+
+***** app-launcher                          :ARCHIVE:
 
 #+begin_src emacs-lisp
   (use-package app-launcher
