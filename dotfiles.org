@@ -2059,16 +2059,21 @@ dMv+byk5Rw==
         (alert msg :buffer buffer :severity 'urgent))))
 #+end_src
 
-**** org mode
+**** Org-mode
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/org.el")
 :END:
 
-***** org
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://updates.orgmode.org/feed/releases" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package org
-    :straight t
     :defer t
     :mode (("\\.org$" . org-mode))
     :interpreter (("org" . org-mode))
@@ -2892,11 +2897,14 @@ dMv+byk5Rw==
       (custom-set-variables '(org-plantuml-jar-path "/usr/local/Cellar/plantuml/8041/plantuml.8041.jar")))))
 #+end_src
 
-****** [[https://github.com/astahlman/ob-async/releases.atom][ob-async]]
+****** ob-async
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-ob-async"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package ob-async
-    :straight t
     :after ob-core)
 #+end_src
 
@@ -2931,6 +2939,10 @@ dMv+byk5Rw==
 #+end_src
 
 ***** org-export
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-ox-hugo"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package ox
@@ -3010,7 +3022,6 @@ dMv+byk5Rw==
                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))))
 
   (use-package ox-hugo
-    :straight t
     :defer t
     :after ox)
 #+end_src
@@ -3020,19 +3031,25 @@ org-contrib is a set of 3rd party add-ons for org-mode.
 
 ****** org-contacts
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-contacts"
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package org-contacts
     :after org
-    :straight org-contrib
     :custom
     (org-contacts-files `(,(expand-file-name "index/contacts.org.gpg" org-directory))))
 #+end_src
 
-***** [[https://github.com/yjwen/org-reveal/releases.atom][org-reveal]]
+***** org-reveal
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-reveal"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package ox-reveal
-    :straight t
     :after ox)
 #+end_src
 
@@ -3074,7 +3091,11 @@ org-contrib is a set of 3rd party add-ons for org-mode.
                 (otherwise (member category categories))))))
 #+end_src
 
-***** [[https://github.com/ndwarshuis/org-ml/releases.atom][org-ml]]
+***** org-ml
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/ndwarshuis/org-ml/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package org-ml
@@ -3082,12 +3103,19 @@ org-contrib is a set of 3rd party add-ons for org-mode.
     :after org)
 #+end_src
 
-***** [[https://github.com/org-roam/org-roam/releases.atom][org-roam]]
+***** org-roam
 org-roam v2
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-roam"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/org-roam/org-roam/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package org-roam
-    :straight t
     :after org
     :bind (("C-c n l" . org-roam-buffer-toggle-display)
            ("C-c n D" . org-roam-find-directory)
@@ -3125,29 +3153,39 @@ org-roam v2
     (org-drill-learn-fraction 0.65)
     (org-drill-overdue-interval-factor 1.6))
 #+end_src
-***** [[https://github.com/org-mime/org-mime/releases.atom][org-mime]]
+***** org-mime
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-mime"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package org-mime
-    :straight t
     :after org
     :config
     (push '("Send An Email") org-speed-commands))
 #+end_src
 
-***** [[https://github.com/alphapapa/org-web-tools/releases.atom][org-web-tools]]
+***** org-web-tools
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-web-tools"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package org-web-tools
-    :straight t
     :after org
     :demand t
     :bind (("C-c C-;" . org-web-tools-insert-link-for-url)))
 #+end_src
 
-***** [[https://github.com/akirak/org-volume/releases.atom][org-volume]]
+***** org-volume
 
 [[https://github.com/akirak/org-volume][org-volume]] can be used to insert book information in dynamic block.
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/akirak/org-volume/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package org-volume
@@ -3157,7 +3195,11 @@ org-roam v2
                :branch "master"))
 #+end_src
 
-***** [[https://github.com/dfeich/org-clock-convenience/releases.atom][org-clock-convenience]]
+***** org-clock-convenience
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/dfeich/org-clock-convenience/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package org-clock-convenience
