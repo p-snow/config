@@ -46,7 +46,7 @@
 :END:
 
 ** emacs
-*** general configuration    :elfeed:soft_update:prime:
+*** general configuration
 
 **** early initialization
 :PROPERTIES:
@@ -77,7 +77,11 @@ These process must be evaluated beforehand.
   (setq package-user-dir (expand-file-name "elpa" user-emacs-directory-default))
 #+end_src
 
-***** [[https://github.com/raxod502/straight.el/releases.atom][straight.el]]
+***** straight.el
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/raxod502/straight.el/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
   (setq straight-recipes-gnu-elpa-use-mirror t
@@ -122,33 +126,44 @@ These process must be evaluated beforehand.
       ("q" nil)))
 #+end_src
 
-***** [[https://github.com/jwiegley/use-package/releases.atom][use-package]]
+***** use-package
 
 [[https://jwiegley.github.io/use-package/][Official manual]] is handy especially when you look up [[https://jwiegley.github.io/use-package/keywords/][Keywords]].
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-use-package"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/jwiegley/use-package/releases.atom" soft_update)
+#+end_src
+
 #+begin_src emacs-lisp
-  ;; install use-package via straight.el
-  (straight-use-package 'use-package)
+  (require 'use-package)
 
-  (use-package use-package
-    :custom
-    (use-package-ensure-function 'straight-use-package-ensure-function))
-
-  (use-package use-package-ensure-system-package :straight t)
+  (setq use-package-ensure-function 'straight-use-package-ensure-function)
 #+end_src
 
 use-package depends on following packages internally
 
-****** [[https://github.com/myrjola/diminish.el/releases.atom][diminish.el]]
+****** diminish
 
-#+begin_src emacs-lisp
-  (use-package diminish :straight t)
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-diminish"
 #+end_src
 
-****** [[https://github.com/emacs-straight/delight/releases.atom][delight]]
+#+begin_src emacs-lisp
+  (use-package diminish)
+#+end_src
+
+****** delight
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-delight"
+#+end_src
 
 #+begin_src emacs-lisp
-  (use-package delight :straight t)
+  (use-package delight)
 #+end_src
 
 ***** load cl-lib
@@ -1054,11 +1069,12 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+end_src
 
 #+begin_src emacs-lisp
+  (defvar skk-data-dir (expand-file-name "~/share/skk"))
+
   (use-package ddskk
     :defer t
     :bind ("C-x j" . skk-mode)
     :init
-    (defvar skk-data-dir (expand-file-name "~/share/skk"))
     (custom-set-variables '(default-input-method "japanese-skk"))
     (defface skk-candidate `((t . (:font "fontset-default"
                                          :height ,(my-adjust-font-size 860))))
@@ -1794,7 +1810,7 @@ QnFq5wn2GR7s
   (use-package elfeed-org
     :after (elfeed org)
     :custom
-    (rmh-elfeed-org-files '("~/org/index/feed.org" "~/org/config/dotfiles.org"))
+    (rmh-elfeed-org-files '("~/org/index/feed.org"))
     (rmh-elfeed-org-ignore-tag "ignore")
     (rmh-elfeed-org-auto-ignore-invalid-feeds t)
     :config
@@ -2121,7 +2137,6 @@ dMv+byk5Rw==
     ;; do not split line at point
     (org-M-RET-may-split-line '((default . nil)))
     :config
-    (require 'org-habit)
     (require 'org-mu4e)
 
     ;; local key bindings
@@ -4491,7 +4506,7 @@ Handy commands
         ("q" nil "quit"))))
 #+end_src
 
-***** [[https://github.com/hayamiz/twittering-mode/releases.atom][twittering-mode]]
+***** twittering-mode
 
 useful tips:
 - invoke twittering-toggle-show-replied-statuses on "in reply to" state to show replied messages
@@ -4499,7 +4514,13 @@ useful tips:
 
 Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay at :config section of use-package
 
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/hayamiz/twittering-mode/releases.atom" soft_update)
+#+end_src
+
 #+begin_src emacs-lisp
+  (defvar my/twittering-resource-dir "~/share/emacs/twmode")
+
   (use-package twittering-mode
     :straight (twittering-mode
                :host github
@@ -4509,8 +4530,6 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
     :delight " TW"
     :after hydra
     :commands twit
-    :init
-    (defvar my/twittering-resource-dir "~/share/emacs/twmode")
     :hook
     (twittering-mode . twittering-icon-mode)
     :custom
