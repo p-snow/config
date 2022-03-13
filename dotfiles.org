@@ -8406,6 +8406,31 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 #+begin_src conf :tangle (expand-tangle-target ".jackdrc")
   /usr/bin/jackd -dalsa -dhw:0 -r44100 -p1024 -n3 -Xseq
 #+end_src
+** XRandR
+
+XRandR is a command line utility for changing display options without restarting X server.
+
+[[https://wiki.archlinux.org/title/xrandr][xrandr - ArchWiki]]
+
+- show avaulable modes for all displays
+  #+begin_src shell :results verbatim
+    xrandr
+  #+end_src
+
+- change mode (resolution) to 1920x1080 for a display identified as "HDMI-2"
+  #+begin_src shell
+    xrandr --output HDMI-2 --mode 1920x1080
+  #+end_src
+
+- change mode back to preferred (maximum)
+  #+begin_src shell
+    xrandr --output HDMI-2 --auto
+  #+end_src
+
+#+begin_src scheme :noweb-ref desktop-pkgs
+  "xrandr"
+#+end_src
+
 * utility scripts
 :PROPERTIES:
 :header-args+: :tangle-mode (identity #o755)
