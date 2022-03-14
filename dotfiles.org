@@ -4692,7 +4692,9 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
     (after-init . global-undo-tree-mode)
     :custom
     (undo-tree-enable-undo-in-region t)
+    (undo-tree-auto-save-history t)
     :config
+    (add-to-list 'undo-tree-history-directory-alist `("." . ,(expand-file-name "undo-tree" user-emacs-directory)))
     (setq undo-tree-visualizer-buffer-name "*undo tree*")
     (add-to-list 'display-buffer-alist
                  `(,undo-tree-visualizer-buffer-name . (display-buffer-in-side-window
