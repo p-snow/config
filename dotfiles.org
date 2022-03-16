@@ -3093,9 +3093,7 @@ org-contrib is a set of 3rd party add-ons for org-mode.
 
 [[https://github.com/alphapapa/org-ql][Org QL]] enables me to issue queries to search org entries with either SQL-like format or plain search strings.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-ql"
-#+end_src
+Org QL on Guix official channel is version 0.6 which is quite obsolete. I temporarily decided to use an org-ql managed by straight.el as a work around.
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
   ("https://github.com/alphapapa/org-ql/releases.atom" soft_update)
@@ -3103,6 +3101,7 @@ org-contrib is a set of 3rd party add-ons for org-mode.
 
 #+begin_src emacs-lisp
   (use-package org-ql
+    :straight t
     :after org
     :custom
     (org-ql-search-directories-files-recursive t)
