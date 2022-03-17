@@ -185,6 +185,8 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
     (funcall #'load-file file))
   (dolist (file (directory-files "~/.emacs.d/site-lisp" t "\.el$"))
     (funcall #'load-file file))
+  (dolist (file (directory-files "~/.emacs.d/secrets" t "\.el$"))
+    (funcall #'load-file file))
 #+end_src
 
 **** basic config
@@ -622,25 +624,6 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :config
     (mouse-wheel-mode 0))
 #+end_src
-
-***** email                                   :crypt:
-
------BEGIN PGP MESSAGE-----
-
-hQEMA9uWvE5LJ2ejAQgAr5AMxzAs2N2TZ/ULgiWI9OS1PQ3cR5OjlXy6statO/xh
-G8x8yvioZV4aJORGOc9u9tkzO4gizLmHbX7BrwXExaICNoVgf6sw1xu9pvWAo4m7
-J6cfKoBEuN0qYJ8K+/7H/JgvucZlYKLMxncoo5jDABbEjieXQBRQWar7xm9unHGs
-r+b6tAD6LDdHFRwNTBorduF0nkP56on+zISt8BD+pXMyts3iYEUnyzGaGPxc17WL
-msjgOcP1on34ymsCukOy0qDT2yI7+TF366aWuV+ppYBTgBFIwZ7xixm+AVYJLkIE
-HPxzNDzb8OjVxt67qkrLzf4bxYubBfoAYeVak2t2p9LASQEuZeGIWVPxozDXtQbz
-/mkstGWFiSdY20jSIC+aXe2CpekSyR0KQdB/r27wigMTx5IpSF9fKI6D63F0aIgW
-w4cXPowPej2QbHxtWrj//Vn41VZgyk57626wtZbNnJ91OQe7h5IzLaYDVSFO9E4d
-HeiXj/4G7POAoatTBd7DUWjSvsELqCrQvNHoSAorWuthwJ3Pz4UQrkGlvM1ljKiX
-X6ZcttmYDN6lOUgHrrwW7nUBxm7qXRocRr9SVWz2+Qsg5/Hu18/gJ73J5xW4/Q9Y
-/ZbVvSxVgtjLIgHXYiM2WnHDn35RlDfXB2RPDL7G7LUaYi1sX4KqwkdA6PWuUcdy
-fDDHS5Vq5UvYutk=
-=3/h5
------END PGP MESSAGE-----
 
 ***** fundamental key bindings
 
@@ -1574,42 +1557,6 @@ Command in practice presumably looks like:
                    '("Contact to add" . mu4e-action-add-org-contact) t))
   #+end_src
 
-***** personal settings                       :crypt:
-
------BEGIN PGP MESSAGE-----
-
-hQEMA9uWvE5LJ2ejAQf/Su1s2xPa4S8xBtNdhRq1Sy4IK/P/jxT1oqSF9blsm1qG
-2HcqmAYs/wCcGSxQTHGqS78sP6lu99kwcUpJ6ki2jLQ2vKb2DTQkszHhCGVO07Ks
-LFxljWqfLj20/wfTEg95QSdOqJcdQ3kTD3DM4DG6QrA7H8F5zoCvUpkKeAvmTO44
-rFPRB+PbnpmFSt8nqCJU9Wz/LD6FOQSAcHbwQTWn/wvF7U54pWJxAVLo9VZAbBoU
-ePHEhPk2L60a1jq6eq90PuJtZkFbNRWiK6UKN7Kseys8KGkRG7hXrCDF0T3OW63z
-t/zx2QoNf+tyoXHGQdW12K94/8qZI9WQajupXW3+BtLqAR1GTrKzP6ee6Kx5ejdw
-elg76+qMnaKhiGz0R1uJgBvbeVr/LjZCunMBHDsOralXniIBo+XJZYS28Ka2JI/f
-t4qGrx5bwBzgIE8D9hk/kMNQ3BTQCnsH2eBx/q46bBu+/tiIawkNn5wEbwMSpfLi
-gNibaIoSjzjn4D9e3C6PzT5gHcn3UsPihTwL2HXamQJq3ejZTp/CIA7YZDjorckx
-BKafl16Ll5XaJ00WTCInOesn7M18Vt4b/ARo8tDaxKl4AQXXIy4zblUGnpJjVYI7
-4hpjdRLB3zNkoSuQqc++cwp5VCIhVs5LqcM8IowviWsFIrfj2x2Gs+jiQNGcH/im
-iSjqpMIrU6FYh1zyvGcuCHLt5m3Hc5JiZSTSZChhoDifjIq8hEeM9GxD1z7GKjq8
-53iFyEXqDkH4npWVsbaf1HRk+lL920pkt7i9Ur/1BR/CFMR+dqcGagU9Kku4jNp4
-PA/NMsdqaeTay8cKaRZgGK/UOtjLdjjUpipXotZUFhxX0kmSaq8Qq7xtDfvlIklM
-rTnwHwSYaHgOIPGwXAi2prpp++nsQU1KhrhDMGLLAfum2pE/7x0jFzVY6aBjX0cp
-vfVP/Yxs2D7ZOJUU23y8VtQsJqcJIP9/Sjtox541890jv3Nope4Kpo7UwcG7N7Gz
-+ifJlduvbnBKV4krM5cM2m9TLsJG3LClOgh8mkRVTrUYGikobDJ43icjl4CVT4Yc
-gNn5A7WYVLHKfjHPNLA+0uFfj+kXVA+SD7xxmg9PkeXNIPQiB7Ez8fb73DRPyG3p
-nM/xIOmtGUuY8WMCleSLF2IXU1CZiTVhN02rfV6oSfeq/nvE4EfBmPmpPy1mz9S3
-q9bkwV2UGqw9DzxcQsAIMz7q25T/tYf1qQl+Em4ZmiiAxNAij9/+xF19y6Y5MqgS
-dmaFOcVzRiuq0/EOujEiz4EFEKeyU4SBX+KIovUG9dodd7AdZAn9wQ7zLm04A1LL
-F8MS94H6nMvNvXv9Oah4yqlxf1rGSoUKie7tNPXhacLRtGG3uefHfCs5AbvxatXc
-VV1k6AlarhVIf+6NDhs9+yYBpInLeGDF+tsdx6wXFB6c//7QzbW+7c48xk1TpGiu
-DjQwbHihrNC+E+yRCpG01yrh8J196jZiSsp1t7fgALbMAVXfMBC0y54B+NpWbUTc
-brfmc/wwfCtY8jnXEAwD8MeOhKgKZu/2pavDtREw74NmB8IygO/Rz0VE3Q802ADY
-plLgBU8U22zXBCXumkjepm2dslWzP0e/jndYrxNAwNB10bWLuc2zkVQrrGSZnIj3
-cvEoRndsq82ENkijyFcJw9qFNB1c4hWiNV/7MiF7uO/8wqVa5NbS3/Hkj5goWh4g
-qzfDO+v68+Pal3UaU+St5EXSO3/iJMXK4PPdyAQb+4LsA9GAR82NHs3LO5hKYqMh
-QnFq5wn2GR7s
-=67og
------END PGP MESSAGE-----
-
 **** elfeed
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/elfeed.el")
@@ -1842,38 +1789,6 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
                   '(;; s-exps for feeds will be inserted here
                     <<elfeed-feeds>>))))
 #+end_src
-
-***** personal tagging rules                  :crypt:
-
------BEGIN PGP MESSAGE-----
-
-hQEMA9uWvE5LJ2ejAQgAmhBk+MBPgI/akpGAN/ut/fss2EnBCEU++Yqr5O23PFkc
-R1/Kwjh8qBRdwHlRyBEDGEte/cLnw6TFIyDHxpg6BiqMM6085SvE4jkN3O0yyJhO
-a78fRrwZ3JYm4HQZXH3GFhsNf2Rjv7Gu6kNCGo6/qH4uAhvuq2Igh9xFZRVB2MYN
-1WkbLdHH1lrz9ma1/QVdNAL36/oOUt8g05qux5l9aktq10YxjydB4N6wLFfUBq+g
-ColsONoGKWhs6cPJs2JJqw8tfsGPL58WgCmLvjJVVSbQaKn9ZYmj8WxXuxHGPXUF
-rnId0SPQE5Pkl2XH8b3ebyDrnttaCTp4wlUAy5Dk2dLpAXaSlZu6FuJrDsblKzO3
-lxLO+UxZvs9CvhwrHnnch5KzfBfRrQDlf4A6mWDX/Ug/Zb78p4e1KkDmVhD9psZq
-n0mUsxFhsVWZK7BZdQ0svFYCB1MAPscJ5u0wmfS7G3HKrqP/T9Q3zngn/5LvMjvs
-3ajN8Sw8BcYTcwakk1pjhP4cG7Iml8AiU8CkCwNbUu9NQiHBe2qQhaVui2zTWJby
-wp+7MCAd3QBbpmmA7LSBTt4DanuYiSAQsnWd1Y6pVfTD76NIcvENIEGrEpPZeFNW
-ohjJrYk65GTt+CYdQKpejRFqI5rGwb7z8O6pdaxic1KOJ1sNMppKgPx3Rfs2bibb
-4em4cUNX5XXn29ljgK4+V1aLfN5pn7x1ACJq53gMOki46XsihIoTrfHcscW2t5Cs
-wmaaXTHOaAHoZpLiqAAaf/XS9/Dss+DuR9WD45d8rr1VFAD8+a5NGBuu4GFY6+Mg
-m8srrW/8GCO735mbFwZVBnfkmF+dMCSKL1Rka56zmHpAue4FT/AqI/Q3k894MF93
-s+cXNHrif1SqQdE77zKYfJSrhliv12DYUIXYgJW8xxjvPFjXFyTSqY7kgItKs1gH
-kBMtQdGmiGnltsz0geIiEqnf/hC5Ko3ZizlplGQylUzlayEuPNHFap45Ao4xMgBa
-szx6AZTGbn4iqThXi3PuQJnAs2HbJ+WeFUk6mHqv5PRh04mUYnSrsEkQwJr5vVoQ
-vO2cqEqxsvW4VsUKkw/ZdlQTkDW9K2W3VOHu8wY1Cz/UtJVLsP+cm21NyAcihSCV
-Uvc7ycQvu8JvETHP21eHjNJfScTj52mEwAih5PTyHUkAtUZx99xZeVL+/tJcSMqd
-f0fC6I/r8lmNnfydOBCO0KJgr2pnKVUQfFfmVww8x9anX5e3ITzShouH9Lv3ORS5
-FjLIS1att826jBdCSX8W8U7Q6wQe+0Wtxp3baZITqFmV46+unk2kAxheu6we3LWt
-9Zz8+WlwjjVc/isAwDxIwBJ2cD8SRHtpaPzapnBh/uZmDrxQOLId/oA1Wed+INsM
-m+7TBBzmJcskFSnFWg04H2SHQAzxGdS98PKdGjQQuBrxvQentQJc2SnAYeiI98sG
-jOv+ZwVDzlFbL1s8rgYcfoIC4Cn2jCk2Qybf7YBXcHVpS/v8hgMwQTpK8EHH1KeX
-QGy4EBy3
-=92VJ
------END PGP MESSAGE-----
 
 **** Dired
 :PROPERTIES:
@@ -7035,6 +6950,10 @@ Stripping rules are:
   #+BEGIN_SRC bash :noweb yes :tangle (expand-tangle-target ".bashrc")
     #!/usr/bin/env bash
 
+    if [ -f ~/.bashrc.secret ]; then
+       source ~/.bashrc.secret
+    fi
+
     export VIEWER=less
 
     USER_PATHS=(
@@ -7218,22 +7137,6 @@ Stripping rules are:
         PATH="$HOME/.local/bin:$PATH"
     fi
   #+END_SRC
-*** secret parts                                :crypt:
------BEGIN PGP MESSAGE-----
-
-hQEMA9uWvE5LJ2ejAQgArGORah6PhZQyWd8kqSGEwIXRkASbFg7cRhVeqngN02Ji
-myXYGFNOGf6yhRQb9BWUvOD9+GfGYn8Jp/LlKVRQxIwhZDj1gb6SGcEJeg1qWAQY
-AT4aowLdxyDt+rw3p+ezuZU5V2xXV4QHhT721A0+E4EU40FuY0DoHlE7RurSotXw
-fyJn2nu70XOyALvM+rsEE+T3HimvZZ1czubN721QBafmA6BaAbbG0xAKqX00DZ4I
-EpDA8xAkEupTh5QXIoq45PKifs09gxd2zuzBhUH2XGR75XoriAr/ZJx6INqyuBbQ
-Um6lhw6YclvDhkk7tFY4DKw7jHwxEBoNsefJMy/tENKkAQRsZkDUk4hYw0a0VaMf
-W8QEyJYqZKZHnhIvOJeawzvF04ryI/ok6LVlySWwwsK8TxNlXImNDr3jqdTTEJVD
-esnevCcl5Gon8qiUjFXwX6bomE+T9/jUK88HWJ9G5v2PUS/2QDmbU0o1MU+tUYp+
-i4IvaH/QeyE4KQkwJ25yAl6/juJZfXsA9uiWlH9hWhYBMyG+zYxx/kepJqtStCV0
-Q7sbt0I=
-=sBHC
------END PGP MESSAGE-----
-
 ** OpenSSH
 
 [[https://www.openssh.com/][OpenSSH]] is client and server side of ssh implementation.
