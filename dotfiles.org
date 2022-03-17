@@ -434,15 +434,25 @@ Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[h
                   global-mode-string))
 #+end_src
 
-***** minibuffer
+***** history
+
 [[help:savehist-mode][savehist-mode]] saves minibuffer history and additionals.
 
 #+begin_src emacs-lisp
-  (savehist-mode)
+  (use-package savehist
+    :custom
+    (savehist-save-minibuffer-history t)
+    (savehist-additional-variables `(kill-ring))
+    :config
+    (savehist-mode 1))
 
-  (setf history-length 1500)
-  (setf history-delete-duplicates t)
+  (setf history-length 300
+        history-delete-duplicates t)
+#+end_src
 
+***** minibuffer
+
+#+begin_src emacs-lisp
   ;; allow y/n answer for an either-or selection
   (fset 'yes-or-no-p 'y-or-n-p)
 
