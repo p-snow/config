@@ -1078,7 +1078,8 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+end_src
 
 #+begin_src emacs-lisp
-  (defvar skk-data-dir (expand-file-name "~/share/skk"))
+  (defvar skk-jisyo-dir (expand-file-name "~/share/skk"))
+  (defvar skk-jisyo-dotemacs-dir (expand-file-name "ddskk" user-emacs-directory-default))
 
   (use-package ddskk
     :defer t
@@ -1092,7 +1093,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     :custom
     (skk-kakutei-key (kbd "C-m"))
     (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
-    (skk-init-file "~/.emacs.d/lisp/ddskk/init.el")
+    (skk-init-file "~/.emacs.d/ddskk/init.el")
     (skk-byte-compile-init-file t)
     (skk-tut-file
      (expand-file-name "etc/SKK.tut" (straight--repos-dir "ddskk")))
@@ -1143,28 +1144,28 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     (skk-dcomp-activate nil)
     (skk-dcomp-multiple-activate nil)
     ;; config file
-    (skk-record-file (expand-file-name "record" skk-data-dir))
-    (skk-emacs-id-file (expand-file-name "emacs-id" skk-data-dir))
+    (skk-record-file (expand-file-name "record" skk-jisyo-dir))
+    (skk-emacs-id-file (expand-file-name "emacs-id" skk-jisyo-dir))
     ;; jisyo
     (skk-share-private-jisyo t)
     (skk-compare-jisyo-size-when-saving nil)
     (skk-save-jisyo-instantly t)
     ;; jisyo file/directory
-    (skk-jisyo (expand-file-name "jisyo" skk-data-dir))
-    (skk-backup-jisyo (expand-file-name "jisyo.bak" skk-data-dir))
-    (skk-large-jisyo (expand-file-name "large-jisyo" skk-data-dir))
+    (skk-jisyo (expand-file-name "jisyo" skk-jisyo-dotemacs-dir))
+    (skk-backup-jisyo (expand-file-name "jisyo.bak" skk-jisyo-dir))
+    (skk-large-jisyo (expand-file-name "large-jisyo" skk-jisyo-dir))
     ;; jisyo server
     (skk-server-host "localhost")
     (skk-server-portnum 1178)
     (skk-server-inhibit-startup-server t)
     ;; study
-    (skk-study-file (expand-file-name "study" skk-data-dir))
-    (skk-study-backup-file (expand-file-name "study.bak" skk-data-dir)))
+    (skk-study-file (expand-file-name "study" skk-jisyo-dir))
+    (skk-study-backup-file (expand-file-name "study.bak" skk-jisyo-dir)))
 #+end_src
 
 ***** skk-init-file
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/lisp/ddskk/init.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/ddskk/init.el")
   ;; -*- mode:emacs-lisp; -*-
   (setq skk-rom-kana-rule-list
         (append skk-rom-kana-rule-list
