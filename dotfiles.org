@@ -582,7 +582,6 @@ This command was introduced at [[https://irreal.org/blog/?p=10318][here]] to ins
 #+begin_src emacs-lisp
   (setq gc-cons-threshold (* 10 gc-cons-threshold))
   (setq message-log-max 10000)
-  (setq shell-command-switch "-c")
   (setq undo-outer-limit 64000000)
 
   (setq-default bidi-display-reordering nil)
@@ -2009,10 +2008,17 @@ PJ9yVMkVvCr5zakquLXOPd2+a4zzLTBHoLwDiJIBkA3fRpM92acw502hGRNQ5Uhw
     (dired-hide-dotfiles-mode -1))
 #+end_src
 
-**** Shells
+**** Shells / Terminal emulators
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/shell.el")
 :END:
+
+#+begin_src emacs-lisp
+  (setf shell-command-switch "-c")
+  (custom-set-variables '(shell-command-prompt-show-cwd t))
+
+  (shell-command-with-editor-mode 1)
+#+end_src
 
 ***** shell
 
