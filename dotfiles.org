@@ -1063,8 +1063,9 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+end_src
 
 #+begin_src emacs-lisp
-  (defvar skk-jisyo-dir (expand-file-name "~/share/skk"))
-  (defvar skk-jisyo-dotemacs-dir (expand-file-name "ddskk" user-emacs-directory-default))
+  (defvar skk-dir (expand-file-name "~/share/skk"))
+  (defvar skk-dotemacs-dir (expand-file-name "ddskk" user-emacs-directory-default))
+  (defvar skk-dotskk-dir (expand-file-name "~/.config/skk"))
 
   (use-package ddskk
     :defer t
@@ -1078,7 +1079,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     :custom
     (skk-kakutei-key (kbd "C-m"))
     (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
-    (skk-init-file "~/.emacs.d/ddskk/init.el")
+    (skk-init-file (expand-file-name "init" skk-dotemacs-dir))
     (skk-byte-compile-init-file t)
     (skk-tut-file
      (expand-file-name "etc/SKK.tut" (straight--repos-dir "ddskk")))
@@ -1131,16 +1132,16 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     (skk-dcomp-activate nil)
     (skk-dcomp-multiple-activate nil)
     ;; config file
-    (skk-record-file (expand-file-name "record" skk-jisyo-dir))
-    (skk-emacs-id-file (expand-file-name "emacs-id" skk-jisyo-dir))
+    (skk-record-file (expand-file-name "record" skk-dir))
+    (skk-emacs-id-file (expand-file-name "emacs-id" skk-dir))
     ;; jisyo
     (skk-share-private-jisyo t)
     (skk-compare-jisyo-size-when-saving t)
     (skk-save-jisyo-instantly t)
     ;; jisyo file/directory
-    (skk-get-jisyo-directory (expand-file-name "get-jisyo" skk-jisyo-dir))
-    (skk-jisyo `(,(expand-file-name "jisyo" skk-jisyo-dotemacs-dir) . utf-8))
-    (skk-backup-jisyo (expand-file-name "jisyo.bak" skk-jisyo-dir))
+    (skk-get-jisyo-directory (expand-file-name "get-jisyo" skk-dir))
+    (skk-jisyo `(,(expand-file-name "jisyo" skk-dotskk-dir) . utf-8))
+    (skk-backup-jisyo (expand-file-name "jisyo.bak" skk-dir))
     (skk-large-jisyo (expand-file-name "SKK-JISYO.L" skk-get-jisyo-directory))
     (skk-itaiji-jisyo (expand-file-name "SKK-JISYO.itaiji" skk-get-jisyo-directory))
     (skk-extra-jisyo-file-list
@@ -1149,37 +1150,19 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
                                (string-suffix-p (symbol-name suffix) dic))
                              '(L itaiji tar)))
                  (append (file-expand-wildcards (expand-file-name "SKK-JISYO.*" skk-get-jisyo-directory))
-                         (file-expand-wildcards (expand-file-name "open-jisyo/SKK-JISYO.*" skk-jisyo-dir)))))
+                         (file-expand-wildcards (expand-file-name "open-jisyo/SKK-JISYO.*" skk-dir)))))
     ;; jisyo server
     ;; (skk-server-host "localhost")
     ;; (skk-server-portnum 1178)
     ;; (skk-server-inhibit-startup-server t)
     ;; study
-    (skk-study-file (expand-file-name "study" skk-jisyo-dir))
-    (skk-study-backup-file (expand-file-name "study.bak" skk-jisyo-dir)))
-#+end_src
-
-***** derive unique entries in user-jisyo
-
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/skkdic_uniq.sh") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
-  tmp_euc=$(mktemp)
-  tmp_utf8=$(mktemp)
-  dic_orig=~/.emacs.d/ddskk/jisyo
-  dic_uniq=~/.emacs.d/ddskk/jisyo.uniq
-
-  skkdic-expr2 ~/share/skk/get-jisyo/SKK-JISYO.* > ${tmp_euc}
-  nkf -w -Lu ${tmp_euc} > ${tmp_utf8}
-  skkdic-expr2 ${dic_orig} - ${tmp_utf8} > ${dic_uniq}
-
-  rm -f ${tmp_euc}
-  rm -f ${tmp_utf8}
-
-  echo ${dic_uniq}
+    (skk-study-file (expand-file-name "study" skk-dir))
+    (skk-study-backup-file (expand-file-name "study.bak" skk-dir)))
 #+end_src
 
 ***** skk init file
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/ddskk/init.el")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/ddskk/init")
   ;; -*- mode:emacs-lisp; -*-
   (setq skk-rom-kana-rule-list
         (append skk-rom-kana-rule-list
@@ -8338,10 +8321,33 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
 ** SKK
 
 SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
+
 - TODO: following programs have no guix package.
   It is better to write my own one for my reproducible system.
-  + [[https://github.com/skk-dev/skktools][skktools]]
-  + ibus-skk
+  + [ ] [[https://github.com/skk-dev/skktools][skktools]]
+  + [ ] ibus-skk
+
+*** derive unique entries in user-jisyo
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/skkdic_uniq.sh") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+  tmp_euc=$(mktemp)
+  tmp_utf8=$(mktemp)
+  skk_get_dir=~/share/skk/get-jisyo
+  skk_dotskk_dir=~/.config/skk
+  dic_orig=${skk_dotskk_dir}/jisyo
+  dic_uniq=${skk_dotskk_dir}/jisyo.uniq
+
+  skkdic-expr2 ${skk_get_dir}/SKK-JISYO.* > ${tmp_euc}
+  nkf -w -Lu ${tmp_euc} > ${tmp_utf8}
+  skkdic-expr2 ${dic_orig} - ${tmp_utf8} > ${dic_uniq}
+
+  rm -f ${tmp_euc}
+  rm -f ${tmp_utf8}
+
+  echo ${dic_uniq}
+#+end_src
+
+
 ** Jack
 
 #+begin_src scheme :noweb-ref media-pkgs
