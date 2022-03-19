@@ -5931,10 +5931,12 @@ Learning Workflow for English words:
   (defmacro with-org-drill-english-config (&rest body)
     "Evaluate BODY with config for Org-Drill for english words review."
     `(progn
-       (let ((org-drill-scope '("~/org/agenda/life.org"
-                                "~/org/archive/archive_2021.org"
-                                "~/org/archive/archive_2020.org"
-                                "~/org/archive/archive_2019.org"))
+       (let ((org-drill-scope (append '("~/org/agenda/life.org")
+                                      (seq-remove
+                                       (lambda (item)
+                                         (string-match "archive_\\([[:digit:]]\\{4\\}\\).org" item)
+                                         (< (string-to-number (match-string 1 item)) 2019))
+                                       (file-expand-wildcards "~/org/archive/archive_*.org"))))
              (org-drill-question-tag "drill")
              (org-drill-maximum-items-per-session 20)
              (org-drill-hide-item-headings-p t)
