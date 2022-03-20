@@ -8133,15 +8133,18 @@ Extendable version manager
 
 #+begin_src shell :noweb-ref bashrc
   GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
-  # uncomment next line if you'd like to acticate specific profiles under ~/.guix-extra-profiles
+
+  # fill in a variable below like a comment line
+  # if you'd like to acticate specific profiles under GUIX_EXTRA_PROFILES
+  ACTIVE_PROFILE_NAMES=()
   # ACTIVE_PROFILE_NAMES=(base emacs)
 
-  profiles=
+  profiles=()
   if [ ${#ACTIVE_PROFILE_NAMES[@]} -eq 0 ]; then
     profiles="${GUIX_EXTRA_PROFILES}/*"
   else
     for name in ${ACTIVE_PROFILE_NAMES[@]}; do
-      profiles=("${profiles[@]}" "${GUIX_EXTRA_PROFILES}/${name}")
+      profiles+=("${GUIX_EXTRA_PROFILES}/${name}")
     done
   fi
 
