@@ -45,7 +45,7 @@
 :header-args+: :tangle-mode (identity #o444)
 :END:
 
-** emacs
+** GNU Emacs
 *** general configuration
 
 **** early initialization
@@ -6942,6 +6942,14 @@ Stripping rules are:
   CONTENT = html.tostring(ROOT, encoding="utf-8", method='html', pretty_print=True)
   print(CONTENT.decode())
 #+end_src
+**** additional emacs lisp code
+
+This section mainly for elisp code associated with some other programs.
+
+#+begin_src emacs-lisp :noweb yes :tangle (expand-tangle-target ".emacs.d/site-lisp/additional.el")
+  <<additional-elisp>>
+#+end_src
+
 ** Bash
 - bash profile
   #+BEGIN_SRC bash :tangle (expand-tangle-target ".bash_profile")
@@ -8358,7 +8366,69 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 
   echo ${dic_uniq}
 #+end_src
+** Festival
 
+[[http://festvox.org/festival/][Festival]] is a framework for building and manipulating speech synthesis engine.
+
+#+begin_src scheme :noweb-ref desktop-pkgs
+  "festival"
+#+end_src
+
+- configuration
+  #+begin_src scheme :noweb tangle :tangle (expand-tangle-target ".festivalrc")
+    ;; -*- mode:scheme; -*-
+    (Parameter.set 'Audio_Required_Format 'aiff)
+    (Parameter.set 'Audio_Method 'Audio_Command)
+    (Parameter.set 'Audio_Command "paplay $FILE --client-name=Festival --stream-name=Speech")
+
+    ;; add SLT voice and use it as a default one
+    (voice-location 'cmu_us_slt_cg
+                    (path-as-directory "<<home-dir()>>/.local/share/festival/lib/voices/us/cmu_us_slt_cg")
+                    "English American Female")
+    (set! voice_default voice_cmu_us_slt_cg)
+  #+end_src
+- a script to download voices
+
+  #+begin_src shell :tangle no :async
+    work_dir=~/.local/share/festival
+    voices=(
+      cmu_us_aew_cg
+      cmu_us_rxr_cg
+      cmu_us_slt_cg
+    )
+
+    if [ ! -d "${work_dir}" ]; then
+      mkdir -p "${work_dir}"
+    fi
+
+    cd "${work_dir}"
+    for voice in "${voices[@]}"; do
+      voice_pack_file=festvox_${voice}.tar.gz
+      if [ ! -e ${voice_pack_file} ]; then
+        wget -c http://festvox.org/packed/festival/2.5/voices/${voice_pack_file}
+        tar zxf "${voice_pack_file}" -C ../../share
+      fi
+    done
+
+    echo "${work_dir}"
+  #+end_src
+- festival.el
+
+  #+begin_src emacs-lisp :noweb yes :noweb-ref additional-elisp
+    (add-to-list 'load-path
+                 (expand-file-name "<<festival-data-dir()>>"))
+
+    (use-package festival
+      :config
+      (say-minor-mode 1))
+  #+end_src
+- data directory
+
+  #+name: festival-data-dir
+  #+begin_src shell :eval no-export
+    guix package -p ~/.guix-extra-profiles/desktop/desktop --search-paths \
+      | awk -F'=' '/XDG_DATA_DIRS/{print $2}' | tr -d '"' | awk '{print $1"/festival/lib"}'
+  #+end_src
 
 ** Jack
 
@@ -8371,6 +8441,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 #+begin_src conf :tangle (expand-tangle-target ".jackdrc")
   /usr/bin/jackd -dalsa -dhw:0 -r44100 -p1024 -n3 -Xseq
 #+end_src
+
 ** XRandR
 
 XRandR is a command line utility for changing display options without restarting X server.
