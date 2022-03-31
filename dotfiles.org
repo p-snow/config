@@ -1441,7 +1441,6 @@ Command in practice presumably looks like:
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "mu"
-  "nkf"
 #+end_src
 
 #+begin_src emacs-lisp
@@ -8178,12 +8177,27 @@ Extendable version manager
 - base
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/base.scm")
     (specifications->manifest
-     '("tar"
+     '("coreutils"
+       "findutils"
+       "diffutils"
+       "moreutils"
+       "gawk"
+       "sed"
+       "tar"
+       "zip"
+       "unzip"
+       "zstd"
+       "shadow"
+       ;; "sudo"
        "sshfs"
+       "grep"
        "ripgrep"
+       "less"
        "gnupg"
-       "wget"
        "pwgen"
+       "file"
+       "nkf"
+       "lsof"
        "tree"
        "poppler"
        "pass-git-helper"
@@ -8192,17 +8206,23 @@ Extendable version manager
        "pandoc"
        "nss-certs"
        "openssl"
-       "curl"
        "glibc-locales"
+       "procps"
+       "time"
        "htop"
+       "net-tools"
+       "curl"
+       "wget"
+       "rsync"
+       "speedtest-cli"
+       "ddrescue"
+       "sqlite"
        <<base-pkgs>>))
   #+end_src
 - desktop
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/desktop.scm")
     (specifications->manifest
-     '("lilypond"
-       "ddrescue"
-       "font-adobe-source-han-sans"
+     '("font-adobe-source-han-sans"
        "fontconfig"
        "xkeysnail"
        "imagemagick"
@@ -8250,9 +8270,7 @@ Extendable version manager
      '("emacs"
        ;; "emacs-no-x-toolkit"
        <<emacs-pkgs>>
-       "zstd"
        "isync"
-       "sqlite"
        "stunnel"
        "wordnet"))
   #+end_src
