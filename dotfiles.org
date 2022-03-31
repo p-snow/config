@@ -4083,24 +4083,6 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
     (plantuml-jar-path "/usr/share/plantuml/plantuml.jar"))
 #+end_src
 
-***** lilypond
-
-[[https://lilypond.org/unix.html][LilyPond]] elisp package is included in source tarball available at [[https://lilypond.org/download/source][here]],
-you are required to locate that package where emacs can search.
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/lilypond/lilypond/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package lilypond-mode
-    :delight (LilyPond-mode " LP")
-    :mode ("\\.ly$" . LilyPond-mode)
-    :custom
-    (LilyPond-pdf-command "firefox")
-    (LilyPond-midi-command "fluidsynth -a alsa -m alsa_seq -l"))
-#+end_src
-
 ***** conf
 
 #+begin_src emacs-lisp
@@ -8370,7 +8352,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 
 [[http://festvox.org/festival/][Festival]] is a framework for building and manipulating speech synthesis engine.
 
-#+begin_src scheme :noweb-ref desktop-pkgs
+#+begin_src scheme :noweb-ref emacs-pkgs
   "festival"
 #+end_src
 
@@ -8414,20 +8396,10 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
   #+end_src
 - festival.el
 
-  #+begin_src emacs-lisp :noweb yes :noweb-ref additional-elisp
-    (add-to-list 'load-path
-                 (expand-file-name "<<festival-data-dir()>>"))
-
+  #+begin_src emacs-lisp :noweb-ref additional-elisp
     (use-package festival
       :config
       (say-minor-mode 1))
-  #+end_src
-- data directory
-
-  #+name: festival-data-dir
-  #+begin_src shell :eval no-export
-    guix package -p ~/.guix-extra-profiles/desktop/desktop --search-paths \
-      | awk -F'=' '/XDG_DATA_DIRS/{print $2}' | tr -d '"' | awk '{print $1"/festival/lib"}'
   #+end_src
 
 ** Jack
@@ -9027,6 +8999,27 @@ If you are AZIK lover, replace /usr/share/cmigemo/utf-8/roma2hira.dat with data 
   zx	ぜい
   zyi	ずぃ
   zz	ざん
+#+end_src
+** LilyPond
+
+[[https://lilypond.org/unix.html][LilyPond]] elisp package is included in source tarball available at [[https://lilypond.org/download/source][here]],
+you are required to locate that package where emacs can search.
+
+#+begin_src scheme :noweb-ref emacs-pkgs
+  "lilypond"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/lilypond/lilypond/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp :noweb-ref additional-elisp
+  (use-package lilypond-mode
+    :delight (LilyPond-mode " LP")
+    :mode ("\\.ly$" . LilyPond-mode)
+    :custom
+    (LilyPond-pdf-command "firefox")
+    (LilyPond-midi-command "fluidsynth -a alsa -m alsa_seq -l"))
 #+end_src
 
 * utility scripts
