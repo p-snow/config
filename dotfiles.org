@@ -5514,7 +5514,7 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
                   0 t))))
 #+end_src
 
-***** media file handling
+***** download media file
 
 #+begin_src emacs-lisp
   (defvar my/download-video-dir "~/data/media/video" "Directory where downloaded video locate.")
@@ -5553,11 +5553,11 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
                                (replace-regexp-in-string
                                 "[\\?\"/:|’]" "" filename)
                              nil))
-        (princ (format "Downloading: %s" (or filename-lex url)))
+        (message "Downloading: %s" (or filename-lex url))
         (set-process-sentinel
          (start-process-shell-command
           "download video" nil
-          (format "cd \"%1$s\" && youtube-dl %2$s \"%3$s\""
+          (format "cd \"%1$s\" && nohup youtube-dl %2$s \"%3$s\" >/dev/null 2>&1"
                   (expand-file-name my/download-video-dir)
                   (mapconcat #'identity
                              (list (format "--format \"%s\"" (youtube-dl-format))
@@ -5582,42 +5582,30 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
 
   If optional argument `FILENAME' is given use this as a filename."
     (interactive (list (read-string "URL: ")))
-    (let* ((temp-fname (make-temp-name (if (directory-name-p my/download-audio-dir)
-                                           my/download-audio-dir
-                                         (concat my/download-audio-dir "/")))))
-      (setq lexical-binding t)
-      (setq url-lex url)
-      (setq filename-lex (if filename
-                             (replace-regexp-in-string
-                              "[\\?\"/:|’]" "" filename)
-                           nil))
-      (princ (format "Downloading: %s" (or filename-lex url)))
-      (set-process-sentinel
-       (start-process-shell-command
-        "download audio" nil
-        (format "%s; %s; %s"
-                (if (string-match "https?://www.youtube.com.+" url)
-                    (format "youtube-dl --extract-audio --audio-format mp3 \"%1$s\" -o %2$s.mp3; mv -f %2$s.mp3 %2$s" (match-string 0 url) temp-fname)
-                  (format "curl -LJs \"%s\" -o %s" url temp-fname))
-                (format "cd \"%s\" && ffmpeg -n %s %s.mp3"
-                        (expand-file-name my/download-audio-dir)
-                        (mapconcat #'identity
-                                   (list (format "-i %s" temp-fname)
-                                         (if (equal '(undecided) (find-coding-systems-string (or filename-lex url)))
-                                             "-filter:a \"atempo=1.1\""
-                                           "-filter:a \"atempo=1.7\"")
-                                         "-vn")
-                                   " ")
-                        (if filename-lex
-                            (shell-quote-argument filename-lex)
-                          (file-name-base temp-fname)))
-                (format "rm -f %s" temp-fname)))
-       (lambda (process desc)
-         (when (eq (process-status process) 'exit)
-           (let ((exit-status (process-exit-status process)))
-             (if (= exit-status 0)
-                 (alert (format "Downloaded: %s" (or filename-lex url-lex)) :severity 'normal :style 'fringe)
-               (alert (format "Failed(%d): %s" exit-status (or filename-lex url-lex)) :severity 'urgent :style 'fringe))))))))
+    (setq lexical-binding t)
+    (setq url-lex url)
+    (setq filename-lex (if filename
+                           (replace-regexp-in-string
+                            "[\\?\"/:|’]" "" filename)
+                         nil))
+    (message "Downloading: %s" (or filename-lex url))
+    (set-process-sentinel
+     (start-process-shell-command
+      "download audio" nil
+      (format "cd %s && nohup %s >/dev/null 2>&1"
+              (shell-quote-argument (expand-file-name my/download-audio-dir))
+              (if (string-match-p "https?://www.youtube.com.+" url)
+                  (format "youtube-dl --extract-audio %s" url)
+                (concat (format "curl -LJs %s" url)
+                        (and filename-lex
+                             (format " -o %s.%s" filename-lex
+                                     (file-name-extension url)))))))
+     (lambda (process desc)
+       (when (eq (process-status process) 'exit)
+         (let ((exit-status (process-exit-status process)))
+           (if (= exit-status 0)
+               (alert (format "Downloaded: %s" (or filename-lex url-lex)) :severity 'normal :style 'fringe)
+             (alert (format "Failed(%d): %s" exit-status (or filename-lex url-lex)) :severity 'urgent :style 'fringe)))))))
 
   (defun show-media-duration (url)
     "Return a duration value for media located at URL."
