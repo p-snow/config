@@ -5300,7 +5300,6 @@ to avoid accidental data loss.
       ("s" synosaurus-lookup "synosaurus-lookup")
       ("S" synosaurus-choose-and-replace "synosaurus-replace")
       ("o" my/lookup-org-archive)
-      ("'" utl-say)
       ("q" nil "quit")))
 #+end_src
 
@@ -5660,22 +5659,81 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
   (global-set-key (kbd "C-c D =") 'my/show-media-duration-at-point)
 #+end_src
 
-***** using speech synthesis
+***** say out loud text with speech synthesis
 
 #+begin_src emacs-lisp
-  (defun utl-say ()
-    "read out using open-jtalk"
-    (interactive)
-    (let* ((read-text-raw (buffer-substring (region-beginning) (region-end)))
-           (read-text (replace-regexp-in-string "[ \t\r\n\v\f]+" "" read-text-raw))
-           (say-cmd (if (string-match
-                         (format "\\`[%s]+\\'" "[:ascii:]’“”–")
-                         read-text)
-                        "esay" "jsay")))
-      (call-process-shell-command (format "echo %s | %s &" read-text say-cmd))))
+  (defcustom my/say-maximum-duration 30
+    "Maximum speech duration in second for `my/say'.")
+
+  (defun my/say (&optional arg)
+    "Say out loud text in buffer.
+
+  If region is active the selected string is spoken instead.
+
+  With `C-u' prefix ARG, cancel speeching.
+
+  As of now, English and Japanese is supported for speech. Appropriate language is
+   determined from a spoken string, specifically the string consists of ASCII
+   character is spoken in English. Otherwise the string is  spoken in Japanese."
+    (interactive "P")
+    (if (equal arg '(4))
+        (progn
+          (and my/say--timer
+               (progn (cancel-timer my/say--timer)
+                      (setq my/say--timer nil)))
+          (if (and festival-process
+                   (string= (process-status festival-process)
+                            "run"))
+              (festival-kill-process)
+            (and (get-process my/say--open-jtalk-process)
+                 (interrupt-process my/say--open-jtalk-process))))
+      (let ((my/say-lang 'en))
+        (if (region-active-p)
+            (let ((region-text (buffer-substring (region-beginning) (region-end))))
+              (if (my/say-ascii-p region-text)
+                  (call-interactively #'festival-say-region)
+                (my/say--open-jtalk region-text)
+                (setq my/say-lang 'ja)))
+          (let ((buffer-text (buffer-string)))
+            (if (my/say-ascii-p buffer-text)
+                (call-interactively #'festival-say-buffer)
+              (princ buffer-text)
+              (my/say--open-jtalk buffer-text)
+              (setq my/say-lang 'ja))))
+        (setq my/say--timer
+              (cond
+               ((eq my/say-lang 'en)
+                (run-with-timer my/say-maximum-duration nil
+                                (lambda ()
+                                  (festival-kill-process)
+                                  (setq my/say--timer nil))))
+               ((eq my/say-lang 'ja)
+                (run-with-timer my/say-maximum-duration nil
+                                (lambda ()
+                                  (and (get-process my/say--open-jtalk-process)
+                                       (interrupt-process my/say--open-jtalk-process))
+                                  (setq my/say--timer nil)))))))))
+  (global-set-key (kbd "C-\"") #'my/say)
+
+  (defvar my/say--timer nil "Timer used to cancel speech process.")
+  (defvar my/say--open-jtalk-process "Say<Open-JTalk>"
+    "Fixed name for a process running Open JTalk.")
+
+  (defun my/say--open-jtalk (text)
+    "Speech TEXT in Japanese using Open JTalk."
+    (start-process-shell-command
+     my/say--open-jtalk-process nil
+     (format "echo %s | open_jtalk -x /var/lib/mecab/dic/open-jtalk/naist-jdic -m ~/.local/share/hts-voice/mei/mei_angry.htsvoice -ow /tmp/a.wav && aplay /tmp/a.wav"
+             (replace-regexp-in-string "[\t\r\n\v\f]+" " " text))))
+
+  (defun my/say-ascii-p (text)
+    "Return non-nil if TEXT consists of ASCII character."
+    (string-match-p
+     (format "\\`[%s]+\\'" "[:ascii:]’“”–")
+     text))
 #+end_src
 
-****** jsay
+****** jsay                                :ARCHIVE:
 
 #+begin_src shell :tangle (expand-tangle-target ".local/bin/jsay") :tangle-mode (identity #o755)
   #!/usr/bin/env bash
@@ -5691,7 +5749,7 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
   exit 0
 #+end_src
 
-****** esay
+****** esay                                :ARCHIVE:
 
 #+begin_src shell :tangle (expand-tangle-target ".local/bin/esay") :tangle-mode (identity #o755)
   #!/usr/bin/env bash
@@ -8405,7 +8463,33 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
   #+begin_src emacs-lisp :noweb-ref additional-elisp
     (use-package festival
       :config
-      (say-minor-mode 1))
+      (say-minor-mode 1)
+      (setq festival-tmp-file (make-temp-file "festival-")))
+  #+end_src
+** Open JTalk
+
+- install on Ubuntu
+  #+begin_example
+    sudo apt install -y \
+         open-jtalk \
+         open-jtalk-mecab-naist-jdic \
+         hts-voice-nitech-jp-atr503-m001
+  #+end_example
+- download hts voices
+
+  #+begin_src shell :tangle no :async
+    data_dir=~/.local/share/hts-voice
+
+    if [ ! -d "${data_dir}" ]; then
+      mkdir -p "${data_dir}"
+    fi
+
+    cd /tmp \
+      && wget http://sourceforge.net/projects/mmdagent/files/MMDAgent_Example/MMDAgent_Example-1.8/MMDAgent_Example-1.8.zip \
+      && unzip -f -qq MMDAgent_Example-1.8.zip \
+      && rm -f MMDAgent_Example-1.8.zip \
+      && cp -rf MMDAgent_Example-1.8/Voice/* "${data_dir}" \
+      && echo "Downloaded in ${data_dir}"
   #+end_src
 
 ** Jack
