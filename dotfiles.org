@@ -5879,6 +5879,24 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
   (global-set-key (kbd "C-c .") 'my/insert-time-stamp)
 #+end_src
 
+***** org entries/items manipulation
+
+#+begin_src emacs-lisp
+  (defun my/org-alter-heading (new-heading)
+    "Replace heading of the org entry on which cursor points with NEW-HEADING."
+    (interactive `(,(if (and (boundp 'new-heading)
+                             (stringp new-heading))
+                        new-heading
+                      (read-string "New heading: "))))
+    (let ((old-heading (org-get-heading t t t t)))
+      (save-excursion
+        (org-back-to-heading t)
+        (replace-string old-heading new-heading nil
+                        (line-beginning-position) (line-end-position))
+        (org-align-tags))
+      (org-add-log-setup 'state new-heading old-heading 'state)))
+#+end_src
+
 **** original features
 ***** org-english
 
