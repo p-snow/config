@@ -7197,6 +7197,17 @@ This section mainly for elisp code associated with some other programs.
         PATH="$HOME/.local/bin:$PATH"
     fi
   #+END_SRC
+** Cron
+
+#+begin_src conf :noweb yes :tangle (expand-tangle-target ".config/ctontab/pc")
+  MAILTO="<<email()>>"
+
+  BIN_DIR="<<home-dir()>>/bin"
+  LOG_DIR="<<home-dir()>>/.local/state/log"
+
+  <<cronjob-pc>>
+#+end_src
+
 ** OpenSSH
 
 [[https://www.openssh.com/][OpenSSH]] is client and server side of ssh implementation.
@@ -9146,6 +9157,10 @@ you are required to locate that package where emacs can search.
 These scripts (declutter_xxx) keep things decluttered.
 
 - trash
+  #+begin_src conf :noweb-ref cronjob-pc
+    0 2 * * * /bin/bash -ci "declutter_trash >> $LOG_DIR/declutter_trash.log 2>&1"
+  #+end_src
+
   #+begin_src python :tangle (expand-tangle-target ".local/bin/declutter_trash")
     #!/usr/bin/env python3
 
@@ -9381,7 +9396,16 @@ These scripts (declutter_xxx) keep things decluttered.
     done
   #+end_src
 
+- cron job
+  #+begin_src conf :noweb-ref cronjob-pc
+    0 1 * * * /bin/bash -ci "snapshot.sh >> $LOG_DIR/snapshot.log 2>&1"
+  #+end_src
+
 ** git repo syncing
+
+#+begin_src conf :noweb-ref cronjob-pc
+  0 9,21 * * * /bin/bash -ci "sync_repos.sh >> $LOG_DIR/sync_repos.log 2>&1"
+#+end_src
 
 #+begin_src shell :tangle (expand-tangle-target ".local/bin/sync_repos.sh") :shebang #!/usr/bin/env bash
   repos_path=$(ghq list --full-path --exact "${repo}")
