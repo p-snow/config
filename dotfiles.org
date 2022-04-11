@@ -5919,16 +5919,42 @@ Learning Workflow for English words:
                           `(and (heading ,(format "%s" word))
                                 (tags "drill"))
                           :action 'element-with-markers))
-           (sentence
-            (seq-reduce (lambda (s w)
-                          (replace-regexp-in-string w (format "[%s||%c]" w (string-to-char w))
-                                                    s))
-                        (split-string word " ")
-                        (sentence-at-point))))
+           (sentence (replace-regexp-in-string word
+                                               (my/cloze-deletion word)
+                                               (sentence-at-point))))
       (kill-new (if (stringp sentence) sentence ""))
       (cond
        (match-entry (org-capture nil "!1"))
        (t (org-capture nil "!0")))))
+
+  (defun my/cloze-deletion (word)
+    "Build cloze deletion string from WORD."
+    (seq-reduce (lambda (string chunk)
+                  (replace-regexp-in-string chunk (format "[%s||%c]" chunk (string-to-char chunk))
+                                            string))
+                (split-string word "[ -]+")
+                word))
+
+  (defun my/cloze-deletion-replace (word start end)
+    "Convert WORD into cloze deletion.
+  OWRD can be determined a string between START and END.
+
+  When called Interactively, WORD is either a word at point or a string in region."
+    (interactive (cond
+                  ((region-active-p)
+                   `(,(buffer-substring (region-beginning) (region-end))
+                     ,(region-beginning)
+                     ,(region-end)))
+                  (t
+                   (let ((bounds (bounds-of-thing-at-point 'word)))
+                     `(,(thing-at-point 'word)
+                       ,(car bounds)
+                       ,(cdr bounds))))))
+    (replace-string word
+                    (my/cloze-deletion word)
+                    nil
+                    start
+                    end))
 
   (with-eval-after-load 'org-ql-view
     (push '("English phrase list"
