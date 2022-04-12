@@ -7026,6 +7026,28 @@ Stripping rules are:
 #+end_src
 ***** lfile (local file lookup system)
 
+lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lfile/][Kerl Voit's implementation]].
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/lfile.el")
+  (defun my/lfile-follow-link (file _)
+    "Determine path from given basename FILE using `locate' program."
+    (let ((paths (split-string
+                  (shell-command-to-string
+                   (format
+                    "locate -q -r %s$ 2>/dev/null"
+                    (shell-quote-argument file)))
+                  "\n" t)))
+      (cond
+       ((= 0 (length paths))
+        (message "Sorry, no results found for query: %s" file))
+       ((<= 1 (length paths))
+        (my/view-file (car paths) current-prefix-arg)))))
+
+  (with-eval-after-load 'org
+    (org-link-set-parameters
+     "lfile"
+     :follow #'my/lfile-follow-link))
+#+end_src
 
 **** additional emacs lisp code
 
