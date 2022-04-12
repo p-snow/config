@@ -1076,7 +1076,6 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+begin_src emacs-lisp
   (defvar skk-dir (expand-file-name "~/share/skk"))
   (defvar skk-dotemacs-dir (expand-file-name "ddskk" user-emacs-directory-default))
-  (defvar skk-dotskk-dir (expand-file-name "~/.config/skk"))
 
   (use-package ddskk
     :defer t
@@ -1151,7 +1150,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     (skk-save-jisyo-instantly t)
     ;; jisyo file/directory
     (skk-get-jisyo-directory (expand-file-name "get-jisyo" skk-dir))
-    (skk-jisyo `(,(expand-file-name "jisyo" skk-dotskk-dir) . utf-8))
+    (skk-jisyo `(,(expand-file-name "jisyo" skk-dir) . utf-8))
     (skk-backup-jisyo (expand-file-name "jisyo.bak" skk-dir))
     (skk-large-jisyo (expand-file-name "SKK-JISYO.L" skk-get-jisyo-directory))
     (skk-itaiji-jisyo (expand-file-name "SKK-JISYO.itaiji" skk-get-jisyo-directory))
@@ -8502,10 +8501,10 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 #+begin_src shell :tangle (expand-tangle-target ".local/bin/skkdic_uniq.sh") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
   tmp_euc=$(mktemp)
   tmp_utf8=$(mktemp)
-  skk_get_dir=~/share/skk/get-jisyo
-  skk_dotskk_dir=~/.config/skk
-  dic_orig=${skk_dotskk_dir}/jisyo
-  dic_uniq=${skk_dotskk_dir}/jisyo.uniq
+  skk_dir=~/share/skk
+  skk_get_dir=${skk_dir}/get-jisyo
+  dic_orig=${skk_dir}/jisyo
+  dic_uniq=${skk_dir}/jisyo.uniq
 
   skkdic-expr2 ${skk_get_dir}/SKK-JISYO.* > ${tmp_euc}
   nkf -w -Lu ${tmp_euc} > ${tmp_utf8}
