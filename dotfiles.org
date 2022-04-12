@@ -897,6 +897,15 @@ I prefer to rid my emacs experience of mouse as least as possible.
                ("C-j" . isearch-exit)))
 #+end_src
 
+***** locate
+
+#+begin_src emacs-lisp :noweb yes
+  (use-package locate
+    :custom
+    (locate-fcodes-file "<<locate-db()>>")
+    (locate-update-path (expand-file-name "~/")))
+#+end_src
+
 ***** imenu                                :programs:
 
 #+begin_src emacs-lisp
@@ -5796,6 +5805,7 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
       ("c" calendar)
       ("C" calc)
       ("?" woman)
+      ("\\" locate-with-filter)
       (";" my/tldr)
       ("q" quickrun)
       ("C-g" nil "cancel"))
@@ -7015,6 +7025,9 @@ Stripping rules are:
   CONTENT = html.tostring(ROOT, encoding="utf-8", method='html', pretty_print=True)
   print(CONTENT.decode())
 #+end_src
+***** lfile (local file lookup system)
+
+
 **** additional emacs lisp code
 
 This section mainly for elisp code associated with some other programs.
@@ -7225,7 +7238,7 @@ This section mainly for elisp code associated with some other programs.
   #+END_SRC
 ** Cron
 
-#+begin_src conf :noweb yes :tangle (expand-tangle-target ".config/ctontab/pc")
+#+begin_src conf :noweb yes :tangle (expand-tangle-target ".config/crontab/pc")
   MAILTO="<<email()>>"
 
   BIN_DIR="<<home-dir()>>/bin"
@@ -7233,6 +7246,37 @@ This section mainly for elisp code associated with some other programs.
 
   <<cronjob-pc>>
 #+end_src
+** Findutils
+
+[[https://www.gnu.org/software/findutils/][GNU Findutils]] offers following commands
+- find
+- locate
+- updatedb
+- xargs
+
+It's more reasonable that Narrowing locate searching target to home directory.
+
+- guix packages
+
+  #+begin_src scheme :noweb-ref base-pkgs
+    "findutils"
+    "mlocate"
+  #+end_src
+- definitions
+
+  #+name: locate-db
+  #+begin_src emacs-lisp :noweb yes
+    (expand-file-name "~/.local/share/mlocate/mlocate.db")
+  #+end_src
+
+  #+begin_src shell :noweb yes :noweb-ref bashrc
+    export LOCATE_PATH=<<locate-db()>>
+  #+end_src
+- updatedb cron job
+
+  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
+    30 4 * * * /bin/bash -ci "[[ -d $(dirname <<locate-db()>>) ]] || mkdir -p $(dirnmae <<locate-db()>>) && which updatedb | xargs -I {} pwsudo {} -U ~/ -l 0 -o <<locate-db()>>"
+  #+end_src
 
 ** OpenSSH
 
@@ -8281,7 +8325,6 @@ Extendable version manager
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/base.scm")
     (specifications->manifest
      '("coreutils"
-       "findutils"
        "diffutils"
        "parallel"
        "gawk"
