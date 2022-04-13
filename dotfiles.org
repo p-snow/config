@@ -7029,13 +7029,15 @@ Stripping rules are:
 lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lfile/][Kerl Voit's implementation]].
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/lfile.el")
+  (defcustom my/lfile-root "~/doc" "docstring")
+
   (defun my/lfile-follow-link (file _)
     "Determine path from given basename FILE using `locate' program."
     (let ((paths (split-string
-                  (shell-command-to-string
-                   (format
-                    "locate -q -r %s$ 2>/dev/null"
-                    (shell-quote-argument file)))
+                  (shell-command-to-string (format
+                                            "locate -q -r ^%s.*%s"
+                                            (shell-quote-argument (expand-file-name my/lfile-root))
+                                            (shell-quote-argument file)))
                   "\n" t)))
       (cond
        ((= 0 (length paths))
@@ -7043,10 +7045,21 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
        ((<= 1 (length paths))
         (my/view-file (car paths) current-prefix-arg)))))
 
+  (defun my/lfile-completing-read (&optional arg)
+    "Create a lfile link using completion."
+    (let* ((paths (split-string
+                   (shell-command-to-string
+                    (format "locate -q -r ^%s" (shell-quote-argument (expand-file-name my/lfile-root))))
+                   "\n" t))
+           (files (mapcar #'file-name-nondirectory paths))
+           (file (completing-read "Local file: " files nil 'confirm)))
+      (concat "lfile:" file)))
+
   (with-eval-after-load 'org
     (org-link-set-parameters
      "lfile"
-     :follow #'my/lfile-follow-link))
+     :follow #'my/lfile-follow-link
+     :complete #'my/lfile-completing-read))
 #+end_src
 
 **** additional emacs lisp code
