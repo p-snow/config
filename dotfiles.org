@@ -7045,6 +7045,17 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
        ((<= 1 (length paths))
         (my/view-file (car paths) current-prefix-arg)))))
 
+  (defun my/lfile-store-link ()
+    "Store a link to the file."
+    (when (and (derived-mode-p 'dired-mode)
+               (string-match-p
+                (format "^%s" (expand-file-name my/lfile-root))
+                (dired-current-directory nil)))
+      (let ((path (dired-get-filename nil t)))
+        (org-link-store-props
+         :type "lfile"
+         :link (concat "lfile:" (file-name-nondirectory path))))))
+
   (defun my/lfile-completing-read (&optional arg)
     "Create a lfile link using completion."
     (let* ((paths (split-string
@@ -7059,6 +7070,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
     (org-link-set-parameters
      "lfile"
      :follow #'my/lfile-follow-link
+     :store #'my/lfile-store-link
      :complete #'my/lfile-completing-read))
 #+end_src
 
