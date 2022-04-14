@@ -7040,6 +7040,14 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
        ((<= 1 (length paths))
         (my/view-file (car paths) current-prefix-arg)))))
 
+  (defun my/lfile-follow-link--emacs (file _)
+    ;; TODO
+    )
+
+  (defun my/lfile-follow-link--sys (file _)
+    ;; TODO
+    )
+
   (defun my/lfile-store-link ()
     "Store a link to the file.
 
@@ -7079,6 +7087,32 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
          ((eq format 'ascii) (format "%s (%s)" desc path))
          (t path)))))
 
+  (defun my/lfile-from-file-link ()
+    "Replace file link type with lfile link type only if hte path in my/lfile-root."
+    (interactive)
+    (let* ((context (org-element-lineage
+                     (org-element-context)
+                     '(link desc)
+                     t))
+           (type (org-element-property :type context))
+           (path (org-element-property :path context))
+           (app (org-element-property :application context))
+           (search-option (org-element-property :search-option context))
+           (desc-begin (org-element-property :contents-begin context))
+           (desc-end (org-element-property :contents-end context))
+           (desc (and (and (integerp desc-begin) (integerp desc-begin))
+                      (substring-no-properties (buffer-substring desc-begin desc-end)))))
+      (when (and (string= type "file")
+                 (string-match-p
+                  (format "^%s" (expand-file-name my/lfile-root))
+                  (expand-file-name path)))
+        (delete-region (org-element-property :begin context)
+                       (org-element-property :end context))
+        (insert (org-link-make-string (concat "lfile" (and app (concat "+" app)) ":"
+                                              (file-name-nondirectory path)
+                                              (and search-option (concat "::" search-option)))
+                                      desc)))))
+
   (defun my/lfile--locate (pattern)
     (split-string
      (shell-command-to-string
@@ -7090,12 +7124,15 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
      "\n" t))
 
   (with-eval-after-load 'org
-    (org-link-set-parameters
-     "lfile"
-     :follow #'my/lfile-follow-link
-     :store #'my/lfile-store-link
-     :complete #'my/lfile-completing-read
-     :export #'my/lfile-export))
+    (org-link-set-parameters "lfile"
+                             :follow #'my/lfile-follow-link
+                             :store #'my/lfile-store-link
+                             :complete #'my/lfile-completing-read
+                             :export #'my/lfile-export)
+    (org-link-set-parameters "lfile+emacs"
+                             :follow #'my/lfile-follow-link--emacs)
+    (org-link-set-parameters "lfile+sys"
+                             :follow #'my/lfile-follow-link--sys))
 #+end_src
 
 **** additional emacs lisp code
