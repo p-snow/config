@@ -7033,12 +7033,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
 
   (defun my/lfile-follow-link (file _)
     "Determine path from given basename FILE using `locate' program."
-    (let ((paths (split-string
-                  (shell-command-to-string (format
-                                            "locate -q -r ^%s.*%s"
-                                            (shell-quote-argument (expand-file-name my/lfile-root))
-                                            (shell-quote-argument file)))
-                  "\n" t)))
+    (let ((paths (my/lfile--locate file)))
       (cond
        ((= 0 (length paths))
         (message "Sorry, no results found for query: %s" file))
@@ -7046,32 +7041,61 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
         (my/view-file (car paths) current-prefix-arg)))))
 
   (defun my/lfile-store-link ()
-    "Store a link to the file."
+    "Store a link to the file.
+
+  Prefix argument does matter in this function call.
+  If `C-u' prefix is given, file link is stored instead of lfile link."
     (when (and (derived-mode-p 'dired-mode)
                (string-match-p
                 (format "^%s" (expand-file-name my/lfile-root))
                 (dired-current-directory nil)))
       (let ((path (dired-get-filename nil t)))
-        (org-link-store-props
-         :type "lfile"
-         :link (concat "lfile:" (file-name-nondirectory path))))))
+        (if (equal current-prefix-arg '(4))
+            (org-link-store-props
+             :type "file"
+             :link (concat "file:" (abbreviate-file-name
+                                    (expand-file-name path))))
+          (org-link-store-props
+           :type "lfile"
+           :link (concat "lfile:" (file-name-nondirectory path)))))))
 
   (defun my/lfile-completing-read (&optional arg)
     "Create a lfile link using completion."
-    (let* ((paths (split-string
-                   (shell-command-to-string
-                    (format "locate -q -r ^%s" (shell-quote-argument (expand-file-name my/lfile-root))))
-                   "\n" t))
+    (let* ((paths (my/lfile--locate nil))
            (files (mapcar #'file-name-nondirectory paths))
            (file (completing-read "Local file: " files nil 'confirm)))
       (concat "lfile:" file)))
+
+  (defun my/lfile-export (link description format)
+    "Return an exported string from lfile link for format FORMAT.
+  A link consists of LINK and DESCRIPTION."
+    (when-let* ((paths (my/lfile--locate link))
+                (path (org-export-file-uri (expand-file-name (car paths))))
+                (desc (or description link)))
+      (when (stringp path)
+        (cond
+         ((eq format 'html) (format "<a href=\"%s\">%s</a>" path desc))
+         ((eq format 'latex) (format "\\href{%s}{%s}" path desc))
+         ((eq format 'ascii) (format "%s (%s)" desc path))
+         (t path)))))
+
+  (defun my/lfile--locate (pattern)
+    (split-string
+     (shell-command-to-string
+      (concat (format
+               "locate -q -r ^%s.*"
+               (shell-quote-argument (expand-file-name my/lfile-root)))
+              (and pattern
+                   (shell-quote-argument pattern))))
+     "\n" t))
 
   (with-eval-after-load 'org
     (org-link-set-parameters
      "lfile"
      :follow #'my/lfile-follow-link
      :store #'my/lfile-store-link
-     :complete #'my/lfile-completing-read))
+     :complete #'my/lfile-completing-read
+     :export #'my/lfile-export))
 #+end_src
 
 **** additional emacs lisp code
