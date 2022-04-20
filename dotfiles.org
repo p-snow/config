@@ -7380,10 +7380,15 @@ It's more reasonable that Narrowing locate searching target to home directory.
   #+begin_src shell :noweb yes :noweb-ref bashrc
     export LOCATE_PATH=<<locate-db()>>
   #+end_src
+- updatedb script for user home directory
+
+  #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/updatedb_home") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+    [[ -d $(dirname <<locate-db()>>) ]] || mkdir -p $(dirnmae <<locate-db()>>) && which updatedb | xargs -I {} pwsudo {} -U ~/ -l 0 -o <<locate-db()>>
+  #+end_src
 - updatedb cron job
 
   #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-    30 4 * * * /bin/bash -ci "[[ -d $(dirname <<locate-db()>>) ]] || mkdir -p $(dirnmae <<locate-db()>>) && which updatedb | xargs -I {} pwsudo {} -U ~/ -l 0 -o <<locate-db()>>"
+    30 4 * * * /bin/bash -ci "updatedb_home >> $LOG_DIR/updatedb_home.log 2>&1"
   #+end_src
 
 ** OpenSSH
