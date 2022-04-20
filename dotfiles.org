@@ -14,11 +14,6 @@
   #+begin_src shell :eval no-export
     echo "${HOME}"
   #+end_src
-- my user name on system
-  #+name: whoami
-  #+begin_src bash
-    whoami
-  #+end_src
 - my email address
   #+name: email
   #+begin_src bash
@@ -3375,7 +3370,6 @@ org-roam v2
                         (with-current-buffer export-buf-name
                           (buffer-string)))
       (kill-buffer export-buf-name)))
-
 #+end_src
 
 ***** key bindings
@@ -7199,7 +7193,7 @@ This section mainly for elisp code associated with some other programs.
     }
 
     vterm_prompt_end(){
-      vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
+      vterm_printf "51;A$(logname)@$(hostname):$(pwd)"
     }
 
     PROMPT_COMMAND='echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
@@ -10981,7 +10975,7 @@ Utility for sendind email programatically
 #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/pwsudo")
   #!/usr/bin/env bash
 
-  _userid=$(whoami)
+  _userid=$(logname)
   _hostname=$(hostname)
 
   if pass show "${_hostname}/${_userid}" >/dev/null 2>&1; then
