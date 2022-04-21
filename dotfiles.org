@@ -5502,7 +5502,7 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
              (remove nil
                      (list (when (numberp pos)
                              (format "--ytdl-raw-options=playlist-start=%d" pos))
-                           (format "--ytdl-format=%s" (shell-quote-argument (youtube-dl-format)))))))
+                           (format "--ytdl-format=%s" (shell-quote-argument (ytdl-format)))))))
         (start-process-shell-command "mpv" nil (format "nohup mpv --force-window %s \"%s\" >/dev/null 2>&1" (mapconcat 'identity ytdl-opts " ") url))))
      ((seq-some (lambda (suffix)
                   (string-suffix-p suffix url))
@@ -5561,10 +5561,10 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
         (set-process-sentinel
          (start-process-shell-command
           "download video" nil
-          (format "cd \"%1$s\" && nohup youtube-dl %2$s \"%3$s\" >/dev/null 2>&1"
+          (format "cd \"%1$s\" && nohup yt-dlp %2$s \"%3$s\" >/dev/null 2>&1"
                   (expand-file-name my/download-video-dir)
                   (mapconcat #'identity
-                             (list (format "--format \"%s\"" (youtube-dl-format))
+                             (list (format "--format \"%s\"" (ytdl-format))
                                    (when (and filename-lex
                                               (not playlistp)
                                               (not (string= (car pq-orig) "/playlist")))
@@ -5599,7 +5599,7 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
       (format "cd %s && nohup %s >/dev/null 2>&1"
               (shell-quote-argument (expand-file-name my/download-audio-dir))
               (if (string-match-p "https?://www.youtube.com.+" url)
-                  (format "youtube-dl --extract-audio %s" url)
+                  (format "yt-dlp --extract-audio %s" url)
                 (concat (format "curl -LJs %s" url)
                         (and filename-lex
                              (format " -o %s.%s" filename-lex
@@ -5616,7 +5616,7 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
     (when-let ((duration (cond
                           ((string-match "https?://www.youtube.com.+" url)
                            (car (split-string (shell-command-to-string
-                                               (format "youtube-dl --get-duration %s" url)))))
+                                               (format "yt-dlp --get-duration %s" url)))))
                           ((string-match "https?://.+" url)
                            (car (split-string (shell-command-to-string
                                                (format "ffmpeg -i \"%s\" 2>&1 | grep Duration | awk -F '[ ]+' '{print substr($3, 0, length($3)-1)}'" url))))))))
@@ -5642,7 +5642,7 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
     (if-let* ((url (thing-at-point-url-at-point)))
         (show-media-duration url)))
 
-  (defun youtube-dl-format ()
+  (defun ytdl-format ()
     "Return appropriate format option value for youtube-dl command."
     (let* ((ipv4-addr (shell-command-to-string "hostname -I | cut -f1 -d' ' | tr -d '\n'"))
            (wifi-ssid (shell-command-to-string "iwgetid -r | tr -d '\n'"))
@@ -8470,6 +8470,7 @@ Extendable version manager
        "speedtest-cli"
        "fdisk"
        "gptfdisk"
+       "yt-dlp"
        "ddrescue"
        "sqlite"
        <<base-pkgs>>))
@@ -8490,7 +8491,6 @@ Extendable version manager
        "libdvdnav"
        "vlc"
        "handbrake"
-       "youtube-dl"
        "mpv"
        "ffmpeg"
        "libdvdcss"
@@ -9740,7 +9740,7 @@ This program determine type of the file.
         end
         `file --brief #{file_cmd_opt} #{local_opt} #{Shellwords.shellescape(filename)}`.strip
       elsif filename =~ /https?:\/\/www\.youtube\.com.*/
-        `youtube-dl -f worst -q #{Shellwords.shellescape(filename)} -o - 2>/dev/null | file --brief #{file_cmd_opt} -`.strip
+        `yt-dlp -f worst -q #{Shellwords.shellescape(filename)} -o - 2>/dev/null | file --brief #{file_cmd_opt} -`.strip
       elsif filename =~ URI::DEFAULT_PARSER.make_regexp
         `curl --location --range 0-9999 #{Shellwords.shellescape(filename)} 2>/dev/null | file --brief #{file_cmd_opt} -`.strip
       else
