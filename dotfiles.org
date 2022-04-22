@@ -4280,6 +4280,9 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
 
 ***** avy
 
+[[https://karthinks.com/software/avy-can-do-anything/][This post]] tell me how we can concoct efficient editing workflow with avy.
+
+
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-avy"
 #+end_src
@@ -4288,7 +4291,18 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
   (use-package avy
     :bind (("C-c a" . avy-goto-char-timer)
            :map isearch-mode-map
-           ("C-a" . avy-isearch)))
+           ("C-a" . avy-isearch))
+    :config
+    (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark))
+
+  (defun avy-action-embark (pt)
+    (unwind-protect
+        (save-excursion
+          (goto-char pt)
+          (embark-act))
+      (select-window
+       (cdr (ring-ref avy-ring 0))))
+    t)
 #+end_src
 
 ***** paredit
