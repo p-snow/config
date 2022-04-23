@@ -7154,6 +7154,11 @@ This section mainly for elisp code associated with some other programs.
 #+end_src
 
 ** Bash
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "bash"
+#+end_src
+
 - bash profile
   #+BEGIN_SRC bash :tangle (expand-tangle-target ".bash_profile")
     #!/usr/bin/env bash
@@ -8202,6 +8207,11 @@ Extendable version manager
   Send2Trash
 #+end_src
 ** xkeysnail
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "xkeysnail"
+#+end_src
+
 - config.py
   #+begin_src python :tangle (expand-tangle-target ".config/xkeysnail/config.py")
   # -*- coding: utf-8 -*-
@@ -8348,7 +8358,7 @@ Extendable version manager
 
     [Service]
     KillMode=process
-    ExecStart=/bin/bash -ic '%h/.local/bin/pwsudo %h/.guix-extra-profiles/desktop/desktop/bin/xkeysnail --watch --quiet %h/.config/xkeysnail/config.py'
+    ExecStart=/bin/bash -ic 'pwsudo xkeysnail --watch --quiet %h/.config/xkeysnail/config.py'
     Type=simple
     Restart=always
     # Update DISPLAY to be the same as `echo $DISPLAY` on your graphical terminal.
@@ -8495,7 +8505,6 @@ Extendable version manager
     (specifications->manifest
      '("font-adobe-source-han-sans"
        "fontconfig"
-       "xkeysnail"
        "imagemagick"
        "pulseaudio"
        "gparted"
@@ -10987,6 +10996,9 @@ Utility for sendind email programatically
 #+end_src
 
 ** pwsudo
+
+A script which executes command with elevating privilege using password from pass command.
+
 #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/pwsudo")
   #!/usr/bin/env bash
 
@@ -10994,7 +11006,7 @@ Utility for sendind email programatically
   _hostname=$(hostname)
 
   if pass show "${_hostname}/${_userid}" >/dev/null 2>&1; then
-    pass show "${_hostname}/${_userid}" | head -1 | sudo -S $*
+    pass show "${_hostname}/${_userid}" | head -1 | sudo -sES "PATH=$PATH" $*
   else
     sudo $*
   fi
