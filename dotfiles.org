@@ -8490,7 +8490,6 @@ Extendable version manager
        "net-tools"
        "curl"
        "wget"
-       "rsync"
        "ghc-tldr"
        "speedtest-cli"
        "fdisk"
@@ -9347,6 +9346,235 @@ you are required to locate that package where emacs can search.
     (LilyPond-pdf-command "firefox")
     (LilyPond-midi-command "fluidsynth -a alsa -m alsa_seq -l"))
 #+end_src
+** Btrfs
+
+Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mechanism.
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "btrfs-progs"
+#+end_src
+
+*** btrbk
+
+[[https://digint.ch/btrbk/doc/btrbk.1.html][Btrbk]] supports for taking snapshots and backups
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "btrbk"
+#+end_src
+
+**** btrbk.conf
+
+[[https://digint.ch/btrbk/doc/btrbk.conf.5.html][btrbk.conf documentation]]
+
+#+begin_src conf :noweb yes :noweb-ref cronjob-pc
+  23 1 * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf snapshot >> $LOG_DIR/btrbk.log 2>&1"
+#+end_src
+
+#+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/btrbk/btrbk.conf")
+  snapshot_dir snapshots
+  timestamp_format long
+  incremental yes
+
+  volume /mnt/ssd01
+    target send-receive /mnt/hdd01/backups/ssd01
+    target_preserve 12w *m
+    target_preserve_min 6m
+    subvolume incumbents/doc
+      # current 8 weekly and 12 monthly snapshots are preserved
+      snapshot_preserve 8w 12m
+    subvolume incumbents/share
+      snapshot_preserve 60d 12m
+    snapshot_preserve_min 1w
+
+  volume /mnt/nvme01
+    target send-receive /mnt/hdd01/backups/pc01
+    subvolume incumbents/work
+      snapshot_preserve *m
+      snapshot_preserve_min 1w
+      target_preserve no
+      target_preserve_min latest
+    subvolume incumbents/media
+      # only last snapshot will be preserved
+      snapshot_preserve no
+      snapshot_preserve_min latest
+      # never take backup
+      target_preserve no
+      target_preserve_min no
+#+end_src
+*** snapshots management                      :ARCHIVE:
+
+A structure described below is expected under all devices.
+
+/mountpoint/
+├── backups
+├── incumbents
+└── snapshots
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/btrfs_snap") :tangle-mode (identity #o755)
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  DATETIME=`date "+%Y%m%d-%H%M"`
+  BTRFS_MNTS=("/mnt/ssd01"
+              "/mnt/nvme01")
+
+  # back up server data beforehand
+  ssh -q -o BatchMode="yes" -o ConnectTimeout=10 sv04 "exit" \
+    && rsync -arhv sv04:~/var/backup ~/share/sv04
+
+  # take snapshots for all btrfs subvolumes
+  for btrfs_mnt in ${BTRFS_MNTS[@]}; do
+    if mountpoint ${btrfs_mnt} >/dev/null 2>&1; then
+      for subv in ${btrfs_mnt}/incumbents/*; do
+        subv_base=$(basename ${subv})
+        if [ ! -d "${btrfs_mnt}/snapshots/${subv_base}" ]; then
+          mkdir -p "${btrfs_mnt}/snapshots/${subv_base}"
+        fi
+        btrfs subvolume snapshot "${subv}" "${btrfs_mnt}/snapshots/${subv_base}/${DATETIME}"
+      done
+    fi
+  done
+  #+end_src
+
+*** backup to another device                  :ARCHIVE:
+
+: $ btrfs_back
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/btrfs_back") :tangle-mode (identity #o755)
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  MNT_SSD=/mnt/ssd01
+  MNT_HDD=/mnt/hdd01
+
+  function backup_subvol() {
+    local _src_snap_dir=$1
+    local _src_back_dir=$2
+    local _dst_back_dir=$3
+
+    echo "Name: $(basename ${_src_back_dir})"
+
+    mkdir -pv "${_src_back_dir}"
+    mkdir -pv "${_dst_back_dir}"
+
+    src_back_last=$((ls -d "${_src_back_dir}"/* 2>/dev/null | sort | tail -1 | xargs basename) || echo -n "")
+    snap_last=$(ls -d "${_src_snap_dir}"/* 2>/dev/null | sort | tail -1 | xargs basename || echo -n "")
+
+    # create readonly clone of last snapshot
+    if [[ "${src_back_last}" < "${snap_last}" ]]; then
+      echo btrfs subv snap -r "${_src_snap_dir}/${snap_last}" "${_src_back_dir}/${src_back_last}"
+    fi
+
+    exit;
+
+    # determine parent btrfs subvolume
+    parent=
+    dst_backs=$(ls -d "${_dst_back_dir}"/* 2>/dev/null | sort || echo -n "")
+    if [ ${#dst_backs} -ne 0 ]; then
+      for dst_back in "${dst_backs[@]}"; do
+        test=$(basename ${dst_back})
+        if [ -d "${_src_back_dir}/${test}" ]; then
+          parent=${test}
+        fi
+      done
+    fi
+
+    # determine subvolume to send in source device
+    subvol=
+    if [ ${#src_back_last} -ne 0 ]; then
+      if [[ "${parent}" < "${src_back_last}" ]] && [ ! -d "${_dst_back_dir}/${src_back_last}" ]; then
+        subvol=${src_back_last}
+      fi
+    fi
+
+    echo "Parent: ${parent}"
+    echo "Subvol: ${subvol}"
+
+    if [ -n "${parent}" ] && [ -n "${subvol}" ]; then
+      echo "Invoke incremental backup"
+      sudo btrfs send -p "${_src_back_dir}/${parent}" "${_src_back_dir}/${subvol}" | sudo btrfs receive "${_dst_back_dir}"
+    elif [ -z "${parent}" ] && [ -n "${subvol}" ]; then
+      echo "Invoke full backup"
+      sudo btrfs send "${_src_back_dir}/${subvol}" | sudo btrfs receive "${_dst_back_dir}"
+    fi
+
+    echo "--------"
+  }
+
+  backup_subvol "${MNT_SSD}"/snapshots/doc "${MNT_SSD}"/backups/doc "${MNT_HDD}"/backups/doc
+  # backup_subvol "${MNT_SSD}"/snapshots/share "${MNT_SSD}"/backups/share "${MNT_HDD}"/backups/share
+#+end_src
+** Rsync
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "rsync"
+#+end_src
+
+*** sync server data
+
+#+begin_src conf :noweb yes :noweb-ref cronjob-pc
+  12 1 * * * /bin/bash -ci "sync_sv04 >> $LOG_DIR/sync_sv04.log 2>&1"
+#+end_src
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/sync_sv04") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+  ssh -q -o BatchMode="yes" -o ConnectTimeout=10 sv04 "exit 0" \
+    && rsync -arhv sv04:~/var/backup ~/share/sv04
+#+end_src
+
+*** backup script                             :ARCHIVE:
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/back_rsync.sh")
+  #!/usr/bin/env bash
+
+  OPT="-aPh"
+  LINK="--link-dest=../last/"
+  DEST="ns01:~/share/backups"
+  DATETIME=`date "+%Y%m%d-%H%M"`
+
+  ssh -q -o BatchMode="yes" -o ConnectTimeout=10 ns01 "(cd ~/share/backups; mkdir -p pc01 sv04; exit)" || exit 1
+
+  # take a snapshot for pc01
+  # if ssh ns01 "[ -h ~/share/backups/pc01/last ]"; then
+  #   rsync -aPhrv $LINK --exclude-from=${HOME}/.config/rsync/exclude_pc01.txt ${HOME}/ ${DEST}/pc01/${DATETIME}
+  #   ssh ns01 "(cd share/backups/pc01; unlink last; ln -s ${DATETIME} last)"
+  # else
+  #   rsync -aAXrv --exclude-from=${HOME}/.config/rsync/exclude_pc01.txt ${HOME}/ ${DEST}/pc01/${DATETIME}
+  #   ssh ns01 "(cd share/backups/pc01; ln -s ${DATETIME} last)"
+  # fi
+
+  # take a snapshot for sv04
+  if mountpoint /mnt/sv04 >/dev/null 2>&1; then
+    if ssh ns01 "[ -h ~/share/backups/sv04/last ]"; then
+      rsync -aPhrv $LINK --exclude-from=${HOME}/.config/rsync/exclude_sv04.txt /mnt/sv04/ ${DEST}/sv04/${DATETIME}
+      ssh ns01 "(cd share/backups/sv04; unlink last; ln -s ${DATETIME} last)"
+    else
+      rsync -aAXrv --exclude-from=${HOME}/.config/rsync/exclude_sv04.txt /mnt/sv04/ ${DEST}/sv04/${DATETIME}
+      ssh ns01 "(cd share/backups/sv04; ln -s ${DATETIME} last)"
+    fi
+  fi
+ #+end_src
+
++ rsync exclude file for pc01
+  #+begin_src conf :tangle (expand-tangle-target ".config/rsync/exclude_pc01.txt") :tangle-mode (identity #o644)
+    + var
+    + var/log
+    + var/log/**
+    - var/lib/dash
+    + var/lib
+    + var/lib/**
+    + work
+    + work/**
+    + git
+    + git/**
+    - *
+  #+end_src
++ rsync exclude file for sv04
+  #+begin_src conf :tangle (expand-tangle-target ".config/rsync/exclude_sv04.txt") :tangle-mode (identity #o644)
+    + var
+    + var/backup
+    + var/backup/**
+    - *
+  #+end_src
 
 * utility scripts
 :PROPERTIES:
@@ -9562,45 +9790,6 @@ These scripts (declutter_xxx) keep things decluttered.
     exit 0
   #+end_src
 
-** Btrfs snapshots management
-
-A structure described below is expected under all devices.
-
-#+begin_src conf :noweb-ref cronjob-pc
-  0 1 * * * /bin/bash -ci "snapshot.sh >> $LOG_DIR/snapshot.log 2>&1"
-#+end_src
-
-/mountpoint/
-├── backups
-├── incumbents
-└── snapshots
-
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/snapshot.sh")
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  DATETIME=`date "+%Y%m%d-%H%M"`
-  BTRFS_MNTS=("/mnt/ssd01"
-              "/mnt/nvme01")
-
-  # back up server data beforehand
-  ssh -q -o BatchMode="yes" -o ConnectTimeout=10 sv04 "exit" \
-    && rsync -arhv sv04:~/var/backup ~/share/sv04
-
-  # take snapshots for all btrfs subvolumes
-  for btrfs_mnt in ${BTRFS_MNTS[@]}; do
-    if mountpoint ${btrfs_mnt} >/dev/null 2>&1; then
-      for subv in ${btrfs_mnt}/incumbents/*; do
-        subv_base=$(basename ${subv})
-        if [ ! -d "${btrfs_mnt}/snapshots/${subv_base}" ]; then
-          mkdir -p "${btrfs_mnt}/snapshots/${subv_base}"
-        fi
-        btrfs subvolume snapshot "${subv}" "${btrfs_mnt}/snapshots/${subv_base}/${DATETIME}"
-      done
-    fi
-  done
-  #+end_src
-
 ** git repo syncing
 
 #+begin_src conf :noweb-ref cronjob-pc
@@ -9626,122 +9815,6 @@ A structure described below is expected under all devices.
       )
   done
 #+end_src
-** backup scripts
-- back_btrfs.sh
-  #+begin_src shell :tangle (expand-tangle-target ".local/bin/back_btrfs.sh")
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    MNT_SSD=/mnt/ssd01
-    MNT_HDD=/mnt/hdd01
-
-    function backup_subvol() {
-      local _src_snap_dir=$1
-      local _src_back_dir=$2
-      local _dst_back_dir=$3
-
-      echo "Name: $(basename ${_src_back_dir})"
-
-      mkdir -pv "${_src_back_dir}"
-      mkdir -pv "${_dst_back_dir}"
-
-      src_back_last=$((ls -d "${_src_back_dir}"/* 2>/dev/null | sort | tail -1 | xargs basename) || echo -n "")
-      snap_last=$(ls -d "${_src_snap_dir}"/* 2>/dev/null | sort | tail -1 | xargs basename || echo -n "")
-
-      # create readonly clone of last snapshot
-      if [[ "${src_back_last}" < "${snap_last}" ]]; then
-        btrfs subv snap -r "${_src_snap_dir}/${snap_last}" "${_src_back_dir}/${src_back_last}"
-      fi
-
-      # determine parent btrfs subvolume
-      parent=
-      dst_backs=$(ls -d "${_dst_back_dir}"/* 2>/dev/null | sort || echo -n "")
-      if [ ${#dst_backs} -ne 0 ]; then
-        for dst_back in "${dst_backs[@]}"; do
-          test=$(basename ${dst_back})
-          if [ -d "${_src_back_dir}/${test}" ]; then
-            parent=${test}
-          fi
-        done
-      fi
-
-      # determine subvolume to send in source device
-      subvol=
-      if [ ${#src_back_last} -ne 0 ]; then
-        if [[ "${parent}" < "${src_back_last}" ]] && [ ! -d "${_dst_back_dir}/${src_back_last}" ]; then
-          subvol=${src_back_last}
-        fi
-      fi
-
-      echo "Parent: ${parent}"
-      echo "Subvol: ${subvol}"
-
-      if [ -n "${parent}" ] && [ -n "${subvol}" ]; then
-        echo "Invoke incremental backup"
-        pwsudo btrfs send -p "${_src_back_dir}/${parent}" "${_src_back_dir}/${subvol}" | sudo btrfs receive "${_dst_back_dir}"
-      elif [ -z "${parent}" ] && [ -n "${subvol}" ]; then
-        echo "Invoke full backup"
-        pwsudo btrfs send "${_src_back_dir}/${subvol}" | sudo btrfs receive "${_dst_back_dir}"
-      fi
-
-      echo "--------"
-    }
-
-    backup_subvol "${MNT_SSD}"/snapshots/doc "${MNT_SSD}"/backups/doc "${MNT_HDD}"/backups/doc
-    backup_subvol "${MNT_SSD}"/snapshots/share "${MNT_SSD}"/backups/share "${MNT_HDD}"/backups/share
-  #+end_src
-- back_rsync.sh
-  #+begin_src shell :tangle (expand-tangle-target ".local/bin/back_rsync.sh")
-    #!/usr/bin/env bash
-
-    OPT="-aPh"
-    LINK="--link-dest=../last/"
-    DEST="ns01:~/share/backups"
-    DATETIME=`date "+%Y%m%d-%H%M"`
-
-    ssh -q -o BatchMode="yes" -o ConnectTimeout=10 ns01 "(cd ~/share/backups; mkdir -p pc01 sv04; exit)" || exit 1
-
-    # take a snapshot for pc01
-    # if ssh ns01 "[ -h ~/share/backups/pc01/last ]"; then
-    #   rsync -aPhrv $LINK --exclude-from=${HOME}/.config/rsync/exclude_pc01.txt ${HOME}/ ${DEST}/pc01/${DATETIME}
-    #   ssh ns01 "(cd share/backups/pc01; unlink last; ln -s ${DATETIME} last)"
-    # else
-    #   rsync -aAXrv --exclude-from=${HOME}/.config/rsync/exclude_pc01.txt ${HOME}/ ${DEST}/pc01/${DATETIME}
-    #   ssh ns01 "(cd share/backups/pc01; ln -s ${DATETIME} last)"
-    # fi
-
-    # take a snapshot for sv04
-    if mountpoint /mnt/sv04 >/dev/null 2>&1; then
-      if ssh ns01 "[ -h ~/share/backups/sv04/last ]"; then
-        rsync -aPhrv $LINK --exclude-from=${HOME}/.config/rsync/exclude_sv04.txt /mnt/sv04/ ${DEST}/sv04/${DATETIME}
-        ssh ns01 "(cd share/backups/sv04; unlink last; ln -s ${DATETIME} last)"
-      else
-        rsync -aAXrv --exclude-from=${HOME}/.config/rsync/exclude_sv04.txt /mnt/sv04/ ${DEST}/sv04/${DATETIME}
-        ssh ns01 "(cd share/backups/sv04; ln -s ${DATETIME} last)"
-      fi
-    fi
- #+end_src
-  + rsync exclude file for pc01
-    #+begin_src conf :tangle (expand-tangle-target ".config/rsync/exclude_pc01.txt") :tangle-mode (identity #o644)
-      + var
-      + var/log
-      + var/log/**
-      - var/lib/dash
-      + var/lib
-      + var/lib/**
-      + work
-      + work/**
-      + git
-      + git/**
-      - *
-    #+end_src
-  + rsync exclude file for sv04
-    #+begin_src conf :tangle (expand-tangle-target ".config/rsync/exclude_sv04.txt") :tangle-mode (identity #o644)
-      + var
-      + var/backup
-      + var/backup/**
-      - *
-    #+end_src
 ** filetype
 
 This program determine type of the file.
