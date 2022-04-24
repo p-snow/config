@@ -5137,7 +5137,7 @@ Major mode for manupulating password store file.
                     :mode   'org-mode
                     :style  'libnotify))
 
-  (defvar alarm-sound (expand-file-name "~/data/media/music/levelup.mp3"))
+  (defvar alarm-sound (expand-file-name "~/media/music/levelup.mp3"))
   (alert-define-style 'alarm
                       :title "alarm"
                       :notifier
@@ -5536,7 +5536,7 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
 ***** download media file
 
 #+begin_src emacs-lisp
-  (defvar my/download-video-dir "~/data/media/video" "Directory where downloaded video locate.")
+  (defvar my/download-video-dir "~/media/video" "Directory where downloaded video locate.")
 
   (defun my/download-video (url &optional filename playlistp)
     "Download video from `URL'.
@@ -5594,7 +5594,7 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
                    (alert (format "Downloaded: %s" (or filename-lex url-lex)) :severity 'normal :style 'fringe)
                  (alert (format "Failed(%d): %s" exit-status (or filename-lex url-lex)) :severity 'urgent :style 'fringe)))))))))
 
-  (defvar my/download-audio-dir "~/data/media/audio" "Directory where downloaded audio locate.")
+  (defvar my/download-audio-dir "~/media/audio" "Directory where downloaded audio locate.")
 
   (defun my/download-audio (url &optional filename)
     "Download audio from `URL'.
@@ -11008,7 +11008,7 @@ A script which executes command with elevating privilege using password from pas
   if pass show "${_hostname}/${_userid}" >/dev/null 2>&1; then
     pass show "${_hostname}/${_userid}" | head -1 | sudo -sES "PATH=$PATH" $*
   else
-    sudo $*
+    sudo -sE "PATH=$PATH" $*
   fi
 #+end_src
 
