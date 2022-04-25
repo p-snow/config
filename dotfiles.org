@@ -9362,7 +9362,7 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 [[https://digint.ch/btrbk/doc/btrbk.conf.5.html][btrbk.conf documentation]]
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-  23 1 * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf snapshot >> $LOG_DIR/btrbk.log 2>&1"
+  20 * * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf --loglevel error snapshot >> $LOG_DIR/btrbk.log 2>&1"
 #+end_src
 
 #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/btrbk/btrbk.conf")
@@ -9373,13 +9373,13 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
   volume /mnt/ssd01
     target send-receive /mnt/hdd01/backups/ssd01
     target_preserve 12w *m
-    target_preserve_min 6m
+    target_preserve_min no
     subvolume incumbents/doc
       # current 8 weekly and 12 monthly snapshots are preserved
       snapshot_preserve 8w 12m
     subvolume incumbents/share
-      snapshot_preserve 60d 12m
-    snapshot_preserve_min 1w
+      snapshot_preserve 72h 60d 12m
+    snapshot_preserve_min 1d
 
   volume /mnt/nvme01
     target send-receive /mnt/hdd01/backups/pc01
