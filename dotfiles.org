@@ -7417,12 +7417,6 @@ It's more reasonable that Narrowing locate searching target to home directory.
   Include config.d/*
 #+end_src
 
-** abcde
-#+BEGIN_SRC conf :tangle (expand-tangle-target ".abcde.conf")
-  FDKAACENCOPTS='--bitrate 256k'
-
-  OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
-#+END_SRC
 ** Git
 - git ignore
   #+BEGIN_SRC conf :tangle (expand-tangle-target ".config/git/info/ignore")
@@ -8512,9 +8506,6 @@ Extendable version manager
        "imagemagick"
        "pulseaudio"
        "gparted"
-       "abcde"
-       "cdrtools"
-       "easytag"
        "vlc"
        "krita"
        "gimp"
@@ -11264,9 +11255,6 @@ A script which executes command with elevating privilege using password from pas
 #+end_src
 
 * workflows
-:PROPERTIES:
-:header-args+: :tangle-mode (identity #o555)
-:END:
 
 ** video encoding
 
@@ -11281,7 +11269,7 @@ A script which executes command with elevating privilege using password from pas
 
 - a script encoding DVD data to H.265 video
 
-  #+begin_src shell :tangle (expand-tangle-target ".local/bin/dvdpack")
+  #+begin_src shell :tangle (expand-tangle-target ".local/bin/dvdpack") :tangle-mode (identity #o555)
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -11300,7 +11288,7 @@ A script which executes command with elevating privilege using password from pas
   #+end_src
 - a script encoding to VP9 video
 
-  #+begin_src shell :tangle (expand-tangle-target ".local/bin/vp9encode")
+  #+begin_src shell :tangle (expand-tangle-target ".local/bin/vp9encode") :tangle-mode (identity #o555)
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -11322,3 +11310,18 @@ A script which executes command with elevating privilege using password from pas
       && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass1} /dev/null \
       && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
   #+end_src
+
+** audio manipulation
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "abcde"
+  "cdrtools"
+  "easytag"
+#+end_src
+
+- abcde
+  #+BEGIN_SRC conf :tangle (expand-tangle-target ".abcde.conf")
+    FDKAACENCOPTS='--bitrate 256k'
+
+    OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
+  #+END_SRC
