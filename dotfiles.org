@@ -7644,6 +7644,11 @@ It's more reasonable that Narrowing locate searching target to home directory.
     export PASSWORD_STORE_CLIP_TIME=25
   #+END_SRC
 ** mpv
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "mpv"
+#+end_src
+
 - mpv.conf
   #+begin_src conf :tangle (expand-tangle-target ".config/mpv/mpv.conf")
     ##################
@@ -8509,15 +8514,8 @@ Extendable version manager
        "gparted"
        "abcde"
        "cdrtools"
-       "dvdbackup"
        "easytag"
-       "libdvdnav"
        "vlc"
-       "handbrake"
-       "mpv"
-       "ffmpeg"
-       "libdvdcss"
-       "dav1d"
        "krita"
        "gimp"
        "kdenlive"
@@ -11264,3 +11262,63 @@ A script which executes command with elevating privilege using password from pas
 
     exit $retval
 #+end_src
+
+* workflows
+:PROPERTIES:
+:header-args+: :tangle-mode (identity #o555)
+:END:
+
+** video encoding
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "ffmpeg"
+  "dav1d"
+  "handbrake"
+  "dvdbackup"
+  "libdvdnav"
+  "libdvdcss"
+#+end_src
+
+- a script encoding DVD data to H.265 video
+
+  #+begin_src shell :tangle (expand-tangle-target ".local/bin/dvdpack")
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    if [[ $# -ge 1 ]]; then
+      DVD_DIR=$1
+      if [[ $# -eq 2 ]]; then
+        DVD_PACK_VIDEO=$2
+      else
+        DVD_PACK_VIDEO=$(basename "${DVD_DIR}").mkv
+      fi
+    fi
+
+    hb_opts='--x264-preset veryslow --quality 18 --aencoder copy --main-feature --markers --all-audio --all-subtitles'
+
+    HandBrakeCLI --input "${DVD_DIR}" --output "${DVD_PACK_VIDEO}" ${hb_opts}
+  #+end_src
+- a script encoding to VP9 video
+
+  #+begin_src shell :tangle (expand-tangle-target ".local/bin/vp9encode")
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    if [[ $# -ge 1 ]]; then
+      INPUT_VIDEO=$1
+      if [[ $# -eq 2 ]]; then
+        OUTPUT_VIDEO=$2
+      else
+        OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").webm
+      fi
+    fi
+    WORK_DIR="${INPUT_VIDEO%.*}"_work
+
+    vp9_opts_pass1='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 23 -pass 1 -an -f null'
+    vp9_opts_pass2='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 23 -pass 2'
+    opus_opts='-c:a libopus -b:a 128k'
+
+    mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
+      && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass1} /dev/null \
+      && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
+  #+end_src
