@@ -9351,7 +9351,7 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 [[https://digint.ch/btrbk/doc/btrbk.conf.5.html][btrbk.conf documentation]]
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-  20 * * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf --loglevel error snapshot >> $LOG_DIR/btrbk.log 2>&1"
+  20 * * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf --loglevel error snapshot *-local >> $LOG_DIR/btrbk.log 2>&1"
 #+end_src
 
 #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/btrbk/btrbk.conf")
@@ -9360,30 +9360,39 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
   incremental yes
 
   volume /mnt/ssd01
-    target send-receive /mnt/hdd01/backups/ssd01
-    target_preserve 12w *m
-    target_preserve_min no
     subvolume incumbents/doc
-      # current 8 weekly and 12 monthly snapshots are preserved
-      snapshot_preserve 8w 12m
+      snapshot_name doc-local
+      snapshot_preserve 7d 12w 12m
+      snapshot_preserve_min latest
+    subvolume incumbents/doc
+      snapshot_name doc-backup
+      target send-receive /mnt/hdd01/backups/ssd01
+      target_preserve 12w *m
+      target_preserve_min no
     subvolume incumbents/share
-      snapshot_preserve 72h 60d 12m
-    snapshot_preserve_min 1d
+      snapshot_name share-local
+      snapshot_preserve 60d 30w
+      snapshot_preserve_min 1w
+    subvolume incumbents/share
+      snapshot_name share-backup
+      target send-receive /mnt/hdd01/backups/ssd01
+      target_preserve *w
+      target_preserve_min no
 
   volume /mnt/nvme01
-    target send-receive /mnt/hdd01/backups/pc01
     subvolume incumbents/work
-      snapshot_preserve *m
-      snapshot_preserve_min 1w
-      target_preserve no
+      snapshot_name work-local
+      snapshot_preserve 5d 4w
+      snapshot_preserve_min 1d
+    subvolume incumbents/work
+      snapshot_name work-backup
+      target send-receive /mnt/hdd01/backups/pc01
+      target_preserve 10w
       target_preserve_min latest
     subvolume incumbents/media
-      # only last snapshot will be preserved
-      snapshot_preserve no
+      snapshot_name media-local
+      snapshot_preserve 12h 3d 2w 1m
       snapshot_preserve_min latest
-      # never take backup
-      target_preserve no
-      target_preserve_min no
 #+end_src
 *** snapshots management                      :ARCHIVE:
 
