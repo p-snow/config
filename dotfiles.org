@@ -11276,9 +11276,9 @@ A script which executes command with elevating privilege using password from pas
   "libdvdcss"
 #+end_src
 
-- a script encoding DVD data to H.265 video
+*** dvdpack
 
-  #+begin_src shell :tangle (expand-tangle-target ".local/bin/dvdpack") :tangle-mode (identity #o555)
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/dvdpack") :tangle-mode (identity #o555)
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -11295,30 +11295,54 @@ A script which executes command with elevating privilege using password from pas
 
     HandBrakeCLI --input "${DVD_DIR}" --output "${DVD_PACK_VIDEO}" ${hb_opts}
   #+end_src
-- a script encoding to VP9 video
+*** vp9encode
 
-  #+begin_src shell :tangle (expand-tangle-target ".local/bin/vp9encode") :tangle-mode (identity #o555)
-    #!/usr/bin/env bash
-    set -euo pipefail
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/vp9encode") :tangle-mode (identity #o555)
+  #!/usr/bin/env bash
+  set -euo pipefail
 
-    if [[ $# -ge 1 ]]; then
-      INPUT_VIDEO=$1
-      if [[ $# -eq 2 ]]; then
-        OUTPUT_VIDEO=$2
-      else
-        OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").webm
-      fi
+  if [[ $# -ge 1 ]]; then
+    INPUT_VIDEO=$1
+    if [[ $# -eq 2 ]]; then
+      OUTPUT_VIDEO=$2
+    else
+      OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").webm
     fi
-    WORK_DIR="${INPUT_VIDEO%.*}"_work
+  fi
+  WORK_DIR="${INPUT_VIDEO%.*}"_work
 
-    vp9_opts_pass1='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 23 -pass 1 -an -f null'
-    vp9_opts_pass2='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 23 -pass 2'
-    opus_opts='-c:a libopus -b:a 128k'
+  vp9_opts_pass1='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 23 -pass 1 -an -f null'
+  vp9_opts_pass2='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 23 -pass 2 -map_metadata 0'
+  opus_opts='-c:a libopus -b:a 128k -ac 2'
 
-    mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
-      && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass1} /dev/null \
-      && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
-  #+end_src
+  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass1} /dev/null \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
+#+end_src
+*** av1encode
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/av1encode") :tangle-mode (identity #o555)
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  if [[ $# -ge 1 ]]; then
+    INPUT_VIDEO=$1
+    if [[ $# -eq 2 ]]; then
+      OUTPUT_VIDEO=$2
+    else
+      OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").webm
+    fi
+  fi
+  WORK_DIR="${INPUT_VIDEO%.*}"_work
+
+  vp9_opts_pass1='-c:v libaom-av1 -cpu-used 4 -row-mt 1 -threads 4 -b:v 0 -crf 23 -pass 1 -an -f null'
+  vp9_opts_pass2='-c:v libaom-av1 -cpu-used 4 -row-mt 1 -threads 4 -b:v 0 -crf 23 -pass 2 -map_metadata 0'
+  opus_opts='-c:a libopus -b:a 128k -ac 2'
+
+  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass1} /dev/null \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
+#+end_src
 
 ** audio manipulation
 
