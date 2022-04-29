@@ -15,7 +15,8 @@
 
 (setq make-backup-files nil)
 
-(setq org-export-with-broken-links 'mark)
+(setq org-export-with-broken-links 'mark
+      org-export-use-babel nil)
 
 (setq org-html-validation-link nil
       org-html-head-include-scripts nil
