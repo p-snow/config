@@ -9574,6 +9574,37 @@ A structure described below is expected under all devices.
     + var/backup/**
     - *
   #+end_src
+** libvirt
+
+#+begin_src conf :tangle (expand-tangle-target ".config/libvirt/libvirt.conf")
+  uri_default = "qemu:///system"
+#+end_src
+
+- how to change default storage pool
+  1. delete pre-existing default pool whose name is 'default'
+     : $ virsh pool-destroy default
+  2. apply customized pool
+     : % virsh pool-create ~/.config/libvirt/pool.xml
+
+#+begin_src xml :noweb tangle :tangle (expand-tangle-target ".config/libvirt/pool.xml")
+  <pool type='dir'>
+    <name>default</name>
+    <uuid>33f96916-e0d8-40fd-9323-859ed69e9e35</uuid>
+    <capacity unit='bytes'>123316453376</capacity>
+    <allocation unit='bytes'>82347986944</allocation>
+    <available unit='bytes'>40968466432</available>
+    <source>
+    </source>
+    <target>
+      <path><<home-dir()>>/media/libvirt/images</path>
+      <permissions>
+        <mode>0711</mode>
+        <owner>0</owner>
+        <group>0</group>
+      </permissions>
+    </target>
+  </pool>
+#+end_src
 
 * utility scripts
 :PROPERTIES:
