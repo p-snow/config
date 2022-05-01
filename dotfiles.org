@@ -3594,7 +3594,9 @@ speed commands and hydra-org.
     (setq prefix-help-command #'embark-prefix-help-command) ;
     :config
     (bind-keys :map embark-collect-mode-map
-               ("C-j" . push-button)))
+               ("C-j" . push-button))
+    (add-to-list 'embark-allow-edit-actions
+                 'shell-command-on-region))
 
   (use-package embark-consult
     :straight t
