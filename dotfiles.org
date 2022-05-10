@@ -1807,7 +1807,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
                 (")" . dired-hide-details-mode)
                 ("E" . dired-create-empty-file)
                 ("Y" . dired-do-relsymlink)
-                ("r" . wdired-change-to-wdired-mode)
+                ("e" . wdired-change-to-wdired-mode)
                 ("C-o" . nil)
                 ("o" . my/dired-open)
                 ("C-c C-o" . my/dired-open)
@@ -3516,7 +3516,6 @@ speed commands and hydra-org.
     :after vertico
     :bind
     (:map global-map
-          ("C-s" . consult-line)
           ("C-;" . consult-buffer)
           ("C-c m" . consult-mode-command)
           ("C-c r" . consult-recent-file)
@@ -3540,13 +3539,11 @@ speed commands and hydra-org.
           ("M-s k" . consult-keep-lines)
           ("M-s u" . consult-focus-lines)
           :map isearch-mode-map
-          ("M-e" . consult-isearch)
-          ("M-s e" . consult-isearch)
-          ("M-s l" . consult-line)
-          ("M-s L" . consult-line-multi)
-          ("C-c h" . consult-history)
+          ("M-n" . consult-isearch)
+          ("M-l" . consult-line)
+          ("M-L" . consult-line-multi)
           :map minibuffer-local-map
-          ("C-c h" . consult-history)
+          ("M-n" . consult-history)
           :map help-map
           ("a" . consult-apropos)
           :map org-mode-map
@@ -4237,7 +4234,10 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package wgrep)
+  (use-package wgrep
+    :custom
+    (wgrep-auto-save-buffer t)
+    (wgrep-enable-key "e"))
 #+end_src
 
 ***** dumb-jump
@@ -4287,16 +4287,12 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
 
 [[https://karthinks.com/software/avy-can-do-anything/][This post]] tell me how we can concoct efficient editing workflow with avy.
 
-
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-avy"
 #+end_src
 
 #+begin_src emacs-lisp
   (use-package avy
-    :bind (("C-c a" . avy-goto-char-timer)
-           :map isearch-mode-map
-           ("C-a" . avy-isearch))
     :config
     (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark))
 
@@ -4308,6 +4304,16 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
       (select-window
        (cdr (ring-ref avy-ring 0))))
     t)
+#+end_src
+
+****** avy-migemo
+
+#+begin_src emacs-lisp
+  (use-package avy-migemo
+    :straight t
+    :bind (("M-g M-a" . avy-migemo-goto-char-timer)
+           :map isearch-mode-map
+           ("M-a" . avy-migemo-isearch)))
 #+end_src
 
 ***** paredit
