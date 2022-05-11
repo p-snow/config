@@ -1346,7 +1346,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
       "Default face for ddskk candidates."
       :group 'skk-dcomp)
     :custom
-    (skk-kakutei-key (kbd "C-m"))
+    (skk-kakutei-key (kbd "M-l"))
     (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
     (skk-init-file (expand-file-name "init" skk-dotemacs-dir))
     (skk-byte-compile-init-file t)
@@ -2029,7 +2029,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
     ;; local key bindings
     (bind-keys :map org-mode-map
                ("C-j"     . org-return)
-               ("C-m"     . org-return-indent)
+               ("C-M-j"   . org-return-indent)
                ("M-j"     . org-meta-return)
                ("C-S-p"   . org-previous-item)
                ("C-S-n"   . org-next-item)
@@ -4045,7 +4045,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     (let ((grep-find-command '("rga --with-filename --no-heading --line-number --color never -e ''" . 66)))
       (call-interactively 'grep-find)))
 
-  (global-set-key (kbd "M-s A") 'my/grep-ripgrep-all)
+  (global-set-key (kbd "M-s R") 'my/grep-ripgrep-all)
 #+end_src
 
 ***** woman
@@ -5822,31 +5822,25 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'hydra
-    (defhydra hydra-launcher (global-map "M-l"
+    (defhydra hydra-launcher (global-map "C-x C-j"
                                          :color blue)
       "Launch"
-      ("xe" eshell)
-      ("xg" gdb)
-      ("xi" ielm)
-      ("xs" shell)
-      ("xt" term)
-      ("xv" vterm)
+      ("e" eshell)
+      ("v" vterm)
       ("D" dired-jump)
       ("=" ediff)
       ("@" twit)
-      ("v" magit-status)
+      ("g" magit-status)
       ("r" re-builder)
-      ("a" app-launcher-run-app)
-      ("w" lookup-google)
+      ("w" eww)
       ("W" eww-switch-to-buffer)
       ("m" mu4e)
       ("M" mu4e-alert-view-unread-mails)
-      ("f" elfeed)
       ("p" proced)
       ("P" list-processes)
       ("b" battery)
       ("c" calendar)
-      ("C" calc)
+      ("%" calc)
       ("?" woman)
       ("\\" locate-with-filter)
       (";" my/tldr)
