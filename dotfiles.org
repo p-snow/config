@@ -794,50 +794,6 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :config
     (setf calc-display-trail nil))
 #+end_src
-***** calendar
-[[https://github.com/emacs-jp/japanese-holidays/releases.atom][japanese-holidays]]
-
-#+begin_src emacs-lisp
-  (use-package calendar
-    :commands calendar
-    :straight japanese-holidays
-    :hook
-    ((calendar-today-visible calendar-today-invisible) . japanese-holiday-mark-weekend)
-    (calendar-today-visible . calendar-mark-today)
-    (calendar-move . my/japanese-holiday-show)
-    :custom
-    (calendar-mark-holidays-flag t)
-    (japanese-holiday-weekend '(0 6))
-    (japanese-holiday-weekend-marker
-     '(holiday nil nil nil nil nil japanese-holiday-saturday))
-    :config
-    (require 'japanese-holidays)
-    ;; add 'holiday-general-holidays to calendar-holidays
-    ;; if you want holidays in the U.S. to be counted as your holidays.
-    (setf calendar-holidays
-          (append japanese-holidays holiday-local-holidays holiday-other-holidays))
-    (bind-keys :map calendar-mode-map
-               ("v" . my/calendar-show-items)))
-
-  (defun my/japanese-holiday-show (&rest _args)
-    "Show holiday information in mini buffer if date on which the cursor is any holidays."
-    (let* ((date (calendar-cursor-to-date t))
-           (calendar-date-display-form '((format "%s年 %s月 %s日（%s）" year month day dayname)))
-           (date-string (calendar-date-string date))
-           (holiday-list (calendar-check-holidays date)))
-      (when holiday-list
-        (message "%s: %s" date-string (mapconcat #'identity holiday-list "; ")))))
-#+end_src
-
-***** proced
-
-#+begin_src emacs-lisp
-  (use-package proced
-    :no-require t
-    :custom
-    (proced-auto-update-flag t)
-    (proced-auto-update-interval 3))
-#+end_src
 ***** re-builder
 
 #+begin_src emacs-lisp
@@ -887,29 +843,44 @@ I prefer to rid my emacs experience of mouse as least as possible.
       ("." flyspell-auto-correct-word)
       ("q" nil "quit")))
 #+end_src
-***** help                                     :help:
-:PROPERTIES:
-:ID:       a55da7a2-6525-4788-ba56-085eb61928d4
-:END:
+***** tramp
 
 #+begin_src emacs-lisp
-  (use-package help-mode
-    :delight " HE"
+  (use-package tramp
+    :defer t
+    :custom
+    (tramp-default-method "ssh")
     :config
-    (bind-key "C-M-h" help-map)
-    (bind-keys :map help-map
-               ("c" . describe-face)
-               ("C-l" . find-library)
-               :map help-mode-map
-               ("f" . scroll-up-line)
-               ("e" . scroll-down-line)
-               ("SPC" . my/forward-paragraph)
-               ("E" . my/backward-paragraph)
-               ("2" . backward-button)
-               ("3" . forward-button)
-               ("4" . push-button)))
+    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+    (add-to-list 'tramp-remote-path "~/bin"))
+
+  (defun sudo ()
+    "Use TRAMP to `sudo' the current buffer"
+    (interactive)
+    (when buffer-file-name
+      (find-alternate-file
+       (concat "/sudo:root@localhost:"
+               buffer-file-name))))
 #+end_src
-***** info                                     :help:
+
+***** view
+
+#+begin_src emacs-lisp
+  (use-package view
+    :diminish view-mode "vw")
+#+end_src
+**** dedicated major modes
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/major-modes.el")
+:END:
+
+***** Fundamental mode
+
+#+begin_src emacs-lisp
+  (use-package emacs
+    :delight (fundamental-mode " FU"))
+#+end_src
+***** Info mode
 
 #+begin_src emacs-lisp
   (use-package Info
@@ -938,39 +909,414 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (require 'info-look)
     (autoload 'info-lookup-add-help "info-look"))
 #+end_src
-***** tramp
-
-#+begin_src emacs-lisp
-  (use-package tramp
-    :defer t
-    :custom
-    (tramp-default-method "ssh")
-    :config
-    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-    (add-to-list 'tramp-remote-path "~/bin"))
-
-  (defun sudo ()
-    "Use TRAMP to `sudo' the current buffer"
-    (interactive)
-    (when buffer-file-name
-      (find-alternate-file
-       (concat "/sudo:root@localhost:"
-               buffer-file-name))))
-#+end_src
-
-***** view
-
-#+begin_src emacs-lisp
-  (use-package view
-    :diminish view-mode "vw")
-#+end_src
-***** fundamental mode
+***** Special mode
 
 #+begin_src emacs-lisp
   (use-package emacs
-    :delight (fundamental-mode " FU"))
+    :bind (:map special-mode-map
+                ("C-j" . push-button)))
+#+end_src
+***** Help mode
+:PROPERTIES:
+:ID:       a55da7a2-6525-4788-ba56-085eb61928d4
+:END:
+
+#+begin_src emacs-lisp
+  (use-package help-mode
+    :delight " HE"
+    :config
+    (bind-key "C-M-h" help-map)
+    (bind-keys :map help-map
+               ("c" . describe-face)
+               ("C-l" . find-library)
+               :map help-mode-map
+               ("f" . scroll-up-line)
+               ("e" . scroll-down-line)
+               ("SPC" . my/forward-paragraph)
+               ("E" . my/backward-paragraph)
+               ("2" . backward-button)
+               ("3" . forward-button)
+               ("4" . push-button)))
+#+end_src
+***** Proced mode
+
+#+begin_src emacs-lisp
+  (use-package proced
+    :no-require t
+    :custom
+    (proced-auto-update-flag t)
+    (proced-auto-update-interval 3))
+#+end_src
+***** Calendar mode
+[[https://github.com/emacs-jp/japanese-holidays/releases.atom][japanese-holidays]]
+
+#+begin_src emacs-lisp
+  (use-package calendar
+    :commands calendar
+    :straight japanese-holidays
+    :hook
+    ((calendar-today-visible calendar-today-invisible) . japanese-holiday-mark-weekend)
+    (calendar-today-visible . calendar-mark-today)
+    (calendar-move . my/japanese-holiday-show)
+    :custom
+    (calendar-mark-holidays-flag t)
+    (japanese-holiday-weekend '(0 6))
+    (japanese-holiday-weekend-marker
+     '(holiday nil nil nil nil nil japanese-holiday-saturday))
+    :config
+    (require 'japanese-holidays)
+    ;; add 'holiday-general-holidays to calendar-holidays
+    ;; if you want holidays in the U.S. to be counted as your holidays.
+    (setf calendar-holidays
+          (append japanese-holidays holiday-local-holidays holiday-other-holidays))
+    (bind-keys :map calendar-mode-map
+               ("v" . my/calendar-show-items)))
+
+  (defun my/japanese-holiday-show (&rest _args)
+    "Show holiday information in mini buffer if date on which the cursor is any holidays."
+    (let* ((date (calendar-cursor-to-date t))
+           (calendar-date-display-form '((format "%s年 %s月 %s日（%s）" year month day dayname)))
+           (date-string (calendar-date-string date))
+           (holiday-list (calendar-check-holidays date)))
+      (when holiday-list
+        (message "%s: %s" date-string (mapconcat #'identity holiday-list "; ")))))
+#+end_src
+***** Dired
+
+#+begin_src emacs-lisp
+  (use-package dired
+    :bind (:map dired-mode-map
+                ("(" . dired-hide-details-mode)
+                (")" . dired-hide-details-mode)
+                ("E" . dired-create-empty-file)
+                ("Y" . dired-do-relsymlink)
+                ("e" . wdired-change-to-wdired-mode)
+                ("C-o" . nil)
+                ("o" . my/dired-open)
+                ("C-c C-o" . my/dired-open)
+                ("C-c C-s" . my/dired-share))
+    :hook (dired-mode . dired-hide-details-mode)
+    :custom
+    (dired-recursive-copies 'always)
+    (dired-recursive-deletes 'top)
+    (dired-listing-switches "-ahgG --time-style=iso --group-directories-first")
+    (dired-dwim-target 'dired-dwim-target-recent)
+    (dired-hide-details-hide-information-lines nil)
+    :config
+    (put 'dired-find-alternate-file 'disabled nil)
+    (setq dired-isearch-filenames t)
+    (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
+    (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion))
+
+  (use-package dired-x
+    :after dired)
+
+  (defun my/advice-dired-control-deletion (oldfun &rest r)
+    "Enable file deleting functions to control deleting procedure
+  whether files are going to be in trash box."
+    (let ((delete-by-moving-to-trash
+           (if (equal current-prefix-arg '(4))
+               nil t)))
+      (apply oldfun (cdr r))))
+
+  (defun my/dired-open (&optional arg)
+    "Open file in Dired.
+
+  File is either on current line or marked targets.
+  Optional argument `ARG' is passed to `my/view-file'."
+    (interactive "P")
+    (let ((files (dired-get-marked-files nil nil)))
+      (mapc (lambda (file)
+              (if (equal arg '(4))
+                  (find-file file)
+                (my/view-file file arg)))
+            files)))
+
+  (defun my/dired-share ()
+    "Share file with remote device via KDE Connect."
+    (interactive)
+    (let ((files (dired-get-marked-files nil nil)))
+      (mapc (lambda (file)
+              (shell-command
+               (mapconcat 'identity
+                          (list "kdeconnect-cli" "-d" "a30587ededf4c2d2"
+                                "--share" (shell-quote-argument
+                                           file)) " ")))
+            files)))
+#+end_src
+****** dired-rsync
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-dired-rsync"
 #+end_src
 
+#+begin_src emacs-lisp
+  (use-package dired-rsync
+    :after dired
+    :bind (:map dired-mode-map
+                ("C-c C-r" . dired-rsync))
+    :custom
+    (dired-rsync-options "-auz --info=progress2"))
+#+end_src
+
+****** dired-single
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/crocket/dired-single/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package dired-single
+    :straight t
+    :after dired
+    :bind (:map dired-mode-map
+                ("C-j" . dired-single-buffer)
+                ("^" . dired-single-up-directory)))
+#+end_src
+
+****** dired-hacks
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-dired-hacks"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package dired-subtree
+    :after dired
+    :bind (:map dired-mode-map
+                ("TAB" . dired-subtree-cycle)))
+
+  (use-package dired-narrow
+    :after dired
+    :bind
+    (:map dired-mode-map
+          ("z" . dired-narrow))
+    (:map dired-narrow-map
+          ("C-j" . exit-minibuffer)))
+#+end_src
+
+****** dired-hide-dotfiles
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/mattiasb/dired-hide-dotfiles/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package dired-hide-dotfiles
+    :straight t
+    :after dired
+    :bind (:map dired-mode-map
+                ("," . dired-clean-directory)
+                ("." . dired-hide-dotfiles-mode))
+    :config
+    (dired-hide-dotfiles-mode -1))
+#+end_src
+
+****** find-dired
+
+#+begin_src emacs-lisp
+  (use-package find-dired
+    :custom
+    (find-grep-options "-n -H --no-heading -q")
+    (find-ls-option '("-print0 | xargs -0 ls -ldN" . "-ldN")))
+
+  (with-eval-after-load 'hydra
+    (defhydra hydra-find-dired (global-map "M-s d"
+                                           :color teal)
+      "find dired"
+      ("f" find-dired)
+      ("F" find-lisp-find-dired)
+      ("g" find-grep-dired)
+      ("n" find-name-dired)
+      ("d" find-lisp-find-dired-subdirectories)
+      ("q" nil "quit")))
+#+end_src
+
+****** locate
+
+#+begin_src emacs-lisp :noweb yes
+  (use-package locate
+    :custom
+    (locate-fcodes-file "<<locate-db()>>")
+    (locate-update-path (expand-file-name "~/")))
+#+end_src
+
+***** EWW
+
+#+begin_src emacs-lisp
+  (use-package eww
+    :delight " EW"
+    :hook
+    (eww-after-render . my/eww-rename-buffer)
+    :custom
+    ;; set enough large column number to prevent from inserting line break
+    (shr-width 10000)
+    (shr-use-fonts nil)
+    (shr-image-animate t)
+    (eww-header-line-format nil)
+    (shr-max-image-proportion 0.4)
+    :config
+    (bind-keys :map eww-mode-map
+               ("f" . scroll-up-line)
+               ("e" . scroll-down-line)
+               ("SPC" . my/forward-paragraph)
+               ("E" . my/backward-paragraph)
+               ("C" . eww-set-character-encoding)
+               ("1" . eww-back-url)
+               ("2" . shr-next-link)
+               ("4" . eww-follow-link)
+               ("C-j" . eww-follow-link)
+               ("T" . eww-goto-title-heading)
+               ("L" . my/eww-goto-heading)
+               ("O" . my/eww-convert-to-org)
+               :map eww-bookmark-mode-map
+               ("C-j" . eww-bookmark-browse)))
+
+  (defun my/eww-rename-buffer ()
+    "Rename the name of current EWW buffer.
+
+  If associated HTML file have a title tag, use title as a buffer name.
+  Otherwise, use a current URL."
+    (let ((title (plist-get eww-data :title))
+          (url (file-name-base (eww-current-url))))
+      (rename-buffer (format "eww: %s" (or (if (and title (> (length title) 0))
+                                               title nil)
+                                           url "")) t)))
+
+  (defun my/eww-convert-to-org ()
+    "Convert current html page into one org file and show it.
+
+  This is handy if you would like to check a page index comfortably."
+    (interactive)
+    (let ((source (plist-get eww-data :source))
+          (src-html (make-temp-file "source-"))
+          (dst-org (expand-file-name (format "%s.org" (org-id-uuid)) "~/tmp"))
+          (coding-system-for-write 'utf-8-unix)
+          (org-startup-folded t))
+      (with-temp-buffer
+        (insert source)
+        (write-region (point-min) (point-max) src-html nil)
+        (call-process-shell-command (format "pandoc %s -f html -t org -o %s"
+                                            (shell-quote-argument src-html)
+                                            (shell-quote-argument dst-org)))
+        (delete-file src-html))
+      (find-file dst-org t)
+      (goto-char (point-min))
+      (org-ctrl-c-tab)))
+
+  (defun eww-headings-dom ()
+    "Return heading list as a dom from xml."
+    (let ((source (plist-get eww-data :source))
+          (dom nil))
+      (with-temp-buffer
+        (let ((source-file (make-temp-file "source-"))
+              (coding-system-for-write 'utf-8-unix))
+          (insert source)
+          (write-region (point-min) (point-max) source-file nil)
+          (erase-buffer)
+          (call-process "extract_headings" source-file t)
+          (delete-file source-file)
+          (libxml-parse-xml-region (point-min) (point-max))))))
+
+  (defun eww-goto-title-heading ()
+    "Set point to a line which contaings the possible heading."
+    (interactive)
+    (when-let* ((headings-dom (eww-headings-dom))
+                (possible-heading (cl-reduce (lambda (node-a node-b)
+                                               (if (not (bound-and-true-p node-a))
+                                                   (if (not (bound-and-true-p node-b))
+                                                       nil
+                                                     node-b)
+                                                 (if (>= (string-to-number (dom-attr node-a 'proximity))
+                                                         (string-to-number (dom-attr node-b 'proximity)))
+                                                     node-a node-b)))
+                                             (dom-children headings-dom)
+                                             :initial-value nil))
+                (possible-text (dom-text possible-heading))
+                (match-pos (or (re-search-forward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1)
+                               (re-search-backward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1))))
+      (beginning-of-line)
+      (recenter-top-bottom 0)))
+
+  (defun my/eww-goto-heading ()
+    "Go to selected heading line."
+    (interactive)
+    (setq lexical-binding t)
+    (when-let* ((headings-root (eww-headings-dom))
+                (cur-buf (current-buffer))
+                (heading (completing-read
+                          "Heading : "
+                          (mapcar (lambda (heading-node)
+                                    (when-let* ((heading (dom-text heading-node))
+                                                (tag (symbol-name (dom-tag heading-node)))
+                                                (match-pos (string-match "h\\([1-6]\\{1\\}\\)" tag))
+                                                (indent (- (string-to-number (match-string 1 tag)) 1)))
+                                      (format "%s%s"
+                                              (apply 'concat (make-list indent "  "))
+                                              heading)))
+                                  (dom-children headings-root))))
+                (match (string-match "\\(?:  \\)*\\(.*\\)" heading))
+                (heading (match-string 1 heading))
+                (match-pos (or (re-search-forward (build-regex heading) nil t 1)
+                               (re-search-backward (build-regex heading) nil t 1))))
+      (with-current-buffer cur-buf
+        (switch-to-buffer cur-buf)
+        (beginning-of-line)
+        (recenter-top-bottom 0))))
+
+  (defmacro build-regex (str)
+    "Return a regexp representation for `STR'."
+    `(format "^[[:blank:]SVG Image]*%s[[:blank:]]*$"
+             ,str))
+#+end_src
+
+****** extract_headings
+#+begin_src python :tangle (expand-tangle-target ".local/bin/extract_headings") :tangle-mode (identity #o755)
+  #!/usr/bin/env python3
+
+  # This script extract most probable page heading.
+
+  import sys
+  import lxml.html as html
+  from lxml import etree
+  import difflib
+
+  if len(sys.argv) == 1:
+      INPUT_STR = sys.stdin.read()
+      ROOT = html.fromstring(INPUT_STR).getroottree()
+  else:
+      sys.exit(1)
+
+  OUT_ROOT = etree.Element("headings")
+
+  # extract title text
+  title = ''
+  title_text_arr = ROOT.xpath('//title[1]//text()')
+  if len(title_text_arr):
+      title = title_text_arr[0]
+      OUT_ROOT.set("title", title.strip())
+
+  htag_text_arr = ROOT.xpath('//*[self::h1 or self::h2 or self::h3 or self::h4 or self::h5 or self::h6]')
+  for i in range(len(htag_text_arr)):
+      text = ''
+      texts = htag_text_arr[i].xpath('.//text()')
+      if len(texts) == 1:
+          text = texts[0].strip()
+      elif len(texts) > 1:
+          text = ''.join(map(str.strip, texts))
+      else:
+          continue
+      proximity = difflib.SequenceMatcher(None, title, text).ratio()
+      heading = etree.Element(htag_text_arr[i].tag)
+      heading.text = text
+      heading.set('proximity', str(proximity))
+      OUT_ROOT.append(heading)
+
+  out_root_str = etree.tostring(OUT_ROOT, encoding='utf-8', method='xml', pretty_print=True)
+  if type(out_root_str) is bytes:
+      out_root_str = out_root_str.decode()
+      print(out_root_str)
+#+end_src
 **** input method
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/input-method.el")
@@ -1172,186 +1518,6 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
     ;; Load the theme of your choice:
     (modus-themes-load-vivendi)
     :bind ("<f5>" . modus-themes-toggle))
-#+end_src
-
-**** EWW
-:PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/eww.el")
-:END:
-
-#+begin_src emacs-lisp
-  (use-package eww
-    :delight " EW"
-    :hook
-    (eww-after-render . my/eww-rename-buffer)
-    :custom
-    ;; set enough large column number to prevent from inserting line break
-    (shr-width 10000)
-    (shr-use-fonts nil)
-    (shr-image-animate t)
-    (eww-header-line-format nil)
-    (shr-max-image-proportion 0.4)
-    :config
-    (bind-keys :map eww-mode-map
-               ("f" . scroll-up-line)
-               ("e" . scroll-down-line)
-               ("SPC" . my/forward-paragraph)
-               ("E" . my/backward-paragraph)
-               ("C" . eww-set-character-encoding)
-               ("1" . eww-back-url)
-               ("2" . shr-next-link)
-               ("4" . eww-follow-link)
-               ("C-j" . eww-follow-link)
-               ("T" . eww-goto-title-heading)
-               ("L" . my/eww-goto-heading)
-               ("O" . my/eww-convert-to-org)
-               :map eww-bookmark-mode-map
-               ("C-j" . eww-bookmark-browse)))
-
-  (defun my/eww-rename-buffer ()
-    "Rename the name of current EWW buffer.
-
-  If associated HTML file have a title tag, use title as a buffer name.
-  Otherwise, use a current URL."
-    (let ((title (plist-get eww-data :title))
-          (url (file-name-base (eww-current-url))))
-      (rename-buffer (format "eww: %s" (or (if (and title (> (length title) 0))
-                                               title nil)
-                                           url "")) t)))
-
-  (defun my/eww-convert-to-org ()
-    "Convert current html page into one org file and show it.
-
-  This is handy if you would like to check a page index comfortably."
-    (interactive)
-    (let ((source (plist-get eww-data :source))
-          (src-html (make-temp-file "source-"))
-          (dst-org (expand-file-name (format "%s.org" (org-id-uuid)) "~/tmp"))
-          (coding-system-for-write 'utf-8-unix)
-          (org-startup-folded t))
-      (with-temp-buffer
-        (insert source)
-        (write-region (point-min) (point-max) src-html nil)
-        (call-process-shell-command (format "pandoc %s -f html -t org -o %s"
-                                            (shell-quote-argument src-html)
-                                            (shell-quote-argument dst-org)))
-        (delete-file src-html))
-      (find-file dst-org t)
-      (goto-char (point-min))
-      (org-ctrl-c-tab)))
-
-  (defun eww-headings-dom ()
-    "Return heading list as a dom from xml."
-    (let ((source (plist-get eww-data :source))
-          (dom nil))
-      (with-temp-buffer
-        (let ((source-file (make-temp-file "source-"))
-              (coding-system-for-write 'utf-8-unix))
-          (insert source)
-          (write-region (point-min) (point-max) source-file nil)
-          (erase-buffer)
-          (call-process "extract_headings" source-file t)
-          (delete-file source-file)
-          (libxml-parse-xml-region (point-min) (point-max))))))
-
-  (defun eww-goto-title-heading ()
-    "Set point to a line which contaings the possible heading."
-    (interactive)
-    (when-let* ((headings-dom (eww-headings-dom))
-                (possible-heading (cl-reduce (lambda (node-a node-b)
-                                               (if (not (bound-and-true-p node-a))
-                                                   (if (not (bound-and-true-p node-b))
-                                                       nil
-                                                     node-b)
-                                                 (if (>= (string-to-number (dom-attr node-a 'proximity))
-                                                         (string-to-number (dom-attr node-b 'proximity)))
-                                                     node-a node-b)))
-                                             (dom-children headings-dom)
-                                             :initial-value nil))
-                (possible-text (dom-text possible-heading))
-                (match-pos (or (re-search-forward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1)
-                               (re-search-backward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1))))
-      (beginning-of-line)
-      (recenter-top-bottom 0)))
-
-  (defun my/eww-goto-heading ()
-    "Go to selected heading line."
-    (interactive)
-    (setq lexical-binding t)
-    (when-let* ((headings-root (eww-headings-dom))
-                (cur-buf (current-buffer))
-                (heading (completing-read
-                          "Heading : "
-                          (mapcar (lambda (heading-node)
-                                    (when-let* ((heading (dom-text heading-node))
-                                                (tag (symbol-name (dom-tag heading-node)))
-                                                (match-pos (string-match "h\\([1-6]\\{1\\}\\)" tag))
-                                                (indent (- (string-to-number (match-string 1 tag)) 1)))
-                                      (format "%s%s"
-                                              (apply 'concat (make-list indent "  "))
-                                              heading)))
-                                  (dom-children headings-root))))
-                (match (string-match "\\(?:  \\)*\\(.*\\)" heading))
-                (heading (match-string 1 heading))
-                (match-pos (or (re-search-forward (build-regex heading) nil t 1)
-                               (re-search-backward (build-regex heading) nil t 1))))
-      (with-current-buffer cur-buf
-        (switch-to-buffer cur-buf)
-        (beginning-of-line)
-        (recenter-top-bottom 0))))
-
-  (defmacro build-regex (str)
-    "Return a regexp representation for `STR'."
-    `(format "^[[:blank:]SVG Image]*%s[[:blank:]]*$"
-             ,str))
-#+end_src
-
-***** extract_headings
-#+begin_src python :tangle (expand-tangle-target ".local/bin/extract_headings") :tangle-mode (identity #o755)
-  #!/usr/bin/env python3
-
-  # This script extract most probable page heading.
-
-  import sys
-  import lxml.html as html
-  from lxml import etree
-  import difflib
-
-  if len(sys.argv) == 1:
-      INPUT_STR = sys.stdin.read()
-      ROOT = html.fromstring(INPUT_STR).getroottree()
-  else:
-      sys.exit(1)
-
-  OUT_ROOT = etree.Element("headings")
-
-  # extract title text
-  title = ''
-  title_text_arr = ROOT.xpath('//title[1]//text()')
-  if len(title_text_arr):
-      title = title_text_arr[0]
-      OUT_ROOT.set("title", title.strip())
-
-  htag_text_arr = ROOT.xpath('//*[self::h1 or self::h2 or self::h3 or self::h4 or self::h5 or self::h6]')
-  for i in range(len(htag_text_arr)):
-      text = ''
-      texts = htag_text_arr[i].xpath('.//text()')
-      if len(texts) == 1:
-          text = texts[0].strip()
-      elif len(texts) > 1:
-          text = ''.join(map(str.strip, texts))
-      else:
-          continue
-      proximity = difflib.SequenceMatcher(None, title, text).ratio()
-      heading = etree.Element(htag_text_arr[i].tag)
-      heading.text = text
-      heading.set('proximity', str(proximity))
-      OUT_ROOT.append(heading)
-
-  out_root_str = etree.tostring(OUT_ROOT, encoding='utf-8', method='xml', pretty_print=True)
-  if type(out_root_str) is bytes:
-      out_root_str = out_root_str.decode()
-      print(out_root_str)
 #+end_src
 
 **** mu4e
@@ -1712,169 +1878,6 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
           (append elfeed-feeds
                   '(;; s-exps for feeds will be inserted here
                     <<elfeed-feeds>>))))
-#+end_src
-
-**** Dired
-:PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/dired.el")
-:END:
-
-#+begin_src emacs-lisp
-  (use-package dired
-    :bind (:map dired-mode-map
-                ("(" . dired-hide-details-mode)
-                (")" . dired-hide-details-mode)
-                ("E" . dired-create-empty-file)
-                ("Y" . dired-do-relsymlink)
-                ("e" . wdired-change-to-wdired-mode)
-                ("C-o" . nil)
-                ("o" . my/dired-open)
-                ("C-c C-o" . my/dired-open)
-                ("C-c C-s" . my/dired-share))
-    :hook (dired-mode . dired-hide-details-mode)
-    :custom
-    (dired-recursive-copies 'always)
-    (dired-recursive-deletes 'top)
-    (dired-listing-switches "-ahgG --time-style=iso --group-directories-first")
-    (dired-dwim-target 'dired-dwim-target-recent)
-    (dired-hide-details-hide-information-lines nil)
-    :config
-    (put 'dired-find-alternate-file 'disabled nil)
-    (setq dired-isearch-filenames t)
-    (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
-    (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion))
-
-  (use-package dired-x
-    :after dired)
-
-  (defun my/advice-dired-control-deletion (oldfun &rest r)
-    "Enable file deleting functions to control deleting procedure
-  whether files are going to be in trash box."
-    (let ((delete-by-moving-to-trash
-           (if (equal current-prefix-arg '(4))
-               nil t)))
-      (apply oldfun (cdr r))))
-
-  (defun my/dired-open (&optional arg)
-    "Open file in Dired.
-
-  File is either on current line or marked targets.
-  Optional argument `ARG' is passed to `my/view-file'."
-    (interactive "P")
-    (let ((files (dired-get-marked-files nil nil)))
-      (mapc (lambda (file)
-              (if (equal arg '(4))
-                  (find-file file)
-                (my/view-file file arg)))
-            files)))
-
-  (defun my/dired-share ()
-    "Share file with remote device via KDE Connect."
-    (interactive)
-    (let ((files (dired-get-marked-files nil nil)))
-      (mapc (lambda (file)
-              (shell-command
-               (mapconcat 'identity
-                          (list "kdeconnect-cli" "-d" "a30587ededf4c2d2"
-                                "--share" (shell-quote-argument
-                                           file)) " ")))
-            files)))
-#+end_src
-***** dired-rsync
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-dired-rsync"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package dired-rsync
-    :after dired
-    :bind (:map dired-mode-map
-                ("C-c C-r" . dired-rsync))
-    :custom
-    (dired-rsync-options "-auz --info=progress2"))
-#+end_src
-
-***** dired-single
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/crocket/dired-single/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package dired-single
-    :straight t
-    :after dired
-    :bind (:map dired-mode-map
-                ("C-j" . dired-single-buffer)
-                ("^" . dired-single-up-directory)))
-#+end_src
-
-***** dired-hacks
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-dired-hacks"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package dired-subtree
-    :after dired
-    :bind (:map dired-mode-map
-                ("TAB" . dired-subtree-cycle)))
-
-  (use-package dired-narrow
-    :after dired
-    :bind
-    (:map dired-mode-map
-          ("z" . dired-narrow))
-    (:map dired-narrow-map
-          ("C-j" . exit-minibuffer)))
-#+end_src
-
-***** dired-hide-dotfiles
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/mattiasb/dired-hide-dotfiles/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package dired-hide-dotfiles
-    :straight t
-    :after dired
-    :bind (:map dired-mode-map
-                ("," . dired-clean-directory)
-                ("." . dired-hide-dotfiles-mode))
-    :config
-    (dired-hide-dotfiles-mode -1))
-#+end_src
-
-***** find-dired
-
-#+begin_src emacs-lisp
-  (use-package find-dired
-    :custom
-    (find-grep-options "-n -H --no-heading -q")
-    (find-ls-option '("-print0 | xargs -0 ls -ldN" . "-ldN")))
-
-  (with-eval-after-load 'hydra
-    (defhydra hydra-find-dired (global-map "M-s d"
-                                           :color teal)
-      "find dired"
-      ("f" find-dired)
-      ("F" find-lisp-find-dired)
-      ("g" find-grep-dired)
-      ("n" find-name-dired)
-      ("d" find-lisp-find-dired-subdirectories)
-      ("q" nil "quit")))
-#+end_src
-
-***** locate
-
-#+begin_src emacs-lisp :noweb yes
-  (use-package locate
-    :custom
-    (locate-fcodes-file "<<locate-db()>>")
-    (locate-update-path (expand-file-name "~/")))
 #+end_src
 
 **** Shells / Terminal emulators
