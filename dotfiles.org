@@ -747,26 +747,6 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (delight 'bookmark-bmenu-mode " BB"))
 #+end_src
 
-***** find-dired
-
-#+begin_src emacs-lisp
-  (use-package find-dired
-    :custom
-    (find-grep-options "-n -H --no-heading -q")
-    (find-ls-option '("-print0 | xargs -0 ls -ldN" . "-ldN")))
-
-  (with-eval-after-load 'hydra
-    (defhydra hydra-find-dired (global-map "M-s d"
-                                           :color teal)
-      "find dired"
-      ("f" find-dired)
-      ("F" find-lisp-find-dired)
-      ("g" find-grep-dired)
-      ("n" find-name-dired)
-      ("d" find-lisp-find-dired-subdirectories)
-      ("q" nil "quit")))
-#+end_src
-
 ***** hideshow
 
 #+begin_src emacs-lisp
@@ -858,23 +838,6 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (proced-auto-update-flag t)
     (proced-auto-update-interval 3))
 #+end_src
-***** vc (version control)              :maintaining:
-****** ediff
-
-#+begin_src emacs-lisp
-  (use-package ediff
-    :commands ediff-files
-    :custom
-    (ediff-window-setup-function 'ediff-setup-windows-default)
-    (ediff-split-window-function 'split-window-horizontally))
-#+end_src
-****** vc-hooks
-
-#+begin_src emacs-lisp
-  (use-package vc-hooks
-    :custom
-    (vc-follow-symlinks t))
-#+end_src
 ***** re-builder
 
 #+begin_src emacs-lisp
@@ -892,22 +855,6 @@ I prefer to rid my emacs experience of mouse as least as possible.
                ("C-j" . isearch-exit)))
 #+end_src
 
-***** locate
-
-#+begin_src emacs-lisp :noweb yes
-  (use-package locate
-    :custom
-    (locate-fcodes-file "<<locate-db()>>")
-    (locate-update-path (expand-file-name "~/")))
-#+end_src
-
-***** imenu                                :programs:
-
-#+begin_src emacs-lisp
-  (use-package imenu
-    :custom
-    (imenu-auto-rescan t))
-#+end_src
 ***** flyspell                                :fixit:
 
 #+begin_src emacs-lisp
@@ -1017,39 +964,11 @@ I prefer to rid my emacs experience of mouse as least as possible.
   (use-package view
     :diminish view-mode "vw")
 #+end_src
-***** woman                                :programs:
+***** fundamental mode
 
 #+begin_src emacs-lisp
-  (use-package woman
-    :defer t
-    :delight " WM"
-    :config
-    (bind-keys :map woman-mode-map
-               ("f" . scroll-up-line)
-               ("e" . scroll-down-line)
-               ("SPC" . my/forward-paragraph)
-               ("E" . my/backward-paragraph)
-               ("2" . backward-button)
-               ("3" . forward-button)
-               ("4" . push-button)))
-#+end_src
-***** executable
-This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/][this advice]]
-
-#+begin_src emacs-lisp
-  (use-package executable
-    :hook (after-save
-           . executable-make-buffer-file-executable-if-script-p))
-#+end_src
-***** paren
-
-#+begin_src emacs-lisp
-  (use-package paren
-    :custom
-    (show-paren-style 'parenthesis)
-    (show-paren-delay 0.25)
-    :config
-    (show-paren-mode -1))
+  (use-package emacs
+    :delight (fundamental-mode " FU"))
 #+end_src
 
 **** input method
@@ -1861,7 +1780,6 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
                                            file)) " ")))
             files)))
 #+end_src
-
 ***** dired-rsync
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
@@ -1928,6 +1846,35 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
                 ("." . dired-hide-dotfiles-mode))
     :config
     (dired-hide-dotfiles-mode -1))
+#+end_src
+
+***** find-dired
+
+#+begin_src emacs-lisp
+  (use-package find-dired
+    :custom
+    (find-grep-options "-n -H --no-heading -q")
+    (find-ls-option '("-print0 | xargs -0 ls -ldN" . "-ldN")))
+
+  (with-eval-after-load 'hydra
+    (defhydra hydra-find-dired (global-map "M-s d"
+                                           :color teal)
+      "find dired"
+      ("f" find-dired)
+      ("F" find-lisp-find-dired)
+      ("g" find-grep-dired)
+      ("n" find-name-dired)
+      ("d" find-lisp-find-dired-subdirectories)
+      ("q" nil "quit")))
+#+end_src
+
+***** locate
+
+#+begin_src emacs-lisp :noweb yes
+  (use-package locate
+    :custom
+    (locate-fcodes-file "<<locate-db()>>")
+    (locate-update-path (expand-file-name "~/")))
 #+end_src
 
 **** Shells / Terminal emulators
@@ -3669,12 +3616,71 @@ speed commands and hydra-org.
           (variable (styles orderless-default-style))))
 #+end_src
 
-**** major modes for programming/editing    :programs:
+**** text-mode derivatives
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/prog.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/text-mode.el")
 :END:
 
-***** prog
+***** text-mode
+
+#+begin_src emacs-lisp
+  (use-package text-mode
+    :mode ("\\.txt$" . text-mode)
+    :delight " TX")
+#+end_src
+***** nxml-mode
+
+#+begin_src emacs-lisp
+  (use-package nxml-mode
+    :delight (nxml-mode " XM")
+    :mode (("\.xml$"   . nxml-mode)
+           ("\.xsl$"   . nxml-mode)
+           ("\.xhtml$" . nxml-mode)
+           ("\.page$"  . nxml-mode)
+           ("\.plist$" . nxml-mode))
+    :hook (nxml-mode . my/prog-mode-hook-function)
+    :custom
+    (nxml-child-indent 2)
+    (nxml-attribute-indent 2)
+    (nxml-slash-auto-complete-flag t)
+    :config
+    (setq-local tab-width 2)
+    ;; pattern in hideshow mode for nxml mode
+    (add-to-list 'hs-special-modes-alist
+                 (list 'nxml-mode
+                       "<!--\\|<[^/>]*[^/]>"
+                       "-->\\|</[^/>]*[^/]>"
+                       "<!--"
+                       'nxml-forward-element
+                       nil)))
+#+end_src
+
+***** yaml-mode
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-yaml-mode"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package yaml-mode)
+#+end_src
+
+***** tex-mode
+
+#+begin_src emacs-lisp
+  (use-package tex-mode
+    :mode ("\\.tex$" . latex-mode)
+    :hook ((latex-mode . (lambda ()
+                           (setq-local counsel-dash-docsets '("LaTeX"))))
+           (tex-mode . (lambda () (setq ispell-parser 'tex)))))
+#+end_src
+
+**** prog-mode derivatives
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/prog-mode.el")
+:END:
+
+***** prog-mode
 
 #+begin_src emacs-lisp
   (use-package prog-mode
@@ -3687,7 +3693,7 @@ speed commands and hydra-org.
     (display-fill-column-indicator-mode))
 #+end_src
 
-***** sh
+***** sh-mode
 
 #+begin_src emacs-lisp
   (use-package sh-script
@@ -3702,7 +3708,7 @@ speed commands and hydra-org.
     (sh-indent-for-case-alt '+))
 #+end_src
 
-***** emacs lisp
+***** emacs-lisp-mode
 
 I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[https://karthinks.com/software/an-elisp-editing-tip/][this blog post]]
 
@@ -3723,13 +3729,13 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
                                global-map))
 #+end_src
 
-***** scheme
+***** scheme-mode
 
 #+begin_src scheme :noweb-ref devel-pkgs
   "mit-scheme"
 #+end_src
 
-***** cc-mode
+***** c-mode
 
 #+begin_src emacs-lisp
   (use-package cc-mode
@@ -3861,7 +3867,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
                    ruby-forward-sexp nil)))
 #+end_src
 
-***** inf-ruby
+****** inf-ruby
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-inf-ruby"
@@ -3875,16 +3881,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     (setq inf-ruby-eval-binding "Pry.toplevel_binding")
     (setq inf-ruby-first-prompt-pattern "^\\[[0-9]+\\] pry\\((.*)\\)> *")
     (setq inf-ruby-prompt-pattern "^\\[[0-9]+\\] pry\\((.*)\\)[>*\"'] *"))
-#+end_src
-
-***** yaml-mode
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-yaml-mode"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package yaml-mode)
 #+end_src
 
 ***** lua-mode
@@ -3902,16 +3898,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 #+begin_src emacs-lisp
   (use-package perl-mode
     :delight " PL")
-#+end_src
-
-***** tex-mode
-
-#+begin_src emacs-lisp
-  (use-package tex-mode
-    :mode ("\\.tex$" . latex-mode)
-    :hook ((latex-mode . (lambda ()
-                           (setq-local counsel-dash-docsets '("LaTeX"))))
-           (tex-mode . (lambda () (setq ispell-parser 'tex)))))
 #+end_src
 
 ***** web-mode
@@ -3976,40 +3962,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     (js-indent-level 2))
 #+end_src
 
-***** text-mode
-
-#+begin_src emacs-lisp
-  (use-package text-mode
-    :mode ("\\.txt$" . text-mode)
-    :delight " TX")
-#+end_src
-***** nxml
-
-#+begin_src emacs-lisp
-  (use-package nxml-mode
-    :delight (nxml-mode " XM")
-    :mode (("\.xml$"   . nxml-mode)
-           ("\.xsl$"   . nxml-mode)
-           ("\.xhtml$" . nxml-mode)
-           ("\.page$"  . nxml-mode)
-           ("\.plist$" . nxml-mode))
-    :hook (nxml-mode . my/prog-mode-hook-function)
-    :custom
-    (nxml-child-indent 2)
-    (nxml-attribute-indent 2)
-    (nxml-slash-auto-complete-flag t)
-    :config
-    (setq-local tab-width 2)
-    ;; pattern in hideshow mode for nxml mode
-    (add-to-list 'hs-special-modes-alist
-                 (list 'nxml-mode
-                       "<!--\\|<[^/>]*[^/]>"
-                       "-->\\|</[^/>]*[^/]>"
-                       "<!--"
-                       'nxml-forward-element
-                       nil)))
-#+end_src
-
 ***** sql-mode
 
 #+begin_src emacs-lisp
@@ -4022,56 +3974,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     :hook (sql-mode . (lambda ()
                         (setq-local flycheck-checker 'sql-sqlint)
                         (setq-local counsel-dash-docsets '("MySQL")))))
-#+end_src
-
-***** project
-
-Use hosting version of project.el on GitHub via straight until Emacs 28 which ships with latest version of project.el is released.
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-project"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package project)
-#+end_src
-
-***** grep
-
-#+begin_src emacs-lisp
-  (use-package grep
-    :custom
-    (grep-program "rg")
-    :config
-    (bind-keys :map grep-mode-map
-               ("C-j" . compile-goto-error)))
-
-  (defun my/grep-ripgrep-all ()
-    "Grep many kind of files like pdf, epub and more."
-    (interactive)
-    (let ((grep-find-command '("rga --with-filename --no-heading --line-number --color never -e ''" . 66)))
-      (call-interactively 'grep-find)))
-
-  (global-set-key (kbd "M-s A") 'my/grep-ripgrep-all)
-#+end_src
-
-***** compile
-
-#+begin_src emacs-lisp
-  (use-package compile
-    :bind (:map compilation-mode-map
-                ("C-j" . compile-goto-error)))
-#+end_src
-
-***** log-view
-
-#+begin_src emacs-lisp
-  (use-package log-view
-    :delight
-    (log-view-mode " LV")
-    :mode ("\\.log$" . log-view-mode)
-    :hook ((log-view-mode . my/prog-mode-hook-function )
-           (log-view-mode . auto-revert-tail-mode)))
 #+end_src
 
 ***** plantuml-mode
@@ -4105,13 +4007,122 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
            ("\\.htaccess$" . apache-conf-generic-mode)))
 #+end_src
 
-***** fundamental mode
+**** managing, building and maintaining programs
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/programs.el")
+:END:
+***** imenu
 
 #+begin_src emacs-lisp
-  (use-package emacs
-    :delight (fundamental-mode " FU"))
+  (use-package imenu
+    :custom
+    (imenu-auto-rescan t))
+#+end_src
+***** compile
+
+#+begin_src emacs-lisp
+  (use-package compile
+    :bind (:map compilation-mode-map
+                ("C-j" . compile-goto-error)))
 #+end_src
 
+***** grep
+
+#+begin_src emacs-lisp
+  (use-package grep
+    :custom
+    (grep-program "rg")
+    :config
+    (bind-keys :map grep-mode-map
+               ("C-j" . compile-goto-error)))
+
+  (defun my/grep-ripgrep-all ()
+    "Grep many kind of files like pdf, epub and more."
+    (interactive)
+    (let ((grep-find-command '("rga --with-filename --no-heading --line-number --color never -e ''" . 66)))
+      (call-interactively 'grep-find)))
+
+  (global-set-key (kbd "M-s A") 'my/grep-ripgrep-all)
+#+end_src
+
+***** woman
+
+#+begin_src emacs-lisp
+  (use-package woman
+    :defer t
+    :delight " WM"
+    :config
+    ;; (bind-keys :map woman-mode-map
+    ;;            ("f" . scroll-up-line)
+    ;;            ("e" . scroll-down-line)
+    ;;            ("SPC" . my/forward-paragraph)
+    ;;            ("E" . my/backward-paragraph)
+    ;;            ("2" . backward-button)
+    ;;            ("3" . forward-button)
+    ;;            ("4" . push-button))
+    )
+#+end_src
+
+***** executable
+This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/][this advice]]
+
+#+begin_src emacs-lisp
+  (use-package executable
+    :hook (after-save
+           . executable-make-buffer-file-executable-if-script-p))
+#+end_src
+
+***** paren
+
+#+begin_src emacs-lisp
+  (use-package paren
+    :custom
+    (show-paren-style 'parenthesis)
+    (show-paren-delay 0.25)
+    :config
+    (show-paren-mode -1))
+#+end_src
+
+***** project
+
+Use hosting version of project.el on GitHub via straight until Emacs 28 which ships with latest version of project.el is released.
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-project"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package project)
+#+end_src
+
+***** log-view
+
+#+begin_src emacs-lisp
+  (use-package log-view
+    :delight
+    (log-view-mode " LV")
+    :mode ("\\.log$" . log-view-mode)
+    :hook ((log-view-mode . my/prog-mode-hook-function )
+           (log-view-mode . auto-revert-tail-mode)))
+#+end_src
+
+***** vc (version control)              :maintaining:
+***** ediff
+
+#+begin_src emacs-lisp
+  (use-package ediff
+    :commands ediff-files
+    :custom
+    (ediff-window-setup-function 'ediff-setup-windows-default)
+    (ediff-split-window-function 'split-window-horizontally))
+#+end_src
+***** vc-hooks
+
+#+begin_src emacs-lisp
+  (use-package vc-hooks
+    :custom
+    (vc-follow-symlinks t))
+#+end_src
 **** other third-party packages
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/packages.el")
@@ -5242,6 +5253,14 @@ to avoid accidental data loss.
 
 #+begin_src emacs-lisp
   (setq sentence-end-double-space nil)
+
+  (defvar my/lazy-view-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "<SPC>") #'my/forward-paragraph)
+      (define-key map (kbd "E") #'my/backward-paragraph)
+      map
+      )
+    )
 
   (defun my/forward-paragraph ()
     (interactive)
