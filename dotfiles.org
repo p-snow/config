@@ -986,6 +986,9 @@ I prefer to rid my emacs experience of mouse as least as possible.
 #+begin_src emacs-lisp
   (use-package dired
     :bind (:map dired-mode-map
+                ("C-j" . my/dired-find-file-alternate-directory)
+                ("^" . (lambda () (interactive)
+                         (my/dired-find-file-alternate-directory "..")))
                 ("(" . dired-hide-details-mode)
                 (")" . dired-hide-details-mode)
                 ("E" . dired-create-empty-file)
@@ -1003,7 +1006,6 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (dired-dwim-target 'dired-dwim-target-recent)
     (dired-hide-details-hide-information-lines nil)
     :config
-    (put 'dired-find-alternate-file 'disabled nil)
     (setq dired-isearch-filenames t)
     (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
     (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion))
@@ -1018,6 +1020,25 @@ I prefer to rid my emacs experience of mouse as least as possible.
            (if (equal current-prefix-arg '(4))
                nil t)))
       (apply oldfun (cdr r))))
+
+  (defun my/dired-find-file-alternate-directory (&optional file)
+    "Visit file at current line with `find-file' or visit directory with `find-alternate-file'.
+
+  If `FILE' is passed, find it instead."
+    (interactive)
+    (if-let ((find-file (or (and file
+                                 (if (file-name-absolute-p file)
+                                     file
+                                   (expand-file-name file (dired-current-directory))))
+                            (dired-get-filename nil t))))
+        (cond
+         ((file-directory-p find-file)
+          (find-alternate-file find-file))
+         ((file-readable-p find-file)
+          (find-file find-file))
+         (t
+          (message "File is not readable.")))
+      (message "Nothing to open in this line.")))
 
   (defun my/dired-open (&optional arg)
     "Open file in Dired.
@@ -1059,9 +1080,9 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (dired-rsync-options "-auz --info=progress2"))
 #+end_src
 
-****** dired-single
+****** dired-single                        :ARCHIVE:
 
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+#+begin_src emacs-lisp :tangle no
   ("https://github.com/crocket/dired-single/releases.atom" soft_update)
 #+end_src
 
