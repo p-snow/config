@@ -219,7 +219,7 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
   (tooltip-mode -1)
 
   ;; fringe is preferably as thin as possible
-  (set-fringe-mode 10)
+  (set-fringe-mode 15)
 
   ;; do not use visual bell
   (setf visible-bell nil)
@@ -524,13 +524,28 @@ Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[h
            display-buffer-in-previous-window)))
 #+end_src
 
-***** text handling
+***** text
 
 #+begin_src emacs-lisp
   (setq-default fill-column 80)
 
   ;; suppress curved quotes in docstring (for emacs25)
   (setf text-quoting-style 'straight)
+
+  (setq sentence-end-double-space nil)
+
+  ;; rebind for case commands
+  (substitute-key-definition 'upcase-region
+                             'upcase-dwim
+                             global-map)
+  (substitute-key-definition 'downcase-region
+                             'downcase-dwim
+                             global-map)
+  (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
+
+  ;; suppress prompting in (up/down)case-region
+  (put 'upcase-region 'disabled nil)
+  (put 'downcase-region 'disabled nil)
 #+end_src
 
 ***** images
@@ -620,30 +635,22 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (mouse-wheel-mode 0))
 #+end_src
 
-***** fundamental key bindings
+***** global key bindings
+
+[[https://www.emacswiki.org/emacs/DocumentingKeyBindingToLambda][lambda-key]] is nice idea to remedy lambda bindings with define-key.
 
 #+begin_src emacs-lisp
-  ;; to be capable of distinguishing TAB and C-i
-  (setq local-function-key-map (delq '(kp-tab . [9]) local-function-key-map))
+  (global-set-key (kbd "C-M-o") #'open-line)
+  (global-set-key (kbd "C-h") #'backward-delete-char-untabify)
+  (global-set-key (kbd "M-h") #'backward-kill-word)
+  (global-set-key (kbd "M-SPC") #'cycle-spacing)
+  (global-set-key (kbd "C-c k") #'kill-this-buffer)
 
-  (substitute-key-definition 'upcase-region
-                             'upcase-dwim
-                             global-map)
-  (substitute-key-definition 'downcase-region
-                             'downcase-dwim
-                             global-map)
-  (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
-
-  ;; suppress prompting in (up/down)case-region
-  (put 'upcase-region 'disabled nil)
-  (put 'downcase-region 'disabled nil)
-
-  (global-set-key (kbd "C-j") 'newline)
-  (global-set-key (kbd "C-M-o") 'open-line)
-  (global-set-key (kbd "C-h") 'backward-delete-char-untabify)
-  (global-set-key (kbd "M-h") 'backward-kill-word)
-  (global-set-key (kbd "M-SPC") 'cycle-spacing)
-  (global-set-key (kbd "C-c k") 'kill-this-buffer)
+  (defun lambda-key (keymap key def)
+    "Wrap`define-key' to provide documentation."
+    (set 'sym (make-symbol (documentation def)))
+    (fset sym def)
+    (define-key keymap key sym))
 #+end_src
 
 **** built-in features
@@ -887,24 +894,16 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :defer t
     :bind (:map Info-mode-map
                 ("C-j" . Info-follow-nearest-node)
-                ("C-c C-o" . Info-follow-nearest-node)
-                ("a"   . info-apropos)
-                ;; lazy control
-                ("f" . scroll-up-line)
-                ("e" . scroll-down-line)
-                ("SPC" . my/forward-paragraph)
-                ("E" . my/backward-paragraph)
-                ("1" . Info-history-back)
-                ("2" . Info-prev-reference)
-                ("3" . Info-next-reference)
-                ("4" . Info-follow-nearest-node)
-                ("5" . Info-history-forward))
+                ("a"   . info-apropos))
     :custom
     (Info-use-header-line nil)
     (Info-additional-directory-list
-     (append `(,(expand-file-name "~/.local/share/info")
-               ,(expand-file-name "~/.guix-extra-profiles/base/base/share/info")
-               ,(expand-file-name "~/.guix-extra-profiles/desktop/desktop/share/info"))))
+     `(,(expand-file-name "~/.local/share/info")
+       ,@(mapcar (lambda (profile)
+                   (let ((info-path (expand-file-name (format "~/.guix-extra-profiles/%1$s/%1$s/share/info" profile))))
+                     (and (file-directory-p info-path)
+                          info-path)))
+                 '("base" "desktop" "devel" "emacs"))))
     :config
     (require 'info-look)
     (autoload 'info-lookup-add-help "info-look"))
@@ -928,15 +927,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (bind-key "C-M-h" help-map)
     (bind-keys :map help-map
                ("c" . describe-face)
-               ("C-l" . find-library)
-               :map help-mode-map
-               ("f" . scroll-up-line)
-               ("e" . scroll-down-line)
-               ("SPC" . my/forward-paragraph)
-               ("E" . my/backward-paragraph)
-               ("2" . backward-button)
-               ("3" . forward-button)
-               ("4" . push-button)))
+               ("C-l" . find-library)))
 #+end_src
 ***** Proced mode
 
@@ -1178,14 +1169,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (shr-max-image-proportion 0.4)
     :config
     (bind-keys :map eww-mode-map
-               ("f" . scroll-up-line)
-               ("e" . scroll-down-line)
-               ("SPC" . my/forward-paragraph)
-               ("E" . my/backward-paragraph)
                ("C" . eww-set-character-encoding)
-               ("1" . eww-back-url)
-               ("2" . shr-next-link)
-               ("4" . eww-follow-link)
                ("C-j" . eww-follow-link)
                ("T" . eww-goto-title-heading)
                ("L" . my/eww-goto-heading)
@@ -1367,7 +1351,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
       "Default face for ddskk candidates."
       :group 'skk-dcomp)
     :custom
-    (skk-kakutei-key (kbd "M-l"))
+    (skk-kakutei-key (kbd "C-m"))
     (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
     (skk-init-file (expand-file-name "init" skk-dotemacs-dir))
     (skk-byte-compile-init-file t)
@@ -1595,19 +1579,9 @@ Command in practice presumably looks like:
     :config
     (require 'mu4e)
     (bind-keys :map mu4e-headers-mode-map
-               ("f" . scroll-up-line)
-               ("e" . scroll-down-line)
-               ("4" . mu4e-headers-view-message)
                ("C-j" . mu4e-headers-view-message)
                :map mu4e-view-mode-map
-               ("f" . scroll-up-line)
-               ("e" . scroll-down-line)
-               ("SPC" . my/forward-paragraph)
-               ("E" . my/backward-paragraph)
-               ("TAB" . shr-next-link)
-               ("<backtab>" . shr-previous-link)
-               ("3" . shr-next-link)
-               ("4" . my/enter-thing-at-point)
+               ("C-j" . push-button)
                ("C-c C-a" . mu4e-view-attachment-action)
                :map mu4e-compose-mode-map
                ("C-x C-o" . org-mu4e-compose-org-mode))
@@ -1754,14 +1728,7 @@ Command in practice presumably looks like:
                ("Dv" . elfeed-search-download-video)
                ("Da" . elfeed-search-download-audio)
                ("D=" . elfeed-search-show-media-duration)
-               ("X" . elfeed-search-org-capture-derived)
-               :map elfeed-show-mode-map
-               ("f" . scroll-up-line)
-               ("e" . scroll-down-line)
-               ("SPC" . my/forward-paragraph)
-               ("E" . my/backward-paragraph)
-               ("4" . my/enter-thing-at-point)
-               ("TAB" . shr-next-link))
+               ("X" . elfeed-search-org-capture-derived))
     (add-to-list 'elfeed-search-face-alist '(unchecked elfeed-search-unchecked-title-face))
     (add-to-list 'elfeed-search-face-alist '(checked elfeed-search-checked-title-face)))
 
@@ -3373,7 +3340,7 @@ org-roam v2
       (kill-buffer export-buf-name)))
 #+end_src
 
-***** key bindings
+***** org key bindings
 speed commands and hydra-org.
 
 #+begin_src emacs-lisp
@@ -3586,8 +3553,6 @@ speed commands and hydra-org.
     :init
     (setq prefix-help-command #'embark-prefix-help-command) ;
     :config
-    (bind-keys :map embark-collect-mode-map
-               ("C-j" . push-button))
     (add-to-list 'embark-allow-edit-actions
                  'shell-command-on-region))
 
@@ -4100,17 +4065,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 #+begin_src emacs-lisp
   (use-package woman
     :defer t
-    :delight " WM"
-    :config
-    ;; (bind-keys :map woman-mode-map
-    ;;            ("f" . scroll-up-line)
-    ;;            ("e" . scroll-down-line)
-    ;;            ("SPC" . my/forward-paragraph)
-    ;;            ("E" . my/backward-paragraph)
-    ;;            ("2" . backward-button)
-    ;;            ("3" . forward-button)
-    ;;            ("4" . push-button))
-    )
+    :delight " WM")
 #+end_src
 
 ***** executable
@@ -4577,13 +4532,6 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
                ("e" . scroll-down-line)
                ("E" . my/twittering-previous-status-and-top)
                ("SPC" . my/twittering-next-status-and-top)
-               ("<" . twittering-goto-first-status)
-               (">" . twittering-goto-last-status)
-               ("TAB" . twittering-goto-next-thing)
-               ("<backtab>" . twittering-goto-previous-thing)
-               ("2" . twittering-goto-previous-thing)
-               ("3" . twittering-goto-next-thing)
-               ("4" . my/twittering-open)
                ;; create/delete tweets(messages)
                ("u" . twittering-update-status-interactive)
                ("j" . twittering-enter)
@@ -5111,12 +5059,6 @@ Major mode for manupulating password store file.
     (nov-text-width t)
     :config
     (bind-keys :map nov-mode-map
-               ("f" . scroll-up-line)
-               ("e" . scroll-down-line)
-               ("SPC" . my/forward-paragraph)
-               ("E" . my/backward-paragraph)
-               ("2" . shr-next-link)
-               ("4" . nov-browse-url)
                ("C-j" . nov-browse-url)))
 
   (defun nov-abbreviate-file-name ()
@@ -5299,18 +5241,87 @@ to avoid accidental data loss.
         (save-buffers-kill-emacs t))))
 #+end_src
 
-***** cursor movement
+***** lazy viewing
+
+It's confortable to read long material such as web page , epub file or email with snappy control. Lazy View offers transient keymap that allow users to move cursor and scroll page with simple key stroke.
 
 #+begin_src emacs-lisp
-  (setq sentence-end-double-space nil)
+  (use-package emacs
+    :bind ("C-x C-v" . my/lazy-view-enter)
+    :hook ((help-mode Info-mode eww-mode nov-mode mu4e-view-mode woman-mode)
+           . my/lazy-view-enter))
 
   (defvar my/lazy-view-map
     (let ((map (make-sparse-keymap)))
       (define-key map (kbd "<SPC>") #'my/forward-paragraph)
       (define-key map (kbd "E") #'my/backward-paragraph)
-      map
-      )
-    )
+      (define-key map (kbd "f") #'scroll-up-line)
+      (define-key map (kbd "e") #'scroll-down-line)
+      (define-key map (kbd "F") #'forward-char)
+      (define-key map (kbd "B") #'backward-char)
+      (define-key map (kbd "N") #'next-line)
+      (define-key map (kbd "P") #'previous-line)
+      (define-key map (kbd "C-a") #'move-beginning-of-line)
+      (define-key map (kbd "C-e") #'move-end-of-line)
+      (define-key map (kbd "C-v") #'scroll-up-command)
+      (define-key map (kbd "M-v") #'scroll-down-command)
+      (lambda-key map (kbd ">") '(lambda () "Scroll right one column." (interactive)
+                                   (scroll-left 1)))
+      (define-key map (kbd "C->") #'scroll-left)
+      (lambda-key map (kbd "<") '(lambda () "Scroll left one column." (interactive)
+                                   (scroll-right 1)))
+      (define-key map (kbd "C-<") #'scroll-right)
+      (define-key map (kbd "+") #'text-scale-adjust)
+      (define-key map (kbd "-") #'text-scale-adjust)
+      (define-key map (kbd "=") #'text-scale-adjust)
+      (define-key map (kbd "0") #'text-scale-adjust)
+      (define-key map (kbd "\\") #'toggle-truncate-lines)
+      (define-key map (kbd "|") #'visual-line-mode)
+      map))
+
+  (defun my/lazy-view-enter ()
+    "Activate my/lazy-view-map in current buffer."
+    (interactive)
+    (set-transient-map my/lazy-view-map
+                       #'my/lazy-view-keep
+                       #'my/lazy-view-exit)
+    (set-face-attribute 'fringe nil :background "LightSeaGreen"))
+
+  (defun my/lazy-view-keep ()
+    (if (member this-command
+                `(beginning-of-visual-line
+                  end-of-visual-line
+                  recenter-top-bottom
+                  reposition-window
+                  Info-next-reference
+                  Info-prev-reference
+                  Info-up
+                  Info-history-back
+                  Info-history-forward
+                  Info-follow-nearest-node
+                  Info-forward-node
+                  Info-backward-node
+                  forward-button
+                  backward-button
+                  shr-next-link
+                  shr-previous-link
+                  eww-follow-link
+                  eww-back-url
+                  eww-forward-url
+                  eww-goto-title-heading
+                  eww-reload
+                  nov-browse-url
+                  nov-next-document
+                  nov-previous-document
+                  ,@(mapcar (lambda (key-command)
+                              (let ((cmd (cdr key-command)))
+                                (and (commandp cmd)
+                                     cmd)))
+                            (cdr my/lazy-view-map))))
+        t nil))
+
+  (defun my/lazy-view-exit ()
+    (set-face-attribute 'fringe nil :background nil))
 
   (defun my/forward-paragraph ()
     (interactive)
@@ -5326,23 +5337,6 @@ to avoid accidental data loss.
     (backward-paragraph 1)
     (forward-line 1)
     (recenter-top-bottom 0))
-
-  (defun my/drag-line-backward ()
-    "Drag up current line for one."
-    (interactive)
-    (transpose-lines 1)
-    (previous-line 2))
-
-  (global-set-key (kbd "M-S-<up>") 'my/drag-line-backward)
-
-  (defun my/drag-line-forward ()
-    "Drag down current line for one."
-    (interactive)
-    (next-line 1)
-    (transpose-lines 1)
-    (previous-line 1))
-
-  (global-set-key (kbd "M-S-<down>") 'my/drag-line-forward)
 #+end_src
 
 ***** lookup functions
@@ -5402,41 +5396,6 @@ to avoid accidental data loss.
       ("S" synosaurus-choose-and-replace "synosaurus-replace")
       ("o" my/lookup-org-archive)
       ("q" nil "quit")))
-#+end_src
-
-***** perspective control
-
-This hydra definition enalbes the user to focus on changing font size, moving window to display.
-
-#+begin_src emacs-lisp
-  (with-eval-after-load 'hydra
-    (defhydra hydra-perspective
-      (global-map "C-&"
-                  :foreign-keys warn
-                  :pre (set-face-attribute 'fringe nil :background "LightSeaGreen")
-                  :post (set-face-attribute 'fringe nil :background nil))
-      "Hydra perspective"
-      ("f" scroll-up-line)
-      ("e" scroll-down-line)
-      (">" (scroll-left 1))
-      ("<" (scroll-right 1))
-      ("t" visual-line-mode)
-      ("+" text-scale-adjust)
-      ("=" text-scale-adjust)
-      ("-" text-scale-adjust)
-      ("0" text-scale-adjust)
-      ("C-f" forward-char)
-      ("M-f" forward-word)
-      ("C-b" backward-char)
-      ("M-b" backward-word)
-      ("C-n" next-line)
-      ("C-p" previous-line)
-      ("C-v" scroll-up-command)
-      ("M-v" scroll-down-command)
-      ("C-a" move-beginning-of-line)
-      ("C-e" move-end-of-line)
-      ("C-g" keyboard-quit :exit t)
-      ("q" nil :exit t)))
 #+end_src
 
 ***** tldr
@@ -5950,7 +5909,6 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
     (let ((line-number (number-to-string (line-number-at-pos))))
       (message "Line number: %s" line-number)
       (kill-new line-number)))
-
   (global-set-key (kbd "C-M-S-w") 'my/copy-line-number)
 
   (defun my/insert-time-stamp (&optional arg)
@@ -5970,8 +5928,22 @@ This hydra definition enalbes the user to focus on changing font size, moving wi
                             ((eq major-mode 'dired-mode) simple-fmt)
                             (t simple-fmt))))))
       (insert (format-time-string fmt-in-use))))
-
   (global-set-key (kbd "C-c .") 'my/insert-time-stamp)
+
+  (defun my/drag-line-backward ()
+    "Drag up current line for one."
+    (interactive)
+    (transpose-lines 1)
+    (previous-line 2))
+  (global-set-key (kbd "M-S-<up>") 'my/drag-line-backward)
+
+  (defun my/drag-line-forward ()
+    "Drag down current line for one."
+    (interactive)
+    (next-line 1)
+    (transpose-lines 1)
+    (previous-line 1))
+  (global-set-key (kbd "M-S-<down>") 'my/drag-line-forward)
 #+end_src
 
 ***** org entries/items manipulation
