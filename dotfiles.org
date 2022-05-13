@@ -1156,17 +1156,21 @@ I prefer to rid my emacs experience of mouse as least as possible.
 ***** EWW
 
 #+begin_src emacs-lisp
+  (use-package shr
+    :custom
+    (shr-width 10000)
+    (shr-use-fonts nil)
+    (shr-image-animate t)
+    (shr-use-colors nil)
+    (shr-max-image-proportion 0.4))
+
   (use-package eww
     :delight " EW"
     :hook
     (eww-after-render . my/eww-rename-buffer)
     :custom
     ;; set enough large column number to prevent from inserting line break
-    (shr-width 10000)
-    (shr-use-fonts nil)
-    (shr-image-animate t)
     (eww-header-line-format nil)
-    (shr-max-image-proportion 0.4)
     :config
     (bind-keys :map eww-mode-map
                ("C" . eww-set-character-encoding)
