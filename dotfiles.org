@@ -3556,6 +3556,8 @@ speed commands and hydra-org.
            ("<help> B" . embark-bindings))
     :init
     (setq prefix-help-command #'embark-prefix-help-command) ;
+    :custom
+    (embark-mixed-indicator-delay 3)
     :config
     (add-to-list 'embark-allow-edit-actions
                  'shell-command-on-region))
@@ -5723,65 +5725,68 @@ It's confortable to read long material such as web page , epub file or email wit
   (global-set-key (kbd "C-c D =") 'my/show-media-duration-at-point)
 #+end_src
 
-***** say out loud text with speech synthesis
+***** text to speech
 
 #+begin_src emacs-lisp
+  (require 'festival)
+
   (defcustom my/say-maximum-duration 30
     "Maximum speech duration in second for `my/say'.")
-
-  (defun my/say (&optional arg)
-    "Say out loud text in buffer.
-
-  If region is active the selected string is spoken instead.
-
-  With `C-u' prefix ARG, cancel speeching.
-
-  As of now, English and Japanese is supported for speech. Appropriate language is
-   determined from a spoken string, specifically the string consists of ASCII
-   character is spoken in English. Otherwise the string is  spoken in Japanese."
-    (interactive "P")
-    (if (equal arg '(4))
-        (progn
-          (and my/say--timer
-               (progn (cancel-timer my/say--timer)
-                      (setq my/say--timer nil)))
-          (if (and festival-process
-                   (string= (process-status festival-process)
-                            "run"))
-              (festival-kill-process)
-            (and (get-process my/say--open-jtalk-process)
-                 (interrupt-process my/say--open-jtalk-process))))
-      (let ((my/say-lang 'en))
-        (if (region-active-p)
-            (let ((region-text (buffer-substring (region-beginning) (region-end))))
-              (if (my/say-ascii-p region-text)
-                  (call-interactively #'festival-say-region)
-                (my/say--open-jtalk region-text)
-                (setq my/say-lang 'ja)))
-          (let ((buffer-text (buffer-string)))
-            (if (my/say-ascii-p buffer-text)
-                (call-interactively #'festival-say-buffer)
-              (princ buffer-text)
-              (my/say--open-jtalk buffer-text)
-              (setq my/say-lang 'ja))))
-        (setq my/say--timer
-              (cond
-               ((eq my/say-lang 'en)
-                (run-with-timer my/say-maximum-duration nil
-                                (lambda ()
-                                  (festival-kill-process)
-                                  (setq my/say--timer nil))))
-               ((eq my/say-lang 'ja)
-                (run-with-timer my/say-maximum-duration nil
-                                (lambda ()
-                                  (and (get-process my/say--open-jtalk-process)
-                                       (interrupt-process my/say--open-jtalk-process))
-                                  (setq my/say--timer nil)))))))))
-  (global-set-key (kbd "C-\"") #'my/say)
-
   (defvar my/say--timer nil "Timer used to cancel speech process.")
   (defvar my/say--open-jtalk-process "Say<Open-JTalk>"
     "Fixed name for a process running Open JTalk.")
+
+  (defun my/say (string)
+    "Say out `STRING'.
+
+  If an argument is given as `STRING', speech that text. Otherwise the buffer text
+   is spoken unless region is active.
+
+  As of now, English and Japanese are supported for speech. Spoken language is
+   determined by a string, specifically a string entirely consists of ASCII
+   characters is identified as English. Otherwise the string is spoken in Japanese."
+    (interactive (list (if (region-active-p)
+                           (buffer-substring (region-beginning) (region-end))
+                         (buffer-string))))
+    (let ((my/say-lang 'en))
+      (if (string-match-p
+           (format "\\`[%s]+\\'" "[:ascii:]’“”–") string)
+          ;; festival-say-string is unusable if region is active
+          (if (region-active-p)
+              (festival-say-region (region-beginning) (region-end))
+            (festival-say-string string))
+        (my/say--open-jtalk string)
+        (setq my/say-lang 'ja))
+      (setq my/say--timer
+            (cond
+             ((eq my/say-lang 'en)
+              (run-with-timer my/say-maximum-duration nil
+                              (lambda ()
+                                (festival-kill-process)
+                                (setq my/say--timer nil))))
+             ((eq my/say-lang 'ja)
+              (run-with-timer my/say-maximum-duration nil
+                              (lambda ()
+                                (and (get-process my/say--open-jtalk-process)
+                                     (interrupt-process my/say--open-jtalk-process))
+                                (setq my/say--timer nil))))))))
+  (global-set-key (kbd "C-x \"") #'my/say)
+
+  (defun my/say-cancel ()
+    "Cancel speech process that has started by `my/say'."
+    (interactive)
+    (and my/say--timer
+         (progn (cancel-timer my/say--timer)
+                (setq my/say--timer nil)))
+    (if (and festival-process
+             (string= (process-status festival-process)
+                      "run"))
+        (festival-kill-process)
+      (and (get-process my/say--open-jtalk-process)
+           (interrupt-process my/say--open-jtalk-process))))
+  (global-set-key (kbd "C-x C-\"") #'my/say-cancel)
+  (with-eval-after-load 'embark
+    (define-key embark-region-map "\"" #'my/say))
 
   (defun my/say--open-jtalk (text)
     "Speech TEXT in Japanese using Open JTalk."
@@ -5789,12 +5794,6 @@ It's confortable to read long material such as web page , epub file or email wit
      my/say--open-jtalk-process nil
      (format "echo %s | open_jtalk -x /var/lib/mecab/dic/open-jtalk/naist-jdic -m ~/.local/share/hts-voice/mei/mei_angry.htsvoice -ow /tmp/a.wav && aplay /tmp/a.wav"
              (replace-regexp-in-string "[\t\r\n\v\f]+" " " text))))
-
-  (defun my/say-ascii-p (text)
-    "Return non-nil if TEXT consists of ASCII character."
-    (string-match-p
-     (format "\\`[%s]+\\'" "[:ascii:]’“”–")
-     text))
 #+end_src
 
 ****** jsay                                :ARCHIVE:
