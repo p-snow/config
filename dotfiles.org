@@ -11412,13 +11412,23 @@ A script which executes command with elevating privilege using password from pas
   fi
   WORK_DIR="${INPUT_VIDEO%.*}"_work
 
-  vp9_opts_pass1='-c:v libaom-av1 -cpu-used 4 -row-mt 1 -threads 4 -b:v 0 -crf 23 -pass 1 -an -f null'
-  vp9_opts_pass2='-c:v libaom-av1 -cpu-used 4 -row-mt 1 -threads 4 -b:v 0 -crf 23 -pass 2 -map_metadata 0'
+  bitrate=$(ffprobe -hide_banner "${INPUT_VIDEO}" 2>&1 | grep 'bitrate:' | sed -e 's/.*bitrate: \([[:digit:]]\+\) kb\/s.*/\1/g')
+  if [[ $((${bitrate})) -lt 1200 ]]; then
+    CRF=23
+  elif [[ $((${bitrate})) -lt 1600 ]]; then
+    CRF=26
+  else
+    CRF=30
+  fi
+
+  av1_opts_common="-c:v libaom-av1 -cpu-used 4 -row-mt 1 -threads $(nproc) -b:v 0 -crf ${CRF}"
+  av1_opts_pass1="${av1_opts_common} -pass 1 -an -f null"
+  av1_opts_pass2="${av1_opts_common} -pass 2 -map_metadata 0"
   opus_opts='-c:a libopus -b:a 128k -ac 2'
 
   mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass1} /dev/null \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
+    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass1} /dev/null \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
 #+end_src
 
 ** audio manipulation
