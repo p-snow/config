@@ -11355,21 +11355,42 @@ A script which executes command with elevating privilege using password from pas
 *** dvdpack
 
 #+begin_src shell :tangle (expand-tangle-target ".local/bin/dvdpack") :tangle-mode (identity #o555)
-    #!/usr/bin/env bash
-    set -euo pipefail
+  #!/usr/bin/env bash
+  set -euo pipefail
 
-    if [[ $# -ge 1 ]]; then
-      DVD_DIR=$1
-      if [[ $# -eq 2 ]]; then
-        DVD_PACK_VIDEO=$2
-      else
-        DVD_PACK_VIDEO=$(basename "${DVD_DIR}").mkv
-      fi
+  if [ "${OPTIND}" = 1 ]; then
+    while getopts t: OPT
+    do
+      case ${OPT} in
+      t)
+        TITLE=${OPTARG}
+        ;;
+      esac
+    done
+  else
+    echo "No installed getopts-command." 1>&2
+    exit 1
+  fi
+  shift $((OPTIND - 1))
+
+  if [[ $# -ge 1 ]]; then
+    DVD_DIR=$1
+    if [[ $# -eq 2 ]]; then
+      DVD_PACK_VIDEO=$2
+    else
+      DVD_PACK_VIDEO=$(basename "${DVD_DIR}").mkv
     fi
+  fi
 
-    hb_opts='--x264-preset veryslow --quality 18 --aencoder copy --main-feature --markers --all-audio --all-subtitles'
+  if [ -v TITLE ]; then
+    title_opt="--title ${TITLE}"
+  else
+    title_opt='--main-feature'
+  fi
 
-    HandBrakeCLI --input "${DVD_DIR}" --output "${DVD_PACK_VIDEO}" ${hb_opts}
+  hb_opts="--x264-preset veryslow --quality 18 --aencoder copy ${title_opt} --markers --all-audio --all-subtitles"
+
+  HandBrakeCLI --input "${DVD_DIR}" --output "${DVD_PACK_VIDEO}" ${hb_opts}
   #+end_src
 *** vp9encode
 
