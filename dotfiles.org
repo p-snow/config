@@ -2608,11 +2608,16 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
     :hook
     ((org-clock-in org-clock-out org-clock-cancel) . save-buffer)
     (org-clock-in-prepare . my/org-clock-in-set-timer)
-    (org-clock-out . my/org-clock-out-have-a-break)
     ((org-clock-out org-clock-cancel) .
-     (lambda () (and org-timer-countdown-timer
-                     (org-timer-stop))))
+     (lambda ()
+       (when (or (string= (org-get-category) "Cyclic")
+                 (org-is-habit-p))
+         (my/org-clock-remove-old-clock-entries 4))
+       (and org-timer-countdown-timer
+            (org-timer-stop))
+       (my/org-clock-out-have-a-break)))
     :custom
+    (org-clock-into-drawer "CLOCK")
     (org-clock-out-when-done t)
     (org-clock-persist t)
     (org-clock-persist-query-resume nil)
@@ -2647,12 +2652,6 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
        (todo
         (let ((org-timer-default-timer "25"))
           (org-timer-set-timer '(64)))))))
-
-  (defun my/org-clock-out-without-remove ()
-    "Clock out and save record even if clock time is zero."
-    (interactive)
-    (let ((org-clock-out-remove-zero-time-clocks nil))
-      (org-clock-out nil t)))
 
   (defun my/org-clock-out-have-a-break ()
     "Clock in 'Break' task if the task about to clock out manually has any kind of TODO keyword."
@@ -3224,47 +3223,48 @@ org-roam v2
       (org-save-outline-visibility t
         (org-reset-checkbox-state-subtree)))))
 
-  ;; WARN: This function does not work correctly
-  ;;       Wait until library org-ml get mature
-  (defun org-gc-drawer-subtree ()
-    "Remove all clocks and items in drawer of subtrees older than a month before."
-    (interactive)
-    (let* ((month-before (->> (decode-time (current-time))
-                              (--map-indexed (if (= it-index 4)
-                                                 (- it 1) it))
-                              (encode-time)))
-           (config (list :log-into-drawer t
-                         :clock-into-drawer t))
-           (gc-clock-fun (lambda (headline)
-                           (org-ml-update*
-                             (org-ml-headline-map-logbook-clocks* config
-                               (--filter
-                                (time-less-p month-before
-                                             (org-ml-time-to-unixtime
-                                              (org-ml-timestamp-get-end-time
-                                               (org-ml-get-property :value it))))
-                                it)
-                               it)
-                             headline)))
-           (gc-item-fun (lambda (headline)
-                          (org-ml-update*
-                            (org-ml-headline-map-logbook-items* config
-                              (--filter
-                               (time-less-p month-before
-                                            (org-ml-logbook-item-get-timestamp it))
-                               it)
-                              it)
-                            headline))))
-      (->> (org-ml-parse-this-headline)
-           (funcall gc-clock-fun))
-      (->> (org-ml-parse-this-headline)
-           (funcall gc-item-fun))
-      (->> (org-ml-parse-this-subtree)
-           (org-ml-headline-get-subheadlines)
-           (-map gc-clock-fun))
-      (->> (org-ml-parse-this-subtree)
-           (org-ml-headline-get-subheadlines)
-           (-map gc-item-fun))))
+  (defun my/org-clock-remove-old-clock-entries (n)
+    "Remove clock entries whose end is older than N weeks in current subtree.
+  Skip over dangling clock entries."
+    (interactive "nnumber of weeks: ")
+    (org-save-outline-visibility t
+      (save-excursion
+        (org-back-to-heading t)
+        (org-show-all)
+        (let ((drawer (re-search-forward org-clock-drawer-start-re (save-excursion (org-end-of-subtree)) t))
+              (case-fold-search t))
+          (when drawer
+            (let* ((re org-clock-line-re)
+                   (end (save-excursion (re-search-forward org-clock-drawer-end-re (save-excursion (org-end-of-subtree)) nil)))
+                   (end-mkr (set-marker (mark-marker) end)))
+              (while (re-search-forward re (marker-position end-mkr) t)
+                (skip-chars-forward " \t\r")
+                (looking-at org-tr-regexp-both)
+                (when (>= (/ (time-to-number-of-days (org-time-since (match-string-no-properties 2))) 7)
+                          (float n))
+                  (kill-whole-line))))))
+        (org-clock-remove-empty-clock-drawer))))
+
+  (defun my/org-remove-old-state-change-entries (n)
+    "Remove state change entries whose inactive timestamp is older than N weeks in current subtree.
+
+  This command remove all lines that have an old inactive timestamp regardless
+   whether it is a state change log or not."
+    (interactive "nnumber of weeks: ")
+    (org-save-outline-visibility t
+      (save-excursion
+        (org-back-to-heading t)
+        (org-show-all)
+        (let* ((drawer-end (save-excursion (re-search-forward org-logbook-drawer-re (save-excursion (org-end-of-subtree)) t)))
+               (case-fold-search t)
+               (re org-ts-regexp-inactive)
+               (end-mkr (set-marker (mark-marker) drawer-end)))
+          (goto-char (match-beginning 0))
+          (while (re-search-forward re (marker-position end-mkr) t)
+            (when (>= (/ (time-to-number-of-days (org-time-since (match-string-no-properties 0))) 7)
+                      (float n))
+              (kill-whole-line))))
+        (org-clock-remove-empty-clock-drawer))))
 
   (defun org-download-video-link-at-point (&optional playlistp)
     "Download video file at point.
@@ -3387,7 +3387,10 @@ speed commands and hydra-org.
        ("#" . org-toggle-comment)
        ("Clock Commands")
        ("I" . org-clock-in)
-       ("O" . my/org-clock-out-without-remove)
+       ("O" . (lambda ()
+                (interactive)
+                (let ((org-clock-out-remove-zero-time-clocks nil))
+                  (org-clock-out nil t))))
        ("X" . org-clock-cancel)
        ("Meta Data Editing")
        ("t" . org-todo)
@@ -3432,7 +3435,7 @@ speed commands and hydra-org.
       ("i" org-info-find-node)
       ("&" org-mark-ring-goto)
       ("I" org-clock-in)
-      ("O" my/org-clock-out-without-remove)
+      ("O" org-clock-out)
       ("X" org-clock-cancel)
       ("qq" org-ql-search)
       ("qv" org-ql-view)
