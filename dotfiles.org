@@ -682,6 +682,16 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (quietly-read-abbrev-file))
 #+end_src
 
+***** Hippie Expansion
+
+[[https://www.masteringemacs.org/article/text-expansion-hippie-expand][As this post mentions]], Hippie Expansion is superior for auto typing to dabbrev, skeleton, and even company.
+
+#+begin_src emacs-lisp
+  (use-package hippie-exp
+    :config
+    (global-set-key [remap dabbrev-expand] 'hippie-expand))
+#+end_src
+
 ***** EasyPG (epg)
 
 #+begin_src emacs-lisp
@@ -725,22 +735,6 @@ I prefer to rid my emacs experience of mouse as least as possible.
        (tab-mark   ?\t   [?\u00BB ?\t])))
     :config
     (global-whitespace-mode -1))
-#+end_src
-
-***** hippie-exp
-
-#+begin_src emacs-lisp
-  (use-package hippie-exp
-    :bind ("M-/" . hippie-expand)
-    :custom
-    (hippie-expand-try-functions-list
-     '(try-complete-file-name-partially
-       try-complete-file-name
-       try-expand-dabbrev
-       try-expand-dabbrev-all-buffers
-       try-expand-dabbrev-from-kill
-       try-complete-lisp-symbol-partially
-       try-complete-lisp-symbol)))
 #+end_src
 
 ***** bookmark
