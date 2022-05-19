@@ -7688,7 +7688,7 @@ It's more reasonable that Narrowing locate searching target to home directory.
   #+END_SRC
 ** mpv
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref desktop-pkgs
   "mpv"
 #+end_src
 
@@ -8542,7 +8542,6 @@ Extendable version manager
        "speedtest-cli"
        "fdisk"
        "gptfdisk"
-       "yt-dlp"
        "ddrescue"
        "sqlite"
        <<base-pkgs>>))
@@ -8561,6 +8560,7 @@ Extendable version manager
        "kdenlive"
        "obs"
        "gcompris-qt"
+       "yt-dlp"
        <<desktop-pkgs>>))
   #+end_src
 - devel (software development)
@@ -11341,7 +11341,7 @@ A script which executes command with elevating privilege using password from pas
 
 ** video encoding
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref desktop-pkgs
   "ffmpeg"
   "dav1d"
   "handbrake"
@@ -11389,7 +11389,7 @@ A script which executes command with elevating privilege using password from pas
   hb_opts="--x264-preset veryslow --quality 18 --aencoder copy ${title_opt} --markers --all-audio --all-subtitles"
 
   HandBrakeCLI --input "${DVD_DIR}" --output "${DVD_PACK_VIDEO}" ${hb_opts}
-  #+end_src
+#+end_src
 *** vp9encode
 
 #+begin_src shell :tangle (expand-tangle-target ".local/bin/vp9encode") :tangle-mode (identity #o555)
