@@ -184,7 +184,7 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
     (funcall #'load-file file))
 #+end_src
 
-**** basic config
+**** custom groups
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/01-basic.el")
 :END:
@@ -378,6 +378,9 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
 
   ;; You can now switch windows with your shift key by pressing S-<left>, S-<right>, S-<up>, S-<down>.
   (windmove-default-keybindings)
+
+  (setf scroll-step 1)
+  (setq next-screen-context-lines 2)
 #+end_src
 
 ***** buffers
@@ -472,7 +475,7 @@ Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[h
 ***** displaying
 
 #+begin_src emacs-lisp
-  (setf scroll-step 1)
+  (setq-default bidi-display-reordering nil)
 
   ;; use emacs in full screen mode
   (when (member (window-system) '(x ns w32))
@@ -589,16 +592,23 @@ This command was introduced at [[https://irreal.org/blog/?p=10318][here]] to ins
       (set-marker e nil)))
 #+end_src
 
+***** undo
+
+The older undo step which exceeds [[help:undo-limit][undo-limit]] in byte is eliminated at garbage collection.
+The oldest undo step, if undo info exceeds [[help:undo-strong-limit][undo-strong-limit]] in total, is removed instantaneously.
+No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not be registered.
+
+#+begin_src emacs-lisp
+  (custom-set-variables '(undo-limit 320000)
+                        '(undo-strong-limit 480000)
+                        '(undo-outer-limit 48000000))
+#+end_src
+
 ***** performance
 
 #+begin_src emacs-lisp
   (setq gc-cons-threshold (* 10 gc-cons-threshold))
   (setq message-log-max 10000)
-  (setq undo-outer-limit 64000000)
-
-  (setq-default bidi-display-reordering nil)
-
-  (setq next-screen-context-lines 2)
 #+end_src
 
 ***** customize buffer
@@ -4657,6 +4667,9 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
     :custom
     (undo-tree-enable-undo-in-region t)
     (undo-tree-auto-save-history t)
+    (undo-tree-limit 320000)
+    (undo-tree-strong-limit 480000)
+    (undo-tree-outer-limit 64000000)
     :config
     (add-to-list 'undo-tree-history-directory-alist `("." . ,(expand-file-name "undo-tree" user-emacs-directory)))
     (setq undo-tree-visualizer-buffer-name "*undo tree*")
