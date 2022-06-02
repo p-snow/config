@@ -9423,40 +9423,36 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
   timestamp_format long
   incremental yes
 
-  volume /mnt/ssd01
+  volume /mnt/dt01
     subvolume incumbents/doc
       snapshot_name doc-local
-      snapshot_preserve 7d 12w 12m
+      snapshot_preserve 7d 4w 2m
       snapshot_preserve_min latest
     subvolume incumbents/doc
       snapshot_name doc-backup
-      target send-receive /mnt/bk02/backups
-      target_preserve 12w *m
-      target_preserve_min no
+      target send-receive /mnt/bk01/backups
+      target_preserve 12w 6m
+      target_preserve_min latest
+    subvolume incumbents/home
+      snapshot_name home-local
+      snapshot_preserve 3d 2w 1m
+      snapshot_preserve_min 1d
+    subvolume incumbents/home
+      snapshot_name home-backup
+      target send-receive /mnt/bk01/backups
+      target_preserve 10w
+      target_preserve_min latest
+
+  volume /mnt/dt02
     subvolume incumbents/share
       snapshot_name share-local
       snapshot_preserve 60d 30w
       snapshot_preserve_min 1w
     subvolume incumbents/share
       snapshot_name share-backup
-      target send-receive /mnt/bk02/backups
-      target_preserve *w
-      target_preserve_min no
-
-  volume /mnt/nvme01
-    subvolume incumbents/work
-      snapshot_name work-local
-      snapshot_preserve 5d 4w
-      snapshot_preserve_min 1d
-    subvolume incumbents/work
-      snapshot_name work-backup
-      target send-receive /mnt/bk02/backups
-      target_preserve 10w
+      target send-receive /mnt/bk01/backups
+      target_preserve 7d *w
       target_preserve_min latest
-    subvolume incumbents/media
-      snapshot_name media-local
-      snapshot_preserve 12h 3d 2w 1m
-      snapshot_preserve_min latest
 #+end_src
 *** snapshots management                      :ARCHIVE:
 
