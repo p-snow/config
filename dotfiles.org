@@ -9411,10 +9411,6 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 
 [[https://digint.ch/btrbk/doc/btrbk.conf.5.html][btrbk.conf documentation]]
 
-#+begin_src conf :noweb yes :noweb-ref cronjob-pc
-  20 * * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf --loglevel error snapshot *-local >> $LOG_DIR/btrbk.log 2>&1"
-#+end_src
-
 #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/btrbk/btrbk.conf")
   snapshot_dir snapshots
   timestamp_format long
@@ -9451,6 +9447,27 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
       target_preserve 7d *w
       target_preserve_min latest
 #+end_src
+
+**** snapshot/backup script
+
+- snapshot
+  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
+    20 * * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf --loglevel error snapshot *-local >> $LOG_DIR/snaphome.log 2>&1"
+  #+end_src
+
+- backup
+
+  #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/bkhome") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+    BTRBK_CONF=~/.config/btrbk/btrbk.conf
+
+    pwsudo btrbk --config "${BTRBK_CONF}" --dry-run run *-backup \
+     && pwsudo btrbk --config "${BTRBK_CONF}" run *-backup
+  #+end_src
+
+  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
+    10 3 * * * /bin/bash -ci "bkhome >> $LOG_DIR/bkhome.log 2>&1"
+  #+end_src
+
 *** snapshots management                      :ARCHIVE:
 
 A structure described below is expected under all devices.
