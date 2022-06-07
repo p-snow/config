@@ -4200,6 +4200,37 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
     (orgit-remote "github"))
 #+end_src
 
+****** git-annex
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-git-annex"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/jwiegley/git-annex-el/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package git-annex
+    :custom-face
+    (git-annex-dired-annexed-available ((t (:foreground "green yellow"))))
+    (git-annex-dired-annexed-unavailable ((t (:foreground "red3")))))
+#+end_src
+
+****** magit-annex
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-magit-annex"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/magit/magit-annex/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package magit-annex)
+#+end_src
+
 ***** projectile         :maintaining:ARCHIVE:ignore:
 
 #+begin_src emacs-lisp
@@ -7475,6 +7506,11 @@ This section mainly for elisp code associated with some other programs.
 #+end_src
 
 ** Git
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "git"
+#+end_src
+
 - git ignore
   #+BEGIN_SRC conf :tangle (expand-tangle-target ".config/git/info/ignore")
     #
@@ -7652,6 +7688,17 @@ This section mainly for elisp code associated with some other programs.
     ,*.json diff=json
     ,*.gpg filter=gpg diff=gpg
   #+END_SRC
+
+*** git-annex
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "git-annex"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://git-annex.branchable.com/news/index.rss" soft_update)
+  ("https://git-annex.branchable.com/devblog/index.rss" soft_update)
+#+end_src
 
 ** ghq
 
@@ -8538,7 +8585,6 @@ Extendable version manager
        "tree"
        "poppler"
        "pass-git-helper"
-       "git"
        "stow"
        "pandoc"
        "nss-certs"
