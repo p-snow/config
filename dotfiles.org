@@ -3571,16 +3571,11 @@ speed commands and hydra-org.
     (setq prefix-help-command #'embark-prefix-help-command) ;
     :custom
     (embark-mixed-indicator-delay 3)
-    :config
-    (add-to-list 'embark-allow-edit-actions
-                 'shell-command-on-region))
-
-  (use-package embark-consult
-    :straight t
-    :after (embark consult)
-    :demand t
     :hook
-    (embark-collect-mode . consult-preview-at-point-mode))
+    (embark-collect-mode . consult-preview-at-point-mode)
+    :config
+    (push 'embark--allow-edit
+          (alist-get 'shell-command-on-region embark-target-injection-hooks)))
 #+end_src
 
 ***** marginalia
