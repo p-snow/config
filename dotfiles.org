@@ -491,10 +491,6 @@ Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[h
      . visual-line-mode)
     ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode)
      . adaptive-wrap-prefix-mode)
-    ;; major modes inherited from text-mode, like org-mode, is not desired to enable visual-line-mode
-    (text-mode . (lambda ()
-                   (when (eq major-mode 'text-mode)
-                     (visual-line-mode))))
     :config
     (global-visual-line-mode 0))
 #+end_src
@@ -3655,8 +3651,27 @@ speed commands and hydra-org.
 #+begin_src emacs-lisp
   (use-package text-mode
     :mode ("\\.txt$" . text-mode)
-    :delight " TX")
+    :delight " TX"
+    :hook
+    (text-mode . (lambda ()
+                   (when (and
+                          ;; this function should be applied to text-mode rather than its inheritor
+                          (eq major-mode 'text-mode)
+                          ;; target buffer must be front not buried
+                          (eq (current-buffer) (window-buffer)))
+                     (let ((buf-str (buffer-string)))
+                       (if (and (< 0 (length buf-str))
+                                (string-match-p
+                                 (format "\\`[%s]+\\'" "[:ascii:]’“”–") buf-str))
+                           (progn ;; text seems to be written in English
+                             (visual-line-mode 1)
+                             (activate-input-method nil))
+                         (progn ;; text seems to be written in Japanese or blank
+                           (visual-line-mode -1)
+                           (activate-input-method default-input-method))
+                         (toggle-truncate-lines -1)))))))
 #+end_src
+
 ***** nxml-mode
 
 #+begin_src emacs-lisp
