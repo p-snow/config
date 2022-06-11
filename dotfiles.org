@@ -43,7 +43,7 @@
 ** GNU Emacs
 *** general configuration
 
-**** early initialization
+**** early-init.el
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/early-init.el")
 :END:
@@ -168,12 +168,12 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 #+begin_src emacs-lisp
   (require 'cl-lib)
 #+end_src
-**** init file
+**** init.el
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/init.el")
 :END:
 
-***** loading lisp files
+init.el devote itself to call for remaining config files.
 
 #+begin_src emacs-lisp
   (dolist (file (directory-files "~/.emacs.d/lisp" t "\.el$"))
@@ -184,10 +184,12 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
     (funcall #'load-file file))
 #+end_src
 
-**** custom groups
+**** attributional settings
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/01-basic.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/02-attr.el")
 :END:
+
+Each setting in this section belongs my personal attribution, e.g. primary language to use, characteristic of visual perception or inputting and outputting devices. Note that applying the settings as is would make you uncomfortable.
 
 ***** language
 [[info:emacs#Language Environments][emacs#Language Environments]]
@@ -349,17 +351,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
           mac-right-control-modifier 'super
           mac-function-modifier      'hyper)))
 #+end_src
-***** mark/region
-Variables need to be carefully tweaked with [[info:emacs#Mark][manual]].
 
-#+begin_src emacs-lisp
-  ;; (setq set-mark-command-repeat-pop t)
-  (setf mark-ring-max 32)
-  (setf highlight-nonselected-windows t)
-
-  ;; text in region will be deleted
-  (delete-selection-mode t)
-#+end_src
 
 ***** window
 
@@ -493,21 +485,6 @@ Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[h
      . adaptive-wrap-prefix-mode)
     :config
     (global-visual-line-mode 0))
-#+end_src
-
-***** cursor
-
-#+begin_src emacs-lisp
-  ;; make cursor blinking
-  (setf blink-cursor-blinks 15)
-  (setf blink-cursor-delay 0.7)
-  (setf blink-cursor-interval 0.35)
-  (blink-cursor-mode 1)
-
-  (use-package hl-line
-    :hook (vterm-mode . (lambda () (hl-line-mode -1)))
-    :config
-    (hl-line-mode 1))
 #+end_src
 
 ***** display buffer
@@ -659,11 +636,23 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (define-key keymap key sym))
 #+end_src
 
-**** built-in features
+**** basic preference
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/02-built-ins.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/01-pref.el")
 :END:
-***** Auto Revert
+
+Entries in this section represnets [[info:emacs#Customization Groups][Customization Groups]] hierarchy.
+
+***** Files
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(create-lockfiles nil)
+   '(remote-file-name-inhibit-locks t))
+#+end_src
+
+****** Auto Revert
+
 [[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
 
 #+begin_src emacs-lisp
@@ -674,6 +663,90 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (global-auto-revert-non-file-buffers t)
     :config
     (global-auto-revert-mode 1))
+#+end_src
+
+****** Auto Save
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(auto-save-interval 4)
+   '(auto-save-timeout 1)
+   '(auto-save-default t)
+   '(auto-save-list-file-prefix
+     (concat user-emacs-directory "auto-save-list/.saves-"))
+   '(delete-by-moving-to-trash t)
+   '(delete-auto-save-files t)
+   '(kill-buffer-delete-auto-save-files t))
+#+end_src
+
+***** Environment
+
+****** Frames
+******* Cursor
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(blink-cursor-blinks 15)
+   '(blink-cursor-delay 0.7)
+   '(blink-cursor-interval 0.35)
+   '(blink-cursor-mode t))
+#+end_src
+
+****** Display
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(highlight-nonselected-windows t))
+#+end_src
+
+***** Convenience
+****** Hl Line
+
+#+begin_src emacs-lisp
+  (use-package hl-line
+    :hook (vterm-mode . (lambda () (hl-line-mode -1)))
+    :config
+    (hl-line-mode 1))
+#+end_src
+
+***** Save Place
+
+File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of Files]].
+
+#+begin_src emacs-lisp
+  (use-package saveplace
+    :custom
+    (save-place-version-control t)
+    :config
+    (save-place-mode 1))
+#+end_src
+
+***** Next Error
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(next-error-message-highlight t))
+#+end_src
+
+***** Jka Compr (auto compression mode)
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(auto-compression-mode t))
+#+end_src
+***** Editing Basics
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(set-mark-command-repeat-pop t)
+   '(mark-ring-max 32)
+   ;; delsel
+   (delete-selection-mode t) ; inserted text replaces the text in region
+   ;; files
+   '(mode-require-final-newline 'visit-save)
+   '(make-backup-files nil)
+   '(delete-auto-save-files t)
+   '(enable-remote-dir-locals t))
 #+end_src
 
 ***** Abbrev
@@ -762,16 +835,16 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :bind (("C-c TAB" . hs-toggle-hiding)))
 #+end_src
 
-***** uniquify
-[[info:emacs#Uniquify][Uniquify]] makes buffer names unique.
+***** Uniquify
+
+[[info:emacs#Uniquify][Uniquify]] shows buffer name easy to distinguish.
 
 #+begin_src emacs-lisp
   (use-package uniquify
     :custom
-    (uniquify-buffer-name-style 'forward)
-    ;; (uniquify-ignore-buffers-re "*[^*]+*")
-    )
+    (uniquify-buffer-name-style 'post-forward))
 #+end_src
+
 ***** recentf
 [[info:emacs#File Conveniences][emacs#File Conveniences]]
 
@@ -785,7 +858,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :config
     (recentf-mode 1))
 #+end_src
-***** server
+***** Server
 
 #+begin_src emacs-lisp
   (use-package server
@@ -793,14 +866,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
     (unless (server-running-p)
       (server-start)))
 #+end_src
-***** calc
 
-#+begin_src emacs-lisp
-  (use-package calc
-    :bind ("<f6>" . calc)
-    :config
-    (setf calc-display-trail nil))
-#+end_src
 ***** re-builder
 
 #+begin_src emacs-lisp
@@ -818,7 +884,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
                ("C-j" . isearch-exit)))
 #+end_src
 
-***** flyspell                                :fixit:
+***** flyspell
 
 #+begin_src emacs-lisp
   (use-package flyspell
@@ -915,7 +981,7 @@ I prefer to rid my emacs experience of mouse as least as possible.
     :bind (:map special-mode-map
                 ("C-j" . push-button)))
 #+end_src
-***** Help mode
+***** Help
 :PROPERTIES:
 :ID:       a55da7a2-6525-4788-ba56-085eb61928d4
 :END:
@@ -1326,6 +1392,14 @@ I prefer to rid my emacs experience of mouse as least as possible.
       out_root_str = out_root_str.decode()
       print(out_root_str)
 #+end_src
+***** Calc (The GNU Emacs Calculator)
+
+#+begin_src emacs-lisp
+  (use-package calc
+    :bind ("<f6>" . calc)
+    :config
+    (setf calc-display-trail nil))
+#+end_src
 **** input method
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/input-method.el")
@@ -1530,7 +1604,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
     :bind ("<f5>" . modus-themes-toggle))
 #+end_src
 
-**** mu4e
+**** Mu4e
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/mu4e.el")
 :END:
@@ -1647,7 +1721,7 @@ Command in practice presumably looks like:
                    '("Contact to add" . mu4e-action-add-org-contact) t))
   #+end_src
 
-**** elfeed
+**** Elfeed
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/elfeed.el")
 :END:
@@ -1873,7 +1947,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
                     <<elfeed-feeds>>))))
 #+end_src
 
-**** Shells / Terminal emulators
+**** Terminal emulators (Shells)
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/shell.el")
 :END:
