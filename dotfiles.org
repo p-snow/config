@@ -307,33 +307,6 @@ Caveat: There are some face definitions which use an extra large font since I am
     (elfeed-search-update . (lambda () (buffer-face-set 'my/medium-mincho-face))))
 #+end_src
 
-***** file handling
-File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of Files]].
-
-#+begin_src emacs-lisp
-  (use-package files
-    :custom
-    (mode-require-final-newline 'visit-save)
-    (make-backup-files nil)
-    (delete-auto-save-files t)
-    (enable-remote-dir-locals t)
-    :config
-    (setq delete-by-moving-to-trash t))
-
-  (use-package saveplace
-    :custom
-    (save-place-version-control t)
-    :config
-    (save-place-mode 1))
-
-  (auto-compression-mode 1)
-
-  (setq auto-save-interval 4)
-  (setq auto-save-timeout 1)
-  (setq auto-save-default t)
-  (setq auto-save-list-file-prefix
-        (concat user-emacs-directory "auto-save-list/.saves-"))
-#+end_src
 ***** modifier keys
 
 #+begin_src emacs-lisp
@@ -385,47 +358,6 @@ Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[h
                              global-map)
 #+end_src
 
-***** mode line
-
-#+begin_src emacs-lisp
-  ;; Don't show line and column number in the mode line
-  (line-number-mode -1)
-  (column-number-mode -1)
-
-  (use-package time
-    :custom
-    (display-time-24hr-format t)
-    (display-time-mail-string "")
-    (display-time-default-load-average nil)
-    :config
-    (display-time-mode t))
-
-  (defvar my/mode-line-buffer-name-length 15
-    "Fixed length for displaying buffer name in mode line.")
-
-  (setq-default mode-line-format
-                '("%e"
-                  mode-line-front-space
-                  mode-line-mule-info
-                  (:eval
-                   (let ((mode-line-buffer-name
-                          (replace-regexp-in-string " %\\([[:ascii:]]\\)" " %%\\1"
-                                                    (truncate-string-to-width
-                                                     (buffer-name) my/mode-line-buffer-name-length nil ? t))))
-                     (cond
-                      (buffer-read-only
-                       (propertize mode-line-buffer-name 'face 'underline))
-                      ((buffer-modified-p)
-                       (propertize mode-line-buffer-name 'face 'warning))
-                      (mode-line-buffer-name))))
-                  (:eval
-                   (let ((str (if line-number-mode
-                                  "^%l-%p" "")))
-                     (if column-number-mode
-                         (concat str "_%c") str)))
-                  global-mode-string))
-#+end_src
-
 ***** history
 
 [[help:savehist-mode][savehist-mode]] saves minibuffer history and additionals.
@@ -440,28 +372,6 @@ Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[h
 
   (setf history-length 300
         history-delete-duplicates t)
-#+end_src
-
-***** minibuffer
-
-#+begin_src emacs-lisp
-  ;; allow y/n answer for an either-or selection
-  (fset 'yes-or-no-p 'y-or-n-p)
-
-  (add-hook 'minibuffer-setup-hook 'my/minibuffer-setup-function)
-
-  (defun my/minibuffer-setup-function ()
-    ;; disable input method in mini buffer
-    (when current-input-method
-      (deactivate-input-method))
-    ;; decrease font size to 90% in minibuffer
-    (setq-local face-remapping-alist '((default :height 0.9))))
-
-  (setf enable-recursive-minibuffers t)
-  (minibuffer-depth-indicate-mode 1)
-
-  ;; search files in case insensitive way
-  (setf read-file-name-completion-ignore-case t)
 #+end_src
 
 ***** displaying
@@ -604,18 +514,6 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
     :straight t
     :config
     (whole-line-or-region-global-mode 1))
-#+end_src
-
-***** mouse
-I prefer to rid my emacs experience of mouse as least as possible.
-
-#+begin_src emacs-lisp
-  (use-package mouse
-    :custom
-    (mouse-1-click-follows-link nil)
-    (mouse-highlight nil)
-    :config
-    (mouse-wheel-mode 0))
 #+end_src
 
 ***** global key bindings
@@ -779,6 +677,94 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (epg-pinentry-mode 'loopback))
 #+end_src
 
+***** Shortdoc
+
+#+begin_src emacs-lisp
+  (use-package shortdoc
+    :bind ("<help> D" . shortdoc-display-group))
+#+end_src
+
+***** Menu
+
+#+begin_src emacs-lisp
+  (custom-set-variables '(use-short-answers t))
+#+end_src
+
+***** Minibuffer
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(enable-recursive-minibuffers t)
+   '(minibuffer-depth-indicate-mode t)
+   '(read-file-name-completion-ignore-case t)
+   '(read-minibuffer-restore-windows t)
+   '(minibuffer-default-prompt-format " [%s]"))
+
+  (add-hook 'minibuffer-setup-hook 'my/minibuffer-setup-function)
+  (defun my/minibuffer-setup-function ()
+    ;; disable input method in mini buffer
+    (when current-input-method
+      (deactivate-input-method))
+    ;; decrease font size to 90% in minibuffer
+    (setq-local face-remapping-alist '((default :height 0.9))))
+#+end_src
+
+***** Mode Line
+
+#+begin_src emacs-lisp
+  (defvar my/mode-line-buffer-name-length-max 15
+    "Fixed length for displaying buffer name in mode line.")
+
+  (custom-set-variables
+   '(line-number-mode nil)
+   '(column-number-mode nil)
+   '(mode-line-compact t)
+   '(mode-line-format
+     '("%e"
+       mode-line-front-space
+       (:eval
+        (let ((mode-line-buffer-name
+               (replace-regexp-in-string " %\\([[:ascii:]]\\)" " %%\\1"
+                                         (truncate-string-to-width
+                                          (buffer-name) my/mode-line-buffer-name-length-max nil ? t))))
+          (cond
+           (buffer-read-only
+            (propertize mode-line-buffer-name 'face 'underline))
+           ((buffer-modified-p)
+            (propertize mode-line-buffer-name 'face 'warning))
+           (mode-line-buffer-name))))
+       (:eval
+        (cond
+         ((and line-number-mode
+               column-number-mode)
+          mode-line-position-column-line-format)
+         (line-number-mode mode-line-position-line-format)
+         (column-number-mode mode-line-position-column-format)))
+       " "
+       global-mode-string)))
+#+end_src
+
+***** Display Time
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(display-time-string-forms
+     '((propertize (format-time-string "%H:%M" now) 'face 'mode-line-highlight)))
+   '(display-time-mode t))
+#+end_src
+
+***** Mouse
+
+Mouse needs to be unobtrusive in my Emacs experience.
+
+#+begin_src emacs-lisp
+  (use-package mouse
+    :custom
+    (mouse-1-click-follows-link nil)
+    (mouse-highlight nil)
+    (mouse-wheel-mode nil))
+#+end_src
+
 ***** auth-source
 
 #+begin_src emacs-lisp
@@ -862,6 +848,8 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp
   (use-package server
+    :custom
+    (server-client-instructions t)
     :config
     (unless (server-running-p)
       (server-start)))
@@ -989,12 +977,18 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+begin_src emacs-lisp
   (use-package help-mode
     :delight " HE"
+    :custom
+    (help-enable-symbol-autoload t)
+    (describe-bindings-outline t)
     :config
     (bind-key "C-M-h" help-map)
     (bind-keys :map help-map
+               ("C-M-h" . help-for-help)
                ("c" . describe-face)
+               ("K" . describe-keymap)
                ("C-l" . find-library)))
 #+end_src
+
 ***** Proced mode
 
 #+begin_src emacs-lisp
