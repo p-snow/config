@@ -183,6 +183,33 @@ init.el devote itself to call for remaining config files.
   (dolist (file (directory-files "~/.emacs.d/secrets" t "\.el$"))
     (funcall #'load-file file))
 #+end_src
+**** keybindings
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/00-keybinds.el")
+:END:
+
+***** global keybindings
+
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-M-o") #'open-line)
+  (global-set-key (kbd "C-h") #'backward-delete-char-untabify)
+  (global-set-key (kbd "M-h") #'backward-kill-word)
+  (global-set-key (kbd "M-SPC") #'cycle-spacing)
+  (global-set-key (kbd "C-c k") #'kill-this-buffer)
+  (global-set-key (kbd "M-o") #'other-window)
+#+end_src
+
+***** lambda-key
+
+[[https://www.emacswiki.org/emacs/DocumentingKeyBindingToLambda][lambda-key]] is nice idea to remedy lambda bindings with define-key.
+
+#+begin_src emacs-lisp
+  (defun lambda-key (keymap key def)
+    "Wrap`define-key' to provide documentation."
+    (set 'sym (make-symbol (documentation def)))
+    (fset sym def)
+    (define-key keymap key sym))
+#+end_src
 
 **** attributional settings
 :PROPERTIES:
@@ -325,28 +352,6 @@ Caveat: There are some face definitions which use an extra large font since I am
           mac-function-modifier      'hyper)))
 #+end_src
 
-
-***** window
-
-Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit-function.
-
-#+begin_src emacs-lisp
-  (winner-mode)
-  (global-set-key (kbd "C-z") 'winner-undo)
-  (global-set-key (kbd "C-M-z") 'winner-redo)
-
-  (setq buffer-quit-function 'winner-undo)
-
-  (global-set-key (kbd "M-o") 'other-window)
-
-  (windmove-default-keybindings)
-
-  ;; You can now switch windows with your shift key by pressing S-<left>, S-<right>, S-<up>, S-<down>.
-  (windmove-default-keybindings)
-
-  (setf scroll-step 1)
-  (setq next-screen-context-lines 2)
-#+end_src
 
 ***** buffers
 
@@ -516,24 +521,6 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
     (whole-line-or-region-global-mode 1))
 #+end_src
 
-***** global key bindings
-
-[[https://www.emacswiki.org/emacs/DocumentingKeyBindingToLambda][lambda-key]] is nice idea to remedy lambda bindings with define-key.
-
-#+begin_src emacs-lisp
-  (global-set-key (kbd "C-M-o") #'open-line)
-  (global-set-key (kbd "C-h") #'backward-delete-char-untabify)
-  (global-set-key (kbd "M-h") #'backward-kill-word)
-  (global-set-key (kbd "M-SPC") #'cycle-spacing)
-  (global-set-key (kbd "C-c k") #'kill-this-buffer)
-
-  (defun lambda-key (keymap key def)
-    "Wrap`define-key' to provide documentation."
-    (set 'sym (make-symbol (documentation def)))
-    (fset sym def)
-    (define-key keymap key sym))
-#+end_src
-
 **** basic preference
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/01-pref.el")
@@ -597,6 +584,36 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
    '(highlight-nonselected-windows t))
 #+end_src
 
+****** Windows
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(scroll-step 1)
+   '(next-screen-context-lines 2))
+#+end_src
+
+******* Winner
+
+Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit-function.
+
+#+begin_src emacs-lisp
+  (use-package winner
+    :bind (("C-z" . winner-undo)
+           ("C-M-z" . winner-redo))
+    :custom
+    (winner-mode t)
+    :config
+    (setq buffer-quit-function 'winner-undo))
+#+end_src
+
+******* Windmove
+
+You can now switch windows with your shift key by pressing S-<left>, S-<right>, S-<up>, S-<down>.
+
+#+begin_src emacs-lisp
+  (windmove-default-keybindings)
+#+end_src
+
 ***** Convenience
 ****** Hl Line
 
@@ -639,7 +656,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
    '(set-mark-command-repeat-pop t)
    '(mark-ring-max 32)
    ;; delsel
-   (delete-selection-mode t) ; inserted text replaces the text in region
+   '(delete-selection-mode t) ; inserted text replaces the text in region
    ;; files
    '(mode-require-final-newline 'visit-save)
    '(make-backup-files nil)
