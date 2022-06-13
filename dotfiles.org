@@ -187,7 +187,6 @@ init.el devote itself to call for remaining config files.
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/00-keybinds.el")
 :END:
-
 ***** global keybindings
 
 #+begin_src emacs-lisp
@@ -198,6 +197,35 @@ init.el devote itself to call for remaining config files.
   (global-set-key (kbd "C-c k") #'kill-this-buffer)
   (global-set-key (kbd "M-o") #'other-window)
 #+end_src
+
+- buffers
+  Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
+
+  #+begin_src emacs-lisp
+    (substitute-key-definition 'list-buffers
+                               'ibuffer
+                               global-map)
+  #+end_src
+
+- case commands
+  #+begin_src emacs-lisp
+    (substitute-key-definition 'upcase-region
+                               'upcase-dwim
+                               global-map)
+    (substitute-key-definition 'downcase-region
+                               'downcase-dwim
+                               global-map)
+    (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
+
+    ;; suppress prompting in (up/down)case-region
+    (put 'upcase-region 'disabled nil)
+    (put 'downcase-region 'disabled nil)
+  #+end_src
+
+- special mode
+  #+begin_src emacs-lisp
+    (define-key special-mode-map (kbd "C-j") #'push-button)
+  #+end_src
 
 ***** lambda-key
 
@@ -352,33 +380,6 @@ Caveat: There are some face definitions which use an extra large font since I am
           mac-function-modifier      'hyper)))
 #+end_src
 
-
-***** buffers
-
-Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
-
-#+begin_src emacs-lisp
-  (substitute-key-definition 'list-buffers
-                             'ibuffer
-                             global-map)
-#+end_src
-
-***** history
-
-[[help:savehist-mode][savehist-mode]] saves minibuffer history and additionals.
-
-#+begin_src emacs-lisp
-  (use-package savehist
-    :custom
-    (savehist-save-minibuffer-history t)
-    (savehist-additional-variables '(kill-ring))
-    :config
-    (savehist-mode 1))
-
-  (setf history-length 300
-        history-delete-duplicates t)
-#+end_src
-
 ***** displaying
 
 #+begin_src emacs-lisp
@@ -387,138 +388,6 @@ Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[h
   ;; use emacs in full screen mode
   (when (member (window-system) '(x ns w32))
     (set-frame-parameter nil 'fullscreen 'fullboth))
-
-  (setq-default truncate-lines t)
-
-  (use-package visual-line
-    :no-require t
-    :after adaptive-wrap
-    :hook
-    ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode)
-     . visual-line-mode)
-    ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode)
-     . adaptive-wrap-prefix-mode)
-    :config
-    (global-visual-line-mode 0))
-#+end_src
-
-***** display buffer
-:PROPERTIES:
-:ID:       a504f06e-02d3-4dcd-b80b-566a55cca2c7
-:END:
-
-#+begin_src emacs-lisp
-  (setq display-buffer-base-action
-        '((display-buffer-same-window
-           display-buffer-reuse-window
-           display-buffer-reuse-mode-window
-           display-buffer-in-previous-window)))
-#+end_src
-
-***** text
-
-#+begin_src emacs-lisp
-  (setq-default fill-column 80)
-
-  ;; suppress curved quotes in docstring (for emacs25)
-  (setf text-quoting-style 'straight)
-
-  (setq sentence-end-double-space nil)
-
-  ;; rebind for case commands
-  (substitute-key-definition 'upcase-region
-                             'upcase-dwim
-                             global-map)
-  (substitute-key-definition 'downcase-region
-                             'downcase-dwim
-                             global-map)
-  (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
-
-  ;; suppress prompting in (up/down)case-region
-  (put 'upcase-region 'disabled nil)
-  (put 'downcase-region 'disabled nil)
-#+end_src
-
-***** images
-
-[[https://xenodium.com/emacs-viewing-webp-images/][This post]] teaches me how to enable converting external formats (i.e. webp) to internal ones.
-
-#+begin_src emacs-lisp
-  (use-package image
-    :custom
-    (image-use-external-converter t))
-#+end_src
-
-***** indent
-customization for [[info:emacs#Indentation][indentation]]
-See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
-
-#+begin_src emacs-lisp
-  ;; use spaces instead of a horizontal tab
-  (setq-default indent-tabs-mode nil)
-
-  (custom-set-variables '(tab-always-indent 'complete))
-  (electric-indent-mode 1)
-#+end_src
-
-***** comments
-
-This command was introduced at [[https://irreal.org/blog/?p=10318][here]] to insert comment box with fixed width based on [[help:fill-column][fill-column]].
-
-#+begin_src emacs-lisp
-  (defun my/comment-box (b e)
-    "Draw a box comment around the region but arrange for the region
-  to extend to at least the fill column. Place the point after the
-  comment box."
-    (interactive "r")
-    (let ((e (copy-marker e t)))
-      (goto-char b)
-      (end-of-line)
-      (insert-char ?  (- fill-column (current-column)))
-      (comment-box b e 1)
-      (goto-char e)
-      (set-marker e nil)))
-#+end_src
-
-***** undo
-
-The older undo step which exceeds [[help:undo-limit][undo-limit]] in byte is eliminated at garbage collection.
-The oldest undo step, if undo info exceeds [[help:undo-strong-limit][undo-strong-limit]] in total, is removed instantaneously.
-No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not be registered.
-
-#+begin_src emacs-lisp
-  (custom-set-variables '(undo-limit 320000)
-                        '(undo-strong-limit 480000)
-                        '(undo-outer-limit 48000000))
-#+end_src
-
-***** performance
-
-#+begin_src emacs-lisp
-  (setq gc-cons-threshold (* 10 gc-cons-threshold))
-  (setq message-log-max 10000)
-#+end_src
-
-***** customize buffer
-
-#+begin_src emacs-lisp
-  (custom-set-variables
-   '(custom-file (expand-file-name "custom.el" user-emacs-directory)))
-#+end_src
-
-***** killing                                  :kill:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/purcell/whole-line-or-region/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (custom-set-variables '(yank-pop-change-selection t))
-
-  (use-package whole-line-or-region
-    :straight t
-    :config
-    (whole-line-or-region-global-mode 1))
 #+end_src
 
 **** basic preference
@@ -564,6 +433,50 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
    '(kill-buffer-delete-auto-save-files t))
 #+end_src
 
+****** Uniquify
+
+[[info:emacs#Uniquify][Uniquify]] shows buffer name easy to distinguish.
+
+#+begin_src emacs-lisp
+  (use-package uniquify
+    :custom
+    (uniquify-buffer-name-style 'post-forward))
+#+end_src
+
+****** Recentf
+
+[[info:emacs#File Conveniences][emacs#File Conveniences]]
+
+#+begin_src emacs-lisp
+  (use-package recentf
+    :custom
+    (recentf-exclude '(".gz" ".xz" ".zip" ".gpg"))
+    (recentf-max-saved-items 200)
+    (recentf-max-menu-items 15)
+    (recentf-auto-cleanup "1:23am")
+    :config
+    (recentf-mode 1))
+#+end_src
+****** Tramp
+
+#+begin_src emacs-lisp
+  (use-package tramp
+    :defer t
+    :custom
+    (tramp-default-method "ssh")
+    :config
+    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+    (add-to-list 'tramp-remote-path "~/bin"))
+
+  (defun sudo ()
+    "Use TRAMP to `sudo' the current buffer"
+    (interactive)
+    (when buffer-file-name
+      (find-alternate-file
+       (concat "/sudo:root@localhost:"
+               buffer-file-name))))
+#+end_src
+
 ***** Environment
 
 ****** Frames
@@ -581,7 +494,10 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 
 #+begin_src emacs-lisp
   (custom-set-variables
-   '(highlight-nonselected-windows t))
+   '(highlight-nonselected-windows t)
+   '(truncate-lines t)
+   ;; suppress curved quotes in docstring (for emacs25)
+   '(text-quoting-style 'straight))
 #+end_src
 
 ****** Windows
@@ -589,7 +505,13 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 #+begin_src emacs-lisp
   (custom-set-variables
    '(scroll-step 1)
-   '(next-screen-context-lines 2))
+   '(next-screen-context-lines 2)
+   ;; display buffer
+   '(display-buffer-base-action
+     '((display-buffer-same-window
+        display-buffer-reuse-window
+        display-buffer-reuse-mode-window
+        display-buffer-in-previous-window))))
 #+end_src
 
 ******* Winner
@@ -614,103 +536,12 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
   (windmove-default-keybindings)
 #+end_src
 
-***** Convenience
-****** Hl Line
-
-#+begin_src emacs-lisp
-  (use-package hl-line
-    :hook (vterm-mode . (lambda () (hl-line-mode -1)))
-    :config
-    (hl-line-mode 1))
-#+end_src
-
-***** Save Place
-
-File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of Files]].
-
-#+begin_src emacs-lisp
-  (use-package saveplace
-    :custom
-    (save-place-version-control t)
-    :config
-    (save-place-mode 1))
-#+end_src
-
-***** Next Error
+****** Minibuffer
 
 #+begin_src emacs-lisp
   (custom-set-variables
-   '(next-error-message-highlight t))
-#+end_src
-
-***** Jka Compr (auto compression mode)
-
-#+begin_src emacs-lisp
-  (custom-set-variables
-   '(auto-compression-mode t))
-#+end_src
-***** Editing Basics
-
-#+begin_src emacs-lisp
-  (custom-set-variables
-   '(set-mark-command-repeat-pop t)
-   '(mark-ring-max 32)
-   ;; delsel
-   '(delete-selection-mode t) ; inserted text replaces the text in region
-   ;; files
-   '(mode-require-final-newline 'visit-save)
-   '(make-backup-files nil)
-   '(delete-auto-save-files t)
-   '(enable-remote-dir-locals t))
-#+end_src
-
-***** Abbrev
-
-#+begin_src emacs-lisp
-  (use-package abbrev
-    :diminish abbrev-mode
-    :custom
-    (save-abbrevs t)
-    :config
-    (setf abbrev-file-name (expand-file-name "abbrev_defs" user-emacs-directory))
-    (quietly-read-abbrev-file))
-#+end_src
-
-***** Hippie Expansion
-
-[[https://www.masteringemacs.org/article/text-expansion-hippie-expand][As this post mentions]], Hippie Expansion is superior for auto typing to dabbrev, skeleton, and even company.
-
-#+begin_src emacs-lisp
-  (use-package hippie-exp
-    :config
-    (global-set-key [remap dabbrev-expand] 'hippie-expand))
-#+end_src
-
-***** EasyPG (epg)
-
-#+begin_src emacs-lisp
-  (use-package epg
-    :custom
-    (epg-pinentry-mode 'loopback))
-#+end_src
-
-***** Shortdoc
-
-#+begin_src emacs-lisp
-  (use-package shortdoc
-    :bind ("<help> D" . shortdoc-display-group))
-#+end_src
-
-***** Menu
-
-#+begin_src emacs-lisp
-  (custom-set-variables '(use-short-answers t))
-#+end_src
-
-***** Minibuffer
-
-#+begin_src emacs-lisp
-  (custom-set-variables
+   '(history-length 300)
+   '(history-delete-duplicates t)
    '(enable-recursive-minibuffers t)
    '(minibuffer-depth-indicate-mode t)
    '(read-file-name-completion-ignore-case t)
@@ -726,7 +557,27 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (setq-local face-remapping-alist '((default :height 0.9))))
 #+end_src
 
-***** Mode Line
+
+******* Savehist
+
+[[help:savehist-mode][savehist-mode]] saves minibuffer history and additionals.
+
+#+begin_src emacs-lisp
+  (use-package savehist
+    :custom
+    (savehist-save-minibuffer-history t)
+    (savehist-additional-variables '(kill-ring))
+    :config
+    (savehist-mode 1))
+#+end_src
+
+****** Menu
+
+#+begin_src emacs-lisp
+  (custom-set-variables '(use-short-answers t))
+#+end_src
+
+****** Mode Line
 
 #+begin_src emacs-lisp
   (defvar my/mode-line-buffer-name-length-max 15
@@ -761,7 +612,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
        global-mode-string)))
 #+end_src
 
-***** Display Time
+******* Display Time
 
 #+begin_src emacs-lisp
   (custom-set-variables
@@ -770,7 +621,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
    '(display-time-mode t))
 #+end_src
 
-***** Mouse
+****** Mouse
 
 Mouse needs to be unobtrusive in my Emacs experience.
 
@@ -782,21 +633,54 @@ Mouse needs to be unobtrusive in my Emacs experience.
     (mouse-wheel-mode nil))
 #+end_src
 
-***** auth-source
+***** Convenience
+****** Abbreviations
 
 #+begin_src emacs-lisp
-  (use-package auth-source
+  (use-package abbrev
+    :diminish abbrev-mode
     :custom
-    (auth-source-gpg-encrypt-to `(,user-mail-address))
+    (save-abbrevs t)
     :config
-    (add-to-list 'auth-sources "~/.netrc.gpg"))
-
-  (use-package auth-source-pass
-    :config
-    (auth-source-pass-enable))
+    (setf abbrev-file-name (expand-file-name "abbrev_defs" user-emacs-directory))
+    (quietly-read-abbrev-file))
 #+end_src
 
-***** whitespace
+****** Hippie Expand
+
+[[https://www.masteringemacs.org/article/text-expansion-hippie-expand][As this post mentions]], Hippie Expansion is superior for auto typing to dabbrev, skeleton, and even company.
+
+#+begin_src emacs-lisp
+  (use-package hippie-exp
+    :config
+    (global-set-key [remap dabbrev-expand] 'hippie-expand))
+#+end_src
+
+****** Hl Line
+
+#+begin_src emacs-lisp
+  (use-package hl-line
+    :hook (vterm-mode . (lambda () (hl-line-mode -1)))
+    :config
+    (hl-line-mode 1))
+#+end_src
+****** Visual Line
+
+#+begin_src emacs-lisp
+  (use-package visual-line
+    :no-require t
+    :after adaptive-wrap
+    :hook
+    ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode)
+     . visual-line-mode)
+    ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode)
+     . adaptive-wrap-prefix-mode)
+    :custom
+    (global-visual-line-mode nil))
+#+end_src
+
+****** Whitespace
+
 [[info:emacs#Useless Whitespace][emacs#Useless Whitespace]]
 
 #+begin_src emacs-lisp
@@ -819,7 +703,62 @@ Mouse needs to be unobtrusive in my Emacs experience.
     (global-whitespace-mode -1))
 #+end_src
 
-***** bookmark
+***** Editing
+
+****** Indent
+
+See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
+
+#+begin_src emacs-lisp
+  (custom-set-variables '(tab-always-indent 'complete)
+                        '(indent-tabs-mode nil))
+#+end_src
+
+****** Electricity
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(electric-indent-mode 1))
+#+end_src
+
+****** Fill
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(fill-column 80)
+   '(sentence-end-double-space nil))
+#+end_src
+
+****** Killing
+
+#+begin_src emacs-lisp
+  (custom-set-variables '(yank-pop-change-selection t))
+#+end_src
+
+****** Undo
+
+The older undo step which exceeds [[help:undo-limit][undo-limit]] in byte is eliminated at garbage collection.
+The oldest undo step, if undo info exceeds [[help:undo-strong-limit][undo-strong-limit]] in total, is removed instantaneously.
+No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not be registered.
+
+#+begin_src emacs-lisp
+  (custom-set-variables '(undo-limit 320000)
+                        '(undo-strong-limit 480000)
+                        '(undo-outer-limit 48000000))
+#+end_src
+
+****** Matching
+******* Isearch
+
+#+begin_src emacs-lisp
+  (use-package isearch
+    :diminish "is"
+    :config
+    (bind-keys :map isearch-mode-map
+               ("C-j" . isearch-exit)))
+#+end_src
+
+******* Bookmark
 
 #+begin_src emacs-lisp
   (use-package bookmark
@@ -830,38 +769,145 @@ Mouse needs to be unobtrusive in my Emacs experience.
     (delight 'bookmark-bmenu-mode " BB"))
 #+end_src
 
-***** hideshow
+***** Multimedia
+
+****** Image
+
+[[https://xenodium.com/emacs-viewing-webp-images/][This post]] teaches me how to enable converting external formats (i.e. webp) to internal ones.
 
 #+begin_src emacs-lisp
-  (use-package hideshow
-    :diminish "hs"
-    :bind (("C-c TAB" . hs-toggle-hiding)))
+  (use-package image
+    :custom
+    (image-use-external-converter t))
 #+end_src
 
-***** Uniquify
+***** Development
 
-[[info:emacs#Uniquify][Uniquify]] shows buffer name easy to distinguish.
+****** Internal
+******* Storage Allocation
 
 #+begin_src emacs-lisp
-  (use-package uniquify
-    :custom
-    (uniquify-buffer-name-style 'post-forward))
+  (custom-set-variables
+   '(gc-cons-threshold (* 10 gc-cons-threshold)))
 #+end_src
 
-***** recentf
-[[info:emacs#File Conveniences][emacs#File Conveniences]]
+****** Lisp
+******* Shortdoc
 
 #+begin_src emacs-lisp
-  (use-package recentf
+  (use-package shortdoc
+    :bind ("<help> D" . shortdoc-display-group))
+#+end_src
+
+******* Re Builder
+
+#+begin_src emacs-lisp
+  (use-package re-builder
     :custom
-    (recentf-exclude '(".gz" ".xz" ".zip" ".gpg"))
-    (recentf-max-saved-items 200)
-    (recentf-max-menu-items 15)
-    (recentf-auto-cleanup "1:23am")
+    (reb-re-syntax 'string))
+#+end_src
+****** Debug
+
+#+begin_src emacs-lisp
+  (custom-set-variables '(message-log-max 10000))
+#+end_src
+
+***** Help
+:PROPERTIES:
+:ID:       a55da7a2-6525-4788-ba56-085eb61928d4
+:END:
+
+#+begin_src emacs-lisp
+  (use-package help-mode
+    :delight " HE"
+    :custom
+    (help-enable-symbol-autoload t)
+    (describe-bindings-outline t)
     :config
-    (recentf-mode 1))
+    (bind-key "C-M-h" help-map)
+    (bind-keys :map help-map
+               ("C-M-h" . help-for-help)
+               ("c" . describe-face)
+               ("K" . describe-keymap)
+               ("C-l" . find-library)))
 #+end_src
-***** Server
+
+****** Info
+
+#+begin_src emacs-lisp
+  (use-package Info
+    :defer t
+    :bind (:map Info-mode-map
+                ("C-j" . Info-follow-nearest-node)
+                ("a"   . info-apropos))
+    :custom
+    (Info-use-header-line nil)
+    (Info-additional-directory-list
+     `(,(expand-file-name "~/.local/share/info")
+       ,@(mapcar (lambda (profile)
+                   (let ((info-path (expand-file-name (format "~/.guix-extra-profiles/%1$s/%1$s/share/info" profile))))
+                     (and (file-directory-p info-path)
+                          info-path)))
+                 '("base" "desktop" "devel" "emacs"))))
+    :config
+    (require 'info-look)
+    (autoload 'info-lookup-add-help "info-look"))
+#+end_src
+****** Customize
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(custom-file (expand-file-name "custom.el" user-emacs-directory)))
+#+end_src
+
+***** Data
+
+****** Save Place
+
+File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of Files]].
+
+#+begin_src emacs-lisp
+  (use-package saveplace
+    :custom
+    (save-place-version-control t)
+    :config
+    (save-place-mode 1))
+#+end_src
+
+****** Compression
+
+- Jka Compr (auto compression mode)
+  #+begin_src emacs-lisp
+    (custom-set-variables
+     '(auto-compression-mode t))
+  #+end_src
+
+***** Editing Basics
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(set-mark-command-repeat-pop t)
+   '(mark-ring-max 32)
+   ;; delsel
+   '(delete-selection-mode t) ; inserted text replaces the text in region
+   ;; files
+   '(mode-require-final-newline 'visit-save)
+   '(make-backup-files nil)
+   '(delete-auto-save-files t)
+   '(enable-remote-dir-locals t))
+#+end_src
+
+***** External
+
+****** EasyPG (epg)
+
+#+begin_src emacs-lisp
+  (use-package epg
+    :custom
+    (epg-pinentry-mode 'loopback))
+#+end_src
+
+****** Server
 
 #+begin_src emacs-lisp
   (use-package server
@@ -872,24 +918,20 @@ Mouse needs to be unobtrusive in my Emacs experience.
       (server-start)))
 #+end_src
 
-***** re-builder
+****** Processes
+******* Proced
 
 #+begin_src emacs-lisp
-  (use-package re-builder
+  (use-package proced
+    :no-require t
     :custom
-    (reb-re-syntax 'string))
-#+end_src
-***** isearch
-
-#+begin_src emacs-lisp
-  (use-package isearch
-    :diminish "is"
-    :config
-    (bind-keys :map isearch-mode-map
-               ("C-j" . isearch-exit)))
+    (proced-auto-update-flag t)
+    (proced-auto-update-interval 3))
 #+end_src
 
-***** flyspell
+***** Applications
+
+****** Ispell
 
 #+begin_src emacs-lisp
   (use-package flyspell
@@ -921,101 +963,34 @@ Mouse needs to be unobtrusive in my Emacs experience.
       ("." flyspell-auto-correct-word)
       ("q" nil "quit")))
 #+end_src
-***** tramp
+
+****** News
+
+******* Gnus
+
+******** Auth Source
 
 #+begin_src emacs-lisp
-  (use-package tramp
-    :defer t
+  (use-package auth-source
     :custom
-    (tramp-default-method "ssh")
+    (auth-source-gpg-encrypt-to `(,user-mail-address))
     :config
-    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-    (add-to-list 'tramp-remote-path "~/bin"))
+    (add-to-list 'auth-sources "~/.netrc.gpg"))
 
-  (defun sudo ()
-    "Use TRAMP to `sudo' the current buffer"
-    (interactive)
-    (when buffer-file-name
-      (find-alternate-file
-       (concat "/sudo:root@localhost:"
-               buffer-file-name))))
-#+end_src
-
-***** view
-
-#+begin_src emacs-lisp
-  (use-package view
-    :diminish view-mode "vw")
-#+end_src
-**** dedicated major modes
-:PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/major-modes.el")
-:END:
-
-***** Fundamental mode
-
-#+begin_src emacs-lisp
-  (use-package emacs
-    :delight (fundamental-mode " FU"))
-#+end_src
-***** Info mode
-
-#+begin_src emacs-lisp
-  (use-package Info
-    :defer t
-    :bind (:map Info-mode-map
-                ("C-j" . Info-follow-nearest-node)
-                ("a"   . info-apropos))
-    :custom
-    (Info-use-header-line nil)
-    (Info-additional-directory-list
-     `(,(expand-file-name "~/.local/share/info")
-       ,@(mapcar (lambda (profile)
-                   (let ((info-path (expand-file-name (format "~/.guix-extra-profiles/%1$s/%1$s/share/info" profile))))
-                     (and (file-directory-p info-path)
-                          info-path)))
-                 '("base" "desktop" "devel" "emacs"))))
+  (use-package auth-source-pass
     :config
-    (require 'info-look)
-    (autoload 'info-lookup-add-help "info-look"))
+    (auth-source-pass-enable))
 #+end_src
-***** Special mode
+
+****** Calc (The GNU Emacs Calculator)
 
 #+begin_src emacs-lisp
-  (use-package emacs
-    :bind (:map special-mode-map
-                ("C-j" . push-button)))
-#+end_src
-***** Help
-:PROPERTIES:
-:ID:       a55da7a2-6525-4788-ba56-085eb61928d4
-:END:
-
-#+begin_src emacs-lisp
-  (use-package help-mode
-    :delight " HE"
-    :custom
-    (help-enable-symbol-autoload t)
-    (describe-bindings-outline t)
+  (use-package calc
+    :bind ("<f6>" . calc)
     :config
-    (bind-key "C-M-h" help-map)
-    (bind-keys :map help-map
-               ("C-M-h" . help-for-help)
-               ("c" . describe-face)
-               ("K" . describe-keymap)
-               ("C-l" . find-library)))
+    (setf calc-display-trail nil))
 #+end_src
-
-***** Proced mode
-
-#+begin_src emacs-lisp
-  (use-package proced
-    :no-require t
-    :custom
-    (proced-auto-update-flag t)
-    (proced-auto-update-interval 3))
-#+end_src
-***** Calendar mode
+****** Calendar
 [[https://github.com/emacs-jp/japanese-holidays/releases.atom][japanese-holidays]]
 
 #+begin_src emacs-lisp
@@ -1049,369 +1024,16 @@ Mouse needs to be unobtrusive in my Emacs experience.
       (when holiday-list
         (message "%s: %s" date-string (mapconcat #'identity holiday-list "; ")))))
 #+end_src
-***** Dired
+
+***** Text
+
+****** View
 
 #+begin_src emacs-lisp
-  (use-package dired
-    :bind (:map dired-mode-map
-                ("C-j" . my/dired-find-file-alternate-directory)
-                ("^" . (lambda () (interactive)
-                         (my/dired-find-file-alternate-directory "..")))
-                ("(" . dired-hide-details-mode)
-                (")" . dired-hide-details-mode)
-                ("E" . dired-create-empty-file)
-                ("Y" . dired-do-relsymlink)
-                ("e" . wdired-change-to-wdired-mode)
-                ("C-o" . nil)
-                ("o" . my/dired-open)
-                ("C-c C-o" . my/dired-open)
-                ("C-c C-s" . my/dired-share))
-    :hook (dired-mode . dired-hide-details-mode)
-    :custom
-    (dired-recursive-copies 'always)
-    (dired-recursive-deletes 'top)
-    (dired-listing-switches "-ahgG --time-style=iso --group-directories-first")
-    (dired-dwim-target 'dired-dwim-target-recent)
-    (dired-hide-details-hide-information-lines nil)
-    :config
-    (setq dired-isearch-filenames t)
-    (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
-    (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion))
-
-  (use-package dired-x
-    :after dired)
-
-  (defun my/advice-dired-control-deletion (oldfun &rest r)
-    "Enable file deleting functions to control deleting procedure
-  whether files are going to be in trash box."
-    (let ((delete-by-moving-to-trash
-           (if (equal current-prefix-arg '(4))
-               nil t)))
-      (apply oldfun (cdr r))))
-
-  (defun my/dired-find-file-alternate-directory (&optional file)
-    "Visit file at current line with `find-file' or visit directory with `find-alternate-file'.
-
-  If `FILE' is passed, find it instead."
-    (interactive)
-    (if-let ((find-file (or (and file
-                                 (if (file-name-absolute-p file)
-                                     file
-                                   (expand-file-name file (dired-current-directory))))
-                            (dired-get-filename nil t))))
-        (cond
-         ((file-directory-p find-file)
-          (find-alternate-file find-file))
-         ((file-readable-p find-file)
-          (find-file find-file))
-         (t
-          (message "File is not readable.")))
-      (message "Nothing to open in this line.")))
-
-  (defun my/dired-open (&optional arg)
-    "Open file in Dired.
-
-  File is either on current line or marked targets.
-  Optional argument `ARG' is passed to `my/view-file'."
-    (interactive "P")
-    (let ((files (dired-get-marked-files nil nil)))
-      (mapc (lambda (file)
-              (if (equal arg '(4))
-                  (find-file file)
-                (my/view-file file arg)))
-            files)))
-
-  (defun my/dired-share ()
-    "Share file with remote device via KDE Connect."
-    (interactive)
-    (let ((files (dired-get-marked-files nil nil)))
-      (mapc (lambda (file)
-              (shell-command
-               (mapconcat 'identity
-                          (list "kdeconnect-cli" "-d" "a30587ededf4c2d2"
-                                "--share" (shell-quote-argument
-                                           file)) " ")))
-            files)))
+  (use-package view
+    :diminish view-mode "vw")
 #+end_src
-****** dired-rsync
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-dired-rsync"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package dired-rsync
-    :after dired
-    :bind (:map dired-mode-map
-                ("C-c C-r" . dired-rsync))
-    :custom
-    (dired-rsync-options "-auz --info=progress2"))
-#+end_src
-
-****** dired-single                        :ARCHIVE:
-
-#+begin_src emacs-lisp :tangle no
-  ("https://github.com/crocket/dired-single/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package dired-single
-    :straight t
-    :after dired
-    :bind (:map dired-mode-map
-                ("C-j" . dired-single-buffer)
-                ("^" . dired-single-up-directory)))
-#+end_src
-
-****** dired-hacks
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-dired-hacks"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package dired-subtree
-    :after dired
-    :bind (:map dired-mode-map
-                ("TAB" . dired-subtree-cycle)))
-
-  (use-package dired-narrow
-    :after dired
-    :bind
-    (:map dired-mode-map
-          ("z" . dired-narrow))
-    (:map dired-narrow-map
-          ("C-j" . exit-minibuffer)))
-#+end_src
-
-****** dired-hide-dotfiles
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/mattiasb/dired-hide-dotfiles/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package dired-hide-dotfiles
-    :straight t
-    :after dired
-    :bind (:map dired-mode-map
-                ("," . dired-clean-directory)
-                ("." . dired-hide-dotfiles-mode))
-    :config
-    (dired-hide-dotfiles-mode -1))
-#+end_src
-
-****** find-dired
-
-#+begin_src emacs-lisp
-  (use-package find-dired
-    :custom
-    (find-grep-options "-n -H --no-heading -q")
-    (find-ls-option '("-print0 | xargs -0 ls -ldN" . "-ldN")))
-
-  (with-eval-after-load 'hydra
-    (defhydra hydra-find-dired (global-map "M-s d"
-                                           :color teal)
-      "find dired"
-      ("f" find-dired)
-      ("F" find-lisp-find-dired)
-      ("g" find-grep-dired)
-      ("n" find-name-dired)
-      ("d" find-lisp-find-dired-subdirectories)
-      ("q" nil "quit")))
-#+end_src
-
-****** locate
-
-#+begin_src emacs-lisp :noweb yes
-  (use-package locate
-    :custom
-    (locate-fcodes-file "<<locate-db()>>")
-    (locate-update-path (expand-file-name "~/")))
-#+end_src
-
-***** EWW
-
-#+begin_src emacs-lisp
-  (use-package shr
-    :custom
-    (shr-width 10000)
-    (shr-use-fonts nil)
-    (shr-image-animate t)
-    (shr-use-colors nil)
-    (shr-max-image-proportion 0.4))
-
-  (use-package eww
-    :delight " EW"
-    :hook
-    (eww-after-render . my/eww-rename-buffer)
-    :custom
-    ;; set enough large column number to prevent from inserting line break
-    (eww-header-line-format nil)
-    :config
-    (bind-keys :map eww-mode-map
-               ("C" . eww-set-character-encoding)
-               ("C-j" . eww-follow-link)
-               ("T" . eww-goto-title-heading)
-               ("L" . my/eww-goto-heading)
-               ("O" . my/eww-convert-to-org)
-               :map eww-bookmark-mode-map
-               ("C-j" . eww-bookmark-browse)))
-
-  (defun my/eww-rename-buffer ()
-    "Rename the name of current EWW buffer.
-
-  If associated HTML file have a title tag, use title as a buffer name.
-  Otherwise, use a current URL."
-    (let ((title (plist-get eww-data :title))
-          (url (file-name-base (eww-current-url))))
-      (rename-buffer (format "eww: %s" (or (if (and title (> (length title) 0))
-                                               title nil)
-                                           url "")) t)))
-
-  (defun my/eww-convert-to-org ()
-    "Convert current html page into one org file and show it.
-
-  This is handy if you would like to check a page index comfortably."
-    (interactive)
-    (let ((source (plist-get eww-data :source))
-          (src-html (make-temp-file "source-"))
-          (dst-org (expand-file-name (format "%s.org" (org-id-uuid)) "~/tmp"))
-          (coding-system-for-write 'utf-8-unix)
-          (org-startup-folded t))
-      (with-temp-buffer
-        (insert source)
-        (write-region (point-min) (point-max) src-html nil)
-        (call-process-shell-command (format "pandoc %s -f html -t org -o %s"
-                                            (shell-quote-argument src-html)
-                                            (shell-quote-argument dst-org)))
-        (delete-file src-html))
-      (find-file dst-org t)
-      (goto-char (point-min))
-      (org-ctrl-c-tab)))
-
-  (defun eww-headings-dom ()
-    "Return heading list as a dom from xml."
-    (let ((source (plist-get eww-data :source))
-          (dom nil))
-      (with-temp-buffer
-        (let ((source-file (make-temp-file "source-"))
-              (coding-system-for-write 'utf-8-unix))
-          (insert source)
-          (write-region (point-min) (point-max) source-file nil)
-          (erase-buffer)
-          (call-process "extract_headings" source-file t)
-          (delete-file source-file)
-          (libxml-parse-xml-region (point-min) (point-max))))))
-
-  (defun eww-goto-title-heading ()
-    "Set point to a line which contaings the possible heading."
-    (interactive)
-    (when-let* ((headings-dom (eww-headings-dom))
-                (possible-heading (cl-reduce (lambda (node-a node-b)
-                                               (if (not (bound-and-true-p node-a))
-                                                   (if (not (bound-and-true-p node-b))
-                                                       nil
-                                                     node-b)
-                                                 (if (>= (string-to-number (dom-attr node-a 'proximity))
-                                                         (string-to-number (dom-attr node-b 'proximity)))
-                                                     node-a node-b)))
-                                             (dom-children headings-dom)
-                                             :initial-value nil))
-                (possible-text (dom-text possible-heading))
-                (match-pos (or (re-search-forward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1)
-                               (re-search-backward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1))))
-      (beginning-of-line)
-      (recenter-top-bottom 0)))
-
-  (defun my/eww-goto-heading ()
-    "Go to selected heading line."
-    (interactive)
-    (setq lexical-binding t)
-    (when-let* ((headings-root (eww-headings-dom))
-                (cur-buf (current-buffer))
-                (heading (completing-read
-                          "Heading : "
-                          (mapcar (lambda (heading-node)
-                                    (when-let* ((heading (dom-text heading-node))
-                                                (tag (symbol-name (dom-tag heading-node)))
-                                                (match-pos (string-match "h\\([1-6]\\{1\\}\\)" tag))
-                                                (indent (- (string-to-number (match-string 1 tag)) 1)))
-                                      (format "%s%s"
-                                              (apply 'concat (make-list indent "  "))
-                                              heading)))
-                                  (dom-children headings-root))))
-                (match (string-match "\\(?:  \\)*\\(.*\\)" heading))
-                (heading (match-string 1 heading))
-                (match-pos (or (re-search-forward (build-regex heading) nil t 1)
-                               (re-search-backward (build-regex heading) nil t 1))))
-      (with-current-buffer cur-buf
-        (switch-to-buffer cur-buf)
-        (beginning-of-line)
-        (recenter-top-bottom 0))))
-
-  (defmacro build-regex (str)
-    "Return a regexp representation for `STR'."
-    `(format "^[[:blank:]SVG Image]*%s[[:blank:]]*$"
-             ,str))
-#+end_src
-
-****** extract_headings
-#+begin_src python :tangle (expand-tangle-target ".local/bin/extract_headings") :tangle-mode (identity #o755)
-  #!/usr/bin/env python3
-
-  # This script extract most probable page heading.
-
-  import sys
-  import lxml.html as html
-  from lxml import etree
-  import difflib
-
-  if len(sys.argv) == 1:
-      INPUT_STR = sys.stdin.read()
-      ROOT = html.fromstring(INPUT_STR).getroottree()
-  else:
-      sys.exit(1)
-
-  OUT_ROOT = etree.Element("headings")
-
-  # extract title text
-  title = ''
-  title_text_arr = ROOT.xpath('//title[1]//text()')
-  if len(title_text_arr):
-      title = title_text_arr[0]
-      OUT_ROOT.set("title", title.strip())
-
-  htag_text_arr = ROOT.xpath('//*[self::h1 or self::h2 or self::h3 or self::h4 or self::h5 or self::h6]')
-  for i in range(len(htag_text_arr)):
-      text = ''
-      texts = htag_text_arr[i].xpath('.//text()')
-      if len(texts) == 1:
-          text = texts[0].strip()
-      elif len(texts) > 1:
-          text = ''.join(map(str.strip, texts))
-      else:
-          continue
-      proximity = difflib.SequenceMatcher(None, title, text).ratio()
-      heading = etree.Element(htag_text_arr[i].tag)
-      heading.text = text
-      heading.set('proximity', str(proximity))
-      OUT_ROOT.append(heading)
-
-  out_root_str = etree.tostring(OUT_ROOT, encoding='utf-8', method='xml', pretty_print=True)
-  if type(out_root_str) is bytes:
-      out_root_str = out_root_str.decode()
-      print(out_root_str)
-#+end_src
-***** Calc (The GNU Emacs Calculator)
-
-#+begin_src emacs-lisp
-  (use-package calc
-    :bind ("<f6>" . calc)
-    :config
-    (setf calc-display-trail nil))
-#+end_src
-**** input method
+**** Input Methods
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/input-method.el")
 :END:
@@ -1587,7 +1209,7 @@ Mouse needs to be unobtrusive in my Emacs experience.
                       (skk-del-alist key skk-rom-kana-rule-list)))))
 #+end_src
 
-**** theme
+**** Themes
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/themes.el")
 :END:
@@ -1613,6 +1235,451 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
     ;; Load the theme of your choice:
     (modus-themes-load-vivendi)
     :bind ("<f5>" . modus-themes-toggle))
+#+end_src
+**** Dired
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/dired.el")
+:END:
+
+#+begin_src emacs-lisp
+  (use-package dired
+    :bind (:map dired-mode-map
+                ("C-j" . my/dired-find-file-alternate-directory)
+                ("^" . (lambda () (interactive)
+                         (my/dired-find-file-alternate-directory "..")))
+                ("(" . dired-hide-details-mode)
+                (")" . dired-hide-details-mode)
+                ("E" . dired-create-empty-file)
+                ("Y" . dired-do-relsymlink)
+                ("e" . wdired-change-to-wdired-mode)
+                ("C-o" . nil)
+                ("o" . my/dired-open)
+                ("C-c C-o" . my/dired-open)
+                ("C-c C-s" . my/dired-share))
+    :hook (dired-mode . dired-hide-details-mode)
+    :custom
+    (dired-recursive-copies 'always)
+    (dired-recursive-deletes 'top)
+    (dired-listing-switches "-ahgG --time-style=iso --group-directories-first")
+    (dired-dwim-target 'dired-dwim-target-recent)
+    (dired-hide-details-hide-information-lines nil)
+    :config
+    (setq dired-isearch-filenames t)
+    (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
+    (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion))
+
+  (use-package dired-x
+    :after dired)
+
+  (defun my/advice-dired-control-deletion (oldfun &rest r)
+    "Enable file deleting functions to control deleting procedure
+  whether files are going to be in trash box."
+    (let ((delete-by-moving-to-trash
+           (if (equal current-prefix-arg '(4))
+               nil t)))
+      (apply oldfun (cdr r))))
+
+  (defun my/dired-find-file-alternate-directory (&optional file)
+    "Visit file at current line with `find-file' or visit directory with `find-alternate-file'.
+
+  If `FILE' is passed, find it instead."
+    (interactive)
+    (if-let ((find-file (or (and file
+                                 (if (file-name-absolute-p file)
+                                     file
+                                   (expand-file-name file (dired-current-directory))))
+                            (dired-get-filename nil t))))
+        (cond
+         ((file-directory-p find-file)
+          (find-alternate-file find-file))
+         ((file-readable-p find-file)
+          (find-file find-file))
+         (t
+          (message "File is not readable.")))
+      (message "Nothing to open in this line.")))
+
+  (defun my/dired-open (&optional arg)
+    "Open file in Dired.
+
+  File is either on current line or marked targets.
+  Optional argument `ARG' is passed to `my/view-file'."
+    (interactive "P")
+    (let ((files (dired-get-marked-files nil nil)))
+      (mapc (lambda (file)
+              (if (equal arg '(4))
+                  (find-file file)
+                (my/view-file file arg)))
+            files)))
+
+  (defun my/dired-share ()
+    "Share file with remote device via KDE Connect."
+    (interactive)
+    (let ((files (dired-get-marked-files nil nil)))
+      (mapc (lambda (file)
+              (shell-command
+               (mapconcat 'identity
+                          (list "kdeconnect-cli" "-d" "a30587ededf4c2d2"
+                                "--share" (shell-quote-argument
+                                           file)) " ")))
+            files)))
+#+end_src
+***** dired-rsync
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-dired-rsync"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package dired-rsync
+    :after dired
+    :bind (:map dired-mode-map
+                ("C-c C-r" . dired-rsync))
+    :custom
+    (dired-rsync-options "-auz --info=progress2"))
+#+end_src
+
+***** dired-single                          :ARCHIVE:
+
+#+begin_src emacs-lisp :tangle no
+  ("https://github.com/crocket/dired-single/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package dired-single
+    :straight t
+    :after dired
+    :bind (:map dired-mode-map
+                ("C-j" . dired-single-buffer)
+                ("^" . dired-single-up-directory)))
+#+end_src
+
+***** dired-hacks
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-dired-hacks"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package dired-subtree
+    :after dired
+    :bind (:map dired-mode-map
+                ("TAB" . dired-subtree-cycle)))
+
+  (use-package dired-narrow
+    :after dired
+    :bind
+    (:map dired-mode-map
+          ("z" . dired-narrow))
+    (:map dired-narrow-map
+          ("C-j" . exit-minibuffer)))
+#+end_src
+
+***** dired-hide-dotfiles
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/mattiasb/dired-hide-dotfiles/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package dired-hide-dotfiles
+    :straight t
+    :after dired
+    :bind (:map dired-mode-map
+                ("," . dired-clean-directory)
+                ("." . dired-hide-dotfiles-mode))
+    :config
+    (dired-hide-dotfiles-mode -1))
+#+end_src
+
+***** find-dired
+
+#+begin_src emacs-lisp
+  (use-package find-dired
+    :custom
+    (find-grep-options "-n -H --no-heading -q")
+    (find-ls-option '("-print0 | xargs -0 ls -ldN" . "-ldN")))
+
+  (with-eval-after-load 'hydra
+    (defhydra hydra-find-dired (global-map "M-s d"
+                                           :color teal)
+      "find dired"
+      ("f" find-dired)
+      ("F" find-lisp-find-dired)
+      ("g" find-grep-dired)
+      ("n" find-name-dired)
+      ("d" find-lisp-find-dired-subdirectories)
+      ("q" nil "quit")))
+#+end_src
+
+***** locate
+
+#+begin_src emacs-lisp :noweb yes
+  (use-package locate
+    :custom
+    (locate-fcodes-file "<<locate-db()>>")
+    (locate-update-path (expand-file-name "~/")))
+#+end_src
+
+**** EWW
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/eww.el")
+:END:
+
+#+begin_src emacs-lisp
+  (use-package shr
+    :custom
+    (shr-width 10000)
+    (shr-use-fonts nil)
+    (shr-image-animate t)
+    (shr-use-colors nil)
+    (shr-max-image-proportion 0.4))
+
+  (use-package eww
+    :delight " EW"
+    :hook
+    (eww-after-render . my/eww-rename-buffer)
+    :custom
+    ;; set enough large column number to prevent from inserting line break
+    (eww-header-line-format nil)
+    :config
+    (bind-keys :map eww-mode-map
+               ("C" . eww-set-character-encoding)
+               ("C-j" . eww-follow-link)
+               ("T" . eww-goto-title-heading)
+               ("L" . my/eww-goto-heading)
+               ("O" . my/eww-convert-to-org)
+               :map eww-bookmark-mode-map
+               ("C-j" . eww-bookmark-browse)))
+
+  (defun my/eww-rename-buffer ()
+    "Rename the name of current EWW buffer.
+
+  If associated HTML file have a title tag, use title as a buffer name.
+  Otherwise, use a current URL."
+    (let ((title (plist-get eww-data :title))
+          (url (file-name-base (eww-current-url))))
+      (rename-buffer (format "eww: %s" (or (if (and title (> (length title) 0))
+                                               title nil)
+                                           url "")) t)))
+
+  (defun my/eww-convert-to-org ()
+    "Convert current html page into one org file and show it.
+
+  This is handy if you would like to check a page index comfortably."
+    (interactive)
+    (let ((source (plist-get eww-data :source))
+          (src-html (make-temp-file "source-"))
+          (dst-org (expand-file-name (format "%s.org" (org-id-uuid)) "~/tmp"))
+          (coding-system-for-write 'utf-8-unix)
+          (org-startup-folded t))
+      (with-temp-buffer
+        (insert source)
+        (write-region (point-min) (point-max) src-html nil)
+        (call-process-shell-command (format "pandoc %s -f html -t org -o %s"
+                                            (shell-quote-argument src-html)
+                                            (shell-quote-argument dst-org)))
+        (delete-file src-html))
+      (find-file dst-org t)
+      (goto-char (point-min))
+      (org-ctrl-c-tab)))
+
+  (defun eww-headings-dom ()
+    "Return heading list as a dom from xml."
+    (let ((source (plist-get eww-data :source))
+          (dom nil))
+      (with-temp-buffer
+        (let ((source-file (make-temp-file "source-"))
+              (coding-system-for-write 'utf-8-unix))
+          (insert source)
+          (write-region (point-min) (point-max) source-file nil)
+          (erase-buffer)
+          (call-process "extract_headings" source-file t)
+          (delete-file source-file)
+          (libxml-parse-xml-region (point-min) (point-max))))))
+
+  (defun eww-goto-title-heading ()
+    "Set point to a line which contaings the possible heading."
+    (interactive)
+    (when-let* ((headings-dom (eww-headings-dom))
+                (possible-heading (cl-reduce (lambda (node-a node-b)
+                                               (if (not (bound-and-true-p node-a))
+                                                   (if (not (bound-and-true-p node-b))
+                                                       nil
+                                                     node-b)
+                                                 (if (>= (string-to-number (dom-attr node-a 'proximity))
+                                                         (string-to-number (dom-attr node-b 'proximity)))
+                                                     node-a node-b)))
+                                             (dom-children headings-dom)
+                                             :initial-value nil))
+                (possible-text (dom-text possible-heading))
+                (match-pos (or (re-search-forward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1)
+                               (re-search-backward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1))))
+      (beginning-of-line)
+      (recenter-top-bottom 0)))
+
+  (defun my/eww-goto-heading ()
+    "Go to selected heading line."
+    (interactive)
+    (setq lexical-binding t)
+    (when-let* ((headings-root (eww-headings-dom))
+                (cur-buf (current-buffer))
+                (heading (completing-read
+                          "Heading : "
+                          (mapcar (lambda (heading-node)
+                                    (when-let* ((heading (dom-text heading-node))
+                                                (tag (symbol-name (dom-tag heading-node)))
+                                                (match-pos (string-match "h\\([1-6]\\{1\\}\\)" tag))
+                                                (indent (- (string-to-number (match-string 1 tag)) 1)))
+                                      (format "%s%s"
+                                              (apply 'concat (make-list indent "  "))
+                                              heading)))
+                                  (dom-children headings-root))))
+                (match (string-match "\\(?:  \\)*\\(.*\\)" heading))
+                (heading (match-string 1 heading))
+                (match-pos (or (re-search-forward (build-regex heading) nil t 1)
+                               (re-search-backward (build-regex heading) nil t 1))))
+      (with-current-buffer cur-buf
+        (switch-to-buffer cur-buf)
+        (beginning-of-line)
+        (recenter-top-bottom 0))))
+
+  (defmacro build-regex (str)
+    "Return a regexp representation for `STR'."
+    `(format "^[[:blank:]SVG Image]*%s[[:blank:]]*$"
+             ,str))
+#+end_src
+
+***** extract_headings
+#+begin_src python :tangle (expand-tangle-target ".local/bin/extract_headings") :tangle-mode (identity #o755)
+  #!/usr/bin/env python3
+
+  # This script extract most probable page heading.
+
+  import sys
+  import lxml.html as html
+  from lxml import etree
+  import difflib
+
+  if len(sys.argv) == 1:
+      INPUT_STR = sys.stdin.read()
+      ROOT = html.fromstring(INPUT_STR).getroottree()
+  else:
+      sys.exit(1)
+
+  OUT_ROOT = etree.Element("headings")
+
+  # extract title text
+  title = ''
+  title_text_arr = ROOT.xpath('//title[1]//text()')
+  if len(title_text_arr):
+      title = title_text_arr[0]
+      OUT_ROOT.set("title", title.strip())
+
+  htag_text_arr = ROOT.xpath('//*[self::h1 or self::h2 or self::h3 or self::h4 or self::h5 or self::h6]')
+  for i in range(len(htag_text_arr)):
+      text = ''
+      texts = htag_text_arr[i].xpath('.//text()')
+      if len(texts) == 1:
+          text = texts[0].strip()
+      elif len(texts) > 1:
+          text = ''.join(map(str.strip, texts))
+      else:
+          continue
+      proximity = difflib.SequenceMatcher(None, title, text).ratio()
+      heading = etree.Element(htag_text_arr[i].tag)
+      heading.text = text
+      heading.set('proximity', str(proximity))
+      OUT_ROOT.append(heading)
+
+  out_root_str = etree.tostring(OUT_ROOT, encoding='utf-8', method='xml', pretty_print=True)
+  if type(out_root_str) is bytes:
+      out_root_str = out_root_str.decode()
+      print(out_root_str)
+#+end_src
+**** Magit
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/magit.el")
+:END:
+
+[[https://github.com/magit/magit][Magit]] is git front end for emacs which is outstandingly powerful.
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-magit"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/magit/magit/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package magit
+    :delight
+    (magit-status-mode " MG")
+    (magit-revision-mode " MG")
+    :bind (:map magit-status-mode-map
+                ("C-j" . magit-visit-thing)
+                ("/"   . magit-file-checkout)
+                (";"   . magit-list-repositories)
+                :map magit-log-mode-map
+                ("C-j" . magit-visit-thing)
+                :map magit-repolist-mode-map
+                ("C-j" . magit-repolist-status))
+    :custom
+    (magit-repository-directories '(("~/git" . 1))))
+#+end_src
+
+***** git-modes
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-git-modes"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package git-modes)
+#+end_src
+
+***** orgit
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-orgit"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package orgit
+    :after (magit org)
+    :custom
+    (orgit-remote "github"))
+#+end_src
+
+***** git-annex
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-git-annex"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/jwiegley/git-annex-el/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package git-annex
+    :custom-face
+    (git-annex-dired-annexed-available ((t (:foreground "green yellow"))))
+    (git-annex-dired-annexed-unavailable ((t (:foreground "red3")))))
+#+end_src
+
+***** magit-annex
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-magit-annex"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/magit/magit-annex/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package magit-annex)
 #+end_src
 
 **** Mu4e
@@ -2274,9 +2341,16 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
     (defalias 'calendar-absolute-from-iso 'calendar-iso-to-absolute)
 
     ;; image
-    (setq org-image-actual-width 100)
+    (setq org-image-actual-width 100))
+#+end_src
 
-    ;; structure templates
+***** Org Edit Structure
+
+#+begin_src emacs-lisp
+  (use-package org
+    :custom
+    (org-edit-src-auto-save-idle-delay 3)
+    :config
     (add-to-list 'org-structure-template-alist (cons "sh" "src shell"))
     (add-to-list 'org-structure-template-alist (cons "tx" "src text"))
     (add-to-list 'org-structure-template-alist (cons "el" "src emacs-lisp"))
@@ -2956,10 +3030,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
     :config
     (advice-add #'org-edit-src-save
                 :before
-                #'my/delete-trailing-whitespace)
-    (advice-add #'org-edit-src-exit
-                :after
-                #'save-buffer))
+                #'my/delete-trailing-whitespace))
 
   (defun my/delete-trailing-whitespace ()
     (delete-trailing-whitespace))
@@ -4146,10 +4217,26 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
            ("\\.htaccess$" . apache-conf-generic-mode)))
 #+end_src
 
-**** managing, building and maintaining programs
+**** Programming
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/programs.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/programming.el")
 :END:
+
+***** Next Error
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(next-error-message-highlight t))
+#+end_src
+
+***** Hideshow
+
+#+begin_src emacs-lisp
+  (use-package hideshow
+    :diminish "hs"
+    :bind (("C-c TAB" . hs-toggle-hiding)))
+#+end_src
+
 ***** imenu
 
 #+begin_src emacs-lisp
@@ -4257,89 +4344,18 @@ Use hosting version of project.el on GitHub via straight until Emacs 28 which sh
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/packages.el")
 :END:
 
-***** Magit
-
-[[https://github.com/magit/magit][Magit]] is git front end for emacs which is outstandingly powerful.
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-magit"
-#+end_src
+***** Whole Line Or Region
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/magit/magit/releases.atom" soft_update)
+  ("https://github.com/purcell/whole-line-or-region/releases.atom" soft_update)
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package magit
-    :delight
-    (magit-status-mode " MG")
-    (magit-revision-mode " MG")
-    :bind (:map magit-status-mode-map
-                ("C-j" . magit-visit-thing)
-                ("/"   . magit-file-checkout)
-                (";"   . magit-list-repositories)
-                :map magit-log-mode-map
-                ("C-j" . magit-visit-thing)
-                :map magit-repolist-mode-map
-                ("C-j" . magit-repolist-status))
-    :custom
-    (magit-repository-directories '(("~/git" . 1))))
+  (use-package whole-line-or-region
+    :straight t
+    :config
+    (whole-line-or-region-global-mode 1))
 #+end_src
-
-****** git-modes
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-git-modes"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package git-modes)
-#+end_src
-
-****** orgit
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-orgit"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package orgit
-    :after (magit org)
-    :custom
-    (orgit-remote "github"))
-#+end_src
-
-****** git-annex
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-git-annex"
-#+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/jwiegley/git-annex-el/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package git-annex
-    :custom-face
-    (git-annex-dired-annexed-available ((t (:foreground "green yellow"))))
-    (git-annex-dired-annexed-unavailable ((t (:foreground "red3")))))
-#+end_src
-
-****** magit-annex
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-magit-annex"
-#+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/magit/magit-annex/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package magit-annex)
-#+end_src
-
 ***** projectile         :maintaining:ARCHIVE:ignore:
 
 #+begin_src emacs-lisp
@@ -6103,6 +6119,19 @@ It's confortable to read long material such as web page , epub file or email wit
     (transpose-lines 1)
     (previous-line 1))
   (global-set-key (kbd "M-S-<down>") 'my/drag-line-forward)
+
+  (defun my/comment-box (b e)
+    "Draw a box comment around the region but arrange for the region
+    to extend to at least the fill column. Place the point after the
+    comment box."
+    (interactive "r")
+    (let ((e (copy-marker e t)))
+      (goto-char b)
+      (end-of-line)
+      (insert-char ?  (- fill-column (current-column)))
+      (comment-box b e 1)
+      (goto-char e)
+      (set-marker e nil)))
 #+end_src
 
 ***** org entries/items manipulation
