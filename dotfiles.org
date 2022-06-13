@@ -5410,7 +5410,9 @@ to avoid accidental data loss.
     (when-let* ((data (and battery-status-function (funcall battery-status-function)))
                 (percentage (car (read-from-string (cdr (assq ?p data)))))
                 (power (cdr (assq ?L data))))
-      (when (and (< percentage battery-load-low)
+      (when (and (numberp percentage)
+                 (< percentage battery-load-low)
+                 (stringp power)
                  (string= power "BAT"))
         (save-buffers-kill-emacs t))))
 #+end_src
