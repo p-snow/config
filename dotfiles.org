@@ -196,6 +196,7 @@ init.el devote itself to call for remaining config files.
   (global-set-key (kbd "M-SPC") #'cycle-spacing)
   (global-set-key (kbd "C-c k") #'kill-this-buffer)
   (global-set-key (kbd "M-o") #'other-window)
+  (global-set-key (kbd "<f5>") #'revert-buffer-quick)
 #+end_src
 
 - buffers
@@ -415,22 +416,23 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
     :custom
     (auto-revert-verbose nil)
     (global-auto-revert-non-file-buffers t)
-    :config
-    (global-auto-revert-mode 1))
+    (auto-revert-interval 3)
+    (global-auto-revert-mode t))
 #+end_src
 
 ****** Auto Save
 
 #+begin_src emacs-lisp
   (custom-set-variables
-   '(auto-save-interval 4)
-   '(auto-save-timeout 1)
+   '(auto-save-interval 200)
+   '(auto-save-timeout 25)
    '(auto-save-default t)
    '(auto-save-list-file-prefix
      (concat user-emacs-directory "auto-save-list/.saves-"))
    '(delete-by-moving-to-trash t)
    '(delete-auto-save-files t)
-   '(kill-buffer-delete-auto-save-files t))
+   '(kill-buffer-delete-auto-save-files t)
+   '(save-some-buffers-default-predicate 'save-some-buffers-root))
 #+end_src
 
 ****** Uniquify
@@ -475,6 +477,12 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
       (find-alternate-file
        (concat "/sudo:root@localhost:"
                buffer-file-name))))
+#+end_src
+****** Find File
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(revert-buffer-quick-short-answers t))
 #+end_src
 
 ***** Environment
@@ -535,7 +543,9 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
 You can now switch windows with your shift key by pressing S-<left>, S-<right>, S-<up>, S-<down>.
 
 #+begin_src emacs-lisp
-  (windmove-default-keybindings)
+  (use-package windmove
+    :config
+    (windmove-default-keybindings 'hyper))
 #+end_src
 
 ****** Minibuffer
@@ -705,6 +715,14 @@ Mouse needs to be unobtrusive in my Emacs experience.
     (global-whitespace-mode -1))
 #+end_src
 
+****** So Long
+
+#+begin_src emacs-lisp
+  (require 'so-long)
+
+  (custom-set-variables '(global-so-long-mode t))
+#+end_src
+
 ***** Editing
 
 ****** Indent
@@ -713,7 +731,8 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
 
 #+begin_src emacs-lisp
   (custom-set-variables '(tab-always-indent 'complete)
-                        '(indent-tabs-mode nil))
+                        '(indent-tabs-mode nil)
+                        '(tab-first-completion 'word-or-paren-or-punct))
 #+end_src
 
 ****** Electricity
@@ -746,18 +765,19 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
 #+begin_src emacs-lisp
   (custom-set-variables '(undo-limit 320000)
                         '(undo-strong-limit 480000)
-                        '(undo-outer-limit 48000000))
+                        '(undo-outer-limit 48000000)
+                        '(undo-no-redo t))
 #+end_src
 
 ****** Matching
 ******* Isearch
 
 #+begin_src emacs-lisp
-  (use-package isearch
-    :diminish "is"
-    :config
-    (bind-keys :map isearch-mode-map
-               ("C-j" . isearch-exit)))
+  (provide 'isearch)
+
+  (custom-set-variables '(isearch-allow-motion t))
+
+  (define-key isearch-mode-map (kbd "C-j") #'isearch-exit)
 #+end_src
 
 ******* Bookmark
@@ -766,9 +786,8 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
   (use-package bookmark
     :bind ("C-c b" . bookmark-jump)
     :custom
-    (bookmark-watch-bookmark-file 'silent)
-    :config
-    (delight 'bookmark-bmenu-mode " BB"))
+    (bookmark-menu-confirm-deletion t)
+    (bookmark-watch-bookmark-file 'silent))
 #+end_src
 
 ***** Multimedia
@@ -869,11 +888,12 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
 File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of Files]].
 
 #+begin_src emacs-lisp
-  (use-package saveplace
-    :custom
-    (save-place-version-control t)
-    :config
-    (save-place-mode 1))
+  (require 'saveplace)
+
+  (custom-set-variables
+   '(save-place-abbreviate-file-names t)
+   '(save-place-version-control t)
+   '(save-place-mode t))
 #+end_src
 
 ****** Compression
@@ -883,6 +903,18 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (custom-set-variables
      '(auto-compression-mode t))
   #+end_src
+
+****** Tar
+
+#+begin_src emacs-lisp
+  (require 'tar-mode)
+#+end_src
+
+****** Archive
+
+#+begin_src emacs-lisp
+  (require 'archive-mode)
+#+end_src
 
 ***** Editing Basics
 
@@ -988,7 +1020,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp
   (use-package calc
-    :bind ("<f6>" . calc)
+    :bind ("<f7>" . calc)
     :config
     (setf calc-display-trail nil))
 #+end_src
@@ -1025,6 +1057,11 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
            (holiday-list (calendar-check-holidays date)))
       (when holiday-list
         (message "%s: %s" date-string (mapconcat #'identity holiday-list "; ")))))
+#+end_src
+****** Package
+
+#+begin_src emacs-lisp
+  (custom-set-variables '(package-native-compile t))
 #+end_src
 
 ***** Text
@@ -1236,7 +1273,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
     :config
     ;; Load the theme of your choice:
     (modus-themes-load-vivendi)
-    :bind ("<f5>" . modus-themes-toggle))
+    :bind ("<f6>" . modus-themes-toggle))
 #+end_src
 **** Dired
 :PROPERTIES:
@@ -1246,9 +1283,8 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 #+begin_src emacs-lisp
   (use-package dired
     :bind (:map dired-mode-map
-                ("C-j" . my/dired-find-file-alternate-directory)
-                ("^" . (lambda () (interactive)
-                         (my/dired-find-file-alternate-directory "..")))
+                ("C-j" . dired-find-file)
+                ("^" . dired-up-directory)
                 ("(" . dired-hide-details-mode)
                 (")" . dired-hide-details-mode)
                 ("E" . dired-create-empty-file)
@@ -1260,18 +1296,20 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
                 ("C-c C-s" . my/dired-share))
     :hook (dired-mode . dired-hide-details-mode)
     :custom
+    (dired-kill-when-opening-new-dired-buffer t)
+    (dired-do-revert-buffer t)
+    (dired-auto-revert-buffer t)
     (dired-recursive-copies 'always)
     (dired-recursive-deletes 'top)
     (dired-listing-switches "-ahgG --time-style=iso --group-directories-first")
     (dired-dwim-target 'dired-dwim-target-recent)
     (dired-hide-details-hide-information-lines nil)
+    (dired-compress-file-default-suffix ".zst")
     :config
+    (require 'dired-x)
     (setq dired-isearch-filenames t)
     (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
     (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion))
-
-  (use-package dired-x
-    :after dired)
 
   (defun my/advice-dired-control-deletion (oldfun &rest r)
     "Enable file deleting functions to control deleting procedure
@@ -1280,25 +1318,6 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
            (if (equal current-prefix-arg '(4))
                nil t)))
       (apply oldfun (cdr r))))
-
-  (defun my/dired-find-file-alternate-directory (&optional file)
-    "Visit file at current line with `find-file' or visit directory with `find-alternate-file'.
-
-  If `FILE' is passed, find it instead."
-    (interactive)
-    (if-let ((find-file (or (and file
-                                 (if (file-name-absolute-p file)
-                                     file
-                                   (expand-file-name file (dired-current-directory))))
-                            (dired-get-filename nil t))))
-        (cond
-         ((file-directory-p find-file)
-          (find-alternate-file find-file))
-         ((file-readable-p find-file)
-          (find-file find-file))
-         (t
-          (message "File is not readable.")))
-      (message "Nothing to open in this line.")))
 
   (defun my/dired-open (&optional arg)
     "Open file in Dired.
@@ -2045,6 +2064,8 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
   (use-package shell
     :delight " SM"
     :commands (shell)
+    :custom
+    (shell-has-auto-cd t)
     :config
     (bind-keys :map shell-mode-map
                ("C-j" . comint-send-input)))
@@ -4292,21 +4313,15 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 ***** paren
 
 #+begin_src emacs-lisp
-  (use-package paren
-    :custom
-    (show-paren-style 'parenthesis)
-    (show-paren-delay 0.25)
-    :config
-    (show-paren-mode -1))
+  (require 'paren)
+
+  (custom-set-variables
+   '(show-paren-style 'parenthesis)
+   '(show-paren-delay 0.25)
+   '(show-paren-mode nil))
 #+end_src
 
 ***** project
-
-Use hosting version of project.el on GitHub via straight until Emacs 28 which ships with latest version of project.el is released.
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-project"
-#+end_src
 
 #+begin_src emacs-lisp
   (use-package project)
@@ -4529,7 +4544,7 @@ Handy commands
                 ("C-M-;" . paredit-comment-dwim)
                 ("M-;" . nil))
     :hook ((emacs-lisp-mode . enable-paredit-mode)
-           (paredit-mode . show-paren-mode)))
+           (paredit-mode . show-paren-local-mode)))
 #+end_src
 
 - bug fix
