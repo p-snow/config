@@ -496,6 +496,8 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
   (custom-set-variables
    '(highlight-nonselected-windows t)
    '(truncate-lines t)
+   ;; avoid to break at whitespace in Japanese
+   '(word-wrap-by-category t)
    ;; suppress curved quotes in docstring (for emacs25)
    '(text-quoting-style 'straight))
 #+end_src
@@ -3830,12 +3832,11 @@ speed commands and hydra-org.
                                 (string-match-p
                                  (format "\\`[%s]+\\'" "[:ascii:]’“”–") buf-str))
                            (progn ;; text seems to be written in English
-                             (visual-line-mode 1)
                              (activate-input-method nil))
                          (progn ;; text seems to be written in Japanese or blank
-                           (visual-line-mode -1)
-                           (activate-input-method default-input-method))
-                         (toggle-truncate-lines -1)))))))
+                           (activate-input-method default-input-method)))
+                       (visual-line-mode 1)
+                       (toggle-truncate-lines -1))))))
 #+end_src
 
 ***** nxml-mode
