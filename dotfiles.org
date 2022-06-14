@@ -41,6 +41,11 @@
 :END:
 
 ** GNU Emacs
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-native-comp"
+#+end_src
+
 *** general configuration
 
 **** early-init.el
@@ -827,6 +832,18 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
     :custom
     (reb-re-syntax 'string))
 #+end_src
+
+******* Comp
+
+For [[info:elisp#Native Compilation][native compilation feature]] introduced at Emacs 28.1.
+
+#+begin_src emacs-lisp
+  (use-package comp
+    :custom
+    (native-comp-async-report-warnings-errors 'silent)
+    (native-comp-async-query-on-exit t))
+#+end_src
+
 ****** Debug
 
 #+begin_src emacs-lisp
@@ -8713,7 +8730,10 @@ Extendable version manager
          (url "https://gitlab.com/nonguix/nonguix"))
         (channel
          (name 'guix)
-         (url "https://git.savannah.gnu.org/git/guix.git")))
+         (url "https://git.savannah.gnu.org/git/guix.git"))
+        (channel
+         (name 'flat)
+         (url "https://github.com/flatwhatson/guix-channel.git")))
 #+end_src
 
 *** Manifests
@@ -8795,9 +8815,7 @@ Extendable version manager
 - emacs
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/emacs.scm")
     (specifications->manifest
-     '("emacs"
-       ;; "emacs-no-x-toolkit"
-       <<emacs-pkgs>>
+     '(<<emacs-pkgs>>
        "isync"
        "stunnel"
        "wordnet"))
