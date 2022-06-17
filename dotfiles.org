@@ -11698,10 +11698,10 @@ A script which executes command with elevating privilege using password from pas
   elif [[ $((${bitrate})) -lt 1600 ]]; then
     CRF=26
   else
-    CRF=30
+    CRF=28
   fi
 
-  av1_opts_common="-c:v libaom-av1 -cpu-used 4 -row-mt 1 -threads $(nproc) -b:v 0 -crf ${CRF}"
+  av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf ${CRF}"
   av1_opts_pass1="${av1_opts_common} -pass 1 -an -f null"
   av1_opts_pass2="${av1_opts_common} -pass 2 -map_metadata 0"
   opus_opts='-c:a libopus -b:a 128k -ac 2'
