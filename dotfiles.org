@@ -11711,6 +11711,30 @@ A script which executes command with elevating privilege using password from pas
     && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
 #+end_src
 
+** audio encoding
+
+- usage
+  + encode bulk podcast files for 64kb/s (in Dired)
+    : $ nohup parallel opusencode "{}" "{.}".oga ::: *
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/opusencode") :tangle-mode (identity #o555)
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  if [[ $# -ge 1 ]]; then
+    INPUT_VIDEO=$1
+    if [[ $# -eq 2 ]]; then
+      OUTPUT_VIDEO=$2
+    else
+      OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").oga
+    fi
+  fi
+
+  opus_opts="-c:a libopus -b:a 64k -ac 2"
+
+  ffmpeg -i "${INPUT_VIDEO}" ${opus_opts} "${OUTPUT_VIDEO}"
+#+end_src
+
 ** audio manipulation
 
 #+begin_src scheme :noweb-ref base-pkgs
