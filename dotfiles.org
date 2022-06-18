@@ -7404,7 +7404,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
   (defun my/lfile--locate (pattern)
     (if pattern
         (split-string (shell-command-to-string
-                       (format "locate '%s'" pattern))
+                       (format "locate -ie '%s'" pattern))
                       "\n" t)
       ""))
 
@@ -7666,11 +7666,12 @@ This section mainly for elisp code associated with some other programs.
 
     #+begin_src shell :noweb yes :noweb-ref bashrc
       export LOCATE_PATH=<<locate-db()>>
+      export PRUNEPATHS='<<home-dir()>>/\.local/share/Trash/.+ .*\.git/.*'
     #+end_src
   + updatedb script for user home directory
 
     #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/updatedb_home") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
-      [[ -d $(dirname <<locate-db()>>) ]] || mkdir -p $(dirnmae <<locate-db()>>) && pwsudo updatedb --localpaths='<<home-dir()>> <<home-dir()>>/doc/ <<home-dir()>>/share/' --output=<<locate-db()>>
+      [[ -d $(dirname <<locate-db()>>) ]] || mkdir -p $(dirnmae <<locate-db()>>) && pwsudo updatedb --localpaths='<<home-dir()>>' --output=<<locate-db()>>
     #+end_src
   + updatedb cron job
 
@@ -7876,6 +7877,8 @@ This section mainly for elisp code associated with some other programs.
   #+END_SRC
 
 *** git-annex
+
+[[https://git-annex.branchable.com/walkthrough/][walkthrough]] is handy instruction.
 
 #+begin_src scheme :noweb-ref base-pkgs
   "git-annex"
@@ -9653,35 +9656,15 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
   timestamp_format long
   incremental yes
 
-  volume /mnt/dt01
-    subvolume incumbents/doc
-      snapshot_name doc-local
-      snapshot_preserve 7d 4w 2m
-      snapshot_preserve_min latest
-    subvolume incumbents/doc
-      snapshot_name doc-backup
-      target send-receive /mnt/bk01/backups
-      target_preserve 12w 6m
-      target_preserve_min latest
+  volume /mnt/in01
     subvolume incumbents/home
       snapshot_name home-local
       snapshot_preserve 3d 2w 1m
       snapshot_preserve_min 1d
     subvolume incumbents/home
       snapshot_name home-backup
-      target send-receive /mnt/bk01/backups
+      target send-receive /mnt/ex01/backups
       target_preserve 10w
-      target_preserve_min latest
-
-  volume /mnt/dt02
-    subvolume incumbents/share
-      snapshot_name share-local
-      snapshot_preserve 60d 30w
-      snapshot_preserve_min 1w
-    subvolume incumbents/share
-      snapshot_name share-backup
-      target send-receive /mnt/bk01/backups
-      target_preserve 7d *w
       target_preserve_min latest
 #+end_src
 
