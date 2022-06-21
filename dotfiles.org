@@ -404,6 +404,7 @@ Caveat: There are some face definitions which use an extra large font since I am
 **** basic preference
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/01-pref.el")
+:ID:       587bc395-6321-4f59-97e6-6f0b62518b20
 :END:
 
 Entries in this section represnets [[info:emacs#Customization Groups][Customization Groups]] hierarchy.
@@ -1793,6 +1794,7 @@ Command in practice presumably looks like:
     (mml-default-sign-method 'pgpmime)
     :config
     (require 'mu4e)
+    (require 'org-mu4e)
     (bind-keys :map mu4e-headers-mode-map
                ("C-j" . mu4e-headers-view-message)
                :map mu4e-view-mode-map
@@ -2227,197 +2229,23 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
   ("https://updates.orgmode.org/feed/releases" soft_update)
 #+end_src
 
+***** basic preference for org core features
+
+Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e6-6f0b62518b20][this section]], all entries obey customize group hierarchy for Org mode.
+
 #+begin_src emacs-lisp
   (use-package org
     :defer t
     :mode (("\\.org$" . org-mode))
     :interpreter (("org" . org-mode))
-    :init
-    (defvar org-warning-keyword-0 "UG" "TODO keyword acronym standing for 'UrGent'")
-    (defvar org-todo-keyword-0 "TD" "TODO keyword acronym standing for 'To Do'")
-    (defvar org-todo-keyword-1 "GO" "TODO keyword acronym standing for 'Get On'")
-    (defvar org-todo-keyword-2 "IP" "TODO keyword acronym standing for 'In Progressn'")
-    (defvar org-todo-keyword-3 "AC" "TODO keyword acronym standing for 'doABle'")
-    (defvar org-todo-keyword-4 "SD" "TODO keyword acronym standing for 'SomeDay'")
-    (defvar org-done-keyword-0 "DN" "TODO keyword acronym standing for 'DoNe'")
-    (defvar org-done-keyword-1 "CX" "TODO keyword acronym standing for 'Cancel'")
-    (defvar org-done-keyword-2 "PD" "TODO keyword acronym standing for 'PenDing'")
-    :hook (org-after-todo-state-change . save-buffer)
-    :custom
-    (org-directory (expand-file-name "~/org"))
-    (org-special-ctrl-a/e t)
-    (org-adapt-indentation nil)
-    (org-hide-emphasis-markers t)
-    (org-bookmark-names-plist nil)
-    (org-catch-invisible-edits 'smart)
-    ;; inline image
-    (org-startup-with-inline-images t)
-    (org-display-remote-inline-images 'cache)
-    ;; do not split line at point
-    (org-M-RET-may-split-line '((default . nil)))
-    :config
-    (require 'org-mu4e)
-
-    ;; local key bindings
-    (bind-keys :map org-mode-map
-               ("C-j"     . org-return)
-               ("C-M-j"   . org-return-indent)
-               ("M-j"     . org-meta-return)
-               ("C-S-p"   . org-previous-item)
-               ("C-S-n"   . org-next-item)
-               ("C-S-u"   . org-up-element)
-               ("C-$"     . org-down-element)
-               ("C-<"     . org-previous-link)
-               ("C->"     . org-next-link)
-               ("C-c @"   . org-mark-element)
-               ("C-c C-SPC" . org-mark-subtree)
-               ("C-c D v" . org-download-video-link-at-point)
-               ("C-c D a" . org-download-audio-link-at-point)
-               ("C-c D =" . org-show-media-duration-at-point)
-               ("C-c !"   . org-readable)
-               ("C-c C-a" . nil)
-               ("C-,"     . nil)
-               ("M-h"     . nil))
-
-    ;; attach
-    (setq org-attach-preferred-new-method nil)
-
-    (setq org-file-apps
-          '((t . (lambda (file-path link-string)
-                   (my/view-file file-path)))))
-
-    ;; basic
-    (setq org-hide-leading-stars t)
-    (setq org-comment-string "####")
-    (setq org-pretty-entities t)
-    (setq org-use-sub-superscripts '{}) ; use _{}/^{} for sub/super script
-
-    ;; tag/property
-    (setq org-use-tag-inheritance "ARCHIVE")
-    (setq org-tags-column -57)
-    (setq org-global-properties
-          '(("Effort_ALL". "0 0:10 0:20 0:30 1:00 1:30 2:00 3:00 4:00 6:00 8:00")))
-    (setq org-use-property-inheritance "TIMELIMIT.*")
-    (setq org-highest-priority ?A)
-    (setq org-lowest-priority ?Z)
-    (setq org-default-priority ?E)
-
-    ;; todo
-    (setq org-enforce-todo-dependencies t)
-    (setq org-todo-keywords
-          `((sequence ,(format "%s(t/!)" org-todo-keyword-0)
-                      ,(format "%s(u/!)" org-warning-keyword-0)
-                      ,(format "%s(g/!)" org-todo-keyword-1)
-                      ,(format "%s(i/!)" org-todo-keyword-2)
-                      "|"
-                      ,(format "%s(d/@)" org-done-keyword-0)
-                      ,(format "%s(x/@)" org-done-keyword-1)
-                      ,(format "%s(p/@)" org-done-keyword-2))
-            (sequence ,(format "%s(a/!)" org-todo-keyword-3)
-                      "|"
-                      ,(format "%s(d/@)" org-done-keyword-0)
-                      ,(format "%s(x/@)" org-done-keyword-1)
-                      ,(format "%s(p/@)" org-done-keyword-2))
-            (sequence ,(format "%s(t/!)" org-todo-keyword-0)
-                      ,(format "%s(s/!)" org-todo-keyword-4)
-                      "|"
-                      ,(format "%s(x/@)" org-done-keyword-1)
-                      ,(format "%s(p/@)" org-done-keyword-2))))
-    (setq org-todo-keyword-faces
-          `((,org-warning-keyword-0 . "red1")
-            (,org-todo-keyword-0    . "green1")
-            (,org-todo-keyword-1    . "DeepPink1")
-            (,org-todo-keyword-2    . "DodgerBlue1")
-            (,org-todo-keyword-3    . "chocolate")
-            (,org-todo-keyword-4    . "SpringGreen")
-            (,org-done-keyword-0    . "gray30")
-            (,org-done-keyword-1    . "dark gray")
-            (,org-done-keyword-2    . "sea green")))
-    (add-hook  'org-after-todo-state-change-hook
-               (lambda ()
-                 (save-excursion
-                   (let* ((element (org-element-at-point))
-                          (todo-state (org-get-todo-state))
-                          (tags (org-get-tags))
-                          (priority (org-element-property :priority element))
-                          (category (org-entry-get (point) "CATEGORY"))
-                          (style (org-entry-get (point) "STYLE")))
-                     ;; remove priority level when the to-do state is changed to DN|CX|PD
-                     (when (and
-                            (s-matches? (format "%1$s\\|%2$s\\|%3$s"
-                                                org-done-keyword-0
-                                                org-done-keyword-1
-                                                org-done-keyword-2)
-                                        todo-state)
-                            (bound-and-true-p priority))
-                       (org-priority ? ))
-                     ;; remove DN state if CATEGORY of the entry is "Cyclic"
-                     (when (and (string= category "Cyclic")
-                                (string= todo-state org-done-keyword-0)
-                                (not (member "web" tags))
-                                (not (string= style "habit")))
-                       (org-todo ""))))))
-    (add-hook 'org-after-todo-statistics-hook
-              (lambda (n-done n-not-done)
-                "Switch project entry to DONE when all subentries are done, to empty otherwise."
-                (when (member "project" (org-get-tags))
-                  (org-todo (if (= n-not-done 0)
-                                (prog1 org-done-keyword-0
-                                  (org-add-planning-info 'closed "now"))
-                              "")))))
-
-    ;; time
-    (setq org-duration-format
-          '(("d" . nil)
-            (special . h:mm)))
-
-    ;; time-stamp
-    (setq org-time-stamp-custom-formats
-          '("<%m-%d %a>" . "<%H:%M>"))
-    (defun org-display-iso-week-at-point ()
-      "Display ISO 8601 week number correspoinds to time stamp at point."
-      (interactive)
-      (let ((ts (org-timestamp-at-point)))
-        (when ts
-          (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil))))))
-    (defun org-timestamp-at-point ()
-      "Return time stamp string at point."
-      (let ((ts-bound (org-in-regexp (org-re-timestamp 'all))))
-        (when ts-bound
-          (buffer-substring (car ts-bound) (cdr ts-bound)))))
-
-    ;; logging
-    (setq org-log-done 'time)
-    (setq org-log-into-drawer t)
-    (setq org-log-states-order-reversed t)
-    (setq org-reverse-note-order nil)
-    (add-hook 'org-log-buffer-setup-hook
-              (lambda ()
-                (setq skk-dcomp-activate 'eolp)
-                (setq skk-dcomp-multiple-activate nil)))
-
-    ;; clock table
-    ;; work around for the bug in emacs 25
-    (defalias 'calendar-absolute-from-iso 'calendar-iso-to-absolute)
-
-    ;; image
-    (setq org-image-actual-width 100))
+    :hook
+    (org-log-buffer-setup
+     . (lambda ()
+         (setq skk-dcomp-activate 'eolp)
+         (setq skk-dcomp-multiple-activate nil))))
 #+end_src
 
-***** Org Edit Structure
-
-#+begin_src emacs-lisp
-  (use-package org
-    :custom
-    (org-edit-src-auto-save-idle-delay 30)
-    :config
-    (add-to-list 'org-structure-template-alist (cons "sh" "src shell"))
-    (add-to-list 'org-structure-template-alist (cons "tx" "src text"))
-    (add-to-list 'org-structure-template-alist (cons "el" "src emacs-lisp"))
-    (add-to-list 'org-structure-template-alist (cons "py" "src python")))
-#+end_src
-
-***** org-agenda
+****** Org Agenda
 
 #+begin_src emacs-lisp
   (use-package org-agenda
@@ -2433,7 +2261,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
     (org-agenda-start-on-weekday 1)
     (org-agenda-skip-deadline-if-done t)
     (org-agenda-include-diary t)
-    ;; following three are for fast agenda view building
+    ;; next 3 custom settings contribute to build agenda view fast
     (org-agenda-inhibit-startup t)
     (org-agenda-dim-blocked-tasks nil)
     (org-agenda-use-tag-inheritance nil)
@@ -2706,7 +2534,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
           (when (string= (match-string 1) (org-clock-drawer-name))
             (while (progn
                      (forward-line 1)
-                     (when (org-match-line org-clock-ts-line-re)
+                     (when (org-match-line (concat "^[ \t]*" org-clock-string "[ \t]*" org-tsr-regexp-both))
                        (setq match-ts
                              (if (match-string 3)
                                  (match-string 3) (match-string 1)))
@@ -2717,7 +2545,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
     latest-time)
 #+end_src
 
-***** org-capture
+****** Org Capture
 
 #+begin_src emacs-lisp
   (use-package org-capture
@@ -2727,6 +2555,8 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
                           (skk-mode 1)
                           (delete-other-windows)))
     :custom
+    (org-directory (expand-file-name "~/org"))
+    (org-reverse-note-order nil)
     (org-capture-bookmark nil)
     (org-capture-templates
      `(("t" "Task"
@@ -2740,11 +2570,6 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
        ("n" "Note"
         entry (file+datetree ,my/org-archive-file)
         "* %? %^g\n %U\n" :tree-type week)
-       ("m" "Memo"
-        entry (file "~/org/note/memo.org")
-        "* %U\n#+begin_src %^{Lnaguage|text}\n%(my-org-capture-filter-memo \"%i\")\n#+end_src"
-        :jump-to-captured t
-        :immediate-finish t)
        ("s" "Someday memo")
        ("ss" "any"
         entry (file+datetree ,my/org-archive-file)
@@ -2777,13 +2602,6 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
         item (clock)
         "- %i%?"))))
 
-  (defun my-org-capture-filter-memo (&optional str)
-    "Replace semantic representation in `org-mode' with plain string in STR."
-    (cond
-     ((stringp str)
-      (replace-regexp-in-string "^\\(*+ \\)" ",\\1" str))
-     (t "")))
-
   (defun org-goto-clocking-or-today ()
     "Go to currently clocking entry.
 
@@ -2808,35 +2626,221 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
         (org-datetree-find-iso-week-create `(,month ,day ,year) nil))))
 #+end_src
 
-***** org-timer and org-clock
+****** Org Startup
 
 #+begin_src emacs-lisp
-  (use-package org-timer
+  (use-package org
+    :custom
+    ;; allow _{}/^{} format for sub/super script
+    (org-use-sub-superscripts '{})
+    (org-startup-with-inline-images t))
+#+end_src
+
+****** Org TODO
+
+#+begin_src emacs-lisp
+  (defvar org-warning-keyword-0 "UG" "TODO keyword acronym standing for 'UrGent'")
+  (defvar org-todo-keyword-0 "TD" "TODO keyword acronym standing for 'To Do'")
+  (defvar org-todo-keyword-1 "GO" "TODO keyword acronym standing for 'Get On'")
+  (defvar org-todo-keyword-2 "IP" "TODO keyword acronym standing for 'In Progressn'")
+  (defvar org-todo-keyword-3 "AC" "TODO keyword acronym standing for 'doABle'")
+  (defvar org-todo-keyword-4 "SD" "TODO keyword acronym standing for 'SomeDay'")
+  (defvar org-done-keyword-0 "DN" "TODO keyword acronym standing for 'DoNe'")
+  (defvar org-done-keyword-1 "CX" "TODO keyword acronym standing for 'Cancel'")
+  (defvar org-done-keyword-2 "PD" "TODO keyword acronym standing for 'PenDing'")
+
+  (use-package org
+    :hook (org-after-todo-state-change . save-buffer)
+    :custom
+    (org-enforce-todo-dependencies t)
+    (org-todo-keywords
+     `((sequence ,(format "%s(t/!)" org-todo-keyword-0)
+                 ,(format "%s(u/!)" org-warning-keyword-0)
+                 ,(format "%s(g/!)" org-todo-keyword-1)
+                 ,(format "%s(i/!)" org-todo-keyword-2)
+                 "|"
+                 ,(format "%s(d/@)" org-done-keyword-0)
+                 ,(format "%s(x/@)" org-done-keyword-1)
+                 ,(format "%s(p/@)" org-done-keyword-2))
+       (sequence ,(format "%s(a/!)" org-todo-keyword-3)
+                 "|"
+                 ,(format "%s(d/@)" org-done-keyword-0)
+                 ,(format "%s(x/@)" org-done-keyword-1)
+                 ,(format "%s(p/@)" org-done-keyword-2))
+       (sequence ,(format "%s(t/!)" org-todo-keyword-0)
+                 ,(format "%s(s/!)" org-todo-keyword-4)
+                 "|"
+                 ,(format "%s(x/@)" org-done-keyword-1)
+                 ,(format "%s(p/@)" org-done-keyword-2))))
+    (org-todo-keyword-faces
+     `((,org-warning-keyword-0 . "red1")
+       (,org-todo-keyword-0    . "green1")
+       (,org-todo-keyword-1    . "DeepPink1")
+       (,org-todo-keyword-2    . "DodgerBlue1")
+       (,org-todo-keyword-3    . "chocolate")
+       (,org-todo-keyword-4    . "SpringGreen")
+       (,org-done-keyword-0    . "gray30")
+       (,org-done-keyword-1    . "dark gray")
+       (,org-done-keyword-2    . "sea green")))
+    :config
+    (add-hook  'org-after-todo-state-change-hook
+               (lambda ()
+                 (save-excursion
+                   (let* ((element (org-element-at-point))
+                          (todo-state (org-get-todo-state))
+                          (tags (org-get-tags))
+                          (priority (org-element-property :priority element))
+                          (category (org-entry-get (point) "CATEGORY"))
+                          (style (org-entry-get (point) "STYLE")))
+                     ;; remove priority level when the to-do state is changed to DN|CX|PD
+                     (when (and
+                            (s-matches? (format "%1$s\\|%2$s\\|%3$s"
+                                                org-done-keyword-0
+                                                org-done-keyword-1
+                                                org-done-keyword-2)
+                                        todo-state)
+                            (bound-and-true-p priority))
+                       (org-priority ? ))
+                     ;; remove DN state if CATEGORY of the entry is "Cyclic"
+                     (when (and (string= category "Cyclic")
+                                (string= todo-state org-done-keyword-0)
+                                (not (member "web" tags))
+                                (not (string= style "habit")))
+                       (org-todo ""))))))
+    (add-hook 'org-after-todo-statistics-hook
+              (lambda (n-done n-not-done)
+                "Switch project entry to DONE when all subentries are done, to empty otherwise."
+                (when (member "project" (org-get-tags))
+                  (org-todo (if (= n-not-done 0)
+                                (prog1 org-done-keyword-0
+                                  (org-add-planning-info 'closed "now"))
+                              ""))))))
+
+  (custom-set-variables
+   '(org-log-done 'time)
+   '(org-log-into-drawer t)
+   '(org-log-states-order-reversed t))
+#+end_src
+
+****** Org Structure
+
+#+begin_src emacs-lisp
+  (use-package org-indent
     :after org
     :hook
-    (org-timer-done . (lambda ()
-                        (when (and (org-clocking-p)
-                                   org-clock-marker)
-                          (let ((alert (org-entry-get org-clock-marker
-                                                      "ALERT")))
-                            (if (and (stringp alert)
-                                     (string= alert "alarm"))
-                                (alert "Timer Done!" :style 'alarm)
-                              (alert "Timer Done!" :style 'fringe :mode 'org-mode :buffer (org-clocking-buffer) :severity 'trivial)))))))
+    (org-mode . org-indent-mode)
+    :custom
+    (org-startup-indented t))
 
+  (custom-set-variables
+   '(org-bookmark-names-plist nil)
+   '(org-M-RET-may-split-line '((default . nil))))
+#+end_src
+
+******* Org Edit Structure
+
+#+begin_src emacs-lisp
+  (use-package org
+    :custom
+    (org-edit-src-auto-save-idle-delay 30)
+    (org-adapt-indentation nil)
+    (org-special-ctrl-a/e t)
+    (org-catch-invisible-edits 'smart)
+    :config
+    (add-to-list 'org-structure-template-alist (cons "sh" "src shell"))
+    (add-to-list 'org-structure-template-alist (cons "tx" "src text"))
+    (add-to-list 'org-structure-template-alist (cons "el" "src emacs-lisp"))
+    (add-to-list 'org-structure-template-alist (cons "py" "src python")))
+
+  (use-package org-src
+    :after org
+    :custom
+    (org-src-window-setup 'current-window)
+    :config
+    (advice-add #'org-edit-src-save
+                :before
+                (lambda ()
+                  "Delete trailing whitespace."
+                  (delete-trailing-whitespace))))
+#+end_src
+
+******* Org Plain lists
+
+#+begin_src emacs-lisp
+  (use-package org-list
+    :after org
+    :custom
+    (org-list-demote-modify-bullet '(("-" . "+") ("+" . "-") ("*" . "-")
+                                     ("1." . "1)") ("1)" . "1.") ("*" . "1.")))
+    (org-cycle-include-plain-lists 'integrate)
+    (org-list-use-circular-motion t)
+    (org-list-allow-alphabetical t))
+#+end_src
+
+******* Org Archive
+
+#+begin_src emacs-lisp
+  (use-package org-archive
+    :after org
+    :custom
+    (org-archive-default-command 'org-archive-set-tag)
+    (org-cycle-open-archived-trees t))
+#+end_src
+
+******* Org Inline Tasks
+
+#+begin_src emacs-lisp
+  (use-package org-inlinetask
+    :after org
+    :custom
+    (org-inlinetask-default-state org-todo-keyword-0)
+    (org-inlinetask-min-level 10))
+#+end_src
+****** Org Tags
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(org-use-tag-inheritance "ARCHIVE")
+   '(org-tags-column -57))
+#+end_src
+
+****** Org Properties
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(org-use-property-inheritance "TIMELIMIT.*")
+   '(org-highest-priority ?A)
+   '(org-lowest-priority ?Z)
+   '(org-default-priority ?E)
+   '(org-global-properties
+     '(("Effort_ALL". "0 0:10 0:20 0:30 1:00 1:30 2:00 3:00 4:00 6:00 8:00"))))
+#+end_src
+
+****** Org Refile
+
+#+begin_src emacs-lisp
+  (use-package org-refile
+    :after org
+    :custom
+    (org-refile-targets
+     `((org-agenda-files :tag . "project")
+       (,(directory-files-recursively org-directory "\\.org$") :tag . "refile"))))
+#+end_src
+****** Org Time
+
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(org-time-stamp-custom-formats
+     '("<%m-%d %a>" . "<%H:%M>")))
+#+end_src
+
+******* Org Progress
+
+******** Org Clock
+
+#+begin_src emacs-lisp
   (use-package org-clock
     :after org
-    :hook
-    ((org-clock-in org-clock-out org-clock-cancel) . save-buffer)
-    (org-clock-in-prepare . my/org-clock-in-set-timer)
-    ((org-clock-out org-clock-cancel) .
-     (lambda ()
-       (when (or (string= (org-get-category) "Cyclic")
-                 (org-is-habit-p))
-         (my/org-clock-remove-old-clock-entries 4 5))
-       (and org-timer-countdown-timer
-            (org-timer-stop))
-       (my/org-clock-out-have-a-break)))
     :custom
     (org-clock-into-drawer "CLOCK")
     (org-clock-out-when-done t)
@@ -2847,183 +2851,22 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
     (org-clock-ask-before-exiting nil)
     (org-clock-out-remove-zero-time-clocks t)
     :config
-    (org-clock-persistence-insinuate)
-    (defconst org-clock-ts-line-re
-      (concat "^[ \t]*" org-clock-string "[ \t]*" org-tsr-regexp-both)
-      "Matches a line with clock time stamp."))
-
-  (defun my/org-clock-in-set-timer ()
-    "Start count down timer for a clocked in entry.
-
-  If the entry has ATTENTION_SPAN property, use it for `org-timer-default-timer'.
-  Otherwise count down time is Effort property value.
-  In neither case, count down time is 25 min which is suggested in the Pomodoro-technique."
-    (let ((todo (org-get-todo-state))
-          (attention-span (org-entry-get (point) "ATTENTION_SPAN" 'selective))
-          (effort (org-entry-get (point) "Effort" 'selective)))
-      (when org-clock-clocking-in
-        (org-clock-out))
-      (cond
-       ((stringp attention-span)
-        (let ((org-timer-default-timer attention-span))
-          (org-timer-set-timer '(64))))
-       ((and (stringp effort)
-             (ts< (ts-parse effort) (ts-parse "01:40")))
-        (org-timer-set-timer '(16)))
-       (todo
-        (let ((org-timer-default-timer "25"))
-          (org-timer-set-timer '(64)))))))
-
-  (defun my/org-clock-out-have-a-break ()
-    "Clock in 'Break' task if the task about to clock out manually has any kind of TODO keyword."
-    (when (and (not org-clock-clocking-in)
-               (org-get-todo-state))
-      (org-id-goto "d49d97de-58ec-4e41-b58c-491a9e216e1c")
-      (org-clock-in)
-      (org-save-all-org-buffers)))
+    (org-clock-persistence-insinuate))
 #+end_src
 
-***** org-refile
+****** Org Appearance
 
 #+begin_src emacs-lisp
-  (use-package org-refile
-    :after org
+  (use-package org
     :custom
-    (org-refile-targets
-     `((org-agenda-files :tag . "project")
-       (,(directory-files-recursively org-directory "\\.org$") :tag . "refile"))))
+    (org-hide-leading-stars t)
+    (org-hide-emphasis-markers t)
+    (org-pretty-entities t)
+    (org-image-actual-width 100)
+    (org-display-remote-inline-images 'cache))
 #+end_src
 
-***** org-plot
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "gnuplot"
-  "emacs-gnuplot"
-  "emacs-mkmcc-gnuplot-mode"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package org-plot
-    :after org)
-#+end_src
-
-***** org-id
-
-#+begin_src emacs-lisp
-  (use-package org-id
-    :after org
-    :custom
-    (org-id-locations-file
-     (expand-file-name ".org-id-locations" org-directory))
-    (org-id-track-globally t)
-    (org-id-link-to-org-use-id 'create-if-interactive))
-#+end_src
-
-***** org links (ol)
-
-#+begin_src emacs-lisp
-  (use-package ol
-    :after org
-    :custom
-    (org-link-elisp-confirm-function nil)
-    :config
-    ;; the file which is referred via ong link opens in same window
-    (setf (alist-get 'file org-link-frame-setup) 'find-file)
-    (org-link-set-parameters "src" :follow #'org-babel-ref-resolve)
-    (add-to-list 'org-open-at-point-functions 'org-open-at-point-link)
-    ;; set 'sudo' link type to invoke command with root privilege
-    (org-link-set-parameters
-     "sudo"
-     (lambda (cmd)
-       "Run CMD with sudo."
-       (shell-command
-        (concat "echo " (shell-quote-argument (read-passwd "Password? "))
-                " | sudo -S " cmd)))))
-
-  (defun org-open-at-point-link ()
-    "This function is responsible for org links when user calls `org-open-at-point'."
-    (let* ((context (org-element-lineage
-                     (org-element-context)
-                     '(link)
-                     t))
-           (type (org-element-property :type context))
-           (path (org-element-property :path context))
-           (app (org-element-property :application context))
-           (search-option (org-element-property :search-option context)))
-      (if (stringp type)
-          (cond
-           ((string-match-p "https?" type)
-            (let ((url-pos (split-location-uri (org-link-unescape (concat type ":" path)))))
-              (cl-case (prefix-numeric-value current-prefix-arg)
-                (16 (browse-url-default-browser (car url-pos)))
-                (4 (eww-browse-url (car url-pos)))
-                (t (open-url (car url-pos) (cadr url-pos))))
-              t))
-           ((string= type "file")
-            (let ((line-search (cond ((not search-option) nil)
-                                     ((string-match-p "\\`[0-9]+\\'" search-option)
-                                      (list (string-to-number search-option)))
-                                     (t (list nil search-option)))))
-              (apply #'my/org-open-file
-                     path
-                     (cond
-                      ((equal app "sys") 'system)
-                      ((equal app "emacs") 'emacs)
-                      (t nil))
-                     line-search))
-            t))
-        (my/enter-thing-at-point))))
-#+end_src
-
-***** org-archive
-
-#+begin_src emacs-lisp
-  (use-package org-archive
-    :after org
-    :custom
-    (org-archive-default-command 'org-archive-set-tag)
-    (org-cycle-open-archived-trees t))
-#+end_src
-
-***** org-list
-
-#+begin_src emacs-lisp
-  (use-package org-list
-    :after org
-    :custom
-    (org-list-demote-modify-bullet '(("-" . "+") ("+" . "-") ("*" . "-")
-                                     ("1." . "1)") ("1)" . "1.") ("*" . "1.")))
-    (org-cycle-include-plain-lists 'integrate)
-    (org-list-use-circular-motion t)
-    (org-list-allow-alphabetical t)
-    :config
-    (setf org-list-forbidden-blocks nil))
-#+end_src
-
-***** org-indent
-
-#+begin_src emacs-lisp
-  (use-package org-indent
-    :after org
-    :hook
-    (org-mode . org-indent-mode)
-    :custom
-    (org-startup-indented t))
-#+end_src
-
-***** org-crypt
-
-#+begin_src emacs-lisp
-  (use-package org-crypt
-    :after org
-    :custom
-    (org-crypt-key user-mail-address)
-    (org-tags-exclude-from-inheritance '("crypt"))
-    :config
-    (org-crypt-use-before-save-magic))
-#+end_src
-
-***** org-babel
+****** Babel
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "graphviz"
@@ -3035,9 +2878,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
     :after org
     :custom
     (org-confirm-babel-evaluate nil)
-    :config
-    (org-babel-do-load-languages
-     'org-babel-load-languages
+    (org-babel-load-languages
      '((C        . t)
        (java     . t)
        (R        . t)
@@ -3050,6 +2891,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
        (dot      . t)
        (plantuml . t)
        (lilypond . t)))
+    :config
     (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
     (cond
      ((string= system-type "gnu/linux")
@@ -3058,49 +2900,67 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
       (custom-set-variables '(org-plantuml-jar-path "/usr/local/Cellar/plantuml/8041/plantuml.8041.jar")))))
 #+end_src
 
-****** ob-async
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-ob-async"
-#+end_src
+****** Org ID
 
 #+begin_src emacs-lisp
-  (use-package ob-async
-    :after ob-core)
-#+end_src
-
-****** ob-lilypond
-
-#+begin_src emacs-lisp
-  (use-package ob-lilypond
-    :after (org lilypond-mode)
+  (use-package org-id
+    :after org
     :custom
-    ;; (org-babel-lilypond-commands '("lilypond" "firefox" "fluidsynth -a alsa -m alsa_seq -l"))
-    (org-babel-lilypond-commands '("lilypond" "firefox" "xdg-open"))
-    (org-babel-lilypond-arrange-mode t))
+    (org-id-locations-file
+     (expand-file-name ".org-id-locations" org-directory))
+    (org-id-track-globally t)
+    (org-id-link-to-org-use-id 'create-if-interactive))
 #+end_src
 
-***** org-src
+****** Org Crypt
 
 #+begin_src emacs-lisp
-  (use-package org-src
-    :diminish (org-src-mode . "os")
+  (use-package org-crypt
+    :after org
     :custom
-    (org-src-window-setup 'current-window)
+    (org-crypt-key user-mail-address)
+    (org-tags-exclude-from-inheritance '("crypt"))
     :config
-    (advice-add #'org-edit-src-save
-                :before
-                #'my/delete-trailing-whitespace))
-
-  (defun my/delete-trailing-whitespace ()
-    (delete-trailing-whitespace))
+    (org-crypt-use-before-save-magic))
 #+end_src
 
-***** org-export
+****** Org Attach
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-ox-hugo"
+#+begin_src emacs-lisp
+  (require 'org-attach)
+
+  (custom-set-variables
+   '(org-attach-preferred-new-method nil))
 #+end_src
+
+****** Org Link
+
+#+begin_src emacs-lisp
+  (require 'ol)
+
+  (org-link-set-parameters "src" :follow #'org-babel-ref-resolve)
+  (org-link-set-parameters
+   "sudo"
+   (lambda (cmd)
+     "Run CMD with sudo."
+     (shell-command
+      (concat "echo " (shell-quote-argument (read-passwd "Password? "))
+              " | sudo -S " cmd))))
+#+end_src
+
+******* Org Follow Link
+
+#+begin_src emacs-lisp
+  (use-package ol
+    :custom
+    (org-link-elisp-confirm-function nil)
+    :config
+    (setf (alist-get 'file org-link-frame-setup) 'find-file))
+#+end_src
+
+****** Org Export
+
+******* Org Export General
 
 #+begin_src emacs-lisp
   (use-package ox
@@ -3141,7 +3001,11 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
     (org-export-with-tables t)
     (org-export-default-language "ja")
     (org-export-dispatch-use-expert-ui nil))
+#+end_src
 
+******* Org Export HTML
+
+#+begin_src emacs-lisp
   (use-package ox-html
     :defer t
     :after ox
@@ -3151,7 +3015,11 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
     (org-html-with-latex t)
     (org-html-container-element "div")
     (org-html-doctype "xhtml-strict"))
+#+end_src
 
+******* Org Export LaTeX
+
+#+begin_src emacs-lisp
   (use-package ox-latex
     :defer t
     :after ox
@@ -3178,15 +3046,22 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
                    ("\\section{%s}" . "\\section*{%s}")
                    ("\\subsection{%s}" . "\\subsection*{%s}")
                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))))
-
-  (use-package ox-hugo
-    :defer t
-    :after ox)
 #+end_src
 
-***** org-contrib
-org-contrib is a set of 3rd party add-ons for org-mode.
+****** Org Plot
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "gnuplot"
+  "emacs-gnuplot"
+  "emacs-mkmcc-gnuplot-mode"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package org-plot
+    :after org)
+#+end_src
+
+***** external packages for org
 ****** org-contacts
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
@@ -3199,19 +3074,32 @@ org-contrib is a set of 3rd party add-ons for org-mode.
     :custom
     (org-contacts-files `(,(expand-file-name "index/contacts.org.gpg" org-directory))))
 #+end_src
+****** org-drill
 
-***** org-reveal
+[[https://gitlab.com/phillord/org-drill][org-drill]] helps me to learn english words and phrases. [[https://youtu.be/SGzdFtN_NqE][This video]] introduces how I use org-drill.
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-reveal"
+  "emacs-org-drill"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://gitlab.com/phillord/org-drill/-/tags?format=atom" soft_update)
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package ox-reveal
-    :after ox)
+  (use-package org-drill
+    :after org
+    :custom
+    (org-drill-spaced-repetition-algorithm 'sm5)
+    (org-drill-sm5-initial-interval 10.0)
+    (org-drill-add-random-noise-to-intervals-p t)
+    (org-drill-adjust-intervals-for-early-and-late-repetitions-p t)
+    (org-drill-days-before-old 20)
+    (org-drill-learn-fraction 0.65)
+    (org-drill-overdue-interval-factor 1.6))
 #+end_src
 
-***** org-ql
+****** org-ql
 
 [[https://github.com/alphapapa/org-ql][Org QL]] enables me to issue queries to search org entries with either SQL-like format or plain search strings.
 
@@ -3252,7 +3140,7 @@ As of [2022-04-29 Fri], Org QL on Guix official channel is ver.0.6.1 which is be
                 (otherwise (member category categories))))))
 #+end_src
 
-***** org-ml
+****** org-ml
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
   ("https://github.com/ndwarshuis/org-ml/releases.atom" soft_update)
@@ -3264,7 +3152,7 @@ As of [2022-04-29 Fri], Org QL on Guix official channel is ver.0.6.1 which is be
     :after org)
 #+end_src
 
-***** org-roam
+****** org-roam
 org-roam v2
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
@@ -3289,32 +3177,9 @@ org-roam v2
     ;; DB does not have to be with org files since it is derived from org files uniquely
     (org-roam-db-location (expand-file-name "org-roam.db" "~/share/emacs/org-roam"))
     (org-roam-buffer-position 'bottom))
-#+end_src
-***** org-drill
 
-[[https://gitlab.com/phillord/org-drill][org-drill]] helps me to learn english words and phrases. [[https://youtu.be/SGzdFtN_NqE][This video]] introduces how I use org-drill.
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-drill"
 #+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://gitlab.com/phillord/org-drill/-/tags?format=atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package org-drill
-    :after org
-    :custom
-    (org-drill-spaced-repetition-algorithm 'sm5)
-    (org-drill-sm5-initial-interval 10.0)
-    (org-drill-add-random-noise-to-intervals-p t)
-    (org-drill-adjust-intervals-for-early-and-late-repetitions-p t)
-    (org-drill-days-before-old 20)
-    (org-drill-learn-fraction 0.65)
-    (org-drill-overdue-interval-factor 1.6))
-#+end_src
-***** org-mime
+****** org-mime
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-org-mime"
@@ -3327,7 +3192,7 @@ org-roam v2
     (push '("Send An Email") org-speed-commands))
 #+end_src
 
-***** org-web-tools
+****** org-web-tools
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-org-web-tools"
@@ -3340,7 +3205,7 @@ org-roam v2
     :bind (("C-c C-;" . org-web-tools-insert-link-for-url)))
 #+end_src
 
-***** org-volume
+****** org-volume
 
 [[https://github.com/akirak/org-volume][org-volume]] can be used to insert book information in dynamic block.
 
@@ -3356,7 +3221,7 @@ org-roam v2
                :branch "master"))
 #+end_src
 
-***** org-clock-convenience
+****** org-clock-convenience
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
   ("https://github.com/dfeich/org-clock-convenience/releases.atom" soft_update)
@@ -3371,17 +3236,51 @@ org-roam v2
                 ("C-@" . org-clock-convenience-fill-gap-both)))
 #+end_src
 
-***** org-inlinetask
+****** org-reveal
 
-#+begin_src emacs-lisp
-  (use-package org-inlinetask
-    :after org
-    :custom
-    (org-inlinetask-default-state org-todo-keyword-0)
-    (org-inlinetask-min-level 10))
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-reveal"
 #+end_src
 
-***** custom functions
+#+begin_src emacs-lisp
+  (use-package ox-reveal
+    :after ox)
+#+end_src
+
+****** ob-async
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-ob-async"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package ob-async
+    :after ob-core)
+#+end_src
+****** ob-lilypond
+
+#+begin_src emacs-lisp
+  (use-package ob-lilypond
+    :after (org lilypond-mode)
+    :custom
+    ;; (org-babel-lilypond-commands '("lilypond" "firefox" "fluidsynth -a alsa -m alsa_seq -l"))
+    (org-babel-lilypond-commands '("lilypond" "firefox" "xdg-open"))
+    (org-babel-lilypond-arrange-mode t))
+#+end_src
+
+****** ox-hugo
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-ox-hugo"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package ox-hugo
+    :defer t
+    :after ox)
+#+end_src
+
+***** utility functions for org
 
 #+begin_src emacs-lisp
   (defun my/org-open-file (path &optional in-emacs line search)
@@ -3573,9 +3472,23 @@ org-roam v2
                         (with-current-buffer export-buf-name
                           (buffer-string)))
       (kill-buffer export-buf-name)))
+
+  (defun org-display-iso-week-at-point ()
+    "Display ISO 8601 week number correspoinds to time stamp at point."
+    (interactive)
+    (let ((ts (org-timestamp-at-point)))
+      (when ts
+        (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil))))))
+
+  (defun org-timestamp-at-point ()
+    "Return time stamp string at point."
+    (let ((ts-bound (org-in-regexp (org-re-timestamp 'all))))
+      (when ts-bound
+        (buffer-substring (car ts-bound) (cdr ts-bound)))))
 #+end_src
 
-***** org key bindings
+***** keybindings for org
+
 speed commands and hydra-org.
 
 #+begin_src emacs-lisp
@@ -3678,6 +3591,30 @@ speed commands and hydra-org.
       ("=" org-clock-sum-all)
       ("SPC" my/org-reset-dwim)
       ("C-g" nil "quit")))
+#+end_src
+
+****** org mode map
+
+#+begin_src emacs-lisp
+  (let ((map org-mode-map))
+    (define-key map (kbd "C-j") #'org-return)
+    (define-key map (kbd "C-M-j") #'org-return-indent)
+    (define-key map (kbd "M-j") #'org-meta-return)
+    (define-key map (kbd "C-S-p") #'org-previous-item)
+    (define-key map (kbd "C-S-n") #'org-next-item)
+    (define-key map (kbd "C-S-u") #'org-up-element)
+    (define-key map (kbd "C-$") #'org-down-element)
+    (define-key map (kbd "C-<") #'org-previous-link)
+    (define-key map (kbd "C->") #'org-next-link)
+    (define-key map (kbd "C-c @") #'org-mark-element)
+    (define-key map (kbd "C-c C-SPC") #'org-mark-subtree)
+    (define-key map (kbd "C-c D v") #'org-download-video-link-at-point)
+    (define-key map (kbd "C-c D a") #'org-download-audio-link-at-point)
+    (define-key map (kbd "C-c D =") #'org-show-media-duration-at-point)
+    (define-key map (kbd "C-c !") #'org-readable)
+    (define-key map (kbd "C-c C-a") nil)
+    (define-key map (kbd "C-,") nil)
+    (define-key map (kbd "M-h") nil))
 #+end_src
 
 **** Completion framework
@@ -5388,30 +5325,6 @@ Major mode for manupulating password store file.
     (alert-add-rule :status '(buried)
                     :mode   'org-mode
                     :style  'libnotify))
-
-  (defvar alarm-sound (expand-file-name "~/media/music/levelup.mp3"))
-  (alert-define-style 'alarm
-                      :title "alarm"
-                      :notifier
-                      (lambda (info)
-                        (let ((message (plist-get info :message))
-                              (severity (plist-get info :severity))
-                              (title (plist-get info :title))
-                              (icon (plist-get info :icon))
-                              (category (plist-get info :category))
-                              (buffer (plist-get info :buffer))
-                              (mode (plist-get info :mode))
-                              (data (plist-get info :data))
-                              (style (plist-get info :style))
-                              (persistent (plist-get info :persistent))
-                              (id (plist-get info :id))
-                              (system-volume (string-trim (shell-command-to-string "volget"))))
-                          (if (string= system-volume "0")
-                              (alert message :severity severity :title title :icon icon :category category :buffer buffer :mode mode :data data :style 'fringe :persistent persistent :id id)
-                            (start-process-shell-command "system-alarm" nil
-                                                         (mapconcat #'shell-quote-argument
-                                                                    (list "mpg321" alarm-sound)
-                                                                    " "))))))
 #+end_src
 
 #+begin_src shell :tangle (expand-tangle-target ".local/bin/volget") :tangle-mode (identity #o755)
@@ -6216,165 +6129,6 @@ It's confortable to read long material such as web page , epub file or email wit
 #+end_src
 
 **** original features
-***** org-english
-
-Learning Workflow for English words:
-1. Capture an word to study by invoking my/org-english-capture
-2. Review words periodically with my/org-english-drill-test-display or its variants
-
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-english.el")
-  (defun my/org-english-capture (word)
-    "Capture an english WORD as a `org-mode' entry suitable for org-drill.
-
-  Capture URL or file currently visiting as well as a sentence at point."
-    (interactive (list (if (use-region-p)
-                           (buffer-substring (region-beginning) (region-end))
-                         (read-string "Phrase: "))))
-    (let* ((sentence-end-double-space nil)
-           (org-english-word word)
-           (match-entry (org-ql-select
-                          (my/org-archive-files)
-                          `(and (heading ,(format "%s" word))
-                                (tags "drill"))
-                          :action 'element-with-markers))
-           (sentence (replace-regexp-in-string word
-                                               (my/cloze-deletion word)
-                                               (sentence-at-point))))
-      (kill-new (if (stringp sentence) sentence ""))
-      (cond
-       (match-entry (org-capture nil "!1"))
-       (t (org-capture nil "!0")))))
-
-  (defun my/cloze-deletion (word)
-    "Build cloze deletion string from WORD."
-    (seq-reduce (lambda (string chunk)
-                  (replace-regexp-in-string chunk (format "[%s||%c]" chunk (string-to-char chunk))
-                                            string))
-                (split-string word "[ -]+")
-                word))
-
-  (defun my/cloze-deletion-replace (word start end)
-    "Convert WORD into cloze deletion.
-  OWRD can be determined a string between START and END.
-
-  When called Interactively, WORD is either a word at point or a string in region."
-    (interactive (cond
-                  ((region-active-p)
-                   `(,(buffer-substring (region-beginning) (region-end))
-                     ,(region-beginning)
-                     ,(region-end)))
-                  (t
-                   (let ((bounds (bounds-of-thing-at-point 'word)))
-                     `(,(thing-at-point 'word)
-                       ,(car bounds)
-                       ,(cdr bounds))))))
-    (replace-string word
-                    (my/cloze-deletion word)
-                    nil
-                    start
-                    end))
-
-  (with-eval-after-load 'org-ql-view
-    (push '("English phrase list"
-            :buffers-files my/org-archive-files
-            :query (and (tags "drill")
-                        (tags "fd_en")))
-          org-ql-views))
-
-  (with-eval-after-load 'org-capture
-    (add-to-list 'org-capture-templates
-                 '("!0" "drill entry for english word"
-                   entry (function org-goto-clocking-or-today)
-                   "* %i :drill:fd_en:
-  [%(my/org-english-insert-japanese-translation)]
-  %(my/org-english-insert-english-translation)
-  - %a
-    ,#+begin_quote
-  %c
-    ,#+end_quote"))
-    (add-to-list 'org-capture-templates
-                 '("!1" "drill entry for english word"
-                   item(function my/org-english-goto-match)
-                   "- %a
-    ,#+begin_quote
-  %c
-    ,#+end_quote")))
-
-  (defun my/org-english-goto-match ()
-    "Goto function for org-capture-template designed to insert an edditional example
-  to existing english word entry."
-    (org-goto-marker-or-bmk
-     (plist-get (cadar match-entry) :org-marker)))
-
-  (defun my/org-english-insert-english-translation ()
-    "Insert English translation into org capture entry."
-    (let* ((url (format "http://wordnik.com/words/%s" (downcase org-english-word)))
-           (buffer (url-retrieve-synchronously url t t))
-           (vertico-sort-function nil))
-      (with-temp-buffer
-        (url-insert-buffer-contents buffer url)
-        (completing-read "match" (split-string (funcall 'my/define-word--parse-wordnik) "\n")))))
-
-  (advice-add #'my/org-english-insert-english-translation :around #'my/define-word--fix-31)
-
-  (defun my/org-english-insert-japanese-translation ()
-    "Insert Japanese translation into org capture entry."
-    (let* ((url (format "https://ejje.weblio.jp/content/%s" (downcase org-english-word)))
-           (buffer (url-retrieve-synchronously url t t)))
-      (with-temp-buffer
-        (url-insert-buffer-contents buffer url)
-        (funcall 'my/define-word--parse-weblio))))
-
-  (defmacro with-org-drill-english-config (&rest body)
-    "Evaluate BODY with config for Org-Drill for english words review."
-    `(progn
-       (let ((org-drill-scope (append '("~/org/agenda/life.org")
-                                      (seq-remove
-                                       (lambda (item)
-                                         (string-match "archive_\\([[:digit:]]\\{4\\}\\).org" item)
-                                         (< (string-to-number (match-string 1 item)) 2019))
-                                       (file-expand-wildcards "~/org/archive/archive_*.org"))))
-             (org-drill-question-tag "drill")
-             (org-drill-maximum-items-per-session 25)
-             (org-drill-hide-item-headings-p t)
-             (org-startup-indented nil))
-         (global-visual-line-mode 1)
-         (org-indent-mode -1)
-         ,@body)
-       (global-visual-line-mode 0)
-       (org-indent-mode 1)
-       (org-save-all-org-buffers)))
-
-  (defun my/org-english-drill ()
-    "Invoke Org-Drill for English word review."
-    (interactive)
-    (with-org-drill-english-config (org-drill)))
-
-  (defun my/org-english-drill-resume ()
-    "Resume Org-Drill session for english word review."
-    (interactive)
-    (with-org-drill-english-config (org-drill-resume)))
-
-  (defun my/org-english-drill-nontrivial ()
-    ""
-    (interactive)
-    (let ((org-drill-match "-trivial"))
-      (with-org-drill-english-config (org-drill))))
-
-  (defun my/org-english-drill-new ()
-    ""
-    (interactive)
-    (let ((org-drill-match "-DRILL_TOTAL_REPEATS>0"))
-      (with-org-drill-english-config (org-drill))))
-
-  (defun my/org-english-drill-test-display ()
-    "Show Org-Drill entry in the same way as english drill session."
-    (interactive)
-    (with-org-drill-english-config (org-drill-test-display)))
-
-  (provide 'my/org-english)
-#+end_src
-
 ***** org-password-store
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-password-store.el")
@@ -7440,6 +7194,285 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
     (org-link-set-parameters "lfile+sys"
                              :follow #'my/lfile-follow-link--sys))
 #+end_src
+
+**** org workflows
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".emacs.d/site-lisp/workflows.el")
+:END:
+
+***** notify timer completed
+
+#+begin_src emacs-lisp
+  (require 'org-timer)
+
+  (defun my/notify-timer-completed ()
+    "docstring"
+    (when (and (org-clocking-p)
+               org-clock-marker)
+      (let ((alert (org-entry-get org-clock-marker
+                                  "ALERT")))
+        (if (and (stringp alert)
+                 (string= alert "alarm"))
+            (alert "Timer Done!" :style 'alarm)
+          (alert "Timer Done!" :style 'fringe :mode 'org-mode :buffer (org-clocking-buffer) :severity 'trivial)))))
+
+  (add-hook 'org-timer-done-hook
+            'my/notify-timer-completed)
+
+  (require 'alert)
+
+  (defvar alarm-sound (expand-file-name "~/media/music/levelup.mp3"))
+  (alert-define-style 'alarm
+                      :title "alarm"
+                      :notifier
+                      (lambda (info)
+                        (let ((message (plist-get info :message))
+                              (severity (plist-get info :severity))
+                              (title (plist-get info :title))
+                              (icon (plist-get info :icon))
+                              (category (plist-get info :category))
+                              (buffer (plist-get info :buffer))
+                              (mode (plist-get info :mode))
+                              (data (plist-get info :data))
+                              (style (plist-get info :style))
+                              (persistent (plist-get info :persistent))
+                              (id (plist-get info :id))
+                              (system-volume (string-trim (shell-command-to-string "volget"))))
+                          (if (string= system-volume "0")
+                              (alert message :severity severity :title title :icon icon :category category :buffer buffer :mode mode :data data :style 'fringe :persistent persistent :id id)
+                            (start-process-shell-command "system-alarm" nil
+                                                         (mapconcat #'shell-quote-argument
+                                                                    (list "mpg321" alarm-sound)
+                                                                    " "))))))
+#+end_src
+
+***** clock in/out trigger invocation
+
+#+begin_src emacs-lisp
+  (use-package org-clock
+    :hook
+    ((org-clock-in org-clock-out org-clock-cancel) . save-buffer)
+    (org-clock-in-prepare . my/org-clock-in-set-timer)
+    ((org-clock-out org-clock-cancel) . my/org-clock-out-have-a-break))
+
+  (defun my/org-clock-in-set-timer ()
+    "Start count down timer for a clocked in entry.
+
+  If the entry has ATTENTION_SPAN property, use it for `org-timer-default-timer'.
+  Otherwise count down time is Effort property value.
+  In neither case, count down time is 25 min which is suggested in the Pomodoro-technique."
+    (let ((todo (org-get-todo-state))
+          (attention-span (org-entry-get (point) "ATTENTION_SPAN" 'selective))
+          (effort (org-entry-get (point) "Effort" 'selective)))
+      (when org-clock-clocking-in
+        (org-clock-out))
+      (cond
+       ((stringp attention-span)
+        (let ((org-timer-default-timer attention-span))
+          (org-timer-set-timer '(64))))
+       ((and (stringp effort)
+             (ts< (ts-parse effort) (ts-parse "01:40")))
+        (org-timer-set-timer '(16)))
+       (todo
+        (let ((org-timer-default-timer "25"))
+          (org-timer-set-timer '(64)))))))
+
+  (defun my/org-clock-out-have-a-break ()
+    "Clock in 'Break' task if the task about to clock out manually has any kind of TODO keyword."
+    (when (or (string= (org-get-category) "Cyclic")
+              (org-is-habit-p))
+      (my/org-clock-remove-old-clock-entries 4 5))
+    (and org-timer-countdown-timer
+         (org-timer-stop))
+    (when (and (not org-clock-clocking-in)
+               (org-get-todo-state))
+      (org-id-goto "d49d97de-58ec-4e41-b58c-491a9e216e1c")
+      (org-clock-in)
+      (org-save-all-org-buffers)))
+#+end_src
+
+***** taking memo
+
+Memo file (memo.org) is useful for jotting down fragmented piece of text, code and more.
+
+#+begin_src emacs-lisp
+  (require 'org-capture)
+
+  (add-to-list 'org-capture-templates
+               '("m" "Memo"
+                 entry (file "~/org/note/memo.org")
+                 "* %U\n#+begin_src %^{Lnaguage|text}\n%(my-org-capture-filter-memo \"%i\")\n#+end_src"
+                 :jump-to-captured t
+                 :immediate-finish t)
+               t)
+
+  (defun my-org-capture-filter-memo (&optional str)
+    "Replace semantic representation in `org-mode' with plain string in STR."
+    (cond
+     ((stringp str)
+      (replace-regexp-in-string "^\\(*+ \\)" ",\\1" str))
+     (t "")))
+#+end_src
+
+***** learning english strategy
+
+1. Capture an word to study by invoking my/org-english-capture
+2. Review words periodically with my/org-english-drill-test-display or its variants
+
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-english.el")
+  (defun my/org-english-capture (word)
+    "Capture an english WORD as a `org-mode' entry suitable for org-drill.
+
+  Capture URL or file currently visiting as well as a sentence at point."
+    (interactive (list (if (use-region-p)
+                           (buffer-substring (region-beginning) (region-end))
+                         (read-string "Phrase: "))))
+    (let* ((sentence-end-double-space nil)
+           (org-english-word word)
+           (match-entry (org-ql-select
+                          (my/org-archive-files)
+                          `(and (heading ,(format "%s" word))
+                                (tags "drill"))
+                          :action 'element-with-markers))
+           (sentence (replace-regexp-in-string word
+                                               (my/cloze-deletion word)
+                                               (sentence-at-point))))
+      (kill-new (if (stringp sentence) sentence ""))
+      (cond
+       (match-entry (org-capture nil "!1"))
+       (t (org-capture nil "!0")))))
+
+  (defun my/cloze-deletion (word)
+    "Build cloze deletion string from WORD."
+    (seq-reduce (lambda (string chunk)
+                  (replace-regexp-in-string chunk (format "[%s||%c]" chunk (string-to-char chunk))
+                                            string))
+                (split-string word "[ -]+")
+                word))
+
+  (defun my/cloze-deletion-replace (word start end)
+    "Convert WORD into cloze deletion.
+  OWRD can be determined a string between START and END.
+
+  When called Interactively, WORD is either a word at point or a string in region."
+    (interactive (cond
+                  ((region-active-p)
+                   `(,(buffer-substring (region-beginning) (region-end))
+                     ,(region-beginning)
+                     ,(region-end)))
+                  (t
+                   (let ((bounds (bounds-of-thing-at-point 'word)))
+                     `(,(thing-at-point 'word)
+                       ,(car bounds)
+                       ,(cdr bounds))))))
+    (replace-string word
+                    (my/cloze-deletion word)
+                    nil
+                    start
+                    end))
+
+  (with-eval-after-load 'org-ql-view
+    (push '("English phrase list"
+            :buffers-files my/org-archive-files
+            :query (and (tags "drill")
+                        (tags "fd_en")))
+          org-ql-views))
+
+  (with-eval-after-load 'org-capture
+    (add-to-list 'org-capture-templates
+                 '("!0" "drill entry for english word"
+                   entry (function org-goto-clocking-or-today)
+                   "* %i :drill:fd_en:
+  [%(my/org-english-insert-japanese-translation)]
+  %(my/org-english-insert-english-translation)
+  - %a
+    ,#+begin_quote
+  %c
+    ,#+end_quote"))
+    (add-to-list 'org-capture-templates
+                 '("!1" "drill entry for english word"
+                   item(function my/org-english-goto-match)
+                   "- %a
+    ,#+begin_quote
+  %c
+    ,#+end_quote")))
+
+  (defun my/org-english-goto-match ()
+    "Goto function for org-capture-template designed to insert an edditional example
+  to existing english word entry."
+    (org-goto-marker-or-bmk
+     (plist-get (cadar match-entry) :org-marker)))
+
+  (defun my/org-english-insert-english-translation ()
+    "Insert English translation into org capture entry."
+    (let* ((url (format "http://wordnik.com/words/%s" (downcase org-english-word)))
+           (buffer (url-retrieve-synchronously url t t))
+           (vertico-sort-function nil))
+      (with-temp-buffer
+        (url-insert-buffer-contents buffer url)
+        (completing-read "match" (split-string (funcall 'my/define-word--parse-wordnik) "\n")))))
+
+  (advice-add #'my/org-english-insert-english-translation :around #'my/define-word--fix-31)
+
+  (defun my/org-english-insert-japanese-translation ()
+    "Insert Japanese translation into org capture entry."
+    (let* ((url (format "https://ejje.weblio.jp/content/%s" (downcase org-english-word)))
+           (buffer (url-retrieve-synchronously url t t)))
+      (with-temp-buffer
+        (url-insert-buffer-contents buffer url)
+        (funcall 'my/define-word--parse-weblio))))
+
+  (defmacro with-org-drill-english-config (&rest body)
+    "Evaluate BODY with config for Org-Drill for english words review."
+    `(progn
+       (let ((org-drill-scope (append '("~/org/agenda/life.org")
+                                      (seq-remove
+                                       (lambda (item)
+                                         (string-match "archive_\\([[:digit:]]\\{4\\}\\).org" item)
+                                         (< (string-to-number (match-string 1 item)) 2019))
+                                       (file-expand-wildcards "~/org/archive/archive_*.org"))))
+             (org-drill-question-tag "drill")
+             (org-drill-maximum-items-per-session 25)
+             (org-drill-hide-item-headings-p t)
+             (org-startup-indented nil))
+         (global-visual-line-mode 1)
+         (org-indent-mode -1)
+         ,@body)
+       (global-visual-line-mode 0)
+       (org-indent-mode 1)
+       (org-save-all-org-buffers)))
+
+  (defun my/org-english-drill ()
+    "Invoke Org-Drill for English word review."
+    (interactive)
+    (with-org-drill-english-config (org-drill)))
+
+  (defun my/org-english-drill-resume ()
+    "Resume Org-Drill session for english word review."
+    (interactive)
+    (with-org-drill-english-config (org-drill-resume)))
+
+  (defun my/org-english-drill-nontrivial ()
+    ""
+    (interactive)
+    (let ((org-drill-match "-trivial"))
+      (with-org-drill-english-config (org-drill))))
+
+  (defun my/org-english-drill-new ()
+    ""
+    (interactive)
+    (let ((org-drill-match "-DRILL_TOTAL_REPEATS>0"))
+      (with-org-drill-english-config (org-drill))))
+
+  (defun my/org-english-drill-test-display ()
+    "Show Org-Drill entry in the same way as english drill session."
+    (interactive)
+    (with-org-drill-english-config (org-drill-test-display)))
+
+  (provide 'my/org-english)
+#+end_src
+
+
 
 **** additional emacs lisp code
 
