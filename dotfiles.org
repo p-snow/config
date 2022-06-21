@@ -1336,11 +1336,17 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
     (dired-dwim-target 'dired-dwim-target-recent)
     (dired-hide-details-hide-information-lines nil)
     (dired-compress-file-default-suffix ".zst")
+    (dired-isearch-filenames t)
     :config
     (require 'dired-x)
-    (setq dired-isearch-filenames t)
     (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
     (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion))
+
+  (use-package dired-aux
+    :config
+    (add-to-list 'dired-compress-files-alist
+                 '("\\.7z\\'" . "7z a %o %i")
+                 t))
 
   (defun my/advice-dired-control-deletion (oldfun &rest r)
     "Enable file deleting functions to control deleting procedure
