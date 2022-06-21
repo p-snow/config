@@ -67,14 +67,16 @@ These process must be evaluated beforehand.
 
 #+begin_src emacs-lisp
   (require 'package)
-  (setq package-archives
-        '(("gnu" . "http://elpa.gnu.org/packages/")
-          ("melpa" . "http://melpa.org/packages/")
-          ("org" . "http://orgmode.org/elpa/")))
-  (setq package-enable-at-startup nil)
-  (package-initialize t)
 
-  (setq package-user-dir (expand-file-name "elpa" user-emacs-directory-default))
+  (custom-set-variables
+   '(package-archives
+     '(("gnu" . "http://elpa.gnu.org/packages/")
+       ("melpa" . "http://melpa.org/packages/")
+       ("org" . "http://orgmode.org/elpa/")))
+   '(package-enable-at-startup nil)
+   '(package-user-dir (expand-file-name "elpa" user-emacs-directory-default)))
+
+  (package-initialize t)
 #+end_src
 
 ***** straight.el
@@ -84,8 +86,10 @@ These process must be evaluated beforehand.
 #+end_src
 
 #+begin_src emacs-lisp
-  (setq straight-recipes-gnu-elpa-use-mirror t
-        straight-base-dir user-emacs-directory-default)
+  (custom-set-variables
+   '(straight-recipes-gnu-elpa-use-mirror t)
+   '(straight-base-dir user-emacs-directory-default)
+   '(straight-vc-git-default-clone-depth 1))
 
   (let ((bootstrap-file
          (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory-default))
@@ -141,7 +145,8 @@ These process must be evaluated beforehand.
 #+begin_src emacs-lisp
   (require 'use-package)
 
-  (setq use-package-ensure-function 'straight-use-package-ensure-function)
+  (custom-set-variables
+   '(use-package-ensure-function 'straight-use-package-ensure-function))
 #+end_src
 
 use-package depends on following packages internally
