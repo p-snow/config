@@ -4872,8 +4872,18 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
 #+begin_src emacs-lisp
   (use-package undo-tree
     :diminish undo-tree-mode
+    :init
+    (defvar undo-tree-excludes '("/gnu/store"))
     :hook
-    ((text-mode org-mode prog-mode) . undo-tree-mode)
+    ((text-mode prog-mode) .
+     (lambda ()
+       (when-let ((file-visited (or buffer-file-name
+                                    org-src-source-file-name)))
+         (unless (seq-some (lambda (exclude)
+                             (string-match-p exclude
+                                             file-visited))
+                           undo-tree-excludes)
+           (undo-tree-mode 1)))))
     :custom
     (undo-tree-enable-undo-in-region t)
     (undo-tree-auto-save-history t)
