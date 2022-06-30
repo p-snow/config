@@ -6894,71 +6894,7 @@ Provide a function to Build a clock table summing up time by tag.
 
   (provide 'my/view-file)
 #+end_src
-****** filetype-cli
-Wrapper script for [[* filetype][filetype.rb]].
 
-#+begin_src ruby :tangle (expand-tangle-target ".local/bin/filetype-cli") :tangle-mode (identity #o755)
-  #!/usr/bin/env ruby
-
-  require 'thor'
-  require 'filetype'
-
-  class FileTypeCLI < Thor
-    default_command :check
-    desc "check", "check whether the file is the speicfied type."
-    option :type, aliases: "t", :type => :string, :required => true,
-           :bannar => '--type image'
-    def check(file)
-      unless FileType.respond_to?("#{options[:type]}?")
-        $stderr.print("file type '#{options[:type]}' is not valid.")
-        exit 1
-      end
-
-      status = FileType.send("#{options[:type]}?", file)
-      unless status
-        $stderr.print("#{file} is not of #{options[:type]}?")
-        exit 1
-      end
-
-      exit 0
-    end
-  end
-
-  FileTypeCLI.start(ARGV)
-#+end_src
-
-****** strip_ruby
-A program strips all ruby tags in a HTML stream. All HTML contents are expected to be from STDIN and go out as STDOUT. This procedure is mainly for html files converted from pdf and epub files.
-Stripping rules are:
-- <ruby> tag will be stripped
-- <rt> tree for furigana tree will be removed
-- <rp> tree contains parenthes for non-ruby-support brouwser will be removed
-- <rb> tag for delimiter will be stripped
-- <rtc> tree for semantic word will be removed
-
-#+begin_src python :tangle (expand-tangle-target ".local/bin/strip_ruby") :tangle-mode (identity #o755)
-  #!/usr/bin/env python3
-
-  import sys
-  import lxml.html as html
-
-  INPUT_STR = sys.stdin.read()
-  ROOT = html.fromstring(INPUT_STR).getroottree()
-
-  for ruby in ROOT.xpath('//ruby'):
-      for rt in ruby.xpath('//rt'):
-          rt.drop_tree()
-      for rp in ruby.xpath('//rp'):
-          rp.drop_tree()
-      for rb in ruby.xpath('//rb'):
-          rb.drop_tag()
-      for rtc in ruby.xpath('//rtc'):
-          rtc.drop_tree()
-      ruby.drop_tag()
-
-  CONTENT = html.tostring(ROOT, encoding="utf-8", method='html', pretty_print=True)
-  print(CONTENT.decode())
-#+end_src
 ***** open-file
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/site-lisp/open-file.el")
@@ -11845,6 +11781,70 @@ A script which executes command with elevating privilege using password from pas
     exit $retval
 #+end_src
 
+** filetype-cli                                :ARCHIVE:
+Wrapper script for [[* filetype][filetype.rb]].
+
+#+begin_src ruby :tangle (expand-tangle-target ".local/bin/filetype-cli") :tangle-mode (identity #o755)
+  #!/usr/bin/env ruby
+
+  require 'thor'
+  require 'filetype'
+
+  class FileTypeCLI < Thor
+    default_command :check
+    desc "check", "check whether the file is the speicfied type."
+    option :type, aliases: "t", :type => :string, :required => true,
+           :bannar => '--type image'
+    def check(file)
+      unless FileType.respond_to?("#{options[:type]}?")
+        $stderr.print("file type '#{options[:type]}' is not valid.")
+        exit 1
+      end
+
+      status = FileType.send("#{options[:type]}?", file)
+      unless status
+        $stderr.print("#{file} is not of #{options[:type]}?")
+        exit 1
+      end
+
+      exit 0
+    end
+  end
+
+  FileTypeCLI.start(ARGV)
+#+end_src
+** strip ruby
+A program strips all ruby tags in a HTML stream. All HTML contents are expected to be from STDIN and go out as STDOUT. This procedure is mainly for html files converted from pdf and epub files.
+Stripping rules are:
+- <ruby> tag will be stripped
+- <rt> tree for furigana tree will be removed
+- <rp> tree contains parenthes for non-ruby-support brouwser will be removed
+- <rb> tag for delimiter will be stripped
+- <rtc> tree for semantic word will be removed
+
+#+begin_src python :tangle (expand-tangle-target ".local/bin/strip_ruby") :tangle-mode (identity #o755)
+  #!/usr/bin/env python3
+
+  import sys
+  import lxml.html as html
+
+  INPUT_STR = sys.stdin.read()
+  ROOT = html.fromstring(INPUT_STR).getroottree()
+
+  for ruby in ROOT.xpath('//ruby'):
+      for rt in ruby.xpath('//rt'):
+          rt.drop_tree()
+      for rp in ruby.xpath('//rp'):
+          rp.drop_tree()
+      for rb in ruby.xpath('//rb'):
+          rb.drop_tag()
+      for rtc in ruby.xpath('//rtc'):
+          rtc.drop_tree()
+      ruby.drop_tag()
+
+  CONTENT = html.tostring(ROOT, encoding="utf-8", method='html', pretty_print=True)
+  print(CONTENT.decode())
+#+end_src
 * workflows
 
 ** video encoding
