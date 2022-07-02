@@ -432,6 +432,12 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 
 ****** Auto Save
 
+System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save][auto saving mechanism]] come to the rescue.
+
+#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+  d <<home-dir()>>/share/emacs/auto-save-list 0755 - - 2w
+#+end_src
+
 #+begin_src emacs-lisp
   (custom-set-variables
    '(auto-save-interval 200)
@@ -4785,6 +4791,10 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
   "emacs-undo-tree"
 #+end_src
 
+#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+  d <<home-dir()>>/share/emacs/undo-tree 0755 - - 3w
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package undo-tree
     :diminish undo-tree-mode
@@ -7818,7 +7828,7 @@ This section mainly for elisp code associated with some other programs.
   : $ systemctl --user enable systemd-tmpfiles-setup.service systemd-tmpfiles-clean.timer
 
   #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/user-tmpfiles.d/cleanup.conf")
-    D <<home-dir()>>/.local/share/Trash/files: 0700 - - 1w
+    D <<home-dir()>>/.local/share/Trash/files 0700 - - 1w
     d <<home-dir()>>/tmp 0755 - - 1w
     d <<home-dir()>>/Downloads 0755 - - 4w
     <<tmpfiles-cleanup>>
