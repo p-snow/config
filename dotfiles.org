@@ -499,6 +499,13 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 #+begin_src emacs-lisp
   (custom-set-variables
    '(revert-buffer-quick-short-answers t))
+
+  (add-to-list 'safe-local-eval-forms
+               '(add-hook 'after-save-hook
+                          #'my/compile-default-command nil t))
+  (add-to-list 'safe-local-eval-forms
+               '(add-hook 'magit-mode-hook
+                          #'my/compile-default-command nil t))
 #+end_src
 
 ***** Environment
@@ -1349,7 +1356,8 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
     (require 'dired-x)
     (require 'dired-open)
     (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
-    (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion))
+    (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion)
+    (put 'dired-find-alternate-file 'disabled nil))
 
   (use-package dired-aux
     :config
@@ -4234,6 +4242,11 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   (use-package compile
     :bind (:map compilation-mode-map
                 ("C-j" . compile-goto-error)))
+
+  (defun my/compile-default-command ()
+    "Compile `compile-command'."
+    (funcall #'compile compile-command)
+    (quit-window))
 #+end_src
 
 ***** grep
