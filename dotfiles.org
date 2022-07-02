@@ -3270,6 +3270,10 @@ org-roam v2
 
 ***** utility functions for org
 
+#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+  d <<home-dir()>>/share/emacs/org-readable 0755 - - 3d
+#+end_src
+
 #+begin_src emacs-lisp
   (defun my/org-babel-lob-ingest-batch ()
     (interactive)
@@ -3278,7 +3282,9 @@ org-roam v2
               (org-babel-lob-ingest f)))
           '("agenda" "index" "wiki")))
 
-  (defvar org-readable-directory "~/tmp"
+  (defvar org-readable-directory
+    (expand-file-name "org-readable"
+                      user-emacs-directory)
     "A directory where generated html files are located in org-readable.")
 
   (defun org-readable ()
@@ -6901,6 +6907,10 @@ Provide a function to Build a clock table summing up time by tag.
 
 This set of code (open-file) offers file opener functionality in my liking. With open-file, PDF and EPUB, which is either local or on the web, is viewed in EWW (text browser in Emacs) after the process of converted into html. Video and audio is played in MPV media player. Open-file is available in elisp commands for opening files (e.g. org-open-at-point for org links, browse-url and dired-open-file). With any command above, invoking with single prefix (C-u) inflict to open file in Emacs, and invoking with double prefix (C-u C-u) inflict to open files in default application.
 
+#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+  d <<home-dir()>>/share/emacs/open-file 0755 - - 14d
+#+end_src
+
 #+begin_src emacs-lisp
   ;; general functions
 
@@ -7795,6 +7805,25 @@ This section mainly for elisp code associated with some other programs.
 
   <<cronjob-pc>>
 #+end_src
+
+** Systemd
+
+- systemd-tmpfiles
+
+  [[https://www.freedesktop.org/software/systemd/man/systemd-tmpfiles-setup.service.html][systemd-tmpfiles]] manages file creation and deletion. In this section, all settings focus on user level file cleanup and deletion under /home directory.
+
+  You may need to enable systemd-tmpfiles service for user
+  : $ cd /usr/lib/systemd/user
+  : $ cp systemd-tmpfiles-* ~/.config/systemd/user/
+  : $ systemctl --user enable systemd-tmpfiles-setup.service systemd-tmpfiles-clean.timer
+
+  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/user-tmpfiles.d/cleanup.conf")
+    D <<home-dir()>>/.local/share/Trash/files: 0700 - - 1w
+    d <<home-dir()>>/tmp 0755 - - 1w
+    d <<home-dir()>>/Downloads 0755 - - 4w
+    <<tmpfiles-cleanup>>
+  #+end_src
+
 ** Findutils
 
 [[https://www.gnu.org/software/findutils/][GNU Findutils]] offers following commands
@@ -10110,16 +10139,16 @@ A structure described below is expected under all devices.
 :header-args+: :tangle-mode (identity #o755)
 :END:
 
-** Declutters
+** Declutters                                  :ARCHIVE:
 
 These scripts (declutter_xxx) keep things decluttered.
 
 - trash
-  #+begin_src conf :noweb-ref cronjob-pc
+  #+begin_src conf
     0 2 * * * /bin/bash -ci "declutter_trash >> $LOG_DIR/declutter_trash.log 2>&1"
   #+end_src
 
-  #+begin_src python :tangle (expand-tangle-target ".local/bin/declutter_trash")
+  #+begin_src python :noweb yes :tangle no
     #!/usr/bin/env python3
 
     import os
@@ -10214,7 +10243,7 @@ These scripts (declutter_xxx) keep things decluttered.
                                      datetime.datetime.now()))
 #+end_src
 - home directory (ruby implementation)
-  #+begin_src ruby :tangle (expand-tangle-target ".local/bin/declutter_home")
+  #+begin_src ruby :tangle no
     #!/usr/bin/env ruby
     # coding: utf-8
 
@@ -10243,7 +10272,7 @@ These scripts (declutter_xxx) keep things decluttered.
     end
   #+end_src
 - home directory (python implementation)
-  #+begin_src python :tangle (expand-tangle-target ".local/bin/declutter_home_py")
+  #+begin_src python :tangle no
     #!/usr/bin/env python3
 
     import sys
