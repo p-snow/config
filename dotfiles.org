@@ -6041,7 +6041,7 @@ It's confortable to read long material such as web page , epub file or email wit
     "Property used in my/password-store feature to get password-store entry name attached to current org entry.")
 
   (defmacro with-password-store-entry (entry &rest body)
-    "Eval BODY which can refer password-store ENTRY.."
+    "Eval BODY that can refer password-store ENTRY."
     (declare (indent defun))
     `(let ((entry (or ,entry
                       (when (derived-mode-p 'org-mode) (org-entry-get (point) my/org-password-store-property))
@@ -6122,20 +6122,18 @@ It's confortable to read long material such as web page , epub file or email wit
         (org-entry-delete (point) my/org-password-store-property))))
 
   (defun my/password-store-web-login ()
+    "Open url of the entry at point.
+
+  The username and the secret are saved in X selection and clipboard respectively."
     (interactive)
     (with-password-store-entry-field nil "username"
       (password-store-copy entry)
-      (sleep-for 0.2) ; work around for overlapping message
-      (if field-value
-          (message "%s: %s" field field-value)
-        (message (string-trim-right
-                  (concat
-                   (when-let ((email (assoc "email" (password-store-parse-entry entry))))
-                     (format "%s: %s\n" (car email) (cdr email)))
-                   (when-let ((second (nth 1 (password-store-parse-entry entry))))
-                     (format "%s: %s\n" (car second) (cdr second)))))))
-      (sleep-for 3)
-      (funcall-interactively #'my/password-store-url '(16))))
+      (gui-set-selection 'PRIMARY
+                         (or (password-store-get-field entry "username")
+                             (password-store-get-field entry "email")
+                             (nth 1 (password-store-parse-entry entry))))
+      (funcall-interactively #'my/password-store-url '(16))
+      (message "USERNAME => X-SEL, SECRET => CLIPBOARD")))
 
   (advice-add #'password-store-clear :before #'my/password-store-clear)
 
