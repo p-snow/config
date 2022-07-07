@@ -1010,6 +1010,15 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (proced-auto-update-interval 3))
 #+end_src
 
+****** locate
+
+#+begin_src emacs-lisp :noweb yes
+  (use-package locate
+    :custom
+    (locate-fcodes-file "<<locate-db()>>")
+    (locate-update-path (expand-file-name "~/")))
+#+end_src
+
 ***** Applications
 
 ****** Ispell
@@ -1474,15 +1483,6 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
       ("n" find-name-dired)
       ("d" find-lisp-find-dired-subdirectories)
       ("q" nil "quit")))
-#+end_src
-
-***** locate
-
-#+begin_src emacs-lisp :noweb yes
-  (use-package locate
-    :custom
-    (locate-fcodes-file "<<locate-db()>>")
-    (locate-update-path (expand-file-name "~/")))
 #+end_src
 
 **** EWW
@@ -3484,6 +3484,18 @@ org-roam v2
     (let ((ts-bound (org-in-regexp (org-re-timestamp 'all))))
       (when ts-bound
         (buffer-substring (car ts-bound) (cdr ts-bound)))))
+
+  (defun my/org-alter-heading ()
+    "Interpolate heading for this org entry."
+    (interactive)
+    (let* ((old-heading (org-get-heading t t t t))
+           (new-heading (read-string "Heading: " old-heading)))
+      (save-excursion
+        (org-back-to-heading t)
+        (replace-string old-heading new-heading nil
+                        (line-beginning-position) (line-end-position))
+        (org-align-tags))
+      (org-add-log-setup 'state new-heading old-heading 'state)))
 #+end_src
 
 ***** keybindings for org
@@ -6020,22 +6032,6 @@ It's confortable to read long material such as web page , epub file or email wit
       (set-marker e nil)))
 #+end_src
 
-***** org entries/items manipulation
-
-#+begin_src emacs-lisp
-  (defun my/org-alter-heading ()
-    "Interpolate heading for this org entry."
-    (interactive)
-    (let* ((old-heading (org-get-heading t t t t))
-           (new-heading (read-string "Heading: " old-heading)))
-      (save-excursion
-        (org-back-to-heading t)
-        (replace-string old-heading new-heading nil
-                        (line-beginning-position) (line-end-position))
-        (org-align-tags))
-      (org-add-log-setup 'state new-heading old-heading 'state)))
-#+end_src
-
 **** original features
 ***** org-password-store
 
@@ -7198,7 +7194,7 @@ This set of code (open-file) offers file opener functionality in my liking. With
         (my/open-media file-for-visit)))))
 #+end_src
 
-***** lfile (local file lookup system)
+***** lfile (org-link type for files on the machine)
 
 lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lfile/][Kerl Voit's implementation]].
 
@@ -7610,8 +7606,6 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
 
   (provide 'my/org-english)
 #+end_src
-
-
 
 **** additional emacs lisp code
 
