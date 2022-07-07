@@ -6965,7 +6965,9 @@ This set of code (open-file) offers file opener functionality in my liking. With
   (defmacro my/open-file-as-html (file convert-cmd)
     `(let* ((cap-command (if (string-match-p url-handler-regexp ,file)
                              "curl"
-                           "cat"))
+                           (if (string-suffix-p ".gpg" ,file)
+                               "gpg -d"
+                             "cat")))
             (dir-name
              (seq-reduce (lambda (str rep)
                            (string-replace (car rep) (cdr rep) str))
@@ -7009,15 +7011,20 @@ This set of code (open-file) offers file opener functionality in my liking. With
     "Open MEDIA in `my/open-file-media-player' at the point of START-TIME."
     (start-process-shell-command
      "mpv" nil
-     (mapconcat #'identity
-                (list "nohup" my/open-file-media-player
-                      "--force-window"
-                      (or (and start-time
-                               (format "--start=%s" start-time))
-                          "")
-                      (shell-quote-argument media)
-                      "2>&1" ">/dev/null")
-                " ")))
+     (let ((cap-cmd (and (string-suffix-p ".gpg" media)
+                         (format "gpg -d %s | " media))))
+       (mapconcat #'identity
+                  (list (or cap-cmd "")
+                        "nohup" my/open-file-media-player
+                        "--force-window"
+                        (or (and start-time
+                                 (format "--start=%s" start-time))
+                            "")
+                        (if cap-cmd
+                            "-"
+                          (shell-quote-argument media))
+                        "2>&1" ">/dev/null")
+                  " "))))
 
   ;; ==============================================
   ;; browse-url handling
@@ -7034,7 +7041,7 @@ This set of code (open-file) offers file opener functionality in my liking. With
             . my/browse-url-emacs)
            (,(format "\\.html%s\\'" search-suffix)
             . my/browse-url-html)
-           (,(format "\\.pdf%s\\'" search-suffix)
+           (,(format "\\.pdf\\(\\.gpg\\)?%s\\'" search-suffix)
             . my/browse-url-pdf)
            (,(format "\\.epub%s\\'" search-suffix)
             . my/browse-url-epub)
@@ -7113,7 +7120,7 @@ This set of code (open-file) offers file opener functionality in my liking. With
     (custom-set-variables
      `(org-file-apps
        `(("\\.html\\'" . my/org-open-html)
-         ("\\.pdf\\'" . my/org-open-pdf)
+         ("\\.pdf\\(\\.gpg\\)?\\'" . my/org-open-pdf)
          ("\\.epub\\'" . my/org-open-epub)
          (,(eval (rx "." (or ,@my/open-file-media-extensions) string-end))
           . my/org-open-media)
@@ -7166,21 +7173,15 @@ This set of code (open-file) offers file opener functionality in my liking. With
          dired-open-guess-shell-alist
          dired-open-by-extension
          dired-open-subdir))
-     '(dired-open-extensions-elisp
-       '(("pdf" . my/dired-open-pdf)
-         ("epub" . my/dired-open-epub)))
-     '(dired-guess-shell-alist-user
-       (list (list (eval `(rx "." (or ,@my/open-file-media-extensions) string-end))
-                   my/open-file-media-player)))
+     `(dired-open-extensions-elisp
+       `(("pdf" . my/open-pdf-as-html)
+         ("pdf.gpg" . my/open-pdf-as-html)
+         ("epub" . my/open-epub-as-html)
+         ("jpg.gpg" . my/open-media)
+         ,@(mapcar (lambda (ext)
+                     (cons ext 'my/open-media))
+                   my/open-file-media-extensions)))
      '(dired-open-find-file-function 'my/dired-find-file)))
-
-  (defun my/dired-open-pdf (file)
-    "An open function for a pdf file at FILE."
-    (my/open-pdf-as-html file))
-
-  (defun my/dired-open-epub (file)
-    "An open function for an epub file at FILE."
-    (my/open-epub-as-html file))
 
   (defun my/dired-find-file ()
     "A function for `dired-open-find-file-function' dealing with
