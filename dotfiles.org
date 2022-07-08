@@ -748,6 +748,21 @@ Mouse needs to be unobtrusive in my Emacs experience.
   (custom-set-variables '(global-so-long-mode t))
 #+end_src
 
+****** Tab Bar
+
+#+begin_src emacs-lisp
+  (use-package tab-bar
+    :hook (after-init . (lambda ()
+                          (define-key ctl-x-map "t" tab-prefix-map)))
+    :custom
+    (tab-bar-mode t)
+    (tab-bar-show nil)
+    (tab-bar-history-mode t)
+    :config
+    (global-set-key (kbd "M-[") 'tab-bar-history-back)
+    (global-set-key (kbd "M-]") 'tab-bar-history-forward))
+#+end_src
+
 ****** Ffap
 
 #+begin_src emacs-lisp
