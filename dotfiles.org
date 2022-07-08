@@ -748,6 +748,14 @@ Mouse needs to be unobtrusive in my Emacs experience.
   (custom-set-variables '(global-so-long-mode t))
 #+end_src
 
+****** Ffap
+
+#+begin_src emacs-lisp
+  (require 'ffap)
+
+  (ffap-bindings)
+#+end_src
+
 ***** Editing
 
 ****** Indent
@@ -4789,14 +4797,13 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
   (defun my/twittering-open (&optional arg)
     ""
     (interactive "P")
-    (unless (my/open-thing-at-point)
-      (let ((uri (or (get-text-property (point) 'uri)
-                     (if (get-text-property (point) 'field)
-                         (let* ((id (get-text-property (point) 'id))
-                                (status (twittering-find-status id)))
-                           (twittering-get-status-url-from-alist status))
-                       nil))))
-        (browse-url uri))))
+    (let ((uri (or (get-text-property (point) 'uri)
+                   (if (get-text-property (point) 'field)
+                       (let* ((id (get-text-property (point) 'id))
+                              (status (twittering-find-status id)))
+                         (twittering-get-status-url-from-alist status))
+                     nil))))
+      (browse-url uri)))
 #+end_src
 
 ***** comment-dwim-2
@@ -5611,38 +5618,6 @@ It's confortable to read long material such as web page , epub file or email wit
                          (buffer-substring (region-beginning) (region-end))
                        (buffer-string))))
       (mail-simple-send mailto mail-subj mail-body)))
-#+end_src
-
-***** open url or something
-
-#+begin_src emacs-lisp
-  (require 'thingatpt)
-
-  (defun my/open-thing-at-point ()
-    "Open thing in appropriate manner."
-    (interactive)
-    (let* ((thing nil)
-           (region-thing (when (use-region-p)
-                           (buffer-substring (region-beginning) (region-end)))))
-      (cond
-       ((setq thing
-              (if region-thing
-                  (when (string-match thing-at-point-email-regexp
-                                      region-thing)
-                    (match-string 0 region-thing))
-                (thing-at-point 'email t)))
-        (mu4e~compose-mail thing))
-       ((setq thing (car (eww-links-at-point)))
-        (browse-url thing))
-       ((setq thing (thing-at-point 'url t))
-        (browse-url thing))
-       ((and (setq thing (thing-at-point 'filename t))
-             (file-exists-p thing))
-        (browse-url thing))
-       ((setq thing (button-at (point)))
-        (push-button)))))
-
-  (global-set-key (kbd "C-c C-o") #'my/open-thing-at-point)
 #+end_src
 
 ***** download media file
