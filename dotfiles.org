@@ -3321,6 +3321,7 @@ org-roam v2
            (org-export-show-temporary-export-buffer nil)
            (export-buf-name "*Org HTML Export*")
            (org-export-with-broken-links 'mark)
+           (org-export-babel-evaluate nil)
            (id (org-id-get))
            (uuid (downcase (if id id (org-id-uuid))))
            (org-readable-file (format "%s/%s.html" org-readable-directory uuid)))
@@ -5946,6 +5947,16 @@ It's confortable to read long material such as web page , epub file or email wit
                                  (not (tags "web" "drill")))
         :buffer buffer-name)
       (other-window 1)))
+#+end_src
+
+***** disable external IME (fcitx)
+
+As of 28.1, Emacs won't steal keyboard focus at startup which means we can use external input methods. But I'm confortable with shutting out external IM, fcitx in my case. Restarting fcitx makes my desire come true.
+
+#+begin_src emacs-lisp
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (call-process-shell-command "fcitx -r")))
 #+end_src
 
 ***** utilities
