@@ -1369,7 +1369,10 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 #+begin_src emacs-lisp
   (use-package dired
     :bind (:map dired-mode-map
-                ("C-j" . dired-find-alternate-file)
+                ;; workaround against dired-find-file for cdr
+                ("C-j" . (lambda ()
+                           (interactive)
+                           (call-interactively #'dired-find-file)))
                 ("^" . dired-up-directory)
                 ("(" . dired-hide-details-mode)
                 (")" . dired-hide-details-mode)
