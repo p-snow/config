@@ -1033,6 +1033,12 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (proced-auto-update-interval 3))
 #+end_src
 
+****** Browse Url
+
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-c C-o") #'browse-url-at-point)
+#+end_src
+
 ****** locate
 
 #+begin_src emacs-lisp :noweb yes
@@ -6956,9 +6962,12 @@ This set of code (open-file) offers file opener functionality in my liking. With
     '("mpg" "mpeg" "mp3" "mp4" "m4v" "m4a"
       "avi" "wmv" "wav" "mov" "flv" "mkv" "webm"
       "ogv" "oga" "ogx" "ogg" "spx"
-      "xbm" "pbm" "pgm" "ppm" "pnm" "png" "gif" "bmp" "tif" "jpeg" "jpg"
-      "tar.gz" "tgz" "tar.xz" "txz" "zip" "7z")
-    "Extensions that the file distinguished to media file must have.")
+      "xbm" "pbm" "pgm" "ppm" "pnm" "png" "gif" "bmp" "tif" "jpeg" "jpg")
+    "Extensions files which can play with media player must have.")
+
+  (defvar my/open-file-compressed-media-extensions
+    '("tar.gz" "tgz" "tar.xz" "txz" "zip" "7z")
+    "Extensions compressed files which can play with media player must have.")
 
   (defvar my/open-file-yt-regexp
     (rx (? (or "https://" "http://" "//"))
@@ -7013,22 +7022,29 @@ This set of code (open-file) offers file opener functionality in my liking. With
 
   (defun my/open-media (media &optional start-time)
     "Open MEDIA in `my/open-file-media-player' at the point of START-TIME."
-    (start-process-shell-command
-     "mpv" nil
-     (let ((cap-cmd (and (string-suffix-p ".gpg" media)
-                         (format "gpg -d %s | " media))))
-       (mapconcat #'identity
-                  (list (or cap-cmd "")
-                        "nohup" my/open-file-media-player
-                        "--force-window"
-                        (or (and start-time
-                                 (format "--start=%s" start-time))
-                            "")
-                        (if cap-cmd
-                            "-"
-                          (shell-quote-argument media))
-                        "2>&1" ">/dev/null")
-                  " "))))
+    (let ((ask-file (when (or (file-directory-p media)
+                              (string-match-p (eval `(rx (or ,@my/open-file-compressed-media-extensions)))
+                                              media))
+                      (file-name-nondirectory media))))
+      (when (or (not ask-file)
+                (and ask-file
+                     (y-or-n-p (format "Play %s?: " ask-file))))
+        (start-process-shell-command
+         my/open-file-media-player nil
+         (let ((cap-cmd (and (string-suffix-p ".gpg" media)
+                             (format "gpg -d %s | " media))))
+           (mapconcat #'identity
+                      (list (or cap-cmd "")
+                            "nohup" my/open-file-media-player
+                            "--force-window"
+                            (or (and start-time
+                                     (format "--start=%s" start-time))
+                                "")
+                            (if cap-cmd
+                                "-"
+                              (shell-quote-argument media))
+                            "2>&1" ">/dev/null")
+                      " "))))))
 
   ;; ==============================================
   ;; browse-url handling
@@ -7049,8 +7065,12 @@ This set of code (open-file) offers file opener functionality in my liking. With
             . my/browse-url-pdf)
            (,(format "\\.epub%s\\'" search-suffix)
             . my/browse-url-epub)
-           (,(eval `(concat (rx "." (or ,@my/open-file-media-extensions)
+           (,(eval `(concat (rx "." (or ,@my/open-file-media-extensions
+                                        ,@my/open-file-compressed-media-extensions)
                                 (opt ".gpg"))
+                            search-suffix))
+            . my/browse-url-media)
+           (,(eval `(concat (rx "." (or ,@my/open-file-comp))
                             search-suffix))
             . my/browse-url-media)
            (,(concat my/open-file-yt-regexp search-suffix)
@@ -7127,7 +7147,8 @@ This set of code (open-file) offers file opener functionality in my liking. With
        `(("\\.html\\'" . my/org-open-html)
          ("\\.pdf\\(\\.gpg\\)?\\'" . my/org-open-pdf)
          ("\\.epub\\'" . my/org-open-epub)
-         (,(eval (rx "." (or ,@my/open-file-media-extensions)
+         (,(eval (rx "." (or ,@my/open-file-media-extensions
+                             ,@my/open-file-compressed-media-extensions)
                      (opt ".gpg") string-end))
           . my/org-open-media)
          (auto-mode . emacs)
@@ -7199,7 +7220,9 @@ This set of code (open-file) offers file opener functionality in my liking. With
         (browse-url-default-browser file-for-visit))
        ((equal current-prefix-arg '(4))
         (dired--find-possibly-alternative-file file-for-visit))
-       ((file-directory-p file-for-visit)
+       ((or (file-directory-p file-for-visit)
+            (string-match-p (eval `(rx (or ,@my/open-file-compressed-media-extensions)))
+                            file-for-visit))
         (my/open-media file-for-visit)))))
 #+end_src
 
