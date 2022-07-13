@@ -7074,9 +7074,6 @@ This set of code (open-file) offers file opener functionality in my liking. With
                                 (opt ".gpg"))
                             search-suffix))
             . my/browse-url-media)
-           (,(eval `(concat (rx "." (or ,@my/open-file-comp))
-                            search-suffix))
-            . my/browse-url-media)
            (,(concat my/open-file-yt-regexp search-suffix)
             . my/browse-url-media)))
        '(browse-url-browser-function 'eww-browse-url))))
@@ -7120,8 +7117,8 @@ This set of code (open-file) offers file opener functionality in my liking. With
 
   (defun my/browse-url-external (url &optional same-window)
     "A handler for `browse-url' invoked with `C-u C-u' responsible for a file at URL."
-    (browse-url-default-browser (car (my/browse-url-break-down url))
-                                same-window))
+    (browse-url-xdg-open (car (my/browse-url-break-down url))
+                         same-window))
 
   (defun my/browse-url-break-down (query)
     (let* ((search-opt-regexp "::\\(.*\\)\\'")
