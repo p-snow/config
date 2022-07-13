@@ -772,6 +772,17 @@ Mouse needs to be unobtrusive in my Emacs experience.
   (ffap-bindings)
 #+end_src
 
+****** Kmacro
+
+The power of keyboard macro is more than repeating editing commands. [[https://masteringemacs.org/article/keyboard-macros-are-misunderstood][This post explains fluently]].
+
+#+begin_src emacs-lisp
+  (require 'kmacro)
+
+  (defalias 'kmacro-insert-macro 'insert-kbd-macro)
+  (define-key kmacro-keymap (kbd "I") #'kmacro-insert-macro)
+#+end_src
+
 ***** Editing
 
 ****** Indent
