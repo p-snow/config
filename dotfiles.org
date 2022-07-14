@@ -1417,9 +1417,12 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 
   (use-package dired-aux
     :config
-    (add-to-list 'dired-compress-files-alist
-                 '("\\.7z\\'" . "7z a %o %i")
-                 t))
+    (setq dired-compress-files-alist
+          (append dired-compress-files-alist
+                  '(("\\.tar\\.7z\\'" . "tar cf - %i | 7z a -si %o")
+                    ("\\.7z\\'" . "7z a %o %i"))))
+    (add-to-list 'dired-compress-file-suffixes
+                 '("\\.tar\\.7z\\'" "" "7z x -so %i | tar xf -")))
 
   (defun my/advice-dired-control-deletion (oldfun &rest r)
     "Enable file deleting functions to control deleting procedure
