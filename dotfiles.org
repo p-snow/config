@@ -1424,6 +1424,10 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
     (add-to-list 'dired-compress-file-suffixes
                  '("\\.tar\\.7z\\'" "" "7z x -so %i | tar xf -")))
 
+  (use-package dired-async
+    :config
+    (dired-async-mode 1))
+
   (defun my/advice-dired-control-deletion (oldfun &rest r)
     "Enable file deleting functions to control deleting procedure
   whether files are going to be in trash box."
