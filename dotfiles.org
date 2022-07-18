@@ -200,14 +200,26 @@ init.el devote itself to call for remaining config files.
 
 #+begin_src emacs-lisp
   (global-set-key (kbd "C-M-o") #'open-line)
-  (global-set-key (kbd "C-h") #'backward-delete-char-untabify)
-  (global-set-key (kbd "M-h") #'backward-kill-word)
   (global-set-key (kbd "M-SPC") #'cycle-spacing)
   (global-set-key (kbd "C-c k") #'kill-this-buffer)
-  (global-set-key (kbd "M-o") #'other-window)
   (global-set-key (kbd "<f5>") #'revert-buffer-quick)
 #+end_src
 
+- swap C-h/M-h and <BS>(C-?)/M-<BS> advised at [[https://www.emacswiki.org/emacs/BackspaceKey][EmacsWiki: Backspace Key]]
+  #+begin_src emacs-lisp
+    ;; map backspace [delete-backward-char] and C-? to C-h
+    (define-key key-translation-map [?\C-?] [?\C-h])
+    (define-key key-translation-map (kbd "C-?") [?\C-h])
+
+    ;; map M-backspace [backward-kill-word] to M-h
+    (define-key key-translation-map [?\M-\d] [?\M-h])
+
+    ;; map C-h to backspace
+    (define-key key-translation-map [?\C-h] [?\C-?])
+
+    ;; map M-h [mark-paragraph] to M-backspace
+    (define-key key-translation-map [?\M-h] [?\M-\d])
+  #+end_src
 - buffers
   Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
 
@@ -216,7 +228,6 @@ init.el devote itself to call for remaining config files.
                                'ibuffer
                                global-map)
   #+end_src
-
 - case commands
   #+begin_src emacs-lisp
     (substitute-key-definition 'upcase-region
@@ -231,12 +242,10 @@ init.el devote itself to call for remaining config files.
     (put 'upcase-region 'disabled nil)
     (put 'downcase-region 'disabled nil)
   #+end_src
-
 - special mode
   #+begin_src emacs-lisp
     (define-key special-mode-map (kbd "C-j") #'push-button)
   #+end_src
-
 ***** lambda-key
 
 [[https://www.emacswiki.org/emacs/DocumentingKeyBindingToLambda][lambda-key]] is nice idea to remedy lambda bindings with define-key.
@@ -927,9 +936,8 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
     (help-enable-symbol-autoload t)
     (describe-bindings-outline t)
     :config
-    (bind-key "C-M-h" help-map)
     (bind-keys :map help-map
-               ("C-M-h" . help-for-help)
+               ("C-?" . help-for-help)
                ("c" . describe-face)
                ("K" . describe-keymap)
                ("C-l" . find-library)))
@@ -4589,7 +4597,7 @@ Handy commands
 #+begin_src emacs-lisp
   (use-package paredit
     :bind (:map paredit-mode-map
-                ("C-h" . paredit-backward-delete)
+                ("<backspace>" . paredit-backward-delete)
                 ("C-M-g" .  paredit-splice-sexp)
                 ("M-s" . nil)
                 ("C-M-;" . paredit-comment-dwim)
@@ -4660,8 +4668,8 @@ Handy commands
     :hook (prog-mode . company-mode)
     :bind (:map company-active-map
                 ("C-j" . company-complete-selection)
-                ("C-h" . backward-delete-char-untabify)
-                ("C-M-h" . company-show-doc-buffer)
+                ("<backspace>" . backward-delete-char-untabify)
+                ("C-h" . company-show-doc-buffer)
                 ("C-n" . company-select-next)
                 ("C-p" . company-select-previous)))
 #+end_src
@@ -4905,6 +4913,7 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
     (undo-tree-strong-limit 480000)
     (undo-tree-outer-limit 64000000)
     :config
+    (define-key undo-tree-map (kbd "C-?") nil)
     (add-to-list 'undo-tree-history-directory-alist `("." . ,(expand-file-name "undo-tree" user-emacs-directory)))
     (setq undo-tree-visualizer-buffer-name "*undo tree*")
     (add-to-list 'display-buffer-alist
@@ -5162,11 +5171,11 @@ migemo allows me to search incrementally Japanese words using roma-ji expression
     :after migemo)
 #+end_src
 
-***** hungry-delete
+***** hungry-delete                         :ARCHIVE:
 
 Aggressively delete successive white spaces.
 
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+#+begin_src emacs-lisp :tangle no
   ("https://github.com/nflath/hungry-delete/releases.atom" soft_update)
 #+end_src
 
@@ -5486,7 +5495,7 @@ It's confortable to read long material such as web page , epub file or email wit
 
 #+begin_src emacs-lisp
   (use-package emacs
-    :bind ("C-x C-v" . my/lazy-view-enter)
+    :bind ("C-c v" . my/lazy-view-enter)
     :hook ((help-mode Info-mode eww-mode nov-mode mu4e-view-mode woman-mode)
            . my/lazy-view-enter))
 
@@ -5933,7 +5942,7 @@ It's confortable to read long material such as web page , epub file or email wit
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'hydra
-    (defhydra hydra-launcher (global-map "C-x C-j"
+    (defhydra hydra-launcher (global-map "M-o"
                                          :color blue)
       "Launch"
       ("e" eshell)
