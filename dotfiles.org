@@ -6118,12 +6118,17 @@ As of 28.1, Emacs won't steal keyboard focus at startup which means we can use e
        ,@body))
 
   (defun my/password-store-copy ()
-    "Add password for ENTRY into the kill ring.
+    "Add the secret to system clipboard and the username to primary `x-selection'.
 
   `password-store-copy' is responsible for managing the kill ring."
     (interactive)
-    (with-password-store-entry nil
-      (password-store-copy entry)))
+    (with-password-store-entry-field nil "username"
+      (password-store-copy entry)
+      (gui-set-selection 'PRIMARY
+                         (or (password-store-get-field entry "username")
+                             (password-store-get-field entry "email")
+                             (nth 1 (password-store-parse-entry entry))))
+      (message "USERNAME => X-SEL, SECRET => CLIPBOARD")))
 
   (defun my/password-store-copy-field ()
     "Add field for entry into the kill ring.
@@ -6178,18 +6183,12 @@ As of 28.1, Emacs won't steal keyboard focus at startup which means we can use e
         (org-entry-delete (point) my/org-password-store-property))))
 
   (defun my/password-store-web-login ()
-    "Open url of the entry at point.
+    "Open url for the entry at point.
 
-  The username and the secret are saved in X selection and clipboard respectively."
+  Additionally the username and the secret are saved in X selection and clipboard respectively."
     (interactive)
-    (with-password-store-entry-field nil "username"
-      (password-store-copy entry)
-      (gui-set-selection 'PRIMARY
-                         (or (password-store-get-field entry "username")
-                             (password-store-get-field entry "email")
-                             (nth 1 (password-store-parse-entry entry))))
-      (funcall-interactively #'my/password-store-url '(16))
-      (message "USERNAME => X-SEL, SECRET => CLIPBOARD")))
+    (my/password-store-copy)
+    (funcall-interactively #'my/password-store-url '(16)))
 
   (advice-add #'password-store-clear :before #'my/password-store-clear)
 
