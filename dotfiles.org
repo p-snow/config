@@ -3233,6 +3233,7 @@ org-roam v2
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-org-roam"
+  "emacs-emacsql-sqlite3"
 #+end_src
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
@@ -3242,18 +3243,24 @@ org-roam v2
 #+begin_src emacs-lisp
   (use-package org-roam
     :after org
-    :bind (("C-c n l" . org-roam-buffer-toggle-display)
-           ("C-c n D" . org-roam-find-directory)
-           ("C-c n f" . org-roam-find-file)
-           ("C-c n i" . org-roam-insert)
-           :map org-mode-map
-           ("C-M-i" . completion-at-point))
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n i" . org-roam-node-insert)
+           ("C-c n S" . org-roam-db-sync))
     :custom
-    (org-roam-directory (expand-file-name "note" org-directory))
-    ;; DB does not have to be with org files since it is derived from org files uniquely
-    (org-roam-db-location (expand-file-name "org-roam.db" "~/share/emacs/org-roam"))
-    (org-roam-buffer-position 'bottom))
-
+    (org-roam-directory org-directory)
+    (org-roam-db-location (file-name-concat user-emacs-directory "org-roam.db"))
+    (org-roam-database-connector 'sqlite3)
+    (org-roam-db-update-on-save nil)
+    (org-roam-db-extra-links-exclude-keys
+     '((node-property "ROAM_REFS")
+       (node-property "PARENT")
+       (keyword "transclude")))
+    :config
+    (setq org-roam-mode-sections
+          (list #'org-roam-backlinks-section
+                #'org-roam-reflinks-section
+                #'org-roam-unlinked-references-section)))
 #+end_src
 ****** org-mime
 
