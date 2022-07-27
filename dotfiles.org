@@ -3330,6 +3330,22 @@ org-roam v2
     :after ox)
 #+end_src
 
+****** org-expiry
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-contrib"
+#+end_src
+
+#+begin_src emacs-lisp
+  (require 'org-expiry)
+
+  (customize-set-variable 'org-expiry-inactive-timestamps t)
+  (customize-set-variable 'org-expiry-handler-function
+                          #'my/org-archive-subtree)
+
+  (org-expiry-insinuate)
+#+end_src
+
 ****** ob-async
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
@@ -3617,6 +3633,7 @@ speed commands and hydra-org.
        ("a" . org-archive-subtree-default-with-confirmation)
        ("@" . org-mark-subtree)
        ("#" . org-toggle-comment)
+       ("x" . org-expiry-process-entry)
        ("Clock Commands")
        ("I" . org-clock-in)
        ("O" . (lambda ()
