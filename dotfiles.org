@@ -239,6 +239,11 @@ init.el devote itself to call for remaining config files.
   #+end_src
 - case commands
   #+begin_src emacs-lisp
+    ;; M-u for `universal-argument'
+    (substitute-key-definition 'upcase-word
+                               'universal-argument
+                               global-map)
+
     (substitute-key-definition 'upcase-region
                                'upcase-dwim
                                global-map)
