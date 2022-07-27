@@ -71,12 +71,13 @@ These process must be evaluated beforehand.
 #+begin_src emacs-lisp
   (require 'package)
 
-  (custom-set-variables
-   '(package-archives
-     '(("gnu" . "http://elpa.gnu.org/packages/")
-       ("melpa" . "http://melpa.org/packages/")))
-   '(package-enable-at-startup nil)
-   '(package-user-dir (expand-file-name "elpa" user-emacs-directory-default)))
+  (customize-set-variable
+   'package-archives
+   '(("gnu" . "http://elpa.gnu.org/packages/")
+     ("melpa" . "http://melpa.org/packages/")))
+  (customize-set-variable 'package-enable-at-startup nil)
+  (customize-set-variable 'package-user-dir
+                          (expand-file-name "elpa" user-emacs-directory-default))
 
   (package-initialize t)
 #+end_src
@@ -88,10 +89,9 @@ These process must be evaluated beforehand.
 #+end_src
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(straight-recipes-gnu-elpa-use-mirror t)
-   '(straight-base-dir user-emacs-directory-default)
-   '(straight-vc-git-default-clone-depth 1))
+  (customize-set-variable 'straight-recipes-gnu-elpa-use-mirror t)
+  (customize-set-variable 'straight-base-dir user-emacs-directory-default)
+  (customize-set-variable 'straight-vc-git-default-clone-depth 1)
 
   (let ((bootstrap-file
          (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory-default))
@@ -147,8 +147,8 @@ These process must be evaluated beforehand.
 #+begin_src emacs-lisp
   (require 'use-package)
 
-  (custom-set-variables
-   '(use-package-ensure-function 'straight-use-package-ensure-function))
+  (customize-set-variable
+   'use-package-ensure-function 'straight-use-package-ensure-function)
 #+end_src
 
 use-package depends on following packages internally
@@ -188,6 +188,12 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 init.el devote itself to call for remaining config files.
 
 #+begin_src emacs-lisp
+  (customize-set-variable
+   'custom-file
+   (expand-file-name "custom.el" user-emacs-directory-default))
+  (when (file-exists-p custom-file)
+    (load custom-file))
+
   (dolist (file (directory-files "~/.emacs.d/lisp" t "\.el$"))
     (funcall #'load-file file))
   (dolist (file (directory-files "~/.emacs.d/site-lisp" t "\.el$"))
@@ -423,9 +429,8 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 ***** Files
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(create-lockfiles nil)
-   '(remote-file-name-inhibit-locks t))
+  (customize-set-variable 'create-lockfiles nil)
+  (customize-set-variable 'remote-file-name-inhibit-locks t)
 #+end_src
 
 ****** Auto Revert
@@ -451,16 +456,15 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 #+end_src
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(auto-save-interval 200)
-   '(auto-save-timeout 25)
-   '(auto-save-default t)
-   '(auto-save-list-file-prefix
-     (concat user-emacs-directory "auto-save-list/.saves-"))
-   '(delete-by-moving-to-trash t)
-   '(delete-auto-save-files t)
-   '(kill-buffer-delete-auto-save-files t)
-   '(save-some-buffers-default-predicate 'save-some-buffers-root))
+  (customize-set-variable 'auto-save-interval 200)
+  (customize-set-variable 'auto-save-timeout 25)
+  (customize-set-variable 'auto-save-default t)
+  (customize-set-variable 'auto-save-list-file-prefix
+                          (concat user-emacs-directory "auto-save-list/.saves-"))
+  (customize-set-variable 'delete-by-moving-to-trash t)
+  (customize-set-variable 'delete-auto-save-files t)
+  (customize-set-variable 'kill-buffer-delete-auto-save-files t)
+  (customize-set-variable 'save-some-buffers-default-predicate 'save-some-buffers-root)
 #+end_src
 
 ****** Uniquify
@@ -509,8 +513,8 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 ****** Find File
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(revert-buffer-quick-short-answers t))
+  (customize-set-variable
+   'revert-buffer-quick-short-answers t)
 
   (add-to-list 'safe-local-eval-forms
                '(add-hook 'after-save-hook
@@ -526,37 +530,34 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 ******* Cursor
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(blink-cursor-blinks 15)
-   '(blink-cursor-delay 0.7)
-   '(blink-cursor-interval 0.35)
-   '(blink-cursor-mode t))
+  (customize-set-variable 'blink-cursor-blinks 15)
+  (customize-set-variable 'blink-cursor-delay 0.7)
+  (customize-set-variable 'blink-cursor-interval 0.35)
+  (customize-set-variable 'blink-cursor-mode t)
 #+end_src
 
 ****** Display
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(highlight-nonselected-windows t)
-   '(truncate-lines t)
-   ;; avoid to break at whitespace in Japanese
-   '(word-wrap-by-category t)
-   ;; suppress curved quotes in docstring (for emacs25)
-   '(text-quoting-style 'straight))
+  (customize-set-variable 'highlight-nonselected-windows t)
+  (customize-set-variable 'truncate-lines t)
+  ;; avoid to break at whitespace in Japanese
+  (customize-set-variable 'word-wrap-by-category t)
+  ;; suppress curved quotes in docstring (for emacs25)
+  (customize-set-variable 'text-quoting-style 'straight)
 #+end_src
 
 ****** Windows
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(scroll-step 1)
-   '(next-screen-context-lines 2)
-   ;; display buffer
-   '(display-buffer-base-action
-     '((display-buffer-same-window
-        display-buffer-reuse-window
-        display-buffer-reuse-mode-window
-        display-buffer-in-previous-window))))
+  (customize-set-variable 'scroll-step 1)
+  (customize-set-variable 'next-screen-context-lines 2)
+  ;; display buffer
+  (customize-set-variable 'display-buffer-base-action
+                          '((display-buffer-same-window
+                             display-buffer-reuse-window
+                             display-buffer-reuse-mode-window
+                             display-buffer-in-previous-window)))
 #+end_src
 
 ******* Winner
@@ -589,14 +590,13 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
 ****** Minibuffer
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(history-length 300)
-   '(history-delete-duplicates t)
-   '(enable-recursive-minibuffers t)
-   '(minibuffer-depth-indicate-mode t)
-   '(read-file-name-completion-ignore-case t)
-   '(read-minibuffer-restore-windows t)
-   '(minibuffer-default-prompt-format " [%s]"))
+  (customize-set-variable 'history-length 300)
+  (customize-set-variable 'history-delete-duplicates t)
+  (customize-set-variable 'enable-recursive-minibuffers t)
+  (customize-set-variable 'minibuffer-depth-indicate-mode t)
+  (customize-set-variable 'read-file-name-completion-ignore-case t)
+  (customize-set-variable 'read-minibuffer-restore-windows t)
+  (customize-set-variable 'minibuffer-default-prompt-format " [%s]")
 
   (add-hook 'minibuffer-setup-hook 'my/minibuffer-setup-function)
   (defun my/minibuffer-setup-function ()
@@ -624,7 +624,7 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
 ****** Menu
 
 #+begin_src emacs-lisp
-  (custom-set-variables '(use-short-answers t))
+  (customize-set-variable 'use-short-answers t)
 #+end_src
 
 ****** Mode Line
@@ -633,42 +633,42 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
   (defvar my/mode-line-buffer-name-length-max 15
     "Fixed length for displaying buffer name in mode line.")
 
-  (custom-set-variables
-   '(line-number-mode nil)
-   '(column-number-mode nil)
-   '(mode-line-compact t)
-   '(mode-line-format
-     '("%e"
-       mode-line-front-space
-       (:eval
-        (let ((mode-line-buffer-name
-               (replace-regexp-in-string " %\\([[:ascii:]]\\)" " %%\\1"
-                                         (truncate-string-to-width
-                                          (buffer-name) my/mode-line-buffer-name-length-max nil ? t))))
-          (cond
-           (buffer-read-only
-            (propertize mode-line-buffer-name 'face 'underline))
-           ((buffer-modified-p)
-            (propertize mode-line-buffer-name 'face 'warning))
-           (mode-line-buffer-name))))
-       (:eval
+  (customize-set-variable 'line-number-mode nil)
+  (customize-set-variable 'column-number-mode nil)
+  (customize-set-variable 'mode-line-compact t)
+  (customize-set-variable
+   'mode-line-format
+   '("%e"
+     mode-line-front-space
+     (:eval
+      (let ((mode-line-buffer-name
+             (replace-regexp-in-string " %\\([[:ascii:]]\\)" " %%\\1"
+                                       (truncate-string-to-width
+                                        (buffer-name) my/mode-line-buffer-name-length-max nil ? t))))
         (cond
-         ((and line-number-mode
-               column-number-mode)
-          mode-line-position-column-line-format)
-         (line-number-mode mode-line-position-line-format)
-         (column-number-mode mode-line-position-column-format)))
-       " "
-       global-mode-string)))
+         (buffer-read-only
+          (propertize mode-line-buffer-name 'face 'underline))
+         ((buffer-modified-p)
+          (propertize mode-line-buffer-name 'face 'warning))
+         (mode-line-buffer-name))))
+     (:eval
+      (cond
+       ((and line-number-mode
+             column-number-mode)
+        mode-line-position-column-line-format)
+       (line-number-mode mode-line-position-line-format)
+       (column-number-mode mode-line-position-column-format)))
+     " "
+     global-mode-string))
 #+end_src
 
 ******* Display Time
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(display-time-string-forms
-     '((propertize (format-time-string "%H:%M" now) 'face 'mode-line-highlight)))
-   '(display-time-mode t))
+  (customize-set-variable
+   'display-time-string-forms
+   '((propertize (format-time-string "%H:%M" now) 'face 'mode-line-highlight)))
+  (customize-set-variable 'display-time-mode t)
 #+end_src
 
 ****** Mouse
@@ -757,7 +757,7 @@ Mouse needs to be unobtrusive in my Emacs experience.
 #+begin_src emacs-lisp
   (require 'so-long)
 
-  (custom-set-variables '(global-so-long-mode t))
+  (customize-set-variable 'global-so-long-mode t)
 #+end_src
 
 ****** Tab Bar
@@ -802,30 +802,28 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
 
 #+begin_src emacs-lisp
-  (custom-set-variables '(tab-always-indent 'complete)
-                        '(indent-tabs-mode nil)
-                        '(tab-first-completion 'word-or-paren-or-punct))
+  (customize-set-variable 'tab-always-indent 'complete)
+  (customize-set-variable 'indent-tabs-mode nil)
+  (customize-set-variable 'tab-first-completion 'word-or-paren-or-punct)
 #+end_src
 
 ****** Electricity
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(electric-indent-mode 1))
+  (customize-set-variable 'electric-indent-mode 1)
 #+end_src
 
 ****** Fill
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(fill-column 80)
-   '(sentence-end-double-space nil))
+  (customize-set-variable 'fill-column 80)
+  (customize-set-variable 'sentence-end-double-space nil)
 #+end_src
 
 ****** Killing
 
 #+begin_src emacs-lisp
-  (custom-set-variables '(yank-pop-change-selection t))
+  (customize-set-variable 'yank-pop-change-selection t)
 #+end_src
 
 ****** Undo
@@ -835,10 +833,10 @@ The oldest undo step, if undo info exceeds [[help:undo-strong-limit][undo-strong
 No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not be registered.
 
 #+begin_src emacs-lisp
-  (custom-set-variables '(undo-limit 320000)
-                        '(undo-strong-limit 480000)
-                        '(undo-outer-limit 48000000)
-                        '(undo-no-redo t))
+  (customize-set-variable 'undo-limit 320000)
+  (customize-set-variable 'undo-strong-limit 480000)
+  (customize-set-variable 'undo-outer-limit 48000000)
+  (customize-set-variable 'undo-no-redo t)
 #+end_src
 
 ****** Matching
@@ -847,7 +845,7 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
 #+begin_src emacs-lisp
   (provide 'isearch)
 
-  (custom-set-variables '(isearch-allow-motion t))
+  (customize-set-variable 'isearch-allow-motion t)
 
   (define-key isearch-mode-map (kbd "C-j") #'isearch-exit)
 #+end_src
@@ -880,8 +878,7 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
 ******* Storage Allocation
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(gc-cons-threshold (* 10 gc-cons-threshold)))
+  (customize-set-variable 'gc-cons-threshold (* 10 gc-cons-threshold))
 #+end_src
 
 ****** Lisp
@@ -916,15 +913,14 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
 #+begin_src emacs-lisp
   (require 'eldoc)
 
-  (custom-set-variables
-   '(eldoc-echo-area-display-truncation-message nil)
-   '(eldoc-echo-area-prefer-doc-buffer 'maybe))
+  (customize-set-variable 'eldoc-echo-area-display-truncation-message nil)
+  (customize-set-variable 'eldoc-echo-area-prefer-doc-buffer 'maybe)
 #+end_src
 
 ****** Debug
 
 #+begin_src emacs-lisp
-  (custom-set-variables '(message-log-max 10000))
+  (customize-set-variable 'message-log-max 10000)
 #+end_src
 
 ***** Help
@@ -967,13 +963,6 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
     (require 'info-look)
     (autoload 'info-lookup-add-help "info-look"))
 #+end_src
-****** Customize
-
-#+begin_src emacs-lisp
-  (custom-set-variables
-   '(custom-file (expand-file-name "custom.el" user-emacs-directory)))
-#+end_src
-
 ***** Data
 
 ****** Save Place
@@ -983,18 +972,16 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+begin_src emacs-lisp
   (require 'saveplace)
 
-  (custom-set-variables
-   '(save-place-abbreviate-file-names t)
-   '(save-place-version-control t)
-   '(save-place-mode t))
+  (customize-set-variable 'save-place-abbreviate-file-names t)
+  (customize-set-variable 'save-place-version-control t)
+  (customize-set-variable 'save-place-mode t)
 #+end_src
 
 ****** Compression
 
 - Jka Compr (auto compression mode)
   #+begin_src emacs-lisp
-    (custom-set-variables
-     '(auto-compression-mode t))
+    (customize-set-variable 'auto-compression-mode t)
   #+end_src
 
 ****** Tar
@@ -1012,16 +999,15 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 ***** Editing Basics
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(set-mark-command-repeat-pop t)
-   '(mark-ring-max 32)
-   ;; delsel
-   '(delete-selection-mode t) ; inserted text replaces the text in region
-   ;; files
-   '(mode-require-final-newline 'visit-save)
-   '(make-backup-files nil)
-   '(delete-auto-save-files t)
-   '(enable-remote-dir-locals t))
+  (customize-set-variable 'seft-mark-command-repeat-pop t)
+  (customize-set-variable 'mark-ring-max 32)
+  ;; delsel
+  (customize-set-variable 'delete-selection-mode t) ; inserted text replaces the text in region
+  ;; files
+  (customize-set-variable 'mode-require-final-newline 'visit-save)
+  (customize-set-variable 'make-backup-files nil)
+  (customize-set-variable 'delete-auto-save-files t)
+  (customize-set-variable 'enable-remote-dir-locals t)
 #+end_src
 
 ***** External
@@ -1169,7 +1155,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 ****** Package
 
 #+begin_src emacs-lisp
-  (custom-set-variables '(package-native-compile t))
+  (customize-set-variable 'package-native-compile t)
 #+end_src
 
 ***** Text
@@ -1203,7 +1189,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     :defer t
     :bind ("C-x j" . skk-mode)
     :init
-    (custom-set-variables '(default-input-method "japanese-skk"))
+    (customize-set-variable 'default-input-method "japanese-skk")
     (defface skk-candidate `((t . (:font "fontset-default"
                                          :height ,(my-adjust-font-size 860))))
       "Default face for ddskk candidates."
@@ -2169,7 +2155,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
 
 #+begin_src emacs-lisp
   (setf shell-command-switch "-c")
-  (custom-set-variables '(shell-command-prompt-show-cwd t))
+  (customize-set-variable 'shell-command-prompt-show-cwd t)
 
   (shell-command-with-editor-mode 1)
 #+end_src
@@ -2793,10 +2779,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                   (org-add-planning-info 'closed "now"))
                               ""))))))
 
-  (custom-set-variables
-   '(org-log-done 'time)
-   '(org-log-into-drawer t)
-   '(org-log-states-order-reversed t))
+  (customize-set-variable 'org-log-done 'time)
+  (customize-set-variable 'org-log-into-drawer t)
+  (customize-set-variable 'org-log-states-order-reversed t)
 #+end_src
 
 ****** Org Structure
@@ -2809,9 +2794,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :custom
     (org-startup-indented t))
 
-  (custom-set-variables
-   '(org-bookmark-names-plist nil)
-   '(org-M-RET-may-split-line '((default . nil))))
+  (customize-set-variable 'org-bookmark-names-plist nil)
+  (customize-set-variable 'org-M-RET-may-split-line '((default . nil)))
 #+end_src
 
 ******* Org Edit Structure
@@ -2876,21 +2860,19 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org Tags
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(org-use-tag-inheritance "ARCHIVE")
-   '(org-tags-column -57))
+  (customize-set-variable 'org-use-tag-inheritance "ARCHIVE")
+  (customize-set-variable 'org-tags-column -57)
 #+end_src
 
 ****** Org Properties
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(org-use-property-inheritance "TIMELIMIT.*")
-   '(org-highest-priority ?A)
-   '(org-lowest-priority ?Z)
-   '(org-default-priority ?E)
-   '(org-global-properties
-     '(("Effort_ALL". "0 0:10 0:20 0:30 1:00 1:30 2:00 3:00 4:00 6:00 8:00"))))
+  (customize-set-variable 'org-use-property-inheritance "TIMELIMIT.*")
+  (customize-set-variable 'org-highest-priority ?A)
+  (customize-set-variable 'org-lowest-priority ?Z)
+  (customize-set-variable 'org-default-priority ?E)
+  (customize-set-variable 'org-global-properties
+                          '(("Effort_ALL". "0 0:10 0:20 0:30 1:00 1:30 2:00 3:00 4:00 6:00 8:00")))
 #+end_src
 
 ****** Org Refile
@@ -2906,9 +2888,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org Time
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(org-time-stamp-custom-formats
-     '("<%m-%d %a>" . "<%H:%M>")))
+  (customize-set-variable 'org-time-stamp-custom-formats
+                          '("<%m-%d %a>" . "<%H:%M>"))
 #+end_src
 
 ******* Org Progress
@@ -2974,9 +2955,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
     (cond
      ((string= system-type "gnu/linux")
-      (custom-set-variables `(org-plantuml-jar-path ,(expand-file-name "plantuml.jar" "~/.guix-profile/share/java"))))
+      (customize-set-variable `org-plantuml-jar-path (expand-file-name "plantuml.jar" "~/.guix-profile/share/java")))
      ((string= system-type "darwin")
-      (custom-set-variables '(org-plantuml-jar-path "/usr/local/Cellar/plantuml/8041/plantuml.8041.jar")))))
+      (customize-set-variable 'org-plantuml-jar-path "/usr/local/Cellar/plantuml/8041/plantuml.8041.jar"))))
 #+end_src
 
 ****** Org ID
@@ -3008,8 +2989,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (require 'org-attach)
 
-  (custom-set-variables
-   '(org-attach-preferred-new-method nil))
+  (customize-set-variable 'org-attach-preferred-new-method nil)
 #+end_src
 
 ****** Org Link
@@ -4329,8 +4309,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 ***** Next Error
 
 #+begin_src emacs-lisp
-  (custom-set-variables
-   '(next-error-message-highlight t))
+  (customize-set-variable 'next-error-message-highlight t)
 #+end_src
 
 ***** Hideshow
@@ -4402,10 +4381,9 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+begin_src emacs-lisp
   (require 'paren)
 
-  (custom-set-variables
-   '(show-paren-style 'parenthesis)
-   '(show-paren-delay 0.25)
-   '(show-paren-mode nil))
+  (customize-set-variable 'show-paren-style 'parenthesis)
+  (customize-set-variable 'show-paren-delay 0.25)
+  (customize-set-variable 'show-paren-mode nil)
 #+end_src
 
 ***** project
@@ -7171,28 +7149,29 @@ This set of code (open-file) offers file opener functionality in my liking. With
 
   (with-eval-after-load 'browse-url
     (let ((search-suffix "\\(?:::.*\\)?"))
-      (custom-set-variables
-       '(browse-url-handlers
-         `(((lambda (url)
-              (equal current-prefix-arg '(16)))
-            . my/browse-url-external)
-           ((lambda (url)
-              (equal current-prefix-arg '(4)))
-            . my/browse-url-emacs)
-           (,(format "\\.html%s\\'" search-suffix)
-            . my/browse-url-html)
-           (,(format "\\.pdf\\(\\.gpg\\)?%s\\'" search-suffix)
-            . my/browse-url-pdf)
-           (,(format "\\.epub%s\\'" search-suffix)
-            . my/browse-url-epub)
-           (,(eval `(concat (rx "." (or ,@my/open-file-media-extensions
-                                        ,@my/open-file-compressed-media-extensions)
-                                (opt ".gpg"))
-                            search-suffix))
-            . my/browse-url-media)
-           (,(concat my/open-file-yt-regexp search-suffix)
-            . my/browse-url-media)))
-       '(browse-url-browser-function 'eww-browse-url))))
+      (customize-set-variable
+       'browse-url-handlers
+       `(((lambda (url)
+            (equal current-prefix-arg '(16)))
+          . my/browse-url-external)
+         ((lambda (url)
+            (equal current-prefix-arg '(4)))
+          . my/browse-url-emacs)
+         (,(format "\\.html%s\\'" search-suffix)
+          . my/browse-url-html)
+         (,(format "\\.pdf\\(\\.gpg\\)?%s\\'" search-suffix)
+          . my/browse-url-pdf)
+         (,(format "\\.epub%s\\'" search-suffix)
+          . my/browse-url-epub)
+         (,(eval `(concat (rx "." (or ,@my/open-file-media-extensions
+                                      ,@my/open-file-compressed-media-extensions)
+                              (opt ".gpg"))
+                          search-suffix))
+          . my/browse-url-media)
+         (,(concat my/open-file-yt-regexp search-suffix)
+          . my/browse-url-media)))
+      (customize-set-variable
+       'browse-url-browser-function 'eww-browse-url)))
 
   (defun my/browse-url-html (url &optional same-window)
     "A handler for `browse-url' responsible for html at URL."
@@ -7259,18 +7238,18 @@ This set of code (open-file) offers file opener functionality in my liking. With
   ;; org-open handling
 
   (with-eval-after-load 'org
-    (custom-set-variables
-     `(org-file-apps
-       `(("\\.html\\'" . my/org-open-html)
-         ("\\.pdf\\(\\.gpg\\)?\\'" . my/org-open-pdf)
-         ("\\.epub\\'" . my/org-open-epub)
-         (,(eval (rx "." (or ,@my/open-file-media-extensions
-                             ,@my/open-file-compressed-media-extensions)
-                     (opt ".gpg") string-end))
-          . my/org-open-media)
-         (auto-mode . emacs)
-         (directory . my/org-open-media)
-         (system . browse-url-default-browser)))))
+    (customize-set-variable
+     `org-file-apps
+     `(("\\.html\\'" . my/org-open-html)
+       ("\\.pdf\\(\\.gpg\\)?\\'" . my/org-open-pdf)
+       ("\\.epub\\'" . my/org-open-epub)
+       (,(eval `(rx "." (or ,@my/open-file-media-extensions
+                            ,@my/open-file-compressed-media-extensions)
+                    (opt ".gpg") string-end))
+        . my/org-open-media)
+       (auto-mode . emacs)
+       (directory . my/org-open-media)
+       (system . browse-url-default-browser))))
 
   (defun my/org-open-html (file-path link-string)
     "Open a html file at FILE-PATH via org-open command."
@@ -7312,21 +7291,23 @@ This set of code (open-file) offers file opener functionality in my liking. With
   ;; dired-open handling
 
   (with-eval-after-load 'dired-open
-    (custom-set-variables
-     '(dired-open-functions
-       '(dired-open-call-function-by-extension
-         dired-open-guess-shell-alist
-         dired-open-by-extension
-         dired-open-subdir))
-     `(dired-open-extensions-elisp
-       `(("pdf" . my/open-pdf-as-html)
-         ("pdf.gpg" . my/open-pdf-as-html)
-         ("epub" . my/open-epub-as-html)
-         ("jpg.gpg" . my/open-media)
-         ,@(mapcar (lambda (ext)
-                     (cons ext 'my/open-media))
-                   my/open-file-media-extensions)))
-     '(dired-open-find-file-function 'my/dired-find-file)))
+    (customize-set-variable
+     'dired-open-functions
+     '(dired-open-call-function-by-extension
+       dired-open-guess-shell-alist
+       dired-open-by-extension
+       dired-open-subdir))
+    (customize-set-variable
+     'dired-open-extensions-elisp
+     `(("pdf" . my/open-pdf-as-html)
+       ("pdf.gpg" . my/open-pdf-as-html)
+       ("epub" . my/open-epub-as-html)
+       ("jpg.gpg" . my/open-media)
+       ,@(mapcar (lambda (ext)
+                   (cons ext 'my/open-media))
+                 my/open-file-media-extensions)))
+    (customize-set-variable
+     'dired-open-find-file-function 'my/dired-find-file))
 
   (defun my/dired-find-file ()
     "A function for `dired-open-find-file-function' dealing with
