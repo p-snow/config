@@ -3328,6 +3328,9 @@ org-roam v2
   (customize-set-variable 'org-expiry-handler-function
                           #'my/org-archive-subtree)
 
+  (add-hook 'org-capture-prepare-finalize-hook
+            #'org-expiry-insert-created)
+
   (org-expiry-insinuate)
 #+end_src
 
@@ -3662,7 +3665,6 @@ speed commands and hydra-org.
       ("ed" my/org-english-drill)
       ("eD" my/org-english-drill-resume)
       ("ec" my/cloze-deletion-replace)
-      ("et" my/org-english-drill-test-display)
       ("s" org-store-link)
       ("C-s" org-save-all-org-buffers)
       ("TAB" org-indent-mode)
@@ -3675,7 +3677,7 @@ speed commands and hydra-org.
       ("qv" org-ql-view)
       ("qr" my/org-archive-search)
       ("r" my/org-archive-find-date)
-      ("l" my/lookup-org-archive)
+      ("le" my/org-english-lookup)
       ("bi" my/org-babel-lob-ingest-batch)
       ("@" org-mark-subtree)
       ("=" org-clock-sum-all)
@@ -5653,7 +5655,7 @@ It's confortable to read long material such as web page , epub file or email wit
       ("J" lookup-eijiro)
       ("s" synosaurus-lookup "synosaurus-lookup")
       ("S" synosaurus-choose-and-replace "synosaurus-replace")
-      ("o" my/lookup-org-archive)
+      ("oe" my/org-english-lookup)
       ("q" nil "quit")))
 #+end_src
 
@@ -6383,18 +6385,6 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 
   (push '("Archive entries" . my/org-archive-search)
         org-ql-views)
-
-  (defun my/lookup-org-archive (word &optional arg)
-    "Look up WORD in my archive files using `org-ql-search'."
-    (interactive (list (if (use-region-p)
-                           (buffer-substring (region-beginning) (region-end))
-                         (read-string "Word: "))
-                       current-prefix-arg))
-    (org-ql-search
-      my/org-archive-files
-      (cond
-       ((equal arg '(4)) `(heading ,word))
-       (t `(regexp ,word)))))
 
   ;; TODO: This function can be rewritten with org-ml
   ;;;###autoload
@@ -7594,6 +7584,9 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
 2. Review words periodically with my/org-english-drill-test-display or its variants
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-english.el")
+  (defvar my/org-english-file (file-name-concat org-directory "note" "english.org")
+    "A file where all english words to learn locate.")
+
   (defun my/org-english-capture (word)
     "Capture an english WORD as a `org-mode' entry suitable for org-drill.
 
@@ -7604,7 +7597,7 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
     (let* ((sentence-end-double-space nil)
            (org-english-word word)
            (match-entry (org-ql-select
-                          (my/org-archive-files)
+                          `(,my/org-english-file)
                           `(and (heading ,(format "%s" word))
                                 (tags "drill"))
                           :action 'element-with-markers))
@@ -7646,8 +7639,8 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
                     end))
 
   (with-eval-after-load 'org-ql-view
-    (push '("English phrase list"
-            :buffers-files my/org-archive-files
+    (push `("English phrase list"
+            :buffers-files ,(list my/org-english-file)
             :query (and (tags "drill")
                         (tags "fd_en")))
           org-ql-views))
@@ -7655,7 +7648,7 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
   (with-eval-after-load 'org-capture
     (add-to-list 'org-capture-templates
                  '("!0" "drill entry for english word"
-                   entry (function org-goto-clocking-or-today)
+                   entry (id "de0983a7-9d1a-4ef8-b882-148c401e862d")
                    "* %i :drill:fd_en:
   [%(my/org-english-insert-japanese-translation)]
   %(my/org-english-insert-english-translation)
@@ -7663,7 +7656,7 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
     %c"))
     (add-to-list 'org-capture-templates
                  '("!1" "drill entry for english word"
-                   item(function my/org-english-goto-match)
+                   item (function my/org-english-goto-match)
                    "- %a
     %c")))
 
@@ -7695,22 +7688,18 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
   (defmacro with-org-drill-english-config (&rest body)
     "Evaluate BODY with config for Org-Drill for english words review."
     `(progn
-       (let ((org-drill-scope (append '("~/org/agenda/life.org")
-                                      (seq-remove
-                                       (lambda (item)
-                                         (string-match "archive_\\([[:digit:]]\\{4\\}\\).org" item)
-                                         (< (string-to-number (match-string 1 item)) 2019))
-                                       (file-expand-wildcards "~/org/archive/archive_*.org"))))
+       (org-id-goto "de0983a7-9d1a-4ef8-b882-148c401e862d")
+       (let ((org-drill-scope 'tree)
              (org-drill-question-tag "drill")
              (org-drill-maximum-items-per-session 25)
              (org-drill-hide-item-headings-p t)
              (org-startup-indented nil))
-         (global-visual-line-mode 1)
          (org-indent-mode -1)
+         (visual-line-mode 1)
          ,@body)
-       (global-visual-line-mode 0)
+       (save-buffer)
        (org-indent-mode 1)
-       (org-save-all-org-buffers)))
+       (visual-line-mode -1)))
 
   (defun my/org-english-drill ()
     "Invoke Org-Drill for English word review."
@@ -7734,10 +7723,14 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
     (let ((org-drill-match "-DRILL_TOTAL_REPEATS>0"))
       (with-org-drill-english-config (org-drill))))
 
-  (defun my/org-english-drill-test-display ()
-    "Show Org-Drill entry in the same way as english drill session."
-    (interactive)
-    (with-org-drill-english-config (org-drill-test-display)))
+  (defun my/org-english-lookup (word)
+    "Look up WORD in my archive files using `org-ql-search'."
+    (interactive (list (if (use-region-p)
+                           (buffer-substring (region-beginning) (region-end))
+                         (read-string "Word: "))))
+    (org-ql-search
+      my/org-english-file
+      `(heading ,word)))
 
   (provide 'my/org-english)
 #+end_src
