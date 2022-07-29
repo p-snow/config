@@ -7578,7 +7578,7 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
      (t "")))
 #+end_src
 
-***** learning english strategy
+***** learning english words
 
 1. Capture an word to study by invoking my/org-english-capture
 2. Review words periodically with my/org-english-drill-test-display or its variants
@@ -7650,7 +7650,7 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
                  '("!0" "drill entry for english word"
                    entry (id "de0983a7-9d1a-4ef8-b882-148c401e862d")
                    "* %i :drill:fd_en:
-  [%(my/org-english-insert-japanese-translation)]
+  [%(my/org-english-insert-japanese-translation) %(my/org-english-insert-japanese-pronunciation org-english-word)]
   %(my/org-english-insert-english-translation)
   - %a
     %c"))
@@ -7684,6 +7684,44 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
       (with-temp-buffer
         (url-insert-buffer-contents buffer url)
         (funcall 'my/define-word--parse-weblio))))
+
+  (defun my/org-english-insert-japanese-pronunciation (w)
+    "Return and add to the kill ring (if interactive) Japanese pronunciation info for word `W'."
+    (interactive `(,(or (when (region-active-p)
+                          (buffer-substring (region-beginning) (region-end)))
+                        (read-string "Word: "))))
+    (let (pron)
+      (request
+        (concat "https://eow.alc.co.jp/search?q=" (downcase w))
+        :sync t
+        :parser
+        (lambda ()
+          (let ((str (buffer-string)))
+            (with-temp-buffer
+              (insert str)
+              (shr-render-region (point-min) (point-max))
+              (let ((str (buffer-substring-no-properties (point-min) (point-max))))
+                (when (string-match
+                       (rx (seq (opt "【レベル】" (** 1 2 digit) "、")
+                                "【発音" (opt "！") "】"
+                                (+ (or (category combining-diacritic)
+                                       (category latin)
+                                       (category korean)))
+                                "、"
+                                (? (or (seq "【＠】" (opt "[US]") (+ (category japanese-katakana-two-byte)) (? "、"))
+                                       (seq (+ any) "*")))))
+                       str)
+                  (match-string 0 str))))))
+        :success
+        (cl-function
+         (lambda (&key data &allow-other-keys)
+           (setq pron (replace-regexp-in-string
+                       "\\[\\(.\\{2\\}\\)\\]" "【\\1】"
+                       (string-trim-right (substring-no-properties data)
+                                          "、"))))))
+      (when (interactive-p)
+        (kill-new (princ pron)))
+      pron))
 
   (defmacro with-org-drill-english-config (&rest body)
     "Evaluate BODY with config for Org-Drill for english words review."
