@@ -2317,7 +2317,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-agenda
-    :after (org org-ql my/org-archive)
+    :after (org org-ql my/org-archive-datetree)
     :bind (:map org-agenda-mode-map
                 ("C-j" . org-agenda-switch-to)
                 ("M" . org-agenda-month-view))
@@ -2617,7 +2617,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-capture
-    :after (org my/org-archive)
+    :after (org my/org-archive-datetree)
     :hook
     (org-capture-mode . (lambda ()
                           (skk-mode 1)
@@ -6283,11 +6283,16 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
       ("q" nil "quit")))
 #+end_src
 
-***** org-archive
+***** org-archive-datetree
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-archive.el")
   (require 'org)
   (require 'org-agenda)
+
+  (defcustom my/org-archive-before-archive-hook nil
+    "Hook that is run right before a archive process begins."
+    :group 'org-archive-datetree
+    :type 'hook)
 
   (defun my/org-archive-file (&optional year)
     "Return a path of archive file.
@@ -6354,6 +6359,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
                                                                   ,(ts-day ts)
                                                                   ,(ts-year ts)))
                              (point))))))
+        (run-hooks 'my/org-archive-before-archive-hook)
         (org-refile nil nil (list nil save-file nil pos)))
       (org-save-all-org-buffers)
       (setq this-command 'my/org-archive-subtree)))
@@ -6412,7 +6418,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
         (widen)
         ts-list)))
 
-  (provide 'my/org-archive)
+  (provide 'my/org-archive-datetree)
 #+end_src
 
 ***** org-capture-derived
@@ -6541,6 +6547,9 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
     (directory-files-recursively org-directory "\\.org$")
     "A list of target files to search relation nodes.")
 
+  (add-hook 'my/org-archive-before-archive-hook
+            #'org-relate-interrelate)
+
   (with-eval-after-load 'org
     (bind-key "C-c %" #'org-relate-search
               org-mode-map))
@@ -6593,14 +6602,14 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
                 (rel-prop-link (format "[[id:%s]]" id)))
       `((or (property ,org-relate-property ,id)
             (property ,org-relate-property ,rel-prop-link)) .
-            (:name "Children" :property (,org-relate-property ,id)))))
+            (:name "Children" :auto-property ,org-relate-property))))
 
   (defun org-relate--search-parent-org-ql-query ()
     (if-let* ((prop-ref (org-entry-get (point) org-relate-property))
               (index (string-match (format "\\(%s\\)" thing-at-point-uuid-regexp) prop-ref))
               (parent-id (match-string 0 prop-ref)))
         `((property "ID" ,parent-id) .
-          (:name "Parent" :property ("ID" ,parent-id)))))
+          (:name "Parent" :auto-property "ID"))))
 
   (defun org-relate--search-siblings-org-ql-query ()
     (if-let* ((prop-ref (org-entry-get (point) org-relate-property))
@@ -6609,7 +6618,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
               (parent-id-link (format "[[id:%s]]" parent-id)))
         `((or (property ,org-relate-property ,parent-id)
               (property ,org-relate-property ,parent-id-link)) .
-              (:name "Siblings" :property (,org-relate-property ,parent-id)))))
+              (:name "Siblings" :auto-property ,org-relate-property))))
 
   (defun org-relate--search-friends-refer-org-ql-query ()
     (when-let* ((id (org-id-get))
@@ -6625,28 +6634,40 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
       (when (save-excursion
               (re-search-forward id-link-re end t))
         `((property "ID" ,(match-string 1)) .
-          (:name "Friends to whom this entry is pointing" :property ("ID" ,(match-string 1)))))))
+          (:name "Friends to whom this entry is pointing" :auto-property ("ID" ,(match-string 1)))))))
 
   (defun org-relate-interrelate ()
     "Make parent-child relationship by inserting property.
 
   This command must be called in parent node which should have one of `org-relate-parent-tag-list'."
     (interactive)
+    ;; relate the entry at point and its children if the entry has some of `org-relate-parent-tag-list'
     (save-excursion
       (org-back-to-heading)
-      (if (cl-some (lambda (parent-tag)
-                     (member parent-tag (org-get-tags)))
-                   org-relate-parent-tag-list)
-          (let ((ref-id (org-id-get-create)))
-            (and (org-goto-first-child)
-                 (cl-labels ((set-ref-id-to-siblings
-                              (ref-link)
-                              (org-set-property org-relate-property ref-link)
-                              (and (org-goto-sibling)
-                                   (set-ref-id-to-siblings ref-link))))
-                   (set-ref-id-to-siblings ref-id)))
-            (message "Interrelated has done."))
-        (message "This entry does not compliant with 'org-relate-parent-tag-list"))))
+      (when (cl-some (lambda (parent-tag)
+                       (member parent-tag (org-get-tags)))
+                     org-relate-parent-tag-list)
+        (let* ((ref-id (org-id-get-create))
+               (ent-link (format "[[id:%s]]" ref-id)))
+          (and (org-goto-first-child)
+               (cl-labels ((set-ref-id-to-siblings
+                            (ref-link)
+                            (org-set-property org-relate-property
+                                              ref-link)
+                            (and (org-goto-sibling)
+                                 (set-ref-id-to-siblings ref-link))))
+                 (set-ref-id-to-siblings ent-link))))))
+    ;; relate the entry at point and a parent if the parent has some of `org-relate-parent-tag-list'
+    (let (parent-link)
+      (save-excursion
+        (org-up-heading-safe)
+        (when (seq-some (lambda (parent-tag)
+                          (member parent-tag (org-get-tags)))
+                        org-relate-parent-tag-list)
+          (setq parent-link (format "[[id:%s]]" (org-id-get-create)))))
+      (and parent-link
+           (org-set-property org-relate-property
+                             parent-link))))
 
   (defun org-agenda-relation-interrelate ()
     "Invoke `org-relate-interrelate' in agenda view."
