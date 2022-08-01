@@ -4432,6 +4432,28 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/packages.el")
 :END:
 
+***** tree-sitter
+:PROPERTIES:
+:CREATED:  [2022-07-31 Sun 10:14]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/emacs-tree-sitter/elisp-tree-sitter/releases.atom" soft_update)
+  ("https://github.com/emacs-tree-sitter/tree-sitter-langs/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package tree-sitter-langs
+    :straight t)
+
+  (use-package tree-sitter
+    :straight t
+    :after tree-sitter-langs
+    :hook ((tree-sitter-after-on . tree-sitter-hl-mode))
+    :config
+    (global-tree-sitter-mode 1))
+#+end_src
+
 ***** xr
 :PROPERTIES:
 :CREATED:  [2022-07-30 Sat 16:12]
