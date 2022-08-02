@@ -4742,40 +4742,27 @@ Handy commands
 #+begin_src emacs-lisp
   (use-package flycheck
     :diminish
-    :hook ((c-mode sh-mode emacs-lisp-mode ruby-mode python-mode js2-mode sql-mode) . flycheck-mode)
+    :hook ((prog-mode text-mode) . flycheck-mode)
     :custom
     (flycheck-check-syntax-automatically
      '(save new-line idle-change))
     (flycheck-display-errors-delay 10.0)
     (flycheck-checker-error-threshold 1000)
+    (flycheck-textlint-config ".textlintrc")
     :config
+    (add-to-list 'flycheck-textlint-plugin-alist
+                 '(org-mode . "org"))
+    (add-hook 'flycheck-mode-hook
+              (lambda ()
+                (if (my/english-p (buffer-string))
+                    (setq flycheck-textlint-config ".textlintrc")
+                  (setq flycheck-textlint-config ".config/textlint/textlintrc_ja"))))
     (add-to-list 'display-buffer-alist
                  `(,flycheck-error-message-buffer
                    . (display-buffer-reuse-window
                       display-buffer-in-previous-window
                       display-buffer-pop-up-window
-                      . ((window-height . 5)))))
-    (with-eval-after-load 'hydra
-      (defhydra hydra-flycheck (flycheck-mode-map "C-c !"
-                                                  :color red)
-        "Flycheck"
-        ("C-c" flycheck-compile)
-        ("C-w" flycheck-copy-errors-as-kill)
-        ("?" flycheck-describe-checker)
-        ("C" flycheck-clear)
-        ("H" display-local-help)
-        ("V" flycheck-version)
-        ("c" flycheck-buffer)
-        ("e" flycheck-explain-error-at-point)
-        ("d" flycheck-display-error-at-point)
-        ("i" flycheck-manual)
-        ("l" flycheck-list-errors)
-        ("n" flycheck-next-error)
-        ("p" flycheck-previous-error)
-        ("s" flycheck-select-checker)
-        ("v" flycheck-verify-setup)
-        ("x" flycheck-disable-checker)
-        ("q" nil "quit"))))
+                      . ((window-height . 5))))))
 #+end_src
 
 ***** twittering-mode
@@ -6139,7 +6126,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
   (global-set-key (kbd "C-%") #'re-builder)
 #+end_src
 
-***** utilities lisp commands
+***** utility lisp functions/commands
 
 #+begin_src emacs-lisp
   (defun my/copy-line-number ()
@@ -6196,6 +6183,12 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
       (comment-box b e 1)
       (goto-char e)
       (set-marker e nil)))
+
+  (defun my/english-p (string)
+    "Return t if `STRING' is probably English."
+    (string-match-p
+     (format "\\`[%s]+\\'" "[:ascii:]’“”–")
+     string))
 #+end_src
 
 **** original features
@@ -8962,6 +8955,88 @@ Extendable version manager
 #+begin_src shell :noweb-ref bashrc
   export RUBYLIB=${HOME}/.local/lib
 #+end_src
+
+** Node.js
+:PROPERTIES:
+:CREATED:  [2022-08-01 Mon 13:52]
+:END:
+
+#+name: npm-prefix
+#+begin_src shell :eval no-export
+  echo ${HOME}/.npm-global
+#+end_src
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "node"
+#+end_src
+
+#+begin_src shell :noweb yes :noweb-ref bashrc
+  NODE_PATH="<<npm-prefix()>>/lib/node_modules:${NODE_PATH}"
+  PATH="<<npm-prefix()>>/bin:${PATH}"
+  MANPATH="<<npm-prefix()>>/share/man:${MANPATH}"
+#+end_src
+
+#+begin_src bash :noweb yes :tangle (expand-tangle-target ".npmrc")
+  prefix=<<npm-prefix()>>
+#+end_src
+
+- make a directory for global npm packages
+  #+begin_src shell :tangle no :noweb yes
+    mkdir -pv <<npm-prefix()>>
+  #+end_src
+
+** textlint
+:PROPERTIES:
+:CREATED:  [2022-07-31 Sun 14:53]
+:ID:       decef153-596d-4821-996e-53cfafe83c8f
+:END:
+
+- how to install textlint and its rules
+  #+begin_src shell :tangle no
+    npm install -g \
+      textlint \
+      @textlint/ast-node-types \
+      textlint-rule-preset-ja-spacing \
+      textlint-rule-preset-ja-technical-writing \
+      textlint-rule-spellcheck-tech-word \
+      textlint-rule-ginger \
+      textlint-rule-write-good \
+      textlint-filter-rule-node-types \
+      textlint-plugin-org \
+      traverse
+  #+end_src
+
+- config for English
+  #+begin_src json :tangle (expand-tangle-target ".textlintrc")
+    {
+      "rules": {
+        "ginger": true,
+        "write-good": true,
+      }
+    }
+  #+end_src
+
+- config for Japanese
+  #+begin_src json :tangle (expand-tangle-target ".config/textlint/textlintrc_ja")
+    {
+        "rules": {
+            "preset-ja-technical-writing": {
+                "no-exclamation-question-mark": false,
+                "sentence-length": {
+                    "max": 200
+                }
+            },
+            "spellcheck-tech-word": true,
+            "textlint-rule-ginger": {
+                "skipPatterns": [
+                    "`(.*)`"
+                ]
+            },
+            "textlint-rule-write-good": true,
+            "preset-ja-spacing": true
+        }
+    }
+  #+end_src
 
 ** xkeysnail
 
