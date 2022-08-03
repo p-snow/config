@@ -2636,9 +2636,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
         entry (id "adcd63ea-f81a-4909-b659-6e5794052fcc")
         "* %? [/] :project:\n %U\n- [ ] insert ID property if necessary"
         :prepend t :jump-to-captured t)
-       ("n" "Note"
-        entry (file+datetree ,my/org-archive-file)
-        "* %? %^g\n %U\n" :tree-type week)
        ("s" "Someday memo")
        ("ss" "any"
         entry (file+datetree ,my/org-archive-file)
@@ -4445,6 +4442,38 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/packages.el")
 :END:
+
+***** denote
+:PROPERTIES:
+:CREATED:  [2022-08-02 Tue 20:08]
+:END:
+
+#+begin_src emacs-lisp
+  (add-to-list 'load-path
+               (expand-file-name "elpa/denote-0.4.0" user-emacs-directory-default))
+
+  (require 'denote)
+
+  (customize-set-variable 'denote-directory
+                          (file-name-concat org-directory "notes"))
+
+  (require 'denote-retrieve)
+  (require 'denote-link)
+
+  (require 'denote-dired)
+
+  (with-eval-after-load 'org-capture
+    (require 'denote-org-capture)
+    (setq denote-org-capture-specifiers "%l\n%i\n%?")
+    (add-to-list 'org-capture-templates
+                 '("n" "New note (with denote.el)" plain
+                   (file denote-last-path)
+                   #'denote-org-capture
+                   :no-save t
+                   :immediate-finish nil
+                   :kill-buffer t
+                   :jump-to-captured t)))
+#+end_src
 
 ***** tree-sitter
 :PROPERTIES:
@@ -7625,7 +7654,7 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
 
   (add-to-list 'org-capture-templates
                '("m" "Memo"
-                 entry (file "~/org/note/memo.org")
+                 entry (file "~/org/sandbox/memo.org")
                  "* %U\n#+begin_src %^{Lnaguage|text}\n%(my-org-capture-filter-memo \"%i\")\n#+end_src"
                  :jump-to-captured t
                  :immediate-finish t)
@@ -7645,7 +7674,7 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
 2. Review words periodically with my/org-english-drill-test-display or its variants
 
 #+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-english.el")
-  (defvar my/org-english-file (file-name-concat org-directory "note" "english.org")
+  (defvar my/org-english-file (file-name-concat org-directory "lists" "english.org")
     "A file where all english words to learn locate.")
 
   (defun my/org-english-capture (word)
