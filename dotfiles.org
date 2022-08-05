@@ -4781,8 +4781,9 @@ Handy commands
 #+begin_src emacs-lisp
   (use-package flycheck
     :diminish
-    :hook ((prog-mode text-mode) . flycheck-mode)
+    :hook (prog-mode . flycheck-mode-on-safe)
     :custom
+    (global-flycheck-mode t)
     (flycheck-check-syntax-automatically
      '(save new-line idle-change))
     (flycheck-display-errors-delay 10.0)
