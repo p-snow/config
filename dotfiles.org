@@ -3976,9 +3976,9 @@ speed commands and hydra-org.
 #+begin_src emacs-lisp
   (use-package tex-mode
     :mode ("\\.tex$" . latex-mode)
-    :hook ((latex-mode . (lambda ()
-                           (setq-local counsel-dash-docsets '("LaTeX"))))
-           (tex-mode . (lambda () (setq ispell-parser 'tex)))))
+    :hook ((tex-mode . (lambda () (setq ispell-parser 'tex))))
+    :config
+    (my/add-dash-docsets-hook 'latex-mode-hook '("LaTeX")))
 #+end_src
 
 **** prog-mode derivatives
@@ -4006,12 +4006,13 @@ speed commands and hydra-org.
     :delight " SH"
     :commands sh-mode
     :mode ("\\.sh$" . sh-mode)
-    ;; :dash "Bash"
     :custom
     (sh-basic-offset 2)
     (sh-indent-after-if '+)
     (sh-indent-for-case-label 0)
-    (sh-indent-for-case-alt '+))
+    (sh-indent-for-case-alt '+)
+    :config
+    (my/add-dash-docsets-hook 'sh-mode-hook '("Bash")))
 #+end_src
 
 ***** emacs-lisp-mode
@@ -4026,13 +4027,14 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     (lisp-interaction-mode " LispInt")
     :hook (emacs-lisp-mode . (lambda ()
                                (setq-local tab-width 8)
-                               (setq-local counsel-dash-docsets '("Emacs Lisp" "Common Lisp"))
                                (eldoc-mode 1)))
     :config
     (require 'eldoc)
     (substitute-key-definition 'eval-last-sexp
                                'pp-eval-last-sexp
-                               global-map))
+                               global-map)
+    (my/add-dash-docsets-hook 'emacs-lisp-mode-hook
+                              '("Emacs Lisp")))
 #+end_src
 
 ***** scheme-mode
@@ -4045,14 +4047,14 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 #+begin_src emacs-lisp
   (use-package cc-mode
-    :hook (c-mode-common . (lambda ()
-                             (setq-local counsel-dash-docsets '("C"))))
     :custom
     (c-tab-always-indent t)
     (c-auto-align-backslashes nil)
     (c-echo-syntactic-information-p t)
     (c-default-style "my/c-style")
     :config
+    (my/add-dash-docsets-hook 'c-mode-common-hook
+                              '("C"))
     (c-toggle-auto-newline 1)
     (c-add-style "my/c-style"
                  '((c-basic-offset . 4)
@@ -4103,7 +4105,12 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     ((python-mode inferior-python-mode) . my-python-mode-hook)
     (lsp-mode . (lambda ()
                   (add-to-list 'lsp-disabled-clients 'jedi)
-                  (add-to-list 'lsp-enabled-clients 'pyls))))
+                  (add-to-list 'lsp-enabled-clients 'pyls)))
+    :config
+    (my/add-dash-docsets-hook 'python-mode-hook
+                              '("Python 3"))
+    (my/add-dash-docsets-hook 'inferior-python-mode-hook
+                              '("Python 3")))
 
   (defvar python-mode-initialized nil)
 
@@ -4111,8 +4118,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     (setq-local flycheck-checker 'python-pylint)
     (jedi:setup)
     (jedi-mode 1)
-    (setq-local counsel-dash-docsets
-                '("Python 3" "Pandas" "NumPy" "Matplotlib" "Scrapy" "PEPs" "lxml"))
     (unless python-mode-initialized
       (setq python-mode-initialized t)
       (info-lookup-add-help
@@ -4163,14 +4168,14 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     (setq ruby-insert-encoding-magic-comment nil)
     (add-hook 'ruby-mode-hook
               '(lambda ()
-                 (setq-local flycheck-checker 'ruby-rubocop)
-                 (setq-local counsel-dash-docsets '("Ruby"))))
+                 (setq-local flycheck-checker 'ruby-rubocop)))
     (add-to-list 'hs-special-modes-alist
                  `(ruby-mode
                    ,(rx (or "def" "class" "module" "do" "if" "{" "[")) ; Block start
                    ,(rx (or "}" "]" "end"))                       ; Block end
                    ,(rx (or "#" "=begin"))                        ; Comment start
-                   ruby-forward-sexp nil)))
+                   ruby-forward-sexp nil))
+    (my/add-dash-docsets-hook 'ruby-mode-hook '("Ruby")))
 #+end_src
 
 ****** inf-ruby
@@ -4221,8 +4226,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
            ("\\.as[cp]x$"   . web-mode)
            ("\\.erb$"       . web-mode)
            ("\\.html?$"     . web-mode))
-    :hook (web-mode . (lambda ()
-                        (setq-local counsel-dash-docsets '("HTML" "HTTP"))))
     :custom
     (web-mode-attr-indent-offset        2)
     (web-mode-attr-value-indent-offset  2)
@@ -4231,17 +4234,17 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     (web-mode-markup-indent-offset      2)
     (web-mode-sql-indent-offset         2)
     (web-mode-block-padding             2)
-    (web-mode-script-padding            2))
+    (web-mode-script-padding            2)
+    :config
+    (my/add-dash-docsets-hook 'web-mode-hook '("HTML")))
 #+end_src
 
 ***** css-mode
 
 #+begin_src emacs-lisp
-  (use-package css-mode
-    :hook (css-mode . (lambda ()
-                        (setq-local counsel-dash-docsets '("CSS"))))
-    :custom
-    (css-indent-offset 2))
+  (with-eval-after-load 'css-mode
+    (customize-set-variable 'css-indent-offset 2)
+    (my/add-dash-docsets-hook 'css-mode-hook '("CSS")))
 #+end_src
 
 ***** js2-mode
@@ -4257,10 +4260,10 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
            ("\\.eslintrc\\'"    . js2-mode))
     :hook (js2-mode . (lambda ()
                         (setq-local flycheck-checker 'javascript-eslint)
-                        (setq-local flycheck-disabled-checkers '(javascript-jshint javascript-jscs))
-                        (setq-local counsel-dash-docsets '("JavaScript" "HTTP" "NodeJS"))))
+                        (setq-local flycheck-disabled-checkers '(javascript-jshint javascript-jscs))))
     :custom
-    (flycheck-javascript-eslint-executable "eslint"))
+    (flycheck-javascript-eslint-executable "eslint")
+    (my/add-dash-docsets-hook 'js2-mode-hook '("JavaScript")))
 
   (use-package js
     :delight " JS"
@@ -4278,8 +4281,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     :bind (:map sql-interactive-mode-map
                 ("C-j" . comint-send-input))
     :hook (sql-mode . (lambda ()
-                        (setq-local flycheck-checker 'sql-sqlint)
-                        (setq-local counsel-dash-docsets '("MySQL")))))
+                        (setq-local flycheck-checker 'sql-sqlint))))
 #+end_src
 
 ***** plantuml-mode
@@ -4291,11 +4293,10 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 #+begin_src emacs-lisp
   (use-package plantuml-mode
     :delight " UM"
-    :hook
-    (plantuml-mode . (lambda ()
-                       (setq-local counsel-dash-docsets '("PlantUML"))))
     :custom
-    (plantuml-jar-path "/usr/share/plantuml/plantuml.jar"))
+    (plantuml-jar-path "/usr/share/plantuml/plantuml.jar")
+    :config
+    (my/add-dash-docsets-hook 'plantuml-mode-hook '("PlantUML")))
 #+end_src
 
 ***** conf
@@ -4440,6 +4441,35 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/packages.el")
 :END:
 
+***** consult-dash
+:PROPERTIES:
+:CREATED:  [2022-08-05 Fri 16:56]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-dash-docs"
+#+end_src
+
+#+begin_src emacs-lisp
+  (add-to-list 'load-path
+               (expand-file-name "elpa/consult-dash-20220621.226" user-emacs-directory-default))
+
+  (require 'dash-docs)
+
+  (customize-set-variable 'dash-docs-docsets-path
+                          (expand-file-name "~/share/dash/docsets"))
+
+  (require 'consult-dash)
+
+  (global-set-key (kbd "M-s M-d") 'consult-dash)
+
+  (defmacro my/add-dash-docsets-hook (hook docsets)
+    `(add-hook ,hook
+               (lambda ()
+                 (when (functionp 'consult-dash)
+                   (setq-local consult-dash-docsets ,docsets)))))
+#+end_src
+
 ***** eglot
 :PROPERTIES:
 :CREATED:  [2022-08-04 Thu 13:32]
@@ -4449,7 +4479,6 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-eglot"
-  "emacs-dash-docs"
 #+end_src
 
 #+begin_src emacs-lisp
