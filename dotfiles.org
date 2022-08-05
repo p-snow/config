@@ -1820,14 +1820,12 @@ Command in practice presumably looks like:
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package mu4e-utils
-    :after org-contacts
+  (use-package mu4e
     :delight
     (mu4e-main-mode    " MU")
     (mu4e-headers-mode " MU")
     (mu4e-view-mode    " MU")
     (mu4e-compose-mode " MU")
-    :hook (after-init . mu4e~start)
     :custom
     (mail-user-agent 'mu4e-user-agent)
     (mu4e-hide-index-messages t)
@@ -1872,7 +1870,8 @@ Command in practice presumably looks like:
     (add-to-list 'mu4e-view-actions
                  '("XWidget View" . mu4e-action-view-with-xwidget) t)
     (when (fboundp 'imagemagick-register-types)
-      (imagemagick-register-types)))
+      (imagemagick-register-types))
+    (add-hook 'after-init-hook (lambda () (mu4e t))))
 #+end_src
 
 ***** mu4e-alert
@@ -1883,10 +1882,8 @@ Command in practice presumably looks like:
 
 #+begin_src emacs-lisp
   (use-package mu4e-alert
-    :hook (after-init . (lambda ()
-                          (mu4e-alert-enable-notifications)
-                          (mu4e-alert-enable-mode-line-display)))
-    :after mu4e
+    :commands mu4e-alert-view-unread-mails
+    :defer 5
     :custom
     (mu4e-alert-modeline-formatter
      (lambda (count)
@@ -1894,7 +1891,9 @@ Command in practice presumably looks like:
            (format " M:%d" count)
          "")))
     :config
-    (mu4e-alert-set-default-style 'fringe))
+    (mu4e-alert-set-default-style 'fringe)
+    (mu4e-alert-enable-notifications)
+    (mu4e-alert-enable-mode-line-display))
 #+end_src
 
 ***** additional tweaks
@@ -1915,7 +1914,7 @@ Command in practice presumably looks like:
 
   #+begin_src emacs-lisp
     (use-package mu4e-actions
-      :after org-contacts
+      :after (mu4e org-contacts)
       :config
       (setq mu4e-org-contacts-file (car org-contacts-files))
       (add-to-list 'mu4e-headers-actions
