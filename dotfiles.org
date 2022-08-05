@@ -6,7 +6,7 @@
 
 #+STARTUP: overview
 
-* definitions
+* Definitions
 - my home directory
   #+name: home-dir
   #+begin_src shell :eval no-export
@@ -33,7 +33,7 @@
     (* h 60 60)
   #+end_src
 
-* configurations
+* Application Configurations
 :PROPERTIES:
 :header-args+: :tangle-mode (identity #o444)
 :END:
@@ -4439,6 +4439,25 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/packages.el")
 :END:
+
+***** eglot
+:PROPERTIES:
+:CREATED:  [2022-08-04 Thu 13:32]
+:END:
+
+[[https://github.com/joaotavora/eglot][Eglot]]
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-eglot"
+  "emacs-dash-docs"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package eglot
+    :hook ((sh-mode ruby-mode) . eglot-ensure)
+    :custom
+    (eglot-extend-to-xref t))
+#+end_src
 
 ***** denote
 :PROPERTIES:
@@ -10510,7 +10529,44 @@ A structure described below is expected under all devices.
   "calibre"
 #+end_src
 
-* utility scripts
+* Development Infrastructures
+:PROPERTIES:
+:CREATED:  [2022-08-04 Thu 14:55]
+:END:
+
+** Tree Sitter
+:PROPERTIES:
+:CREATED:  [2022-08-04 Thu 14:55]
+:END:
+
+#+begin_src scheme :noweb-ref devel-pkgs
+  "tree-sitter"
+#+end_src
+
+** Languate Servers
+
+*** Bash Language Server
+:PROPERTIES:
+:CREATED:  [2022-08-04 Thu 13:49]
+:END:
+
+[[https://github.com/bash-lsp/bash-language-server][Bash Language Server]]
+
+- how to install
+  : $ npm install -g bash-language-server
+
+*** Solargraph
+:PROPERTIES:
+:CREATED:  [2022-08-04 Thu 14:16]
+:END:
+
+[[https://github.com/castwide/solargraph][Solargraph]] is Ruby Language Server.
+
+#+begin_src scheme :noweb-ref devel-pkgs
+  "ruby-solargraph"
+#+end_src
+
+* Utility Scripts
 :PROPERTIES:
 :header-args+: :tangle-mode (identity #o755)
 :END:
