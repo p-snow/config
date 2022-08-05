@@ -4022,9 +4022,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 #+begin_src emacs-lisp
   (use-package elisp-mode
     :commands emacs-lisp-mode
-    :delight
-    (emacs-lisp-mode " EL")
-    (lisp-interaction-mode " LispInt")
     :hook (emacs-lisp-mode . (lambda ()
                                (setq-local tab-width 8)
                                (eldoc-mode 1)))
@@ -4035,6 +4032,14 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
                                global-map)
     (my/add-dash-docsets-hook 'emacs-lisp-mode-hook
                               '("Emacs Lisp")))
+
+  (defun my/elisp-mode-eval-buffer ()
+    (interactive)
+    (message "Evaluated buffer")
+    (eval-buffer))
+
+  (define-key emacs-lisp-mode-map (kbd "C-c C-c") #'my/elisp-mode-eval-buffer)
+  (define-key lisp-interaction-mode-map (kbd "C-c C-c") #'my/elisp-mode-eval-buffer)
 #+end_src
 
 ***** scheme-mode
