@@ -461,6 +461,11 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
   (customize-set-variable 'auto-save-default t)
   (customize-set-variable 'auto-save-list-file-prefix
                           (concat user-emacs-directory "auto-save-list/.saves-"))
+
+  (customize-set-variable 'auto-save-visited-mode t)
+  (customize-set-variable 'auto-save-visited-interval 15)
+  (put 'auto-save-visited-mode 'disabled nil)
+
   (customize-set-variable 'delete-by-moving-to-trash t)
   (customize-set-variable 'delete-auto-save-files t)
   (customize-set-variable 'kill-buffer-delete-auto-save-files t)
@@ -2301,11 +2306,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :defer t
     :mode (("\\.org$" . org-mode))
     :interpreter (("org" . org-mode))
-    :hook
-    (org-log-buffer-setup
-     . (lambda ()
-         (setq skk-dcomp-activate 'eolp)
-         (setq skk-dcomp-multiple-activate nil))))
+    :config
+    (add-hook 'org-log-buffer-setup-hook
+              (lambda ()
+                (setq skk-dcomp-activate 'eolp)
+                (setq skk-dcomp-multiple-activate nil))))
 #+end_src
 
 ****** Org Agenda
@@ -7668,7 +7673,6 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
 #+begin_src emacs-lisp
   (use-package org-clock
     :hook
-    ((org-clock-in org-clock-out org-clock-cancel) . save-buffer)
     (org-clock-in-prepare . my/org-clock-in-set-timer)
     ((org-clock-out org-clock-cancel) . my/org-clock-out-have-a-break))
 
