@@ -7597,11 +7597,11 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
                               ))
                     (split-string
                      (shell-command-to-string
-                      (format "locate -ie %s"
-                              (shell-quote-argument
-                               (or (and match-idx
-                                        (match-string 1 pattern))
-                                   pattern))))
+                      (format "locate -ie \"%s\""
+                              (or (and match-idx
+                                       (match-string 1 pattern))
+                                  pattern)
+                              ))
                      "\n" t))))
       ""))
 
