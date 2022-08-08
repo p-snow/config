@@ -2130,7 +2130,7 @@ Command in practice presumably looks like:
   (use-package elfeed-org
     :after (elfeed org)
     :custom
-    (rmh-elfeed-org-files '("~/org/index/feed.org"))
+    (rmh-elfeed-org-files '("~/org/lists/feeds.org"))
     (rmh-elfeed-org-ignore-tag "ignore")
     (rmh-elfeed-org-auto-ignore-invalid-feeds t)
     :config
@@ -2557,7 +2557,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                               ((org-ql-block-header "All Habits"))))
         ((org-agenda-sorting-strategy '(scheduled-up))))))
     :config
-    (dolist (dir '("archive" "index" "wiki"))
+    (dolist (dir '("archive" "lists" "wiki" "notes"))
       (mapc (lambda (org-file)
               (add-to-list 'org-agenda-text-search-extra-files
                            org-file))
@@ -2694,11 +2694,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org Startup
 
 #+begin_src emacs-lisp
-  (use-package org
-    :custom
-    ;; allow _{}/^{} format for sub/super script
-    (org-use-sub-superscripts '{})
-    (org-startup-with-inline-images t))
+  (customize-set-variable 'org-startup-folded t)
+  (customize-set-variable 'org-startup-truncated t)
+  (customize-set-variable 'org-startup-with-inline-images t)
+  ;; allow _{}/^{} format for sub/super script
+  (customize-set-variable 'org-use-sub-superscripts '{})
 #+end_src
 
 ****** Org TODO
@@ -2789,13 +2789,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org Structure
 
 #+begin_src emacs-lisp
-  (use-package org-indent
-    :after org
-    :hook
-    (org-mode . org-indent-mode)
-    :custom
-    (org-startup-indented t))
+  (add-hook 'org-mode-hook 'org-indent-mode)
 
+  (customize-set-variable 'org-startup-indented t)
   (customize-set-variable 'org-bookmark-names-plist nil)
   (customize-set-variable 'org-M-RET-may-split-line '((default . nil)))
 #+end_src
@@ -3130,10 +3126,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package org-contacts
-    :after org
-    :custom
-    (org-contacts-files `(,(expand-file-name "index/contacts.org.gpg" org-directory))))
+  (with-eval-after-load 'org
+    (require 'org-contacts)
+    (customize-set-variable 'org-contacts-files
+                            `(,(file-name-concat org-directory "lists" "contacts.org.gpg"))))
 #+end_src
 ****** org-drill
 
@@ -3376,7 +3372,7 @@ org-roam v2
     (mapc (lambda (dir)
             (dolist (f (directory-files (expand-file-name dir org-directory) "\.org$"))
               (org-babel-lob-ingest f)))
-          '("agenda" "index" "wiki")))
+          '("agenda" "lists" "wiki" "notes")))
 
   (defvar org-readable-directory
     (expand-file-name "org-readable"
