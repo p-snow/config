@@ -2108,7 +2108,7 @@ Command in practice presumably looks like:
                                                                     (member 'audio (elfeed-entry-tags entry)))
                                                                 "ac_watch:")
                                                                (t "ac_read:"))))
-                            (org-capture-derived-target "68d74115-1f70-448d-a76e-738e32b272d8")
+                            (org-capture-derived-target "f215ba42-6610-4019-a0a5-f790ebb26e29")
                             (org-capture-derived-deadline-in-day 7))
                         (call-interactively #'org-capture-derived))
                       (elfeed-kill-buffer))))
@@ -2311,13 +2311,23 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
               (lambda ()
                 (setq skk-dcomp-activate 'eolp)
                 (setq skk-dcomp-multiple-activate nil))))
+
+  (defvar org-warning-keyword-0 "UG" "TODO keyword acronym standing for 'UrGent'")
+  (defvar org-todo-keyword-0 "TD" "TODO keyword acronym standing for 'To Do'")
+  (defvar org-todo-keyword-1 "GO" "TODO keyword acronym standing for 'Get On'")
+  (defvar org-todo-keyword-2 "IP" "TODO keyword acronym standing for 'In Progressn'")
+  (defvar org-todo-keyword-3 "AC" "TODO keyword acronym standing for 'doABle'")
+  (defvar org-todo-keyword-4 "SD" "TODO keyword acronym standing for 'SomeDay'")
+  (defvar org-done-keyword-0 "DN" "TODO keyword acronym standing for 'DoNe'")
+  (defvar org-done-keyword-1 "CX" "TODO keyword acronym standing for 'Cancel'")
+  (defvar org-done-keyword-2 "PD" "TODO keyword acronym standing for 'PenDing'")
 #+end_src
 
 ****** Org Agenda
 
 #+begin_src emacs-lisp
   (use-package org-agenda
-    :after (org org-ql my/org-archive-datetree)
+    :after (org org-ql)
     :bind (:map org-agenda-mode-map
                 ("C-j" . org-agenda-switch-to)
                 ("M" . org-agenda-month-view))
@@ -2349,48 +2359,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                    (let ((tags (org-get-tags)))
                      (member "web" tags)))
                  (progn (outline-next-heading) (point)))))))
-       ("r" . "Search for all record files")
-       ("rs" "Entries containing search words entry or headline."
-        search ""
-        ((org-agenda-files my/org-archive-files)
-         (org-agenda-sorting-strategy '(time-down))))
-       ("rm" "Match a TAGS/PROP/TODO query in record file"
-        tags ""
-        ((org-agenda-files my/org-archive-files)
-         (org-agenda-sorting-strategy '(time-down))))
-       ("o" . "someday list")
-       ("om" "someday to craft"
-        ((org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (tags-expanded "AC_CRAFT"))
-                              ((org-ql-block-header "Someday to craft"))))
-        ((org-agenda-files my/org-archive-files)
-         (org-agenda-sorting-strategy '(priority-down))))
-       ("op" "someday to purchase"
-        ((org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (tags "ac_purchase"))
-                              ((org-ql-block-header "Someday to purchase"))))
-        ((org-agenda-files my/org-archive-files)
-         (org-agenda-sorting-strategy '(priority-down))))
-       ("oc" "someday to cook"
-        ((org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (tags "ac_cook"))
-                              ((org-ql-block-header "Someday to cook"))))
-        ((org-agenda-files my/org-archive-files)
-         (org-agenda-sorting-strategy '(priority-down))))
-       ("O" "all someday entries"
-        ((org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (tags-expanded "AC_CRAFT"))
-                              ((org-ql-block-header "Someday to craft")))
-         (org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (tags "ac_purchase"))
-                              ((org-ql-block-header "Someday to purchase")))
-         (org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (tags "ac_cook"))
-                              ((org-ql-block-header "Someday to cook")))
-         (org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (not (tags-expanded "ac_purchase" "ac_cook" "AC_CRAFT")))
-                              ((org-ql-block-header "Someday things"))))
-        ((org-agenda-files my/org-archive-files)))
        ("l" "Log entries in a week"
         agenda ""
         ((org-agenda-span (if (equal current-prefix-arg '(4))
@@ -2453,8 +2421,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
         ((todo "Today's agenda"
                ((org-agenda-sorting-strategy '(priority-up))))
          (org-ql-search-block `(heading ,(format-time-string "%Y-%m-%d %A"))
-                              ((org-agenda-files `(,(my/org-archive-file)))
-                               (org-ql-block-header "Today's tree node")))
+                              ((org-agenda-files `(,(file-name-concat org-directory "archive" (format-time-string "archive_%Y.org"))))
+                               (org-ql-block-header "Today in datetree archive")))
          (org-ql-search-block `(or (todo ,org-warning-keyword-0)
                                    (todo ,org-todo-keyword-2))
                               ((org-ql-block-header "Today's task")))
@@ -2481,8 +2449,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                               ((org-ql-block-header "Completed tasks on today")))))
        ("g" "This Week's agenda"
         ((org-ql-search-block `(heading ,(format-time-string "%G-W%V"))
-                              ((org-agenda-files `(,(my/org-archive-file)))
-                               (org-ql-block-header "This week's tree")))
+                              ((org-agenda-files `(,(file-name-concat org-directory "archive" (format-time-string "archive_%Y.org"))))
+                               (org-ql-block-header "This week in datetree archive")))
          (org-ql-search-block `(or (todo ,org-todo-keyword-1))
                               ((org-ql-block-header "This week's tasks")))
          (org-ql-search-block `(or (todo ,org-warning-keyword-0)
@@ -2519,8 +2487,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                               ((org-ql-block-header "Today's task")))
          (org-ql-search-block `(todo ,org-todo-keyword-1)
                               ((org-ql-block-header "This week's task")))
-         (org-ql-search-block `(todo ,org-todo-keyword-4)
-                              ((org-ql-block-header "Someday's entries on agenda files")))
          (org-ql-search-block `(and (todo ,org-todo-keyword-0)
                                     (not (habit)))
                               ((org-ql-block-header "Remaining task")))))
@@ -2617,7 +2583,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-capture
-    :after (org my/org-archive-datetree)
+    :after org
     :hook
     (org-capture-mode . (lambda ()
                           (skk-mode 1)
@@ -2628,67 +2594,16 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-capture-bookmark nil)
     (org-capture-templates
      `(("t" "Task"
-        entry (id "adcd63ea-f81a-4909-b659-6e5794052fcc")
-        ,(format "* %s %%?\n%%U\n"
+        entry (id "58e12e3e-da50-4089-9d22-565986637121")
+        ,(format "* %s %%?\n"
                  org-todo-keyword-0))
        ("p" "Project"
-        entry (id "adcd63ea-f81a-4909-b659-6e5794052fcc")
-        "* %? [/] :project:\n %U\n- [ ] insert ID property if necessary"
-        :prepend t :jump-to-captured t)
-       ("s" "Someday memo")
-       ("ss" "any"
-        entry (file+olp+datetree ,my/org-archive-file)
-        ,(format "* %s %%?\n%%U\n%%a"
-                 org-todo-keyword-4)
-        :tree-type week)
-       ("sr" "purchase book"
-        entry (file+olp+datetree ,my/org-archive-file)
-        ,(format "* %s %%? :ac_purchase:book:\n%%U\n%%a"
-                 org-todo-keyword-4)
-        :tree-type week)
-       ("sc" "cook"
-        entry (file+olp+datetree ,my/org-archive-file)
-        ,(format "* %s %%? :ac_cook:\n%%U\n%%a"
-                 org-todo-keyword-4)
-        :tree-type week)
-       ("sp" "purchase"
-        entry (file+olp+datetree ,my/org-archive-file)
-        ,(format "* %s %%? :ac_purchase:\n%%U\n%%a"
-                 org-todo-keyword-4)
-        :tree-type week)
-       ("D" "Drill")
-       ("Dd" "Drill entry in currently clocking or today's entry."
-        entry (function org-goto-clocking-or-today)
-        "* %i :drill:\n[%?]")
-       ("De" "English drill entry in currently clocking or today's entry."
-        entry (function org-goto-clocking-or-today)
-        "* %i :drill:fd_en:\n[%^C%?]\n- %a")
+        entry (id "58e12e3e-da50-4089-9d22-565986637121")
+        "* %? [/] :project:\n- [ ] insert ID property if necessary"
+        :jump-to-captured t)
        ("M" "Append memo to clocking task"
         item (clock)
         "- %i%?"))))
-
-  (defun org-goto-clocking-or-today ()
-    "Go to currently clocking entry.
-
-  If no entry is clocked or CATEGORY on clocking entry is \"Cyclic\",
-  go to today's entry in record file."
-    (if (and (org-clocking-p)
-             (save-excursion
-               (with-current-buffer (org-clocking-buffer)
-                 (org-clock-jump-to-current-clock)
-                 (org-back-to-heading)
-                 (not (string=
-                       (org-entry-get (point) "CATEGORY" t)
-                       "Cyclic")))))
-        (org-clock-goto)
-      (let* ((now (decode-time (current-time)))
-             (day (nth 3 now))
-             (month (nth 4 now))
-             (year (nth 5 now))
-             (org-refile-targets
-              `((,my/org-archive-file :regexp . ,(format "%04d-%02d-%02d" year month day)))))
-        (find-file my/org-archive-file)
-        (org-datetree-find-iso-week-create `(,month ,day ,year) nil))))
 #+end_src
 
 ****** Org Startup
@@ -2704,16 +2619,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org TODO
 
 #+begin_src emacs-lisp
-  (defvar org-warning-keyword-0 "UG" "TODO keyword acronym standing for 'UrGent'")
-  (defvar org-todo-keyword-0 "TD" "TODO keyword acronym standing for 'To Do'")
-  (defvar org-todo-keyword-1 "GO" "TODO keyword acronym standing for 'Get On'")
-  (defvar org-todo-keyword-2 "IP" "TODO keyword acronym standing for 'In Progressn'")
-  (defvar org-todo-keyword-3 "AC" "TODO keyword acronym standing for 'doABle'")
-  (defvar org-todo-keyword-4 "SD" "TODO keyword acronym standing for 'SomeDay'")
-  (defvar org-done-keyword-0 "DN" "TODO keyword acronym standing for 'DoNe'")
-  (defvar org-done-keyword-1 "CX" "TODO keyword acronym standing for 'Cancel'")
-  (defvar org-done-keyword-2 "PD" "TODO keyword acronym standing for 'PenDing'")
-
   (use-package org
     :hook (org-after-todo-state-change . save-buffer)
     :custom
@@ -6144,8 +6049,7 @@ It's confortable to read long material such as web page , epub file or email wit
            (date (calendar-date-string (calendar-cursor-to-date)))
            (d (parse-time-string date))
            (year (decoded-time-year d))
-           (files (append `(,(my/org-archive-file year))
-                          org-agenda-files))
+           (files (file-expand-wildcards (file-name-concat org-directory "archive" "archive_*.org")))
            (buffer-name-prefix "==")
            (buffer-name (concat buffer-name-prefix date))
            (display-buffer-alist
