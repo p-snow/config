@@ -3820,6 +3820,7 @@ speed commands and hydra-org.
     :hook
     (embark-collect-mode . consult-preview-at-point-mode)
     :config
+    (require 'embark-consult)
     (push 'embark--allow-edit
           (alist-get 'shell-command-on-region embark-target-injection-hooks)))
 #+end_src
@@ -6168,7 +6169,7 @@ As of 28.1, Emacs won't steal keyboard focus at startup which means we can use e
               (call-process-shell-command "fcitx -r")))
 #+end_src
 
-***** re-builder and query-replace-regexp combination
+***** replace regexp with re-builder and query-replace-regexp trick
 
 Great idea using re-builder when query-replace-regexp borrowed from [[https://karthinks.com/software/bridging-islands-in-emacs-1/][this post]].
 
