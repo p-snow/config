@@ -2100,8 +2100,7 @@ Command in practice presumably looks like:
         (cl-loop for entry in entries
                  do (progn
                       (elfeed-show-entry entry)
-                      (let ((org-capture-derived-todo org-todo-keyword-3)
-                            (org-capture-derived-tags (format ":web:%s"
+                      (let ((org-capture-derived-tags (format ":web:%s"
                                                               (cond
                                                                ((or (member 'video (elfeed-entry-tags entry))
                                                                     (member 'audio (elfeed-entry-tags entry)))
@@ -2315,7 +2314,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (defvar org-todo-keyword-0 "TD" "TODO keyword acronym standing for 'To Do'")
   (defvar org-todo-keyword-1 "GO" "TODO keyword acronym standing for 'Get On'")
   (defvar org-todo-keyword-2 "IP" "TODO keyword acronym standing for 'In Progressn'")
-  (defvar org-todo-keyword-3 "AC" "TODO keyword acronym standing for 'doABle'")
   (defvar org-todo-keyword-4 "SD" "TODO keyword acronym standing for 'SomeDay'")
   (defvar org-done-keyword-0 "DN" "TODO keyword acronym standing for 'DoNe'")
   (defvar org-done-keyword-1 "CX" "TODO keyword acronym standing for 'Cancel'")
@@ -2473,12 +2471,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                               ((org-ql-block-header "This week's common event"))))
         ((org-agenda-sorting-strategy
           '(todo-state-up priority-down deadline-up))))
-       ("c" "actionable thing list"
-        ((org-ql-search-block `(and (todo ,org-todo-keyword-3)
-                                    (not (deadline :to -1)))
-                              ((org-ql-block-header "Doable things"))))
-        ((org-agenda-sorting-strategy
-          '(todo-state-up priority-down deadline-up))))
        ("t" "All tasks"
         ((org-ql-search-block `(todo ,org-warning-keyword-0)
                               ((org-ql-block-header "Urgent task")))
@@ -2497,8 +2489,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                     ;; exclude projects
                                     (not (children (todo ,org-todo-keyword-0
                                                          ,org-todo-keyword-1
-                                                         ,org-todo-keyword-2
-                                                         ,org-todo-keyword-3))))
+                                                         ,org-todo-keyword-2))))
                               ((org-ql-block-header "Stuck projects")))))
        ("p" "Projects" tags "+project")
        ("h" "Habits in consistency graph"
@@ -2634,11 +2625,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                  ,(format "%s(d/@)" org-done-keyword-0)
                  ,(format "%s(x/@)" org-done-keyword-1)
                  ,(format "%s(p/@)" org-done-keyword-2))
-       (sequence ,(format "%s(a/!)" org-todo-keyword-3)
-                 "|"
-                 ,(format "%s(d/@)" org-done-keyword-0)
-                 ,(format "%s(x/@)" org-done-keyword-1)
-                 ,(format "%s(p/@)" org-done-keyword-2))
        (sequence ,(format "%s(t/!)" org-todo-keyword-0)
                  ,(format "%s(s/!)" org-todo-keyword-4)
                  "|"
@@ -2649,7 +2635,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
        (,org-todo-keyword-0    . "green1")
        (,org-todo-keyword-1    . "DeepPink1")
        (,org-todo-keyword-2    . "DodgerBlue1")
-       (,org-todo-keyword-3    . "chocolate")
        (,org-todo-keyword-4    . "SpringGreen")
        (,org-done-keyword-0    . "gray30")
        (,org-done-keyword-1    . "dark gray")
