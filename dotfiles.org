@@ -2744,11 +2744,69 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ******* Org Archive
 
 #+begin_src emacs-lisp
-  (use-package org-archive
-    :after org
-    :custom
-    (org-archive-default-command 'org-archive-set-tag)
-    (org-cycle-open-archived-trees t))
+  (with-eval-after-load 'org
+    (require 'org-archive)
+    (customize-set-variable 'org-archive-default-command 'org-archive-set-tag)
+    (customize-set-variable 'org-cycle-open-archived-trees t)
+    (customize-set-variable 'org-archive-location
+                            (format "%s::datetree/" (file-name-concat org-directory "archive" (format-time-string "archive_%Y.org")))))
+
+  (advice-add #'org-archive-subtree :around
+              #'my/org-archive-subtree--iso-datetree)
+
+  ;;;###autoload
+  (defun my/org-archive-subtree--iso-datetree (oldfun &rest r)
+    "Move the current subtree to the archive.
+
+  If archiving location is datetree, it supposed to be iso week tree."
+    (interactive)
+    (org-relate-interrelate)
+    (advice-add #'org-datetree-find-date-create :override
+                #'org-datetree-find-iso-week-create)
+    (apply oldfun r)
+    (advice-remove #'org-datetree-find-date-create
+                   #'org-datetree-find-iso-week-create))
+
+  (with-eval-after-load 'org-ql-view
+    (push '("Archive entries" .
+            (lambda ()
+              "Search in archive files.
+  User is supposed to select 'org-agenda-files as buffers-files in `org-ql-search' command."
+              (interactive)
+              (let ((org-agenda-files (file-expand-wildcards (file-name-concat org-directory "archive" "archive_*.org"))))
+                (call-interactively 'org-ql-search))))
+          org-ql-views))
+
+  (with-eval-after-load 'org-agenda
+    (define-key org-agenda-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
+
+  (with-eval-after-load 'calendar
+    (define-key calendar-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
+
+  ;;;###autoload
+  (defun my/org-archive-find--iso-datetree (date)
+    "Find and visit the location of DATE in archivee file.
+
+  DATE must be a string representing the date to find and parsable with `format-time-string'.
+
+  If called interactively, it prompt the user to select the date to find."
+    (interactive
+     (cond
+      ((eq major-mode 'calendar-mode)
+       (list (calendar-date-string (calendar-cursor-to-date))))
+      ((eq major-mode 'org-agenda-mode)
+       (let* ((day (or (get-text-property (min (1- (point-max)) (point)) 'day)
+                       (user-error "Don't know which date to open in calendar")))
+              (date (calendar-gregorian-from-absolute day)))
+         (list (calendar-date-string date))))
+      (t (let ((date-select (org-read-date)))
+           (list date-select)))))
+    (let* ((d (parse-time-string date))
+           (day (decoded-time-day d))
+           (month (decoded-time-month d))
+           (year (decoded-time-year d)))
+      (find-file (file-name-concat org-directory "archive" (format "archive_%d.org" year)))
+      (org-datetree-find-iso-week-create `(,month ,day ,year))))
 #+end_src
 
 ******* Org Inline Tasks
@@ -3224,7 +3282,7 @@ org-roam v2
 
   (customize-set-variable 'org-expiry-inactive-timestamps t)
   (customize-set-variable 'org-expiry-handler-function
-                          #'my/org-archive-subtree)
+                          'org-expiry-archive-subtree)
 
   (add-hook 'org-capture-prepare-finalize-hook
             #'org-expiry-insert-created)
@@ -3541,7 +3599,7 @@ speed commands and hydra-org.
        ("W" . (lambda (m) (interactive "sMinutes before warning: ") (org-entry-put (point) "APPT_WARNTIME" m)))
        ("Org Capture")
        ("Misc")
-       ("$" . my/org-archive-subtree)
+       ("$" . org-archive-subtree)
        ("!" . org-readable)
        ("o" . org-open-at-point)
        ("M" . org-send-email)
@@ -3573,8 +3631,7 @@ speed commands and hydra-org.
       ("X" org-clock-cancel)
       ("qq" org-ql-search)
       ("qv" org-ql-view)
-      ("qr" my/org-archive-search)
-      ("r" my/org-archive-find-date)
+      ("r" my/org-archive-find--iso-datetree)
       ("le" my/org-english-lookup)
       ("bi" my/org-babel-lob-ingest-batch)
       ("@" org-mark-subtree)
@@ -6321,9 +6378,12 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
       ("q" nil "quit")))
 #+end_src
 
-***** org-archive-datetree
+***** org-archive-datetree                  :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-08-10 Wed 14:51]
+:END:
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-archive.el")
+#+begin_src emacs-lisp :tangle no
   (require 'org)
   (require 'org-agenda)
 
@@ -6584,9 +6644,6 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
   (defcustom org-relate-target-files
     (directory-files-recursively org-directory "\\.org$")
     "A list of target files to search relation nodes.")
-
-  (add-hook 'my/org-archive-before-archive-hook
-            #'org-relate-interrelate)
 
   (with-eval-after-load 'org
     (bind-key "C-c %" #'org-relate-search
