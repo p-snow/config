@@ -2013,8 +2013,7 @@ Command in practice presumably looks like:
                ("d" . elfeed-search-untag-all-unread)
                ("Dv" . elfeed-search-download-video)
                ("Da" . elfeed-search-download-audio)
-               ("D=" . elfeed-search-show-media-duration)
-               ("X" . elfeed-search-org-capture-derived))
+               ("D=" . elfeed-search-show-media-duration))
     (add-to-list 'elfeed-search-face-alist '(unchecked elfeed-search-unchecked-title-face))
     (add-to-list 'elfeed-search-face-alist '(checked elfeed-search-checked-title-face)))
 
@@ -2593,7 +2592,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-reverse-note-order nil)
     (org-capture-bookmark nil)
     (org-capture-templates
-     `(("t" "Task"
+     `(("e" "Entry"
+        entry (id "58e12e3e-da50-4089-9d22-565986637121")
+        "* %?")
+       ("t" "Task"
         entry (id "58e12e3e-da50-4089-9d22-565986637121")
         ,(format "* %s %%?\n"
                  org-todo-keyword-0))
@@ -3132,12 +3134,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package org-ql
-    :after org
-    :custom
-    (org-ql-search-directories-files-recursive t)
-    :config
+  (with-eval-after-load 'org
+    (require 'org-ql)
     (require 'org-ql-search)
+    (customize-set-variable 'org-ql-search-directories-files-recursive t)
     (org-ql-defpred (tags-expanded expanded-tags tags-x xtags) (&rest tags)
       "Return non-nil if current heading has one or more of TAGS.
   If TAGS contains a group tag, all tags in the group is used to match.
@@ -3154,7 +3154,12 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                      (org-entry-get (point) "CATEGORY" t))))
               (cl-typecase categories
                 (null t)
-                (otherwise (member category categories))))))
+                (otherwise (member category categories)))))
+    (with-eval-after-load 'org-expiry
+      (require 'org-element)
+      (org-ql-defpred expired ()
+        "Return non-nil if the entry is expired."
+        :body (org-expiry-expired-p))))
 #+end_src
 
 ****** org-ml
