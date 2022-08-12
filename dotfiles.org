@@ -7882,6 +7882,20 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
   (provide 'my/org-english)
 #+end_src
 
+- test code
+  #+begin_src emacs-lisp
+    (require 'ert)
+
+    (ert-deftest test-org-english-pron ()
+      "Tests the output string of `my/org-english-insert-japanese-pronunciation'."
+      (should (string= (my/org-english-insert-japanese-pronunciation "rife")
+                       "【レベル】11、【発音】ráif、【＠】ライフ"))
+      (should (string= (my/org-english-insert-japanese-pronunciation "congregate")
+                       "【レベル】12、【発音！】【US】《動》kɑ́ngrəgèit 《形》kɑ́ŋgrəgit ｜ 【UK】《動》kɔ́ŋgrigèit 《形》kɔ́ŋgrigit"))
+      (should (string= (my/org-english-insert-japanese-pronunciation "unleash")
+                       "【レベル】9、【発音】ʌ̀nlíːʃ、【＠】アンリーシュ")))
+  #+end_src
+
 **** additional emacs lisp code
 
 This section mainly for elisp code associated with some other programs.
