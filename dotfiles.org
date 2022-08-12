@@ -2614,11 +2614,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org TODO
 
 #+begin_src emacs-lisp
-  (use-package org
-    :hook (org-after-todo-state-change . save-buffer)
-    :custom
-    (org-enforce-todo-dependencies t)
-    (org-todo-keywords
+  (with-eval-after-load 'org
+    (customize-set-variable 'org-enforce-todo-dependencies t)
+    (customize-set-variable
+     'org-todo-keywords
      `((sequence ,(format "%s(t/!)" org-todo-keyword-0)
                  ,(format "%s(u/!)" org-warning-keyword-0)
                  ,(format "%s(g/!)" org-todo-keyword-1)
@@ -2632,7 +2631,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                  "|"
                  ,(format "%s(x/@)" org-done-keyword-1)
                  ,(format "%s(p/@)" org-done-keyword-2))))
-    (org-todo-keyword-faces
+    (customize-set-variable
+     'org-todo-keyword-faces
      `((,org-warning-keyword-0 . "red1")
        (,org-todo-keyword-0    . "green1")
        (,org-todo-keyword-1    . "DeepPink1")
@@ -2641,43 +2641,30 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
        (,org-done-keyword-0    . "gray30")
        (,org-done-keyword-1    . "dark gray")
        (,org-done-keyword-2    . "sea green")))
-    :config
-    (add-hook  'org-after-todo-state-change-hook
-               (lambda ()
-                 (save-excursion
-                   (let* ((element (org-element-at-point))
-                          (todo-state (org-get-todo-state))
-                          (tags (org-get-tags))
-                          (priority (org-element-property :priority element))
-                          (category (org-entry-get (point) "CATEGORY"))
-                          (style (org-entry-get (point) "STYLE")))
-                     ;; remove priority level when the to-do state is changed to DN|CX|PD
-                     (when (and
-                            (s-matches? (format "%1$s\\|%2$s\\|%3$s"
-                                                org-done-keyword-0
-                                                org-done-keyword-1
-                                                org-done-keyword-2)
-                                        todo-state)
-                            (bound-and-true-p priority))
-                       (org-priority ? ))
-                     ;; remove DN state if CATEGORY of the entry is "Cyclic"
-                     (when (and (string= category "Cyclic")
-                                (string= todo-state org-done-keyword-0)
-                                (not (member "web" tags))
-                                (not (string= style "habit")))
-                       (org-todo ""))))))
-    (add-hook 'org-after-todo-statistics-hook
-              (lambda (n-done n-not-done)
-                "Switch project entry to DONE when all subentries are done, to empty otherwise."
-                (when (member "project" (org-get-tags))
-                  (org-todo (if (= n-not-done 0)
-                                (prog1 org-done-keyword-0
-                                  (org-add-planning-info 'closed "now"))
-                              ""))))))
+    (customize-set-variable 'org-log-done 'time)
+    (customize-set-variable 'org-log-into-drawer t)
+    (customize-set-variable 'org-log-states-order-reversed t)
+    (add-hook 'org-after-todo-state-change-hook
+              #'my/org-remove-priority-if-done)
+    )
 
-  (customize-set-variable 'org-log-done 'time)
-  (customize-set-variable 'org-log-into-drawer t)
-  (customize-set-variable 'org-log-states-order-reversed t)
+  ;;;###autoload
+  (defun my/org-remove-priority-if-done ()
+    "Remove priority if todo state of the entry at point has changed to `org-done-keywords'."
+    (when (and
+           ;; the entry has one of org-done-keywords
+           (org-string-match-p
+            (eval `(rx (or ,org-done-keyword-0
+                           ,org-done-keyword-1
+                           ,org-done-keyword-2)))
+            org-state)
+           ;; the entry has been set any priority
+           (/= 21000 (save-excursion
+                       (save-match-data
+                         (beginning-of-line)
+                         (and (looking-at org-heading-regexp)
+                              (org-get-priority (match-string 0)))))))
+      (org-priority 'remove)))
 #+end_src
 
 ****** Org Structure
@@ -2750,6 +2737,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   If archiving location is datetree, it supposed to be iso week tree."
     (interactive)
     (org-relate-interrelate)
+    (when (member (org-get-todo-state)
+                  `(,org-todo-keyword-0 ,org-todo-keyword-1 ,org-todo-keyword-2 ,org-todo-keyword-4))
+      (org-todo org-done-keyword-2))
     (advice-add #'org-datetree-find-date-create :override
                 #'org-datetree-find-iso-week-create)
     (apply oldfun r)
