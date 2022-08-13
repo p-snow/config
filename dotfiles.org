@@ -2749,7 +2749,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (with-eval-after-load 'org-ql-view
     (push '("Archive entries" .
             (lambda ()
-              "Search in archive files.
+              "Search for matched entries in archive files.
   User is supposed to select 'org-agenda-files as buffers-files in `org-ql-search' command."
               (interactive)
               (let ((org-agenda-files (file-expand-wildcards (file-name-concat org-directory "archive" "archive_*.org"))))
@@ -7564,7 +7564,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
 :header-args+: :tangle (expand-tangle-target ".emacs.d/site-lisp/workflows.el")
 :END:
 
-***** notify timer completed
+***** notification count down timer finished
 
 #+begin_src emacs-lisp
   (require 'org-timer)
@@ -7613,10 +7613,11 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
 ***** clock in/out trigger invocation
 
 #+begin_src emacs-lisp
-  (use-package org-clock
-    :hook
-    (org-clock-in-prepare . my/org-clock-in-set-timer)
-    ((org-clock-out org-clock-cancel) . my/org-clock-out-have-a-break))
+  (with-eval-after-load 'org
+    (require 'org-clock)
+    (add-hook 'org-clock-in-prepare-hook #'my/org-clock-in-set-timer)
+    (add-hook 'org-clock-out-hook #'my/org-clock-out-have-a-break)
+    (add-hook 'org-clock-cancel-hook #'my/org-clock-out-have-a-break))
 
   (defun my/org-clock-in-set-timer ()
     "Start count down timer for a clocked in entry.
@@ -7640,23 +7641,27 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
         (let ((org-timer-default-timer "25"))
           (org-timer-set-timer '(64)))))))
 
+  ;;;###autoload
   (defun my/org-clock-out-have-a-break ()
-    "Clock in 'Break' task if the task about to clock out manually has any kind of TODO keyword."
-    (when (or (string= (org-get-category) "Cyclic")
-              (org-is-habit-p))
+    "Clock in the 'Break' task if the previous task has clocked out."
+    ;; remove old clock entries if the entry is neither habit nor have any todo keywords
+    (when (or (org-is-habit-p)
+              (not (org-get-todo-state)))
       (my/org-clock-remove-old-clock-entries 4 5))
     (and org-timer-countdown-timer
          (org-timer-stop))
-    (when (and (not org-clock-clocking-in)
-               (org-get-todo-state))
-      (org-id-goto "d49d97de-58ec-4e41-b58c-491a9e216e1c")
-      (org-clock-in)
-      (org-save-all-org-buffers)))
+    (save-excursion
+      (let ((break-entry-id "d49d97de-58ec-4e41-b58c-491a9e216e1c"))
+        (when (and (not org-clock-clocking-in)
+                   (string= (or (org-id-get) "")
+                            break-entry-id))
+          (org-id-goto )
+          (org-clock-in)))))
 #+end_src
 
 ***** taking memo
 
-Memo file (memo.org) is useful for jotting down fragmented piece of text, code and more.
+Memo file (memo.org) is useful for jotting down fragmented pieces of text, code and more.
 
 #+begin_src emacs-lisp
   (require 'org-capture)
@@ -7677,7 +7682,7 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
      (t "")))
 #+end_src
 
-***** learning english words
+***** learning english words/phrases
 
 1. Capture an word to study by invoking my/org-english-capture
 2. Review words periodically with my/org-english-drill-test-display or its variants
