@@ -6824,8 +6824,9 @@ Provide a function to Build a clock table summing up time by tag.
     (let ((matches
            (org-global-tags-completion-table)))
       (mapcar (lambda (match)
-                (let ((match-str (car match)))
-                  (when (string= (substring match-str 0 3) "AC_")
+                (let ((match-str (car match))
+                      (case-fold-search nil))
+                  (when (string-match-p "^AC_" match-str)
                     (setq params (plist-put params :match match-str))
                     (clocktable-by-tag/insert-tag params))))
               matches)))
