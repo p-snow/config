@@ -7670,8 +7670,8 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
     (save-excursion
       (let ((break-entry-id "d49d97de-58ec-4e41-b58c-491a9e216e1c"))
         (when (and (not org-clock-clocking-in)
-                   (string= (or (org-id-get) "")
-                            break-entry-id))
+                   (not (string= (or (org-id-get) "")
+                                 break-entry-id)))
           (org-id-goto break-entry-id)
           (org-clock-in)))))
 #+end_src
