@@ -3846,26 +3846,23 @@ speed commands and hydra-org.
 ***** text-mode
 
 #+begin_src emacs-lisp
-  (use-package text-mode
-    :mode ("\\.txt$" . text-mode)
-    :delight " TX"
-    :hook
-    (text-mode . (lambda ()
-                   (when (and
-                          ;; this function should be applied to text-mode rather than its inheritor
-                          (eq major-mode 'text-mode)
-                          ;; target buffer must be front not buried
-                          (eq (current-buffer) (window-buffer)))
-                     (let ((buf-str (buffer-string)))
-                       (if (and (< 0 (length buf-str))
-                                (string-match-p
-                                 (format "\\`[%s]+\\'" "[:ascii:]’“”–") buf-str))
-                           (progn ;; text seems to be written in English
-                             (activate-input-method nil))
-                         (progn ;; text seems to be written in Japanese or blank
-                           (activate-input-method default-input-method)))
-                       (visual-line-mode 1)
-                       (toggle-truncate-lines -1))))))
+  (add-hook 'text-mode-hook #'my/turn-on-input-method)
+
+  ;;;###autoload
+  (defun my/turn-on-input-method ()
+    "Turn on `default-input-method' if buffer text does not seem to consist of ASCII."
+    (when (and
+           ;; this function should be applied to text-mode rather than its inheritor
+           (eq major-mode 'text-mode)
+           ;; target buffer must be front not buried
+           (eq (current-buffer) (window-buffer)))
+      (if (my/ascii-string-p (buffer-string))
+          (progn (activate-input-method nil)
+                 (subword-mode 1))
+        (progn (activate-input-method default-input-method)
+               (jaword-mode 1)))
+      (visual-line-mode 1)
+      (toggle-truncate-lines -1)))
 #+end_src
 
 ***** nxml-mode
@@ -3936,8 +3933,8 @@ speed commands and hydra-org.
 ***** prog-mode
 
 #+begin_src emacs-lisp
-  (use-package prog-mode
-    :hook (prog-mode . my/prog-mode-hook-function))
+  (add-hook 'prog-mode-hook
+            #'my/prog-mode-hook-function)
 
   (defun my/prog-mode-hook-function ()
     (hl-line-mode -1)
@@ -4794,7 +4791,7 @@ Handy commands
                  '(org-mode . "org"))
     (add-hook 'flycheck-mode-hook
               (lambda ()
-                (if (my/english-p (buffer-string))
+                (if (my/ascii-string-p (buffer-string))
                     (setq flycheck-textlint-config ".textlintrc")
                   (setq flycheck-textlint-config ".config/textlint/textlintrc_ja"))))
     (add-to-list 'display-buffer-alist
@@ -5255,6 +5252,24 @@ migemo allows me to search incrementally Japanese words using roma-ji expression
 #+begin_src emacs-lisp
   (use-package ivy-migemo
     :after migemo)
+#+end_src
+
+***** jaword
+:PROPERTIES:
+:CREATED:  [2022-08-13 Sat 18:01]
+:END:
+
+Jaword.elはbackward-wordやforward-wordを日本語に対応させる機能を提供します。これらのコマンドはデフォルトではひらがな・カタカナ・漢字の境界を単語の区切りとするのに対し、jaword.elを使用するとより正確に日本語の単語単位での移動が可能です。
+
+#+begin_src emacs-lisp :tangle no
+  ("https://github.com/zk-phi/jaword/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package jaword
+    :straight t
+    :custom
+    (jaword-enable-subword t))
 #+end_src
 
 ***** hungry-delete                         :ARCHIVE:
@@ -6223,11 +6238,13 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
       (goto-char e)
       (set-marker e nil)))
 
-  (defun my/english-p (string)
-    "Return t if `STRING' is probably English."
-    (string-match-p
-     (format "\\`[%s]+\\'" "[:ascii:]’“”–")
-     string))
+  (defun my/ascii-string-p (string)
+    "Return non-nil if `STRING' seems to be made of ASCII."
+    (if (length> string 0)
+        (string-match-p
+         (format "\\`[%s]+\\'" "[:ascii:]’“”–")
+         string)
+      t))
 #+end_src
 
 **** original features
