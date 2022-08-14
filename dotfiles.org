@@ -3845,6 +3845,8 @@ speed commands and hydra-org.
 
 ***** text-mode
 
+- subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFeed'
+
 #+begin_src emacs-lisp
   (add-hook 'text-mode-hook #'my/turn-on-input-method)
 
@@ -3858,6 +3860,7 @@ speed commands and hydra-org.
            (eq (current-buffer) (window-buffer)))
       (if (my/ascii-string-p (buffer-string))
           (progn (activate-input-method nil)
+                 (jaword-mode -1)
                  (subword-mode 1))
         (progn (activate-input-method default-input-method)
                (jaword-mode 1)))
