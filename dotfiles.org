@@ -10270,8 +10270,8 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
   volume /mnt/in01
     subvolume incumbents/home
       snapshot_name home-local
-      snapshot_preserve 3d 2w 1m
-      snapshot_preserve_min 1d
+      snapshot_preserve 36h 3d 2w 1m
+      snapshot_preserve_min 6h
     subvolume incumbents/home
       snapshot_name home-backup
       target send-receive /mnt/ex02/backups
@@ -10283,7 +10283,7 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 
 - snapshot
   #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-    20 * * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf --loglevel error snapshot *-local >> $LOG_DIR/snaphome.log 2>&1"
+    */15 * * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf --loglevel error snapshot *-local >> $LOG_DIR/snaphome.log 2>&1"
   #+end_src
 
 - backup
