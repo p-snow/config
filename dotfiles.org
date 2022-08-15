@@ -9420,13 +9420,15 @@ Extendable version manager
        "pulseaudio"
        "gparted"
        "vlc"
-       "krita"
-       "gimp"
-       "kdenlive"
-       "obs"
        "gcompris-qt"
        "yt-dlp"
        <<desktop-pkgs>>))
+  #+end_src
+- creative
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/creative.scm")
+    (specifications->manifest
+     '("krita"
+       <<creative-pkgs>>))
   #+end_src
 - devel (software development)
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/devel.scm")
@@ -10475,6 +10477,11 @@ A structure described below is expected under all devices.
   #+end_src
 ** libvirt
 
+#+begin_src scheme :noweb-ref desktop-pkgs
+  "libvirt"
+  "virt-manager"
+#+end_src
+
 #+begin_src conf :tangle (expand-tangle-target ".config/libvirt/libvirt.conf")
   uri_default = "qemu:///system"
 #+end_src
@@ -10547,7 +10554,6 @@ A structure described below is expected under all devices.
 #+begin_src scheme :noweb-ref desktop-pkgs
   "calibre"
 #+end_src
-
 * Development Infrastructures
 :PROPERTIES:
 :CREATED:  [2022-08-04 Thu 14:55]
@@ -12343,9 +12349,9 @@ Stripping rules are:
   CONTENT = html.tostring(ROOT, encoding="utf-8", method='html', pretty_print=True)
   print(CONTENT.decode())
 #+end_src
-* workflows
+* Workflows
 
-** video encoding
+** encode video files
 
 #+begin_src scheme :noweb-ref desktop-pkgs
   "ffmpeg"
@@ -12455,7 +12461,7 @@ Stripping rules are:
     && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
 #+end_src
 
-** audio encoding
+** encode audio files
 
 - usage
   + encode bulk podcast files for 64kb/s (in Dired)
@@ -12479,7 +12485,7 @@ Stripping rules are:
   ffmpeg -i "${INPUT_VIDEO}" ${opus_opts} "${OUTPUT_VIDEO}"
 #+end_src
 
-** audio manipulation
+** rip my CDs
 
 #+begin_src scheme :noweb-ref base-pkgs
   "abcde"
@@ -12493,3 +12499,21 @@ Stripping rules are:
 
     OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
   #+END_SRC
+** create tutorial videos
+:PROPERTIES:
+:CREATED:  [2022-08-15 Mon 20:13]
+:END:
+
+: $ screenkey -p fixed -g 1090x248+1470+348
+
+#+begin_src scheme :noweb-ref creative-pkgs
+  "python-screenkey"
+  "slop"
+  "gimp"
+  "obs"
+  "kdenlive"
+#+end_src
+
+#+begin_src json :tangle no  :tangle (expand-tangle-target ".config/screenkey.json")  :tangle-mode (identity #o644)
+  {"no_systray": false, "timeout": 0.5, "recent_thr": 0.1, "compr_cnt": 3, "ignore": [], "position": "bottom", "persist": false, "font_desc": "Sans Bold", "font_size": "medium", "font_color": "white", "bg_color": "black", "opacity": 0.9, "key_mode": "composed", "bak_mode": "baked", "mods_mode": "emacs", "mods_only": false, "multiline": false, "vis_shift": true, "vis_space": true, "geometry": null, "screen": 0, "start_disabled": false, "mouse": false, "button_hide_duration": 2.0}
+#+end_src
