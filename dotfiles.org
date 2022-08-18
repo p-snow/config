@@ -7832,7 +7832,10 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
                                        (category latin)
                                        (category korean)))
                                 "、"
-                                (? (or (seq "【＠】" (opt "[US]") (+ (category japanese-katakana-two-byte)) (? "、"))
+                                (? (or (seq "【＠】" (opt "[US]")
+                                            (+ (or (category japanese-katakana-two-byte)
+                                                   "（" "）"))
+                                            (? "、"))
                                        (seq (+ any) "*")))))
                        str)
                   (match-string 0 str))))))
@@ -7908,7 +7911,11 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
       (should (string= (my/org-english-insert-japanese-pronunciation "congregate")
                        "【レベル】12、【発音！】【US】《動》kɑ́ngrəgèit 《形》kɑ́ŋgrəgit ｜ 【UK】《動》kɔ́ŋgrigèit 《形》kɔ́ŋgrigit"))
       (should (string= (my/org-english-insert-japanese-pronunciation "unleash")
-                       "【レベル】9、【発音】ʌ̀nlíːʃ、【＠】アンリーシュ")))
+                       "【レベル】9、【発音】ʌ̀nlíːʃ、【＠】アンリーシュ"))
+      (should (string= (my/org-english-insert-japanese-pronunciation "homage")
+                       "【レベル】11、【発音】【US】 hɑ́midʒ ｜ 【UK】 hɔ́midʒ、【＠】【US】ハミジ、【UK】ホミジ"))
+      (should (string= (my/org-english-insert-japanese-pronunciation "interstitial")
+                       "【発音】ìntərstíʃəl、【＠】インタ（ー）スティシャル")))
   #+end_src
 
 **** additional emacs lisp code
