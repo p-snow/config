@@ -9428,13 +9428,12 @@ Extendable version manager
        "gparted"
        "vlc"
        "gcompris-qt"
-       "yt-dlp"
        <<desktop-pkgs>>))
   #+end_src
 - creative
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/creative.scm")
     (specifications->manifest
-     '("krita"
+     '(;; "krita"
        <<creative-pkgs>>))
   #+end_src
 - devel (software development)
@@ -10561,6 +10560,21 @@ A structure described below is expected under all devices.
 #+begin_src scheme :noweb-ref desktop-pkgs
   "calibre"
 #+end_src
+
+** yt-dlp
+:PROPERTIES:
+:CREATED:  [2022-08-19 Fri 08:06]
+:END:
+
+#+begin_src scheme :noweb-ref desktop-pkgs
+  "yt-dlp"
+#+end_src
+
+#+begin_src conf :tangle (expand-tangle-target ".config/yt-dlp/config")
+  -o %(title)s.%(ext)s
+  --trim-filenames 90
+#+end_src
+
 * Development Infrastructures
 :PROPERTIES:
 :CREATED:  [2022-08-04 Thu 14:55]
