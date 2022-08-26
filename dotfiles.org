@@ -209,10 +209,28 @@ init.el devote itself to call for remaining config files.
   (global-set-key (kbd "M-SPC") #'cycle-spacing)
   (global-set-key (kbd "C-c k") #'kill-this-buffer)
   (global-set-key (kbd "<f5>") #'revert-buffer-quick)
+  (global-set-key (kbd "M-z") #'zap-up-to-char)
+
+  ;; M-u for `universal-argument'
+  (substitute-key-definition 'upcase-word
+                             'universal-argument
+                             global-map)
+
+  (substitute-key-definition 'upcase-region
+                             'upcase-dwim
+                             global-map)
+  (substitute-key-definition 'downcase-region
+                             'downcase-dwim
+                             global-map)
+  (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
+
+  ;; suppress prompting in (up/down)case-region
+  (put 'upcase-region 'disabled nil)
+  (put 'downcase-region 'disabled nil)
 #+end_src
 
-- swap C-h/M-h and <BS>(C-?)/M-<BS> advised at [[https://www.emacswiki.org/emacs/BackspaceKey][EmacsWiki: Backspace Key]]
-  #+begin_src emacs-lisp
+swap C-h/M-h and <BS>(C-?)/M-<BS> advised at [[https://www.emacswiki.org/emacs/BackspaceKey][EmacsWiki: Backspace Key]]
+#+begin_src emacs-lisp
     ;; map backspace [delete-backward-char] and C-? to C-h
     (define-key key-translation-map [?\C-?] [?\C-h])
     (define-key key-translation-map (kbd "C-?") [?\C-h])
@@ -225,38 +243,15 @@ init.el devote itself to call for remaining config files.
 
     ;; map M-h [mark-paragraph] to M-backspace
     (define-key key-translation-map [?\M-h] [?\M-\d])
-  #+end_src
-- buffers
-  Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
+#+end_src
 
-  #+begin_src emacs-lisp
-    (substitute-key-definition 'list-buffers
-                               'ibuffer
-                               global-map)
-  #+end_src
-- case commands
-  #+begin_src emacs-lisp
-    ;; M-u for `universal-argument'
-    (substitute-key-definition 'upcase-word
-                               'universal-argument
-                               global-map)
+Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
+#+begin_src emacs-lisp
+  (substitute-key-definition 'list-buffers
+                             'ibuffer
+                             global-map)
+#+end_src
 
-    (substitute-key-definition 'upcase-region
-                               'upcase-dwim
-                               global-map)
-    (substitute-key-definition 'downcase-region
-                               'downcase-dwim
-                               global-map)
-    (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
-
-    ;; suppress prompting in (up/down)case-region
-    (put 'upcase-region 'disabled nil)
-    (put 'downcase-region 'disabled nil)
-  #+end_src
-- special mode
-  #+begin_src emacs-lisp
-    (define-key special-mode-map (kbd "C-j") #'push-button)
-  #+end_src
 ***** lambda-key
 
 [[https://www.emacswiki.org/emacs/DocumentingKeyBindingToLambda][lambda-key]] is nice idea to remedy lambda bindings with define-key.
@@ -931,46 +926,6 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
   (customize-set-variable 'message-log-max 10000)
 #+end_src
 
-***** Help
-:PROPERTIES:
-:ID:       a55da7a2-6525-4788-ba56-085eb61928d4
-:END:
-
-#+begin_src emacs-lisp
-  (use-package help-mode
-    :delight " HE"
-    :custom
-    (help-enable-symbol-autoload t)
-    (describe-bindings-outline t)
-    :config
-    (bind-keys :map help-map
-               ("C-?" . help-for-help)
-               ("c" . describe-face)
-               ("K" . describe-keymap)
-               ("C-l" . find-library)))
-#+end_src
-
-****** Info
-
-#+begin_src emacs-lisp
-  (use-package Info
-    :defer t
-    :bind (:map Info-mode-map
-                ("C-j" . Info-follow-nearest-node)
-                ("a"   . info-apropos))
-    :custom
-    (Info-use-header-line nil)
-    (Info-additional-directory-list
-     `(,(expand-file-name "~/.local/share/info")
-       ,@(mapcar (lambda (profile)
-                   (let ((info-path (expand-file-name (format "~/.guix-extra-profiles/%1$s/%1$s/share/info" profile))))
-                     (and (file-directory-p info-path)
-                          info-path)))
-                 '("base" "desktop" "devel" "emacs"))))
-    :config
-    (require 'info-look)
-    (autoload 'info-lookup-add-help "info-look"))
-#+end_src
 ***** Data
 
 ****** Save Place
@@ -1727,6 +1682,30 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
       out_root_str = out_root_str.decode()
       print(out_root_str)
 #+end_src
+**** Info
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/info.el")
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'info
+    (require 'info-look)
+    (autoload 'info-lookup-add-help "info-look")
+    (customize-set-variable 'Info-use-header-line nil)
+    (customize-set-variable
+     'Info-additional-directory-list
+     `(,(expand-file-name "~/.local/share/info")
+       ,@(let ((guix-custom-dir "~/.guix-extra-profiles")
+               custom-info-path)
+           (remq nil (mapcar (lambda (prof)
+                               (setq custom-info-path (file-name-concat guix-custom-dir prof prof "share/info"))
+                               (when (file-directory-p custom-info-path)
+                                 custom-info-path))
+                             (directory-files guix-custom-dir))))))
+    (define-key Info-mode-map (kbd "C-j") #'Info-follow-nearest-node)
+    (define-key Info-mode-map (kbd "a") #'info-apropos))
+#+end_src
+
 **** Magit
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/magit.el")
@@ -4266,6 +4245,38 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
            ("\\.htaccess$" . apache-conf-generic-mode)))
 #+end_src
 
+**** special-mode derivatives
+:PROPERTIES:
+:CREATED:  [2022-08-23 Tue 18:51]
+:END:
+***** special mode
+
+#+begin_src emacs-lisp
+  (define-key special-mode-map (kbd "C-j") #'push-button)
+#+end_src
+
+***** help
+:PROPERTIES:
+:ID:       a55da7a2-6525-4788-ba56-085eb61928d4
+:END:
+
+#+begin_src emacs-lisp
+  (customize-set-variable 'help-enable-symbol-autoload t)
+  (customize-set-variable 'describe-bindings-outline t)
+
+  (with-eval-after-load 'help
+    (define-key help-map (kbd "C-?") #'help-for-help)
+    (define-key help-map (kbd "c") #'describe-face)
+    (define-key help-map (kbd "K") #'describe-keymap)
+    (define-key help-map (kbd "C-l") #'find-library))
+#+end_src
+
+***** woman
+
+#+begin_src emacs-lisp
+  (autoload #'woman "woman" nil t)
+#+end_src
+
 **** Programming
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/programming.el")
@@ -4322,14 +4333,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
       (call-interactively 'grep-find)))
 
   (global-set-key (kbd "M-s R") 'my/grep-ripgrep-all)
-#+end_src
-
-***** woman
-
-#+begin_src emacs-lisp
-  (use-package woman
-    :defer t
-    :delight " WM")
 #+end_src
 
 ***** executable
