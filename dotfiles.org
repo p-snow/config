@@ -1512,16 +1512,18 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 :END:
 
 #+begin_src emacs-lisp
-  (use-package shr
-    :custom
-    (shr-width 10000)
-    (shr-use-fonts nil)
-    (shr-image-animate t)
-    (shr-use-colors nil)
-    (shr-max-image-proportion 0.4))
+  (with-eval-after-load 'shr
+    (customize-set-variable 'shr-width 10000)
+    (customize-set-variable 'shr-use-fonts nil)
+    (customize-set-variable 'shr-image-animate t)
+    (customize-set-variable 'shr-use-colors nil)
+    (customize-set-variable 'shr-max-image-proportion 0.4)
+    ;; never use cookies
+    (customize-set-variable 'shr-cookie-policy nil))
 
   (use-package eww
     :delight " EW"
+    :defer t
     :hook
     (eww-after-render . my/eww-rename-buffer)
     :custom
