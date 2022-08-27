@@ -1,6 +1,3 @@
-:PROPERTIES:
-:ID:       6c22a775-08e6-4346-8061-64d688bbd760
-:END:
 #+SETUPFILE: ./export.setup
 
 #+TITLE: My Configuration Collection
@@ -9,9 +6,7 @@
 
 #+STARTUP: overview
 
-#+TAGS: [ fixit help maintaining programs mark kill ]
-
-* definitions
+* Definitions
 - my home directory
   #+name: home-dir
   #+begin_src shell :eval no-export
@@ -38,7 +33,7 @@
     (* h 60 60)
   #+end_src
 
-* configurations
+* Application Configurations
 :PROPERTIES:
 :header-args+: :tangle-mode (identity #o444)
 :END:
@@ -200,6 +195,8 @@ init.el devote itself to call for remaining config files.
     (funcall #'load-file file))
   (dolist (file (directory-files "~/.emacs.d/secrets" t "\.el$"))
     (funcall #'load-file file))
+  (dolist (file (directory-files "~/.emacs.d/user" t "\.el$"))
+    (funcall #'load-file file))
 #+end_src
 **** keybindings
 :PROPERTIES:
@@ -212,10 +209,28 @@ init.el devote itself to call for remaining config files.
   (global-set-key (kbd "M-SPC") #'cycle-spacing)
   (global-set-key (kbd "C-c k") #'kill-this-buffer)
   (global-set-key (kbd "<f5>") #'revert-buffer-quick)
+  (global-set-key (kbd "M-z") #'zap-up-to-char)
+
+  ;; M-u for `universal-argument'
+  (substitute-key-definition 'upcase-word
+                             'universal-argument
+                             global-map)
+
+  (substitute-key-definition 'upcase-region
+                             'upcase-dwim
+                             global-map)
+  (substitute-key-definition 'downcase-region
+                             'downcase-dwim
+                             global-map)
+  (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
+
+  ;; suppress prompting in (up/down)case-region
+  (put 'upcase-region 'disabled nil)
+  (put 'downcase-region 'disabled nil)
 #+end_src
 
-- swap C-h/M-h and <BS>(C-?)/M-<BS> advised at [[https://www.emacswiki.org/emacs/BackspaceKey][EmacsWiki: Backspace Key]]
-  #+begin_src emacs-lisp
+swap C-h/M-h and <BS>(C-?)/M-<BS> advised at [[https://www.emacswiki.org/emacs/BackspaceKey][EmacsWiki: Backspace Key]]
+#+begin_src emacs-lisp
     ;; map backspace [delete-backward-char] and C-? to C-h
     (define-key key-translation-map [?\C-?] [?\C-h])
     (define-key key-translation-map (kbd "C-?") [?\C-h])
@@ -228,38 +243,15 @@ init.el devote itself to call for remaining config files.
 
     ;; map M-h [mark-paragraph] to M-backspace
     (define-key key-translation-map [?\M-h] [?\M-\d])
-  #+end_src
-- buffers
-  Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
+#+end_src
 
-  #+begin_src emacs-lisp
-    (substitute-key-definition 'list-buffers
-                               'ibuffer
-                               global-map)
-  #+end_src
-- case commands
-  #+begin_src emacs-lisp
-    ;; M-u for `universal-argument'
-    (substitute-key-definition 'upcase-word
-                               'universal-argument
-                               global-map)
+Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
+#+begin_src emacs-lisp
+  (substitute-key-definition 'list-buffers
+                             'ibuffer
+                             global-map)
+#+end_src
 
-    (substitute-key-definition 'upcase-region
-                               'upcase-dwim
-                               global-map)
-    (substitute-key-definition 'downcase-region
-                               'downcase-dwim
-                               global-map)
-    (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
-
-    ;; suppress prompting in (up/down)case-region
-    (put 'upcase-region 'disabled nil)
-    (put 'downcase-region 'disabled nil)
-  #+end_src
-- special mode
-  #+begin_src emacs-lisp
-    (define-key special-mode-map (kbd "C-j") #'push-button)
-  #+end_src
 ***** lambda-key
 
 [[https://www.emacswiki.org/emacs/DocumentingKeyBindingToLambda][lambda-key]] is nice idea to remedy lambda bindings with define-key.
@@ -466,6 +458,11 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
   (customize-set-variable 'auto-save-default t)
   (customize-set-variable 'auto-save-list-file-prefix
                           (concat user-emacs-directory "auto-save-list/.saves-"))
+
+  (customize-set-variable 'auto-save-visited-mode t)
+  (customize-set-variable 'auto-save-visited-interval 15)
+  (put 'auto-save-visited-mode 'disabled nil)
+
   (customize-set-variable 'delete-by-moving-to-trash t)
   (customize-set-variable 'delete-auto-save-files t)
   (customize-set-variable 'kill-buffer-delete-auto-save-files t)
@@ -929,46 +926,6 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
   (customize-set-variable 'message-log-max 10000)
 #+end_src
 
-***** Help
-:PROPERTIES:
-:ID:       a55da7a2-6525-4788-ba56-085eb61928d4
-:END:
-
-#+begin_src emacs-lisp
-  (use-package help-mode
-    :delight " HE"
-    :custom
-    (help-enable-symbol-autoload t)
-    (describe-bindings-outline t)
-    :config
-    (bind-keys :map help-map
-               ("C-?" . help-for-help)
-               ("c" . describe-face)
-               ("K" . describe-keymap)
-               ("C-l" . find-library)))
-#+end_src
-
-****** Info
-
-#+begin_src emacs-lisp
-  (use-package Info
-    :defer t
-    :bind (:map Info-mode-map
-                ("C-j" . Info-follow-nearest-node)
-                ("a"   . info-apropos))
-    :custom
-    (Info-use-header-line nil)
-    (Info-additional-directory-list
-     `(,(expand-file-name "~/.local/share/info")
-       ,@(mapcar (lambda (profile)
-                   (let ((info-path (expand-file-name (format "~/.guix-extra-profiles/%1$s/%1$s/share/info" profile))))
-                     (and (file-directory-p info-path)
-                          info-path)))
-                 '("base" "desktop" "devel" "emacs"))))
-    :config
-    (require 'info-look)
-    (autoload 'info-lookup-add-help "info-look"))
-#+end_src
 ***** Data
 
 ****** Save Place
@@ -1203,7 +1160,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     :custom
     (skk-kakutei-key (kbd "C-m"))
     (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
-    (skk-init-file (expand-file-name "init" skk-dotemacs-dir))
+    (skk-init-file (expand-file-name "skk-init.el" skk-dotemacs-dir))
     (skk-byte-compile-init-file t)
     (skk-tut-file
      (expand-file-name "etc/SKK.tut" (straight--repos-dir "ddskk")))
@@ -1286,7 +1243,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 ***** skk init file
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/ddskk/init")
+#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/ddskk/skk-init.el")
   ;; -*- mode:emacs-lisp; -*-
   (setq skk-rom-kana-rule-list
         (append skk-rom-kana-rule-list
@@ -1555,16 +1512,18 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 :END:
 
 #+begin_src emacs-lisp
-  (use-package shr
-    :custom
-    (shr-width 10000)
-    (shr-use-fonts nil)
-    (shr-image-animate t)
-    (shr-use-colors nil)
-    (shr-max-image-proportion 0.4))
+  (with-eval-after-load 'shr
+    (customize-set-variable 'shr-width 10000)
+    (customize-set-variable 'shr-use-fonts nil)
+    (customize-set-variable 'shr-image-animate t)
+    (customize-set-variable 'shr-use-colors nil)
+    (customize-set-variable 'shr-max-image-proportion 0.4)
+    ;; never use cookies
+    (customize-set-variable 'shr-cookie-policy nil))
 
   (use-package eww
     :delight " EW"
+    :defer t
     :hook
     (eww-after-render . my/eww-rename-buffer)
     :custom
@@ -1725,6 +1684,30 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
       out_root_str = out_root_str.decode()
       print(out_root_str)
 #+end_src
+**** Info
+:PROPERTIES:
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/info.el")
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'info
+    (require 'info-look)
+    (autoload 'info-lookup-add-help "info-look")
+    (customize-set-variable 'Info-use-header-line nil)
+    (customize-set-variable
+     'Info-additional-directory-list
+     `(,(expand-file-name "~/.local/share/info")
+       ,@(let ((guix-custom-dir "~/.guix-extra-profiles")
+               custom-info-path)
+           (remq nil (mapcar (lambda (prof)
+                               (setq custom-info-path (file-name-concat guix-custom-dir prof prof "share/info"))
+                               (when (file-directory-p custom-info-path)
+                                 custom-info-path))
+                             (directory-files guix-custom-dir))))))
+    (define-key Info-mode-map (kbd "C-j") #'Info-follow-nearest-node)
+    (define-key Info-mode-map (kbd "a") #'info-apropos))
+#+end_src
+
 **** Magit
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/magit.el")
@@ -1825,14 +1808,12 @@ Command in practice presumably looks like:
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package mu4e-utils
-    :after org-contacts
+  (use-package mu4e
     :delight
     (mu4e-main-mode    " MU")
     (mu4e-headers-mode " MU")
     (mu4e-view-mode    " MU")
     (mu4e-compose-mode " MU")
-    :hook (after-init . mu4e~start)
     :custom
     (mail-user-agent 'mu4e-user-agent)
     (mu4e-hide-index-messages t)
@@ -1877,7 +1858,8 @@ Command in practice presumably looks like:
     (add-to-list 'mu4e-view-actions
                  '("XWidget View" . mu4e-action-view-with-xwidget) t)
     (when (fboundp 'imagemagick-register-types)
-      (imagemagick-register-types)))
+      (imagemagick-register-types))
+    (add-hook 'after-init-hook (lambda () (mu4e t))))
 #+end_src
 
 ***** mu4e-alert
@@ -1888,10 +1870,8 @@ Command in practice presumably looks like:
 
 #+begin_src emacs-lisp
   (use-package mu4e-alert
-    :hook (after-init . (lambda ()
-                          (mu4e-alert-enable-notifications)
-                          (mu4e-alert-enable-mode-line-display)))
-    :after mu4e
+    :commands mu4e-alert-view-unread-mails
+    :defer 5
     :custom
     (mu4e-alert-modeline-formatter
      (lambda (count)
@@ -1899,7 +1879,9 @@ Command in practice presumably looks like:
            (format " M:%d" count)
          "")))
     :config
-    (mu4e-alert-set-default-style 'fringe))
+    (mu4e-alert-set-default-style 'fringe)
+    (mu4e-alert-enable-notifications)
+    (mu4e-alert-enable-mode-line-display))
 #+end_src
 
 ***** additional tweaks
@@ -1920,7 +1902,7 @@ Command in practice presumably looks like:
 
   #+begin_src emacs-lisp
     (use-package mu4e-actions
-      :after org-contacts
+      :after (mu4e org-contacts)
       :config
       (setq mu4e-org-contacts-file (car org-contacts-files))
       (add-to-list 'mu4e-headers-actions
@@ -2014,8 +1996,7 @@ Command in practice presumably looks like:
                ("d" . elfeed-search-untag-all-unread)
                ("Dv" . elfeed-search-download-video)
                ("Da" . elfeed-search-download-audio)
-               ("D=" . elfeed-search-show-media-duration)
-               ("X" . elfeed-search-org-capture-derived))
+               ("D=" . elfeed-search-show-media-duration))
     (add-to-list 'elfeed-search-face-alist '(unchecked elfeed-search-unchecked-title-face))
     (add-to-list 'elfeed-search-face-alist '(checked elfeed-search-checked-title-face)))
 
@@ -2102,14 +2083,13 @@ Command in practice presumably looks like:
         (cl-loop for entry in entries
                  do (progn
                       (elfeed-show-entry entry)
-                      (let ((org-capture-derived-todo org-todo-keyword-3)
-                            (org-capture-derived-tags (format ":web:%s"
+                      (let ((org-capture-derived-tags (format ":web:%s"
                                                               (cond
                                                                ((or (member 'video (elfeed-entry-tags entry))
                                                                     (member 'audio (elfeed-entry-tags entry)))
                                                                 "ac_watch:")
                                                                (t "ac_read:"))))
-                            (org-capture-derived-target "68d74115-1f70-448d-a76e-738e32b272d8")
+                            (org-capture-derived-target "f215ba42-6610-4019-a0a5-f790ebb26e29")
                             (org-capture-derived-deadline-in-day 7))
                         (call-interactively #'org-capture-derived))
                       (elfeed-kill-buffer))))
@@ -2131,7 +2111,7 @@ Command in practice presumably looks like:
   (use-package elfeed-org
     :after (elfeed org)
     :custom
-    (rmh-elfeed-org-files '("~/org/index/feed.org"))
+    (rmh-elfeed-org-files '("~/org/lists/feeds.org"))
     (rmh-elfeed-org-ignore-tag "ignore")
     (rmh-elfeed-org-auto-ignore-invalid-feeds t)
     :config
@@ -2307,18 +2287,27 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :defer t
     :mode (("\\.org$" . org-mode))
     :interpreter (("org" . org-mode))
-    :hook
-    (org-log-buffer-setup
-     . (lambda ()
-         (setq skk-dcomp-activate 'eolp)
-         (setq skk-dcomp-multiple-activate nil))))
+    :config
+    (add-hook 'org-log-buffer-setup-hook
+              (lambda ()
+                (setq skk-dcomp-activate 'eolp)
+                (setq skk-dcomp-multiple-activate nil))))
+
+  (defvar org-warning-keyword-0 "UG" "TODO keyword acronym standing for 'UrGent'")
+  (defvar org-todo-keyword-0 "TD" "TODO keyword acronym standing for 'To Do'")
+  (defvar org-todo-keyword-1 "GO" "TODO keyword acronym standing for 'Get On'")
+  (defvar org-todo-keyword-2 "IP" "TODO keyword acronym standing for 'In Progressn'")
+  (defvar org-todo-keyword-4 "SD" "TODO keyword acronym standing for 'SomeDay'")
+  (defvar org-done-keyword-0 "DN" "TODO keyword acronym standing for 'DoNe'")
+  (defvar org-done-keyword-1 "CX" "TODO keyword acronym standing for 'Cancel'")
+  (defvar org-done-keyword-2 "PD" "TODO keyword acronym standing for 'PenDing'")
 #+end_src
 
 ****** Org Agenda
 
 #+begin_src emacs-lisp
   (use-package org-agenda
-    :after (org org-ql my/org-archive-datetree)
+    :after (org org-ql)
     :bind (:map org-agenda-mode-map
                 ("C-j" . org-agenda-switch-to)
                 ("M" . org-agenda-month-view))
@@ -2350,48 +2339,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                    (let ((tags (org-get-tags)))
                      (member "web" tags)))
                  (progn (outline-next-heading) (point)))))))
-       ("r" . "Search for all record files")
-       ("rs" "Entries containing search words entry or headline."
-        search ""
-        ((org-agenda-files my/org-archive-files)
-         (org-agenda-sorting-strategy '(time-down))))
-       ("rm" "Match a TAGS/PROP/TODO query in record file"
-        tags ""
-        ((org-agenda-files my/org-archive-files)
-         (org-agenda-sorting-strategy '(time-down))))
-       ("o" . "someday list")
-       ("om" "someday to craft"
-        ((org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (tags-expanded "AC_CRAFT"))
-                              ((org-ql-block-header "Someday to craft"))))
-        ((org-agenda-files my/org-archive-files)
-         (org-agenda-sorting-strategy '(priority-down))))
-       ("op" "someday to purchase"
-        ((org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (tags "ac_purchase"))
-                              ((org-ql-block-header "Someday to purchase"))))
-        ((org-agenda-files my/org-archive-files)
-         (org-agenda-sorting-strategy '(priority-down))))
-       ("oc" "someday to cook"
-        ((org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (tags "ac_cook"))
-                              ((org-ql-block-header "Someday to cook"))))
-        ((org-agenda-files my/org-archive-files)
-         (org-agenda-sorting-strategy '(priority-down))))
-       ("O" "all someday entries"
-        ((org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (tags-expanded "AC_CRAFT"))
-                              ((org-ql-block-header "Someday to craft")))
-         (org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (tags "ac_purchase"))
-                              ((org-ql-block-header "Someday to purchase")))
-         (org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (tags "ac_cook"))
-                              ((org-ql-block-header "Someday to cook")))
-         (org-ql-search-block `(and (todo ,org-todo-keyword-4)
-                                    (not (tags-expanded "ac_purchase" "ac_cook" "AC_CRAFT")))
-                              ((org-ql-block-header "Someday things"))))
-        ((org-agenda-files my/org-archive-files)))
        ("l" "Log entries in a week"
         agenda ""
         ((org-agenda-span (if (equal current-prefix-arg '(4))
@@ -2454,8 +2401,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
         ((todo "Today's agenda"
                ((org-agenda-sorting-strategy '(priority-up))))
          (org-ql-search-block `(heading ,(format-time-string "%Y-%m-%d %A"))
-                              ((org-agenda-files `(,(my/org-archive-file)))
-                               (org-ql-block-header "Today's tree node")))
+                              ((org-agenda-files `(,(file-name-concat org-directory "archive" (format-time-string "archive_%Y.org"))))
+                               (org-ql-block-header "Today in datetree archive")))
          (org-ql-search-block `(or (todo ,org-warning-keyword-0)
                                    (todo ,org-todo-keyword-2))
                               ((org-ql-block-header "Today's task")))
@@ -2482,8 +2429,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                               ((org-ql-block-header "Completed tasks on today")))))
        ("g" "This Week's agenda"
         ((org-ql-search-block `(heading ,(format-time-string "%G-W%V"))
-                              ((org-agenda-files `(,(my/org-archive-file)))
-                               (org-ql-block-header "This week's tree")))
+                              ((org-agenda-files `(,(file-name-concat org-directory "archive" (format-time-string "archive_%Y.org"))))
+                               (org-ql-block-header "This week in datetree archive")))
          (org-ql-search-block `(or (todo ,org-todo-keyword-1))
                               ((org-ql-block-header "This week's tasks")))
          (org-ql-search-block `(or (todo ,org-warning-keyword-0)
@@ -2507,12 +2454,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                               ((org-ql-block-header "This week's common event"))))
         ((org-agenda-sorting-strategy
           '(todo-state-up priority-down deadline-up))))
-       ("c" "actionable thing list"
-        ((org-ql-search-block `(and (todo ,org-todo-keyword-3)
-                                    (not (deadline :to -1)))
-                              ((org-ql-block-header "Doable things"))))
-        ((org-agenda-sorting-strategy
-          '(todo-state-up priority-down deadline-up))))
        ("t" "All tasks"
         ((org-ql-search-block `(todo ,org-warning-keyword-0)
                               ((org-ql-block-header "Urgent task")))
@@ -2520,8 +2461,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                               ((org-ql-block-header "Today's task")))
          (org-ql-search-block `(todo ,org-todo-keyword-1)
                               ((org-ql-block-header "This week's task")))
-         (org-ql-search-block `(todo ,org-todo-keyword-4)
-                              ((org-ql-block-header "Someday's entries on agenda files")))
          (org-ql-search-block `(and (todo ,org-todo-keyword-0)
                                     (not (habit)))
                               ((org-ql-block-header "Remaining task")))))
@@ -2533,8 +2472,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                     ;; exclude projects
                                     (not (children (todo ,org-todo-keyword-0
                                                          ,org-todo-keyword-1
-                                                         ,org-todo-keyword-2
-                                                         ,org-todo-keyword-3))))
+                                                         ,org-todo-keyword-2))))
                               ((org-ql-block-header "Stuck projects")))))
        ("p" "Projects" tags "+project")
        ("h" "Habits in consistency graph"
@@ -2558,7 +2496,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                               ((org-ql-block-header "All Habits"))))
         ((org-agenda-sorting-strategy '(scheduled-up))))))
     :config
-    (dolist (dir '("archive" "index" "wiki"))
+    (dolist (dir '("archive" "lists" "wiki" "notes"))
       (mapc (lambda (org-file)
               (add-to-list 'org-agenda-text-search-extra-files
                            org-file))
@@ -2618,7 +2556,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-capture
-    :after (org my/org-archive-datetree)
+    :after org
     :hook
     (org-capture-mode . (lambda ()
                           (skk-mode 1)
@@ -2628,107 +2566,43 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-reverse-note-order nil)
     (org-capture-bookmark nil)
     (org-capture-templates
-     `(("t" "Task"
-        entry (id "adcd63ea-f81a-4909-b659-6e5794052fcc")
-        ,(format "* %s %%?\n%%U\n"
+     `(("e" "Entry"
+        entry (id "58e12e3e-da50-4089-9d22-565986637121")
+        "* %?")
+       ("t" "Task"
+        entry (id "58e12e3e-da50-4089-9d22-565986637121")
+        ,(format "* %s %%?\n"
                  org-todo-keyword-0))
        ("p" "Project"
-        entry (id "adcd63ea-f81a-4909-b659-6e5794052fcc")
-        "* %? [/] :project:\n %U\n- [ ] insert ID property if necessary"
-        :prepend t :jump-to-captured t)
-       ("s" "Someday memo")
-       ("ss" "any"
-        entry (file+datetree ,my/org-archive-file)
-        ,(format "* %s %%?\n%%U\n%%a"
-                 org-todo-keyword-4)
-        :tree-type week)
-       ("sr" "purchase book"
-        entry (file+datetree ,my/org-archive-file)
-        ,(format "* %s %%? :ac_purchase:book:\n%%U\n%%a"
-                 org-todo-keyword-4)
-        :tree-type week)
-       ("sc" "cook"
-        entry (file+datetree ,my/org-archive-file)
-        ,(format "* %s %%? :ac_cook:\n%%U\n%%a"
-                 org-todo-keyword-4)
-        :tree-type week)
-       ("sp" "purchase"
-        entry (file+datetree ,my/org-archive-file)
-        ,(format "* %s %%? :ac_purchase:\n%%U\n%%a"
-                 org-todo-keyword-4)
-        :tree-type week)
-       ("D" "Drill")
-       ("Dd" "Drill entry in currently clocking or today's entry."
-        entry (function org-goto-clocking-or-today)
-        "* %i :drill:\n[%?]")
-       ("De" "English drill entry in currently clocking or today's entry."
-        entry (function org-goto-clocking-or-today)
-        "* %i :drill:fd_en:\n[%^C%?]\n- %a")
+        entry (id "58e12e3e-da50-4089-9d22-565986637121")
+        "* %? [/] :project:\n- [ ] insert ID property if necessary"
+        :jump-to-captured t)
        ("M" "Append memo to clocking task"
         item (clock)
         "- %i%?"))))
-
-  (defun org-goto-clocking-or-today ()
-    "Go to currently clocking entry.
-
-  If no entry is clocked or CATEGORY on clocking entry is \"Cyclic\",
-  go to today's entry in record file."
-    (if (and (org-clocking-p)
-             (save-excursion
-               (with-current-buffer (org-clocking-buffer)
-                 (org-clock-jump-to-current-clock)
-                 (org-back-to-heading)
-                 (not (string=
-                       (org-entry-get (point) "CATEGORY" t)
-                       "Cyclic")))))
-        (org-clock-goto)
-      (let* ((now (decode-time (current-time)))
-             (day (nth 3 now))
-             (month (nth 4 now))
-             (year (nth 5 now))
-             (org-refile-targets
-              `((,my/org-archive-file :regexp . ,(format "%04d-%02d-%02d" year month day)))))
-        (find-file my/org-archive-file)
-        (org-datetree-find-iso-week-create `(,month ,day ,year) nil))))
 #+end_src
 
 ****** Org Startup
 
 #+begin_src emacs-lisp
-  (use-package org
-    :custom
-    ;; allow _{}/^{} format for sub/super script
-    (org-use-sub-superscripts '{})
-    (org-startup-with-inline-images t))
+  (customize-set-variable 'org-startup-folded t)
+  (customize-set-variable 'org-startup-truncated t)
+  (customize-set-variable 'org-startup-with-inline-images t)
+  ;; allow _{}/^{} format for sub/super script
+  (customize-set-variable 'org-use-sub-superscripts '{})
 #+end_src
 
 ****** Org TODO
 
 #+begin_src emacs-lisp
-  (defvar org-warning-keyword-0 "UG" "TODO keyword acronym standing for 'UrGent'")
-  (defvar org-todo-keyword-0 "TD" "TODO keyword acronym standing for 'To Do'")
-  (defvar org-todo-keyword-1 "GO" "TODO keyword acronym standing for 'Get On'")
-  (defvar org-todo-keyword-2 "IP" "TODO keyword acronym standing for 'In Progressn'")
-  (defvar org-todo-keyword-3 "AC" "TODO keyword acronym standing for 'doABle'")
-  (defvar org-todo-keyword-4 "SD" "TODO keyword acronym standing for 'SomeDay'")
-  (defvar org-done-keyword-0 "DN" "TODO keyword acronym standing for 'DoNe'")
-  (defvar org-done-keyword-1 "CX" "TODO keyword acronym standing for 'Cancel'")
-  (defvar org-done-keyword-2 "PD" "TODO keyword acronym standing for 'PenDing'")
-
-  (use-package org
-    :hook (org-after-todo-state-change . save-buffer)
-    :custom
-    (org-enforce-todo-dependencies t)
-    (org-todo-keywords
+  (with-eval-after-load 'org
+    (customize-set-variable 'org-enforce-todo-dependencies t)
+    (customize-set-variable
+     'org-todo-keywords
      `((sequence ,(format "%s(t/!)" org-todo-keyword-0)
                  ,(format "%s(u/!)" org-warning-keyword-0)
                  ,(format "%s(g/!)" org-todo-keyword-1)
                  ,(format "%s(i/!)" org-todo-keyword-2)
-                 "|"
-                 ,(format "%s(d/@)" org-done-keyword-0)
-                 ,(format "%s(x/@)" org-done-keyword-1)
-                 ,(format "%s(p/@)" org-done-keyword-2))
-       (sequence ,(format "%s(a/!)" org-todo-keyword-3)
                  "|"
                  ,(format "%s(d/@)" org-done-keyword-0)
                  ,(format "%s(x/@)" org-done-keyword-1)
@@ -2738,65 +2612,48 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                  "|"
                  ,(format "%s(x/@)" org-done-keyword-1)
                  ,(format "%s(p/@)" org-done-keyword-2))))
-    (org-todo-keyword-faces
+    (customize-set-variable
+     'org-todo-keyword-faces
      `((,org-warning-keyword-0 . "red1")
        (,org-todo-keyword-0    . "green1")
        (,org-todo-keyword-1    . "DeepPink1")
        (,org-todo-keyword-2    . "DodgerBlue1")
-       (,org-todo-keyword-3    . "chocolate")
        (,org-todo-keyword-4    . "SpringGreen")
        (,org-done-keyword-0    . "gray30")
        (,org-done-keyword-1    . "dark gray")
        (,org-done-keyword-2    . "sea green")))
-    :config
-    (add-hook  'org-after-todo-state-change-hook
-               (lambda ()
-                 (save-excursion
-                   (let* ((element (org-element-at-point))
-                          (todo-state (org-get-todo-state))
-                          (tags (org-get-tags))
-                          (priority (org-element-property :priority element))
-                          (category (org-entry-get (point) "CATEGORY"))
-                          (style (org-entry-get (point) "STYLE")))
-                     ;; remove priority level when the to-do state is changed to DN|CX|PD
-                     (when (and
-                            (s-matches? (format "%1$s\\|%2$s\\|%3$s"
-                                                org-done-keyword-0
-                                                org-done-keyword-1
-                                                org-done-keyword-2)
-                                        todo-state)
-                            (bound-and-true-p priority))
-                       (org-priority ? ))
-                     ;; remove DN state if CATEGORY of the entry is "Cyclic"
-                     (when (and (string= category "Cyclic")
-                                (string= todo-state org-done-keyword-0)
-                                (not (member "web" tags))
-                                (not (string= style "habit")))
-                       (org-todo ""))))))
-    (add-hook 'org-after-todo-statistics-hook
-              (lambda (n-done n-not-done)
-                "Switch project entry to DONE when all subentries are done, to empty otherwise."
-                (when (member "project" (org-get-tags))
-                  (org-todo (if (= n-not-done 0)
-                                (prog1 org-done-keyword-0
-                                  (org-add-planning-info 'closed "now"))
-                              ""))))))
+    (customize-set-variable 'org-log-done 'time)
+    (customize-set-variable 'org-log-into-drawer t)
+    (customize-set-variable 'org-log-states-order-reversed t)
+    (add-hook 'org-after-todo-state-change-hook
+              #'my/org-remove-priority-if-done)
+    )
 
-  (customize-set-variable 'org-log-done 'time)
-  (customize-set-variable 'org-log-into-drawer t)
-  (customize-set-variable 'org-log-states-order-reversed t)
+  ;;;###autoload
+  (defun my/org-remove-priority-if-done ()
+    "Remove priority if todo state of the entry at point has changed to `org-done-keywords'."
+    (when (and
+           ;; the entry has one of org-done-keywords
+           (org-string-match-p
+            (eval `(rx (or ,org-done-keyword-0
+                           ,org-done-keyword-1
+                           ,org-done-keyword-2)))
+            org-state)
+           ;; the entry has been set any priority
+           (/= 21000 (save-excursion
+                       (save-match-data
+                         (beginning-of-line)
+                         (and (looking-at org-heading-regexp)
+                              (org-get-priority (match-string 0)))))))
+      (org-priority 'remove)))
 #+end_src
 
 ****** Org Structure
 
 #+begin_src emacs-lisp
-  (use-package org-indent
-    :after org
-    :hook
-    (org-mode . org-indent-mode)
-    :custom
-    (org-startup-indented t))
+  (add-hook 'org-mode-hook 'org-indent-mode)
 
+  (customize-set-variable 'org-startup-indented t)
   (customize-set-variable 'org-bookmark-names-plist nil)
   (customize-set-variable 'org-M-RET-may-split-line '((default . nil)))
 #+end_src
@@ -2844,11 +2701,72 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ******* Org Archive
 
 #+begin_src emacs-lisp
-  (use-package org-archive
-    :after org
-    :custom
-    (org-archive-default-command 'org-archive-set-tag)
-    (org-cycle-open-archived-trees t))
+  (with-eval-after-load 'org
+    (require 'org-archive)
+    (customize-set-variable 'org-archive-default-command 'org-archive-set-tag)
+    (customize-set-variable 'org-cycle-open-archived-trees t)
+    (customize-set-variable 'org-archive-location
+                            (format "%s::datetree/" (file-name-concat org-directory "archive" (format-time-string "archive_%Y.org")))))
+
+  (advice-add #'org-archive-subtree :around
+              #'my/org-archive-subtree--iso-datetree)
+
+  ;;;###autoload
+  (defun my/org-archive-subtree--iso-datetree (oldfun &rest r)
+    "Move the current subtree to the archive.
+
+  If archiving location is datetree, it supposed to be iso week tree."
+    (interactive)
+    (org-relate-interrelate)
+    (when (member (org-get-todo-state)
+                  `(,org-todo-keyword-0 ,org-todo-keyword-1 ,org-todo-keyword-2 ,org-todo-keyword-4))
+      (org-todo org-done-keyword-2))
+    (advice-add #'org-datetree-find-date-create :override
+                #'org-datetree-find-iso-week-create)
+    (apply oldfun r)
+    (advice-remove #'org-datetree-find-date-create
+                   #'org-datetree-find-iso-week-create))
+
+  (with-eval-after-load 'org-ql-view
+    (push '("Archive entries" .
+            (lambda ()
+              "Search for matched entries in archive files.
+  User is supposed to select 'org-agenda-files as buffers-files in `org-ql-search' command."
+              (interactive)
+              (let ((org-agenda-files (file-expand-wildcards (file-name-concat org-directory "archive" "archive_*.org"))))
+                (call-interactively 'org-ql-search))))
+          org-ql-views))
+
+  (with-eval-after-load 'org-agenda
+    (define-key org-agenda-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
+
+  (with-eval-after-load 'calendar
+    (define-key calendar-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
+
+  ;;;###autoload
+  (defun my/org-archive-find--iso-datetree (date)
+    "Find and visit the location of DATE in archivee file.
+
+  DATE must be a string representing the date to find and parsable with `format-time-string'.
+
+  If called interactively, it prompt the user to select the date to find."
+    (interactive
+     (cond
+      ((eq major-mode 'calendar-mode)
+       (list (calendar-date-string (calendar-cursor-to-date))))
+      ((eq major-mode 'org-agenda-mode)
+       (let* ((day (or (get-text-property (min (1- (point-max)) (point)) 'day)
+                       (user-error "Don't know which date to open in calendar")))
+              (date (calendar-gregorian-from-absolute day)))
+         (list (calendar-date-string date))))
+      (t (let ((date-select (org-read-date)))
+           (list date-select)))))
+    (let* ((d (parse-time-string date))
+           (day (decoded-time-day d))
+           (month (decoded-time-month d))
+           (year (decoded-time-year d)))
+      (find-file (file-name-concat org-directory "archive" (format "archive_%d.org" year)))
+      (org-datetree-find-iso-week-create `(,month ,day ,year))))
 #+end_src
 
 ******* Org Inline Tasks
@@ -3131,10 +3049,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package org-contacts
-    :after org
-    :custom
-    (org-contacts-files `(,(expand-file-name "index/contacts.org.gpg" org-directory))))
+  (with-eval-after-load 'org
+    (require 'org-contacts)
+    (customize-set-variable 'org-contacts-files
+                            `(,(file-name-concat org-directory "lists" "contacts.org.gpg"))))
 #+end_src
 ****** org-drill
 
@@ -3174,12 +3092,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package org-ql
-    :after org
-    :custom
-    (org-ql-search-directories-files-recursive t)
-    :config
+  (with-eval-after-load 'org
+    (require 'org-ql)
     (require 'org-ql-search)
+    (customize-set-variable 'org-ql-search-directories-files-recursive t)
     (org-ql-defpred (tags-expanded expanded-tags tags-x xtags) (&rest tags)
       "Return non-nil if current heading has one or more of TAGS.
   If TAGS contains a group tag, all tags in the group is used to match.
@@ -3196,7 +3112,12 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                      (org-entry-get (point) "CATEGORY" t))))
               (cl-typecase categories
                 (null t)
-                (otherwise (member category categories))))))
+                (otherwise (member category categories)))))
+    (with-eval-after-load 'org-expiry
+      (require 'org-element)
+      (org-ql-defpred expired ()
+        "Return non-nil if the entry is expired."
+        :body (org-expiry-expired-p))))
 #+end_src
 
 ****** org-ml
@@ -3324,7 +3245,7 @@ org-roam v2
 
   (customize-set-variable 'org-expiry-inactive-timestamps t)
   (customize-set-variable 'org-expiry-handler-function
-                          #'my/org-archive-subtree)
+                          'org-expiry-archive-subtree)
 
   (add-hook 'org-capture-prepare-finalize-hook
             #'org-expiry-insert-created)
@@ -3377,7 +3298,7 @@ org-roam v2
     (mapc (lambda (dir)
             (dolist (f (directory-files (expand-file-name dir org-directory) "\.org$"))
               (org-babel-lob-ingest f)))
-          '("agenda" "index" "wiki")))
+          '("agenda" "lists" "wiki" "notes")))
 
   (defvar org-readable-directory
     (expand-file-name "org-readable"
@@ -3398,8 +3319,7 @@ org-roam v2
       (org-html-export-as-html nil t nil)
       (with-current-buffer export-buf-name
         (write-file org-readable-file)
-        (eww-open-file org-readable-file))
-      (kill-buffer export-buf-name)))
+        (eww-open-file org-readable-file))))
 
   (defun org-property-copy-as-kill ()
     "Prompt user to select property to append to the kill ring.
@@ -3641,7 +3561,7 @@ speed commands and hydra-org.
        ("W" . (lambda (m) (interactive "sMinutes before warning: ") (org-entry-put (point) "APPT_WARNTIME" m)))
        ("Org Capture")
        ("Misc")
-       ("$" . my/org-archive-subtree)
+       ("$" . org-archive-subtree)
        ("!" . org-readable)
        ("o" . org-open-at-point)
        ("M" . org-send-email)
@@ -3673,8 +3593,7 @@ speed commands and hydra-org.
       ("X" org-clock-cancel)
       ("qq" org-ql-search)
       ("qv" org-ql-view)
-      ("qr" my/org-archive-search)
-      ("r" my/org-archive-find-date)
+      ("r" my/org-archive-find--iso-datetree)
       ("le" my/org-english-lookup)
       ("bi" my/org-babel-lob-ingest-batch)
       ("@" org-mark-subtree)
@@ -3825,6 +3744,9 @@ speed commands and hydra-org.
     :hook
     (embark-collect-mode . consult-preview-at-point-mode)
     :config
+    (require 'embark-consult)
+    (require 'embark-org)
+    (require 'avy-embark-collect)
     (push 'embark--allow-edit
           (alist-get 'shell-command-on-region embark-target-injection-hooks)))
 #+end_src
@@ -3892,6 +3814,7 @@ speed commands and hydra-org.
           (consult-location (styles orderless-migemo-style))
           (multi-category (styles orderless-migemo-style))
           (consult-org-heading (styles orderless-migemo-style))
+          (consult-location (styles orderless-migemo-style))
           (org-roam-node (styles orderless-migemo-style))
           (unicode-name (styles orderless-migemo-style))
           (variable (styles orderless-default-style))))
@@ -3904,27 +3827,27 @@ speed commands and hydra-org.
 
 ***** text-mode
 
+- subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFeed'
+
 #+begin_src emacs-lisp
-  (use-package text-mode
-    :mode ("\\.txt$" . text-mode)
-    :delight " TX"
-    :hook
-    (text-mode . (lambda ()
-                   (when (and
-                          ;; this function should be applied to text-mode rather than its inheritor
-                          (eq major-mode 'text-mode)
-                          ;; target buffer must be front not buried
-                          (eq (current-buffer) (window-buffer)))
-                     (let ((buf-str (buffer-string)))
-                       (if (and (< 0 (length buf-str))
-                                (string-match-p
-                                 (format "\\`[%s]+\\'" "[:ascii:]’“”–") buf-str))
-                           (progn ;; text seems to be written in English
-                             (activate-input-method nil))
-                         (progn ;; text seems to be written in Japanese or blank
-                           (activate-input-method default-input-method)))
-                       (visual-line-mode 1)
-                       (toggle-truncate-lines -1))))))
+  (add-hook 'text-mode-hook #'my/turn-on-input-method)
+
+  ;;;###autoload
+  (defun my/turn-on-input-method ()
+    "Turn on `default-input-method' if buffer text does not seem to consist of ASCII."
+    (when (and
+           ;; this function should be applied to text-mode rather than its inheritor
+           (eq major-mode 'text-mode)
+           ;; target buffer must be front not buried
+           (eq (current-buffer) (window-buffer)))
+      (if (my/ascii-string-p (buffer-string))
+          (progn (activate-input-method nil)
+                 (jaword-mode -1)
+                 (subword-mode 1))
+        (progn (activate-input-method default-input-method)
+               (jaword-mode 1)))
+      (visual-line-mode 1)
+      (toggle-truncate-lines -1)))
 #+end_src
 
 ***** nxml-mode
@@ -3982,9 +3905,9 @@ speed commands and hydra-org.
 #+begin_src emacs-lisp
   (use-package tex-mode
     :mode ("\\.tex$" . latex-mode)
-    :hook ((latex-mode . (lambda ()
-                           (setq-local counsel-dash-docsets '("LaTeX"))))
-           (tex-mode . (lambda () (setq ispell-parser 'tex)))))
+    :hook ((tex-mode . (lambda () (setq ispell-parser 'tex))))
+    :config
+    (my/add-dash-docsets-hook 'latex-mode-hook '("LaTeX")))
 #+end_src
 
 **** prog-mode derivatives
@@ -3995,8 +3918,8 @@ speed commands and hydra-org.
 ***** prog-mode
 
 #+begin_src emacs-lisp
-  (use-package prog-mode
-    :hook (prog-mode . my/prog-mode-hook-function))
+  (add-hook 'prog-mode-hook
+            #'my/prog-mode-hook-function)
 
   (defun my/prog-mode-hook-function ()
     (hl-line-mode -1)
@@ -4012,12 +3935,13 @@ speed commands and hydra-org.
     :delight " SH"
     :commands sh-mode
     :mode ("\\.sh$" . sh-mode)
-    ;; :dash "Bash"
     :custom
     (sh-basic-offset 2)
     (sh-indent-after-if '+)
     (sh-indent-for-case-label 0)
-    (sh-indent-for-case-alt '+))
+    (sh-indent-for-case-alt '+)
+    :config
+    (my/add-dash-docsets-hook 'sh-mode-hook '("Bash")))
 #+end_src
 
 ***** emacs-lisp-mode
@@ -4027,18 +3951,24 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 #+begin_src emacs-lisp
   (use-package elisp-mode
     :commands emacs-lisp-mode
-    :delight
-    (emacs-lisp-mode " EL")
-    (lisp-interaction-mode " LispInt")
     :hook (emacs-lisp-mode . (lambda ()
                                (setq-local tab-width 8)
-                               (setq-local counsel-dash-docsets '("Emacs Lisp" "Common Lisp"))
                                (eldoc-mode 1)))
     :config
     (require 'eldoc)
     (substitute-key-definition 'eval-last-sexp
                                'pp-eval-last-sexp
-                               global-map))
+                               global-map)
+    (my/add-dash-docsets-hook 'emacs-lisp-mode-hook
+                              '("Emacs Lisp")))
+
+  (defun my/elisp-mode-eval-buffer ()
+    (interactive)
+    (message "Evaluated buffer")
+    (eval-buffer))
+
+  (define-key emacs-lisp-mode-map (kbd "C-c C-c") #'my/elisp-mode-eval-buffer)
+  (define-key lisp-interaction-mode-map (kbd "C-c C-c") #'my/elisp-mode-eval-buffer)
 #+end_src
 
 ***** scheme-mode
@@ -4051,14 +3981,14 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 #+begin_src emacs-lisp
   (use-package cc-mode
-    :hook (c-mode-common . (lambda ()
-                             (setq-local counsel-dash-docsets '("C"))))
     :custom
     (c-tab-always-indent t)
     (c-auto-align-backslashes nil)
     (c-echo-syntactic-information-p t)
     (c-default-style "my/c-style")
     :config
+    (my/add-dash-docsets-hook 'c-mode-common-hook
+                              '("C"))
     (c-toggle-auto-newline 1)
     (c-add-style "my/c-style"
                  '((c-basic-offset . 4)
@@ -4109,7 +4039,12 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     ((python-mode inferior-python-mode) . my-python-mode-hook)
     (lsp-mode . (lambda ()
                   (add-to-list 'lsp-disabled-clients 'jedi)
-                  (add-to-list 'lsp-enabled-clients 'pyls))))
+                  (add-to-list 'lsp-enabled-clients 'pyls)))
+    :config
+    (my/add-dash-docsets-hook 'python-mode-hook
+                              '("Python 3"))
+    (my/add-dash-docsets-hook 'inferior-python-mode-hook
+                              '("Python 3")))
 
   (defvar python-mode-initialized nil)
 
@@ -4117,8 +4052,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     (setq-local flycheck-checker 'python-pylint)
     (jedi:setup)
     (jedi-mode 1)
-    (setq-local counsel-dash-docsets
-                '("Python 3" "Pandas" "NumPy" "Matplotlib" "Scrapy" "PEPs" "lxml"))
     (unless python-mode-initialized
       (setq python-mode-initialized t)
       (info-lookup-add-help
@@ -4169,14 +4102,14 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     (setq ruby-insert-encoding-magic-comment nil)
     (add-hook 'ruby-mode-hook
               '(lambda ()
-                 (setq-local flycheck-checker 'ruby-rubocop)
-                 (setq-local counsel-dash-docsets '("Ruby"))))
+                 (setq-local flycheck-checker 'ruby-rubocop)))
     (add-to-list 'hs-special-modes-alist
                  `(ruby-mode
                    ,(rx (or "def" "class" "module" "do" "if" "{" "[")) ; Block start
                    ,(rx (or "}" "]" "end"))                       ; Block end
                    ,(rx (or "#" "=begin"))                        ; Comment start
-                   ruby-forward-sexp nil)))
+                   ruby-forward-sexp nil))
+    (my/add-dash-docsets-hook 'ruby-mode-hook '("Ruby")))
 #+end_src
 
 ****** inf-ruby
@@ -4227,8 +4160,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
            ("\\.as[cp]x$"   . web-mode)
            ("\\.erb$"       . web-mode)
            ("\\.html?$"     . web-mode))
-    :hook (web-mode . (lambda ()
-                        (setq-local counsel-dash-docsets '("HTML" "HTTP"))))
     :custom
     (web-mode-attr-indent-offset        2)
     (web-mode-attr-value-indent-offset  2)
@@ -4237,17 +4168,17 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     (web-mode-markup-indent-offset      2)
     (web-mode-sql-indent-offset         2)
     (web-mode-block-padding             2)
-    (web-mode-script-padding            2))
+    (web-mode-script-padding            2)
+    :config
+    (my/add-dash-docsets-hook 'web-mode-hook '("HTML")))
 #+end_src
 
 ***** css-mode
 
 #+begin_src emacs-lisp
-  (use-package css-mode
-    :hook (css-mode . (lambda ()
-                        (setq-local counsel-dash-docsets '("CSS"))))
-    :custom
-    (css-indent-offset 2))
+  (with-eval-after-load 'css-mode
+    (customize-set-variable 'css-indent-offset 2)
+    (my/add-dash-docsets-hook 'css-mode-hook '("CSS")))
 #+end_src
 
 ***** js2-mode
@@ -4263,10 +4194,10 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
            ("\\.eslintrc\\'"    . js2-mode))
     :hook (js2-mode . (lambda ()
                         (setq-local flycheck-checker 'javascript-eslint)
-                        (setq-local flycheck-disabled-checkers '(javascript-jshint javascript-jscs))
-                        (setq-local counsel-dash-docsets '("JavaScript" "HTTP" "NodeJS"))))
+                        (setq-local flycheck-disabled-checkers '(javascript-jshint javascript-jscs))))
     :custom
-    (flycheck-javascript-eslint-executable "eslint"))
+    (flycheck-javascript-eslint-executable "eslint")
+    (my/add-dash-docsets-hook 'js2-mode-hook '("JavaScript")))
 
   (use-package js
     :delight " JS"
@@ -4284,8 +4215,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     :bind (:map sql-interactive-mode-map
                 ("C-j" . comint-send-input))
     :hook (sql-mode . (lambda ()
-                        (setq-local flycheck-checker 'sql-sqlint)
-                        (setq-local counsel-dash-docsets '("MySQL")))))
+                        (setq-local flycheck-checker 'sql-sqlint))))
 #+end_src
 
 ***** plantuml-mode
@@ -4297,11 +4227,10 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 #+begin_src emacs-lisp
   (use-package plantuml-mode
     :delight " UM"
-    :hook
-    (plantuml-mode . (lambda ()
-                       (setq-local counsel-dash-docsets '("PlantUML"))))
     :custom
-    (plantuml-jar-path "/usr/share/plantuml/plantuml.jar"))
+    (plantuml-jar-path "/usr/share/plantuml/plantuml.jar")
+    :config
+    (my/add-dash-docsets-hook 'plantuml-mode-hook '("PlantUML")))
 #+end_src
 
 ***** conf
@@ -4317,6 +4246,38 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   (use-package generic-x
     :mode (("\\.conf$"     . apache-conf-generic-mode)
            ("\\.htaccess$" . apache-conf-generic-mode)))
+#+end_src
+
+**** special-mode derivatives
+:PROPERTIES:
+:CREATED:  [2022-08-23 Tue 18:51]
+:END:
+***** special mode
+
+#+begin_src emacs-lisp
+  (define-key special-mode-map (kbd "C-j") #'push-button)
+#+end_src
+
+***** help
+:PROPERTIES:
+:ID:       a55da7a2-6525-4788-ba56-085eb61928d4
+:END:
+
+#+begin_src emacs-lisp
+  (customize-set-variable 'help-enable-symbol-autoload t)
+  (customize-set-variable 'describe-bindings-outline t)
+
+  (with-eval-after-load 'help
+    (define-key help-map (kbd "C-?") #'help-for-help)
+    (define-key help-map (kbd "c") #'describe-face)
+    (define-key help-map (kbd "K") #'describe-keymap)
+    (define-key help-map (kbd "C-l") #'find-library))
+#+end_src
+
+***** woman
+
+#+begin_src emacs-lisp
+  (autoload #'woman "woman" nil t)
 #+end_src
 
 **** Programming
@@ -4377,14 +4338,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   (global-set-key (kbd "M-s R") 'my/grep-ripgrep-all)
 #+end_src
 
-***** woman
-
-#+begin_src emacs-lisp
-  (use-package woman
-    :defer t
-    :delight " WM")
-#+end_src
-
 ***** executable
 This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/][this advice]]
 
@@ -4421,7 +4374,10 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
            (log-view-mode . auto-revert-tail-mode)))
 #+end_src
 
-***** vc (version control)              :maintaining:
+***** vc (version control)
+:PROPERTIES:
+:CREATED:  [2022-08-03 Wed 21:10]
+:END:
 ***** ediff
 
 #+begin_src emacs-lisp
@@ -4442,6 +4398,53 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/packages.el")
 :END:
+
+***** consult-dash
+:PROPERTIES:
+:CREATED:  [2022-08-05 Fri 16:56]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-dash-docs"
+#+end_src
+
+#+begin_src emacs-lisp
+  (add-to-list 'load-path
+               (expand-file-name "elpa/consult-dash-20220621.226" user-emacs-directory-default))
+
+  (require 'dash-docs)
+
+  (customize-set-variable 'dash-docs-docsets-path
+                          (expand-file-name "~/share/dash/docsets"))
+
+  (require 'consult-dash)
+
+  (global-set-key (kbd "M-s M-d") 'consult-dash)
+
+  (defmacro my/add-dash-docsets-hook (hook docsets)
+    `(add-hook ,hook
+               (lambda ()
+                 (when (functionp 'consult-dash)
+                   (setq-local consult-dash-docsets ,docsets)))))
+#+end_src
+
+***** eglot
+:PROPERTIES:
+:CREATED:  [2022-08-04 Thu 13:32]
+:END:
+
+[[https://github.com/joaotavora/eglot][Eglot]]
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-eglot"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package eglot
+    :hook ((sh-mode ruby-mode) . eglot-ensure)
+    :custom
+    (eglot-extend-to-xref t))
+#+end_src
 
 ***** denote
 :PROPERTIES:
@@ -4520,7 +4523,10 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     :config
     (whole-line-or-region-global-mode 1))
 #+end_src
-***** projectile         :maintaining:ARCHIVE:ignore:
+***** projectile                     :ARCHIVE:ignore:
+:PROPERTIES:
+:CREATED:  [2022-08-03 Wed 21:10]
+:END:
 
 #+begin_src emacs-lisp
   (use-package projectile
@@ -4553,7 +4559,10 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
               (or project-name "-"))))
 #+end_src
 
-***** counsel-projectile :maintaining:ARCHIVE:ignore:
+***** counsel-projectile             :ARCHIVE:ignore:
+:PROPERTIES:
+:CREATED:  [2022-08-03 Wed 21:10]
+:END:
 
 #+begin_src emacs-lisp
   (use-package counsel-projectile
@@ -4566,13 +4575,19 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
                ("sR" . counsel-projectile-rg)
                ("si" . counsel-projectile-git-grep)))
 #+end_src
-***** ag.el                 :programs:ARCHIVE:ignore:
+***** ag.el                          :ARCHIVE:ignore:
+:PROPERTIES:
+:CREATED:  [2022-08-03 Wed 21:11]
+:END:
 
 #+begin_src emacs-lisp
   ;; (use-package ag :straight t)
 #+end_src
 
-***** ripgrep.el            :programs:ARCHIVE:ignore:
+***** ripgrep.el                     :ARCHIVE:ignore:
+:PROPERTIES:
+:CREATED:  [2022-08-03 Wed 21:11]
+:END:
 
 #+begin_src emacs-lisp
   ;; (use-package ripgrep :straight t)
@@ -4772,8 +4787,9 @@ Handy commands
 #+begin_src emacs-lisp
   (use-package flycheck
     :diminish
-    :hook ((prog-mode text-mode) . flycheck-mode)
+    :hook (prog-mode . flycheck-mode-on-safe)
     :custom
+    (global-flycheck-mode t)
     (flycheck-check-syntax-automatically
      '(save new-line idle-change))
     (flycheck-display-errors-delay 10.0)
@@ -4784,7 +4800,7 @@ Handy commands
                  '(org-mode . "org"))
     (add-hook 'flycheck-mode-hook
               (lambda ()
-                (if (my/english-p (buffer-string))
+                (if (my/ascii-string-p (buffer-string))
                     (setq flycheck-textlint-config ".textlintrc")
                   (setq flycheck-textlint-config ".config/textlint/textlintrc_ja"))))
     (add-to-list 'display-buffer-alist
@@ -5245,6 +5261,24 @@ migemo allows me to search incrementally Japanese words using roma-ji expression
 #+begin_src emacs-lisp
   (use-package ivy-migemo
     :after migemo)
+#+end_src
+
+***** jaword
+:PROPERTIES:
+:CREATED:  [2022-08-13 Sat 18:01]
+:END:
+
+Jaword.elはbackward-wordやforward-wordを日本語に対応させる機能を提供します。これらのコマンドはデフォルトではひらがな・カタカナ・漢字の境界を単語の区切りとするのに対し、jaword.elを使用するとより正確に日本語の単語単位での移動が可能です。
+
+#+begin_src emacs-lisp :tangle no
+  ("https://github.com/zk-phi/jaword/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package jaword
+    :straight t
+    :custom
+    (jaword-enable-subword t))
 #+end_src
 
 ***** hungry-delete                         :ARCHIVE:
@@ -6079,8 +6113,7 @@ It's confortable to read long material such as web page , epub file or email wit
            (date (calendar-date-string (calendar-cursor-to-date)))
            (d (parse-time-string date))
            (year (decoded-time-year d))
-           (files (append `(,(my/org-archive-file year))
-                          org-agenda-files))
+           (files (file-expand-wildcards (file-name-concat org-directory "archive" "archive_*.org")))
            (buffer-name-prefix "==")
            (buffer-name (concat buffer-name-prefix date))
            (display-buffer-alist
@@ -6104,7 +6137,7 @@ As of 28.1, Emacs won't steal keyboard focus at startup which means we can use e
               (call-process-shell-command "fcitx -r")))
 #+end_src
 
-***** re-builder and query-replace-regexp combination
+***** replace regexp with re-builder and query-replace-regexp trick
 
 Great idea using re-builder when query-replace-regexp borrowed from [[https://karthinks.com/software/bridging-islands-in-emacs-1/][this post]].
 
@@ -6214,11 +6247,13 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
       (goto-char e)
       (set-marker e nil)))
 
-  (defun my/english-p (string)
-    "Return t if `STRING' is probably English."
-    (string-match-p
-     (format "\\`[%s]+\\'" "[:ascii:]’“”–")
-     string))
+  (defun my/ascii-string-p (string)
+    "Return non-nil if `STRING' seems to be made of ASCII."
+    (if (length> string 0)
+        (string-match-p
+         (format "\\`[%s]+\\'" "[:ascii:]’“”–")
+         string)
+      t))
 #+end_src
 
 **** original features
@@ -6352,9 +6387,12 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
       ("q" nil "quit")))
 #+end_src
 
-***** org-archive-datetree
+***** org-archive-datetree                  :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-08-10 Wed 14:51]
+:END:
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-archive.el")
+#+begin_src emacs-lisp :tangle no
   (require 'org)
   (require 'org-agenda)
 
@@ -6616,9 +6654,6 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
     (directory-files-recursively org-directory "\\.org$")
     "A list of target files to search relation nodes.")
 
-  (add-hook 'my/org-archive-before-archive-hook
-            #'org-relate-interrelate)
-
   (with-eval-after-load 'org
     (bind-key "C-c %" #'org-relate-search
               org-mode-map))
@@ -6815,8 +6850,9 @@ Provide a function to Build a clock table summing up time by tag.
     (let ((matches
            (org-global-tags-completion-table)))
       (mapcar (lambda (match)
-                (let ((match-str (car match)))
-                  (when (string= (substring match-str 0 3) "AC_")
+                (let ((match-str (car match))
+                      (case-fold-search nil))
+                  (when (string-match-p "^AC_" match-str)
                     (setq params (plist-put params :match match-str))
                     (clocktable-by-tag/insert-tag params))))
               matches)))
@@ -6895,7 +6931,7 @@ Provide a function to Build a clock table summing up time by tag.
   ;; 気象庁配信の天気情報を加工して表示
 
   (require 'request)
-  (require 'cl)
+  (require 'cl-lib)
 
   (defvar weather-areas
     '(((url . "http://www.drk7.jp/weather/xml/14.xml")
@@ -7138,7 +7174,7 @@ This set of code (open-file) offers file opener functionality in my liking. With
                       user-emacs-directory)
     "Directory where html file is converted into.")
 
-  (defvar my/open-file-media-player "/usr/bin/mpv"
+  (defvar my/open-file-media-player "mpv"
     "Media player used to play media file in open-file.")
 
   (defvar my/open-file-media-extensions
@@ -7529,11 +7565,11 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
                               ))
                     (split-string
                      (shell-command-to-string
-                      (format "locate -ie %s"
-                              (shell-quote-argument
-                               (or (and match-idx
-                                        (match-string 1 pattern))
-                                   pattern))))
+                      (format "locate -ie \"%s\""
+                              (or (and match-idx
+                                       (match-string 1 pattern))
+                                  pattern)
+                              ))
                      "\n" t))))
       ""))
 
@@ -7554,7 +7590,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
 :header-args+: :tangle (expand-tangle-target ".emacs.d/site-lisp/workflows.el")
 :END:
 
-***** notify timer completed
+***** notification count down timer finished
 
 #+begin_src emacs-lisp
   (require 'org-timer)
@@ -7603,11 +7639,11 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
 ***** clock in/out trigger invocation
 
 #+begin_src emacs-lisp
-  (use-package org-clock
-    :hook
-    ((org-clock-in org-clock-out org-clock-cancel) . save-buffer)
-    (org-clock-in-prepare . my/org-clock-in-set-timer)
-    ((org-clock-out org-clock-cancel) . my/org-clock-out-have-a-break))
+  (with-eval-after-load 'org
+    (require 'org-clock)
+    (add-hook 'org-clock-in-prepare-hook #'my/org-clock-in-set-timer)
+    (add-hook 'org-clock-out-hook #'my/org-clock-out-have-a-break)
+    (add-hook 'org-clock-cancel-hook #'my/org-clock-out-have-a-break))
 
   (defun my/org-clock-in-set-timer ()
     "Start count down timer for a clocked in entry.
@@ -7631,23 +7667,27 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
         (let ((org-timer-default-timer "25"))
           (org-timer-set-timer '(64)))))))
 
+  ;;;###autoload
   (defun my/org-clock-out-have-a-break ()
-    "Clock in 'Break' task if the task about to clock out manually has any kind of TODO keyword."
-    (when (or (string= (org-get-category) "Cyclic")
-              (org-is-habit-p))
+    "Clock in the 'Break' task if the previous task has clocked out."
+    ;; remove old clock entries if the entry is neither habit nor have any todo keywords
+    (when (or (org-is-habit-p)
+              (not (org-get-todo-state)))
       (my/org-clock-remove-old-clock-entries 4 5))
     (and org-timer-countdown-timer
          (org-timer-stop))
-    (when (and (not org-clock-clocking-in)
-               (org-get-todo-state))
-      (org-id-goto "d49d97de-58ec-4e41-b58c-491a9e216e1c")
-      (org-clock-in)
-      (org-save-all-org-buffers)))
+    (save-excursion
+      (let ((break-entry-id "d49d97de-58ec-4e41-b58c-491a9e216e1c"))
+        (when (and (not org-clock-clocking-in)
+                   (not (string= (or (org-id-get) "")
+                                 break-entry-id)))
+          (org-id-goto break-entry-id)
+          (org-clock-in)))))
 #+end_src
 
 ***** taking memo
 
-Memo file (memo.org) is useful for jotting down fragmented piece of text, code and more.
+Memo file (memo.org) is useful for jotting down fragmented pieces of text, code and more.
 
 #+begin_src emacs-lisp
   (require 'org-capture)
@@ -7668,7 +7708,7 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
      (t "")))
 #+end_src
 
-***** learning english words
+***** learning english words/phrases
 
 1. Capture an word to study by invoking my/org-english-capture
 2. Review words periodically with my/org-english-drill-test-display or its variants
@@ -7796,9 +7836,13 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
                                 "【発音" (opt "！") "】"
                                 (+ (or (category combining-diacritic)
                                        (category latin)
-                                       (category korean)))
+                                       (category korean)
+                                       (category greek)))
                                 "、"
-                                (? (or (seq "【＠】" (opt "[US]") (+ (category japanese-katakana-two-byte)) (? "、"))
+                                (? (or (seq "【＠】" (opt "[US]")
+                                            (+ (or (category japanese-katakana-two-byte)
+                                                   "（" "）"))
+                                            (? "、"))
                                        (seq (+ any) "*")))))
                        str)
                   (match-string 0 str))))))
@@ -7861,6 +7905,28 @@ Memo file (memo.org) is useful for jotting down fragmented piece of text, code a
       `(heading ,word)))
 
   (provide 'my/org-english)
+#+end_src
+
+test code
+#+begin_src emacs-lisp
+  (require 'ert)
+
+  (ert-deftest test-org-english-pron ()
+    "Tests the output string of `my/org-english-insert-japanese-pronunciation'."
+    (should (string= (my/org-english-insert-japanese-pronunciation "rife")
+                     "【レベル】11、【発音】ráif、【＠】ライフ"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "congregate")
+                     "【レベル】12、【発音！】【US】《動》kɑ́ngrəgèit 《形》kɑ́ŋgrəgit ｜ 【UK】《動》kɔ́ŋgrigèit 《形》kɔ́ŋgrigit"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "unleash")
+                     "【レベル】9、【発音】ʌ̀nlíːʃ、【＠】アンリーシュ"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "homage")
+                     "【レベル】11、【発音】【US】 hɑ́midʒ ｜ 【UK】 hɔ́midʒ、【＠】【US】ハミジ、【UK】ホミジ"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "interstitial")
+                     "【発音】ìntərstíʃəl、【＠】インタ（ー）スティシャル"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "veterinarian")
+                     "【レベル】12、【発音】vètərənέəriən、【＠】ヴェトラネアリアン"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "warehouse")
+                     "【レベル】8、【発音！】《動》wέərhàuz 《名》wέərhàus、【＠】ウェアハウス、ウエアハウス")))
 #+end_src
 
 **** additional emacs lisp code
@@ -9361,6 +9427,7 @@ Extendable version manager
        "gptfdisk"
        "ddrescue"
        "sqlite"
+       "libarchive"
        <<base-pkgs>>))
   #+end_src
 - desktop
@@ -9372,13 +9439,14 @@ Extendable version manager
        "pulseaudio"
        "gparted"
        "vlc"
-       "krita"
-       "gimp"
-       "kdenlive"
-       "obs"
        "gcompris-qt"
-       "yt-dlp"
        <<desktop-pkgs>>))
+  #+end_src
+- creative
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/creative.scm")
+    (specifications->manifest
+     '(;; "krita"
+       <<creative-pkgs>>))
   #+end_src
 - devel (software development)
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/devel.scm")
@@ -10222,8 +10290,8 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
   volume /mnt/in01
     subvolume incumbents/home
       snapshot_name home-local
-      snapshot_preserve 3d 2w 1m
-      snapshot_preserve_min 1d
+      snapshot_preserve 36h 3d 2w 1m
+      snapshot_preserve_min 6h
     subvolume incumbents/home
       snapshot_name home-backup
       target send-receive /mnt/ex02/backups
@@ -10235,7 +10303,7 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 
 - snapshot
   #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-    20 * * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf --loglevel error snapshot *-local >> $LOG_DIR/snaphome.log 2>&1"
+    */15 * * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf --loglevel error snapshot *-local >> $LOG_DIR/snaphome.log 2>&1"
   #+end_src
 
 - backup
@@ -10427,6 +10495,11 @@ A structure described below is expected under all devices.
   #+end_src
 ** libvirt
 
+#+begin_src scheme :noweb-ref desktop-pkgs
+  "libvirt"
+  "virt-manager"
+#+end_src
+
 #+begin_src conf :tangle (expand-tangle-target ".config/libvirt/libvirt.conf")
   uri_default = "qemu:///system"
 #+end_src
@@ -10500,7 +10573,58 @@ A structure described below is expected under all devices.
   "calibre"
 #+end_src
 
-* utility scripts
+** yt-dlp
+:PROPERTIES:
+:CREATED:  [2022-08-19 Fri 08:06]
+:END:
+
+#+begin_src scheme :noweb-ref desktop-pkgs
+  "yt-dlp"
+#+end_src
+
+#+begin_src conf :tangle (expand-tangle-target ".config/yt-dlp/config")
+  -o %(title)s.%(ext)s
+  --trim-filenames 80
+#+end_src
+
+* Development Infrastructures
+:PROPERTIES:
+:CREATED:  [2022-08-04 Thu 14:55]
+:END:
+
+** Tree Sitter
+:PROPERTIES:
+:CREATED:  [2022-08-04 Thu 14:55]
+:END:
+
+#+begin_src scheme :noweb-ref devel-pkgs
+  "tree-sitter"
+#+end_src
+
+** Languate Servers
+
+*** Bash Language Server
+:PROPERTIES:
+:CREATED:  [2022-08-04 Thu 13:49]
+:END:
+
+[[https://github.com/bash-lsp/bash-language-server][Bash Language Server]]
+
+- how to install
+  : $ npm install -g bash-language-server
+
+*** Solargraph
+:PROPERTIES:
+:CREATED:  [2022-08-04 Thu 14:16]
+:END:
+
+[[https://github.com/castwide/solargraph][Solargraph]] is Ruby Language Server.
+
+#+begin_src scheme :noweb-ref devel-pkgs
+  "ruby-solargraph"
+#+end_src
+
+* Utility Scripts
 :PROPERTIES:
 :header-args+: :tangle-mode (identity #o755)
 :END:
@@ -12258,9 +12382,9 @@ Stripping rules are:
   CONTENT = html.tostring(ROOT, encoding="utf-8", method='html', pretty_print=True)
   print(CONTENT.decode())
 #+end_src
-* workflows
+* Workflows
 
-** video encoding
+** encode video files
 
 #+begin_src scheme :noweb-ref desktop-pkgs
   "ffmpeg"
@@ -12327,8 +12451,8 @@ Stripping rules are:
   fi
   WORK_DIR="${INPUT_VIDEO%.*}"_work
 
-  vp9_opts_pass1='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 23 -pass 1 -an -f null'
-  vp9_opts_pass2='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 23 -pass 2 -map_metadata 0'
+  vp9_opts_pass1='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 28 -pass 1 -an -f null'
+  vp9_opts_pass2='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 28 -pass 2 -map_metadata 0'
   opus_opts='-c:a libopus -b:a 128k -ac 2'
 
   mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
@@ -12351,16 +12475,7 @@ Stripping rules are:
   fi
   WORK_DIR="${INPUT_VIDEO%.*}"_work
 
-  bitrate=$(ffprobe -hide_banner "${INPUT_VIDEO}" 2>&1 | grep 'bitrate:' | sed -e 's/.*bitrate: \([[:digit:]]\+\) kb\/s.*/\1/g')
-  if [[ $((${bitrate})) -lt 1200 ]]; then
-    CRF=23
-  elif [[ $((${bitrate})) -lt 1600 ]]; then
-    CRF=26
-  else
-    CRF=28
-  fi
-
-  av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf ${CRF}"
+  av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf 26"
   av1_opts_pass1="${av1_opts_common} -pass 1 -an -f null"
   av1_opts_pass2="${av1_opts_common} -pass 2 -map_metadata 0"
   opus_opts='-c:a libopus -b:a 128k -ac 2'
@@ -12370,7 +12485,7 @@ Stripping rules are:
     && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
 #+end_src
 
-** audio encoding
+** encode audio files
 
 - usage
   + encode bulk podcast files for 64kb/s (in Dired)
@@ -12394,7 +12509,7 @@ Stripping rules are:
   ffmpeg -i "${INPUT_VIDEO}" ${opus_opts} "${OUTPUT_VIDEO}"
 #+end_src
 
-** audio manipulation
+** rip my CDs
 
 #+begin_src scheme :noweb-ref base-pkgs
   "abcde"
@@ -12408,3 +12523,21 @@ Stripping rules are:
 
     OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
   #+END_SRC
+** create tutorial videos
+:PROPERTIES:
+:CREATED:  [2022-08-15 Mon 20:13]
+:END:
+
+: $ screenkey -p fixed -g 1090x248+1470+348
+
+#+begin_src scheme :noweb-ref creative-pkgs
+  "python-screenkey"
+  "slop"
+  "gimp"
+  "obs"
+  "kdenlive"
+#+end_src
+
+#+begin_src json :tangle no  :tangle (expand-tangle-target ".config/screenkey.json")  :tangle-mode (identity #o644)
+  {"no_systray": false, "timeout": 0.5, "recent_thr": 0.1, "compr_cnt": 3, "ignore": [], "position": "bottom", "persist": false, "font_desc": "Sans Bold", "font_size": "medium", "font_color": "white", "bg_color": "black", "opacity": 0.9, "key_mode": "composed", "bak_mode": "baked", "mods_mode": "emacs", "mods_only": false, "multiline": false, "vis_shift": true, "vis_space": true, "geometry": null, "screen": 0, "start_disabled": false, "mouse": false, "button_hide_duration": 2.0}
+#+end_src
