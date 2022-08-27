@@ -7833,7 +7833,8 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
                                 "【発音" (opt "！") "】"
                                 (+ (or (category combining-diacritic)
                                        (category latin)
-                                       (category korean)))
+                                       (category korean)
+                                       (category greek)))
                                 "、"
                                 (? (or (seq "【＠】" (opt "[US]")
                                             (+ (or (category japanese-katakana-two-byte)
@@ -7903,23 +7904,27 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
   (provide 'my/org-english)
 #+end_src
 
-- test code
-  #+begin_src emacs-lisp
-    (require 'ert)
+test code
+#+begin_src emacs-lisp
+  (require 'ert)
 
-    (ert-deftest test-org-english-pron ()
-      "Tests the output string of `my/org-english-insert-japanese-pronunciation'."
-      (should (string= (my/org-english-insert-japanese-pronunciation "rife")
-                       "【レベル】11、【発音】ráif、【＠】ライフ"))
-      (should (string= (my/org-english-insert-japanese-pronunciation "congregate")
-                       "【レベル】12、【発音！】【US】《動》kɑ́ngrəgèit 《形》kɑ́ŋgrəgit ｜ 【UK】《動》kɔ́ŋgrigèit 《形》kɔ́ŋgrigit"))
-      (should (string= (my/org-english-insert-japanese-pronunciation "unleash")
-                       "【レベル】9、【発音】ʌ̀nlíːʃ、【＠】アンリーシュ"))
-      (should (string= (my/org-english-insert-japanese-pronunciation "homage")
-                       "【レベル】11、【発音】【US】 hɑ́midʒ ｜ 【UK】 hɔ́midʒ、【＠】【US】ハミジ、【UK】ホミジ"))
-      (should (string= (my/org-english-insert-japanese-pronunciation "interstitial")
-                       "【発音】ìntərstíʃəl、【＠】インタ（ー）スティシャル")))
-  #+end_src
+  (ert-deftest test-org-english-pron ()
+    "Tests the output string of `my/org-english-insert-japanese-pronunciation'."
+    (should (string= (my/org-english-insert-japanese-pronunciation "rife")
+                     "【レベル】11、【発音】ráif、【＠】ライフ"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "congregate")
+                     "【レベル】12、【発音！】【US】《動》kɑ́ngrəgèit 《形》kɑ́ŋgrəgit ｜ 【UK】《動》kɔ́ŋgrigèit 《形》kɔ́ŋgrigit"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "unleash")
+                     "【レベル】9、【発音】ʌ̀nlíːʃ、【＠】アンリーシュ"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "homage")
+                     "【レベル】11、【発音】【US】 hɑ́midʒ ｜ 【UK】 hɔ́midʒ、【＠】【US】ハミジ、【UK】ホミジ"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "interstitial")
+                     "【発音】ìntərstíʃəl、【＠】インタ（ー）スティシャル"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "veterinarian")
+                     "【レベル】12、【発音】vètərənέəriən、【＠】ヴェトラネアリアン"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "warehouse")
+                     "【レベル】8、【発音！】《動》wέərhàuz 《名》wέərhàus、【＠】ウェアハウス、ウエアハウス")))
+#+end_src
 
 **** additional emacs lisp code
 
