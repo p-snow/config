@@ -12475,16 +12475,7 @@ Stripping rules are:
   fi
   WORK_DIR="${INPUT_VIDEO%.*}"_work
 
-  bitrate=$(ffprobe -hide_banner "${INPUT_VIDEO}" 2>&1 | grep 'bitrate:' | sed -e 's/.*bitrate: \([[:digit:]]\+\) kb\/s.*/\1/g')
-  if [[ $((${bitrate})) -lt 1200 ]]; then
-    CRF=23
-  elif [[ $((${bitrate})) -lt 1600 ]]; then
-    CRF=26
-  else
-    CRF=28
-  fi
-
-  av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf ${CRF}"
+  av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf 26"
   av1_opts_pass1="${av1_opts_common} -pass 1 -an -f null"
   av1_opts_pass2="${av1_opts_common} -pass 2 -map_metadata 0"
   opus_opts='-c:a libopus -b:a 128k -ac 2'
