@@ -7824,7 +7824,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
                         (read-string "Word: "))))
     (let (pron)
       (request
-        (concat "https://eow.alc.co.jp/search?q=" (downcase w))
+        (concat "https://eow.alc.co.jp/search?q=" (string-replace " " "+" (downcase w)))
         :sync t
         :parser
         (lambda ()
@@ -7833,21 +7833,22 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
               (insert str)
               (shr-render-region (point-min) (point-max))
               (let ((str (buffer-substring-no-properties (point-min) (point-max))))
-                (when (string-match
-                       (rx (seq (opt "【レベル】" (** 1 2 digit) "、")
-                                "【発音" (opt "！") "】"
-                                (+ (or (category combining-diacritic)
-                                       (category latin)
-                                       (category korean)
-                                       (category greek)))
-                                "、"
-                                (? (or (seq "【＠】" (opt "[US]")
-                                            (+ (or (category japanese-katakana-two-byte)
-                                                   "（" "）"))
-                                            (? "、"))
-                                       (seq (+ any) "*")))))
-                       str)
-                  (match-string 0 str))))))
+                (if (string-match
+                     (rx (seq (opt "【レベル】" (** 1 2 digit) "、")
+                              "【発音" (opt "！") "】"
+                              (+ (or (category combining-diacritic)
+                                     (category latin)
+                                     (category korean)
+                                     (category greek)))
+                              "、"
+                              (? (or (seq "【＠】" (opt "[US]")
+                                          (+ (or (category japanese-katakana-two-byte)
+                                                 "（" "）"))
+                                          (? "、"))
+                                     (seq (+ any) "*")))))
+                     str)
+                    (match-string 0 str)
+                  "")))))
         :success
         (cl-function
          (lambda (&key data &allow-other-keys)
@@ -7928,7 +7929,11 @@ test code
     (should (string= (my/org-english-insert-japanese-pronunciation "veterinarian")
                      "【レベル】12、【発音】vètərənέəriən、【＠】ヴェトラネアリアン"))
     (should (string= (my/org-english-insert-japanese-pronunciation "warehouse")
-                     "【レベル】8、【発音！】《動》wέərhàuz 《名》wέərhàus、【＠】ウェアハウス、ウエアハウス")))
+                     "【レベル】8、【発音！】《動》wέərhàuz 《名》wέərhàus、【＠】ウェアハウス、ウエアハウス"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "lambaste")
+                     ""))
+    (should (string= (my/org-english-insert-japanese-pronunciation "in a nutshell")
+                     "")))
 #+end_src
 
 **** additional emacs lisp code
