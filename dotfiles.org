@@ -4457,22 +4457,17 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :CREATED:  [2022-08-02 Tue 20:08]
 :END:
 
-#+begin_src emacs-lisp
-  (add-to-list 'load-path
-               (expand-file-name "elpa/denote-0.4.0" user-emacs-directory-default))
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-denote"
+#+end_src
 
+#+begin_src emacs-lisp
   (require 'denote)
 
   (customize-set-variable 'denote-directory
                           (file-name-concat org-directory "notes"))
 
-  (require 'denote-retrieve)
-  (require 'denote-link)
-
-  (require 'denote-dired)
-
   (with-eval-after-load 'org-capture
-    (require 'denote-org-capture)
     (setq denote-org-capture-specifiers "%l\n%i\n%?")
     (add-to-list 'org-capture-templates
                  '("n" "New note (with denote.el)" plain
