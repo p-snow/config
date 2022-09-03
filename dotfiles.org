@@ -12549,3 +12549,18 @@ Stripping rules are:
 #+begin_src json :tangle no  :tangle (expand-tangle-target ".config/screenkey.json")  :tangle-mode (identity #o644)
   {"no_systray": false, "timeout": 0.5, "recent_thr": 0.1, "compr_cnt": 3, "ignore": [], "position": "bottom", "persist": false, "font_desc": "Sans Bold", "font_size": "medium", "font_color": "white", "bg_color": "black", "opacity": 0.9, "key_mode": "composed", "bak_mode": "baked", "mods_mode": "emacs", "mods_only": false, "multiline": false, "vis_shift": true, "vis_space": true, "geometry": null, "screen": 0, "start_disabled": false, "mouse": false, "button_hide_duration": 2.0}
 #+end_src
+* Platforms
+:PROPERTIES:
+:CREATED:  [2022-09-03 Sat 14:59]
+:END:
+** Linux Mint (Cinnamon Desktop)
+:PROPERTIES:
+:CREATED:  [2022-09-03 Sat 15:00]
+:END:
+- Back-up Cinnamon Desktop Configuration
+  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
+    11 1 1 * * env bash -ci "dconf dump /org/cinnamon/ > ~/.config/linuxmint/cinnamon.conf"
+  #+end_src
+
+  To thaw backed up config
+  : $ dconf load /org/cinnamon/ < ~/.config/linuxmint/cinnamon.conf
