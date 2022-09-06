@@ -4408,6 +4408,15 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/packages.el")
 :END:
 
+***** Geiser
+:PROPERTIES:
+:CREATED:  [2022-09-06 Tue 15:26]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-geiser-guile"
+#+end_src
+
 ***** consult-dash
 :PROPERTIES:
 :CREATED:  [2022-08-05 Fri 16:56]
@@ -4710,7 +4719,7 @@ Handy commands
                 ("M-s" . nil)
                 ("C-M-;" . paredit-comment-dwim)
                 ("M-;" . nil))
-    :hook ((emacs-lisp-mode . enable-paredit-mode)
+    :hook (((emacs-lisp-mode scheme-mode) . enable-paredit-mode)
            (paredit-mode . show-paren-local-mode)))
 #+end_src
 
