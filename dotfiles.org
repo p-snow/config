@@ -7901,6 +7901,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
                               "【発音" (opt "！") "】"
                               (+ (or (category combining-diacritic)
                                      (category latin)
+                                     (category japanese-katakana-two-byte)
                                      (category korean)
                                      (category greek)))
                               "、"
@@ -7996,7 +7997,9 @@ test code
     (should (string= (my/org-english-insert-japanese-pronunciation "lambaste")
                      ""))
     (should (string= (my/org-english-insert-japanese-pronunciation "in a nutshell")
-                     "")))
+                     ""))
+    (should (string= (my/org-english-insert-japanese-pronunciation "traverse")
+                     "【レベル】8、【発音！】《名・形》trǽvəːrs 《動》trəvʌ́rs、【＠】トゥラヴァース、トラバース")))
 #+end_src
 
 **** additional emacs lisp code
