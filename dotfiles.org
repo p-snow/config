@@ -1,5 +1,3 @@
-#+SETUPFILE: ./export.setup
-
 #+TITLE: My Configuration Collection
 #+PROPERTY: header-args       :mkdirp yes
 #+PROPERTY: tangle-target-dir ~/dotfiles
@@ -33,6 +31,44 @@
     (* h 60 60)
   #+end_src
 
+* System Components
+:PROPERTIES:
+:CREATED:  [2022-09-13 Tue 16:14]
+:END:
+** Font
+:PROPERTIES:
+:CREATED:  [2022-09-07 Wed 19:08]
+:END:
+
+*** System Fonts
+:PROPERTIES:
+:CREATED:  [2022-09-13 Tue 16:24]
+:END:
+
+#+begin_src scheme :noweb-ref desktop-pkgs
+  "font-ipa-ex"
+  "font-google-noto"
+  "font-inconsolata"
+#+end_src
+
+*** Fontconfig
+
+#+begin_src scheme
+  "fontconfig"
+#+end_src
+
+- install available fonts by rescanning font directories
+  : $ fc-cache -rvf
+
+*** Font Viewer
+:PROPERTIES:
+:CREATED:  [2022-09-13 Tue 16:24]
+:END:
+
+#+begin_src scheme
+  "gnome-font-viewer"
+#+end_src
+
 * Application Configurations
 :PROPERTIES:
 :header-args+: :tangle-mode (identity #o444)
@@ -42,6 +78,10 @@
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-native-comp"
+#+end_src
+
+#+begin_src shell :noweb yes :noweb-ref bashrc
+  export EDITOR="emacsclient -c -a emacs"
 #+end_src
 
 *** general configuration
@@ -210,6 +250,7 @@ init.el devote itself to call for remaining config files.
   (global-set-key (kbd "C-c k") #'kill-this-buffer)
   (global-set-key (kbd "<f5>") #'revert-buffer-quick)
   (global-set-key (kbd "M-z") #'zap-up-to-char)
+  (global-set-key (kbd "C-c d") #'copy-from-above-command)
 
   ;; M-u for `universal-argument'
   (substitute-key-definition 'upcase-word
@@ -310,81 +351,93 @@ Each setting in this section belongs my personal attribution, e.g. primary langu
   (setf initial-scratch-message "")
   (setf inhibit-startup-screen t)
 #+end_src
-***** face
+***** fontsets
+
+#+begin_src emacs-lisp
+  (create-fontset-from-ascii-font "IPAGothic" nil "default")
+  (set-fontset-font "fontset-default" 'japanese-jisx0208 "IPAGothic")
+
+  (create-fontset-from-ascii-font "IPAexMincho" nil "exmincho")
+  (set-fontset-font "fontset-exmincho" 'japanese-jisx0208 "IPAexMincho")
+
+  (create-fontset-from-ascii-font "IPAMincho" nil "mincho")
+  (set-fontset-font "fontset-mincho" 'japanese-jisx0208 "IPAMincho")
+
+  (create-fontset-from-ascii-font "Inconsolata" nil "code")
+  (set-fontset-font "fontset-code" 'latin (font-spec :family "Inconsolata" :weight 'Regular :width 'SemiCondensed))
+
+  ;; foreign fonts for all fontsets
+  (set-fontset-font t 'emoji "Noto Color Emoji")
+  (set-fontset-font t 'symbol "Noto Color Emoji")
+  (set-fontset-font t 'symbol "Noto Sans CJK JP" nil 'append)
+  (set-fontset-font t 'symbol "Noto Sans Symbols" nil 'append)
+  (set-fontset-font t 'symbol "Noto Sans Symbols2" nil 'append)
+#+end_src
+
+***** faces
+:PROPERTIES:
+:CREATED:  [2022-09-11 Sun 16:55]
+:END:
 
 Caveat: There are some face definitions which use an extra large font since I am [[https://en.wikipedia.org/wiki/Visual_impairment][visually impaired]].
 
 #+begin_src emacs-lisp
-  (defvar my-default-pixel-width 2560 "Default display width in pixel.")
-  (defmacro my-adjust-font-size (original)
-    "Adjust original font size to fit in display."
-    `(truncate (* ,original (/ (float (x-display-pixel-width))
-                               ,my-default-pixel-width))))
-
-
-  (create-fontset-from-ascii-font "TakaoGothic" nil "default")
-  (create-fontset-from-ascii-font "TakaoExGothic" nil "variable")
-  (create-fontset-from-ascii-font "TakaoPMincho" nil "mincho")
-  (create-fontset-from-ascii-font "TakaoMincho" nil "fmincho")
-  (create-fontset-from-ascii-font "Gen Shin Gothic Monospace Light" nil "dense")
+  (defvar my/default-pixel-width 2560 "Default display width in pixel.")
+  (defmacro my/normalized-font-size (original-size)
+    "THis macro culculates normalized font size for display resolution at runtime.
+  It tries to proportionate ORIGINAL-SIZE in `my/default-pixel-width' in the display at runtime."
+    `(truncate (* ,original-size (/ (float (x-display-pixel-width))
+                                    ,my/default-pixel-width))))
 
   (set-face-attribute 'default
                       nil
                       :font "fontset-default"
-                      :height (my-adjust-font-size 660))
+                      :height (my/normalized-font-size 630))
   (set-face-attribute 'fixed-pitch
                       nil
                       :font "fontset-default")
   (set-face-attribute 'variable-pitch
                       nil
-                      :font "fontset-variable")
-  (set-face-attribute 'bold
-                      nil
-                      :weight 'bold)
-  (set-face-attribute 'mode-line
-                      nil
-                      :font "fontset-fmincho"
-                      :height (my-adjust-font-size 660))
-
-  (use-package face-remap
-    :diminish buffer-face-mode
-    :custom
-    (text-scale-mode-step 1.0625)
-    :config
-    (buffer-face-mode 1))
+                      :font "fontset-exmincho")
 
   (use-package face
     :no-require t
-    :init
-    (defface my/large-gothic-face `((t . (:font "fontset-default"
-                                                :height ,(my-adjust-font-size 900))))
-      "A face with large font.")
-    (defface my/medium-large-gothic-face `((t . (:font "fontset-default"
-                                                       :height ,(my-adjust-font-size 835))))
-      "A face with medium-large font.")
-    (defface my/medium-gothic-face `((t . (:font "fontset-default"
-                                                 :height ,(my-adjust-font-size 655))))
-      "A face with medium font.")
-    (defface my/small-gothic-face `((t . (:font "fontset-default"
-                                                :height ,(my-adjust-font-size 570))))
-      "A face with small font.")
-    (defface my/tiny-gothic-face `((t . (:font "fontset-default"
-                                               :height ,(my-adjust-font-size 400))))
-      "A face with tiny font.")
-    (defface my/large-mincho-face `((t . (:font "fontset-mincho"
-                                                :height ,(my-adjust-font-size 840))))
-      "A face with large mincho font.")
-    (defface my/medium-mincho-face `((t . (:font "fontset-fmincho"
-                                                 :height ,(my-adjust-font-size 780))))
-      "A face with medium mincho font.")
     :hook
-    ((eww-mode twittering-mode nov-mode) . (lambda () (buffer-face-set 'my/large-gothic-face)))
-    ((Info-mode help-mode helpful-mode woman-mode) . (lambda () (buffer-face-set 'my/medium-large-gothic-face)))
-    ((org-mode text-mode dired-mode mu4e-headers-mode mu4e-compose-mode) . (lambda () (buffer-face-set 'my/medium-gothic-face)))
-    ((prog-mode shell-mode term-mode vterm-mode eshell-mode) . (lambda () (buffer-face-set 'my/small-gothic-face)))
-    (calendar-mode . (lambda () (buffer-face-set 'my/tiny-gothic-face)))
-    ((mu4e-view-mode elfeed-show-mode) . (lambda () (buffer-face-set 'my/large-mincho-face)))
-    (elfeed-search-update . (lambda () (buffer-face-set 'my/medium-mincho-face))))
+    ((eww-mode twittering-mode nov-mode mu4e-view-mode elfeed-show-mode)
+     . (lambda ()
+         (buffer-face-set
+          (or (ignore-errors (check-face 'my/reading-face))
+              (defface my/reading-face `((t . (:font "fontset-exmincho"
+                                                     :height ,(my/normalized-font-size 900))))
+                "My customized face offers great legibility for reading articles.")))))
+    ((Info-mode help-mode helpful-mode woman-mode)
+     . (lambda ()
+         (buffer-face-set
+          (or (ignore-errors (check-face 'my/document-face))
+              (defface my/document-face `((t . (:font "fontset-default"
+                                                      :height ,(my/normalized-font-size 720))))
+                "My customized face offers large fixed fonts for documentations.")))))
+    ((org-mode text-mode mu4e-compose-mode)
+     . (lambda ()
+         (buffer-face-set
+          (or (ignore-errors (check-face 'my/writing-face))
+              (defface my/writing-face `((t . (:font "fontset-default"
+                                                     :height ,(my/normalized-font-size 655))))
+                "My customized face offers relatively small fixed fonts for writing.")))))
+    ((prog-mode shell-mode term-mode vterm-mode eshell-mode calendar-mode)
+     . (lambda ()
+         (buffer-face-set
+          (or (ignore-errors (check-face 'my/code-face))
+              (defface my/code-face `((t . (:font "fontset-code"
+                                                  :height ,(my/normalized-font-size 640))))
+                "My customized face offers condensed fonts for programming code.")))))
+    ((dired-mode mu4e-headers-mode elfeed-search-update)
+     . (lambda ()
+         (buffer-face-set
+          (or (ignore-errors (check-face 'my/list-face))
+              (defface my/list-face `((t . (:font "fontset-mincho"
+                                                  :height ,(my/normalized-font-size 670))))
+                "My customized face offers variable pitch fonts for displaying lists."))))))
 #+end_src
 
 ***** modifier keys
@@ -455,12 +508,12 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 #+begin_src emacs-lisp
   (customize-set-variable 'auto-save-interval 200)
   (customize-set-variable 'auto-save-timeout 25)
-  (customize-set-variable 'auto-save-default t)
+  (customize-set-variable 'auto-save-default nil)
   (customize-set-variable 'auto-save-list-file-prefix
                           (concat user-emacs-directory "auto-save-list/.saves-"))
 
   (customize-set-variable 'auto-save-visited-mode t)
-  (customize-set-variable 'auto-save-visited-interval 15)
+  (customize-set-variable 'auto-save-visited-interval 900)
   (put 'auto-save-visited-mode 'disabled nil)
 
   (customize-set-variable 'delete-by-moving-to-trash t)
@@ -541,6 +594,7 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 ****** Display
 
 #+begin_src emacs-lisp
+  (customize-set-variable 'text-scale-mode-step 1.0625)
   (customize-set-variable 'highlight-nonselected-windows t)
   (customize-set-variable 'truncate-lines t)
   ;; avoid to break at whitespace in Japanese
@@ -550,6 +604,8 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 #+end_src
 
 ****** Windows
+
+[[https://www.masteringemacs.org/article/demystifying-emacs-window-manager?utm_source=newsletter&utm_medium=email&utm_campaign=rss][This blog post]] is must-read when you tweak display-buffer facilities or something related to display settings.
 
 #+begin_src emacs-lisp
   (customize-set-variable 'scroll-step 1)
@@ -1093,6 +1149,9 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (calendar-today-visible . calendar-mark-today)
     (calendar-move . my/japanese-holiday-show)
     :custom
+    (calendar-left-margin 0)
+    (calendar-right-margin 0)
+    (calendar-intermonth-spacing 1)
     (calendar-mark-holidays-flag t)
     (japanese-holiday-weekend '(0 6))
     (japanese-holiday-weekend-marker
@@ -1154,11 +1213,11 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     :init
     (customize-set-variable 'default-input-method "japanese-skk")
     (defface skk-candidate `((t . (:font "fontset-default"
-                                         :height ,(my-adjust-font-size 860))))
+                                         :height ,(my/normalized-font-size 860))))
       "Default face for ddskk candidates."
       :group 'skk-dcomp)
     :custom
-    (skk-kakutei-key (kbd "C-m"))
+    (skk-kakutei-key (kbd "C-x j"))
     (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
     (skk-init-file (expand-file-name "skk-init.el" skk-dotemacs-dir))
     (skk-byte-compile-init-file t)
@@ -1323,7 +1382,6 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
     :init
     ;; Add all your customizations prior to loading the themes
     (setq modus-themes-region '(bg-only no-extend)
-          modus-themes-mode-line '(accented 3d)
           modus-themes-bold-constructs t
           modus-themes-italic-constructs t
           modus-themes-paren-match '(bold intense underline)
@@ -3925,7 +3983,7 @@ speed commands and hydra-org.
     (hl-line-mode -1)
     (hs-minor-mode -1)
     (flyspell-prog-mode)
-    (display-fill-column-indicator-mode))
+    (display-fill-column-indicator-mode 1))
 #+end_src
 
 ***** sh-mode
@@ -4130,12 +4188,12 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** lua-mode
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-lua-mode"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#   "emacs-lua-mode"
+# #+end_src
 
 #+begin_src emacs-lisp
-  (use-package lua-mode)
+  (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-mode))
 #+end_src
 
 ***** perl-mode
@@ -4251,7 +4309,9 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 **** special-mode derivatives
 :PROPERTIES:
 :CREATED:  [2022-08-23 Tue 18:51]
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/special-mode.el")
 :END:
+
 ***** special mode
 
 #+begin_src emacs-lisp
@@ -4399,6 +4459,19 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/packages.el")
 :END:
 
+***** Geiser
+:PROPERTIES:
+:CREATED:  [2022-09-06 Tue 15:26]
+:END:
+
+[[info:guix#The Perfect Setup][guix#The Perfect Setup]]
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "guile"
+  "emacs-geiser"
+  "emacs-geiser-guile"
+#+end_src
+
 ***** consult-dash
 :PROPERTIES:
 :CREATED:  [2022-08-05 Fri 16:56]
@@ -4451,22 +4524,17 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :CREATED:  [2022-08-02 Tue 20:08]
 :END:
 
-#+begin_src emacs-lisp
-  (add-to-list 'load-path
-               (expand-file-name "elpa/denote-0.4.0" user-emacs-directory-default))
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-denote"
+#+end_src
 
+#+begin_src emacs-lisp
   (require 'denote)
 
   (customize-set-variable 'denote-directory
                           (file-name-concat org-directory "notes"))
 
-  (require 'denote-retrieve)
-  (require 'denote-link)
-
-  (require 'denote-dired)
-
   (with-eval-after-load 'org-capture
-    (require 'denote-org-capture)
     (setq denote-org-capture-specifiers "%l\n%i\n%?")
     (add-to-list 'org-capture-templates
                  '("n" "New note (with denote.el)" plain
@@ -4706,7 +4774,7 @@ Handy commands
                 ("M-s" . nil)
                 ("C-M-;" . paredit-comment-dwim)
                 ("M-;" . nil))
-    :hook ((emacs-lisp-mode . enable-paredit-mode)
+    :hook (((emacs-lisp-mode scheme-mode) . enable-paredit-mode)
            (paredit-mode . show-paren-local-mode)))
 #+end_src
 
@@ -5000,7 +5068,7 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
            (undo-tree-mode 1)))))
     :custom
     (undo-tree-enable-undo-in-region t)
-    (undo-tree-auto-save-history t)
+    (undo-tree-auto-save-history nil)
     (undo-tree-limit 320000)
     (undo-tree-strong-limit 480000)
     (undo-tree-outer-limit 64000000)
@@ -5122,8 +5190,7 @@ helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mod
         (insert definition)
         (goto-char (point-min))
         (save-excursion (xml-parse-string))
-        (read-only-mode 1)
-        (buffer-face-set 'my/medium-large-gothic-face))
+        (read-only-mode 1))
       (display-buffer buffer)))
 
   (defun my/define-word--parse-wordnik-example ()
@@ -7822,7 +7889,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
                         (read-string "Word: "))))
     (let (pron)
       (request
-        (concat "https://eow.alc.co.jp/search?q=" (downcase w))
+        (concat "https://eow.alc.co.jp/search?q=" (string-replace " " "+" (downcase w)))
         :sync t
         :parser
         (lambda ()
@@ -7831,21 +7898,23 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
               (insert str)
               (shr-render-region (point-min) (point-max))
               (let ((str (buffer-substring-no-properties (point-min) (point-max))))
-                (when (string-match
-                       (rx (seq (opt "【レベル】" (** 1 2 digit) "、")
-                                "【発音" (opt "！") "】"
-                                (+ (or (category combining-diacritic)
-                                       (category latin)
-                                       (category korean)
-                                       (category greek)))
-                                "、"
-                                (? (or (seq "【＠】" (opt "[US]")
-                                            (+ (or (category japanese-katakana-two-byte)
-                                                   "（" "）"))
-                                            (? "、"))
-                                       (seq (+ any) "*")))))
-                       str)
-                  (match-string 0 str))))))
+                (if (string-match
+                     (rx (seq (opt "【レベル】" (** 1 2 digit) "、")
+                              "【発音" (opt "！") "】"
+                              (+ (or (category combining-diacritic)
+                                     (category latin)
+                                     (category japanese-katakana-two-byte)
+                                     (category korean)
+                                     (category greek)))
+                              "、"
+                              (? (or (seq "【＠】" (opt "[US]")
+                                          (+ (or (category japanese-katakana-two-byte)
+                                                 "（" "）"))
+                                          (? "、"))
+                                     (seq (+ any) "*")))))
+                     str)
+                    (match-string 0 str)
+                  "")))))
         :success
         (cl-function
          (lambda (&key data &allow-other-keys)
@@ -7926,7 +7995,13 @@ test code
     (should (string= (my/org-english-insert-japanese-pronunciation "veterinarian")
                      "【レベル】12、【発音】vètərənέəriən、【＠】ヴェトラネアリアン"))
     (should (string= (my/org-english-insert-japanese-pronunciation "warehouse")
-                     "【レベル】8、【発音！】《動》wέərhàuz 《名》wέərhàus、【＠】ウェアハウス、ウエアハウス")))
+                     "【レベル】8、【発音！】《動》wέərhàuz 《名》wέərhàus、【＠】ウェアハウス、ウエアハウス"))
+    (should (string= (my/org-english-insert-japanese-pronunciation "lambaste")
+                     ""))
+    (should (string= (my/org-english-insert-japanese-pronunciation "in a nutshell")
+                     ""))
+    (should (string= (my/org-english-insert-japanese-pronunciation "traverse")
+                     "【レベル】8、【発音！】《名・形》trǽvəːrs 《動》trəvʌ́rs、【＠】トゥラヴァース、トラバース")))
 #+end_src
 
 **** additional emacs lisp code
@@ -9434,7 +9509,6 @@ Extendable version manager
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/desktop.scm")
     (specifications->manifest
      '("font-adobe-source-han-sans"
-       "fontconfig"
        "imagemagick"
        "pulseaudio"
        "gparted"
@@ -10601,7 +10675,7 @@ A structure described below is expected under all devices.
   "tree-sitter"
 #+end_src
 
-** Languate Servers
+** Language Servers
 
 *** Bash Language Server
 :PROPERTIES:
@@ -12384,18 +12458,156 @@ Stripping rules are:
 #+end_src
 * Workflows
 
-** encode video files
+** Transcode Video Files
+:PROPERTIES:
+:CREATED:  [2022-09-15 Thu 14:44]
+:END:
+
+Transcoding my local video files with open codec, like VP9 and AV1, is effective for disc space usage.
 
 #+begin_src scheme :noweb-ref desktop-pkgs
   "ffmpeg"
   "dav1d"
+#+end_src
+
+#+begin_src shell :noweb-ref transc-shared
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  CRF=28
+  KBITRATE_AUDIO=128
+
+  function usage() {
+    cat <<_EOT_
+  Usage:
+    $(basename $0) [OPTIONS] <video_in> [<video_out>]
+
+  Description:
+    $(basename $0) encodes <video_in> to <video_out> in specified codec.
+
+  Options:
+    -c <CRF>      CRF value instead of ${CRF} (DEFAULT)
+    -B <AUDIO_BR> Audio Bitrate in kbps
+
+  _EOT_
+  }
+
+  if [ "${OPTIND}" = 1 ]; then
+    while getopts c:B:h OPT
+    do
+      case ${OPT} in
+      c)
+        CRF=${OPTARG}
+        ;;
+      B)
+        CRF=${OPTARG}
+        ;;
+      h)
+        usage
+        ;;
+      \?)
+        echo "Try to enter the h option." 1>&2
+        ;;
+      esac
+    done
+  else
+    echo "No installed getopts-command." 1>&2
+    exit 1
+  fi
+
+  shift $((OPTIND - 1))
+
+  if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+    usage
+    exit -1
+  fi
+
+  INPUT_VIDEO=$1
+  if [ ! -e "${INPUT_VIDEO}" ]; then
+    echo "${INPUT_VIDEO} does not exist." 1>&2
+    exit -1
+  fi
+
+  if [[ $# -eq 2 ]]; then
+    output_cand=$2
+  else
+    output_cand=$(basename "${INPUT_VIDEO}").webm
+  fi
+  if [ -e ${output_cand} ]; then
+    OUTPUT_VIDEO=${output_cand%.*}_$(date +%Y%m%d_%H%M).webm
+  else
+    OUTPUT_VIDEO="${output_cand}"
+  fi
+
+  WORK_DIR="${INPUT_VIDEO%.*}"
+#+end_src
+
+*** vp9 transcoding
+
+- transcode video to vp9
+  : $ vp9transc video_orig.mkv video_vp9.webm
+
+#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/vp9transc") :tangle-mode (identity #o555)
+  <<transc-shared>>
+
+  vp9_opts_pass1="-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf ${CRF} -pass 1 -an -f null"
+  vp9_opts_pass2="-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf ${CRF} -pass 2 -map_metadata 0"
+  opus_opts="-c:a libopus -b:a ${KBITRATE_AUDIO}k -ac 2"
+
+  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass1} /dev/null \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
+#+end_src
+*** av1 transcoding
+
+- transcode video to av1
+  : $ av1transc video_orig.mkv video_av1.webm
+
+#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/av1transc") :tangle-mode (identity #o555)
+  <<transc-shared>>
+
+  av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf ${CRF}"
+  av1_opts_pass1="${av1_opts_common} -pass 1 -an -f null"
+  av1_opts_pass2="${av1_opts_common} -pass 2 -map_metadata 0"
+  opus_opts="-c:a libopus -b:a ${KBITRATE_AUDIO}k -ac 2"
+
+  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass1} /dev/null \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
+#+end_src
+
+** Transcode Audio Files
+
+- usage
+  + encode bulk podcast files for 64kb/s (in Dired)
+    : $ nohup parallel opusencode "{}" "{.}".oga ::: *
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/opusencode") :tangle-mode (identity #o555)
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  if [[ $# -ge 1 ]]; then
+    INPUT_VIDEO=$1
+    if [[ $# -eq 2 ]]; then
+      OUTPUT_VIDEO=$2
+    else
+      OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").oga
+    fi
+  fi
+
+  opus_opts="-c:a libopus -b:a 64k -ac 2"
+
+  ffmpeg -i "${INPUT_VIDEO}" ${opus_opts} "${OUTPUT_VIDEO}"
+#+end_src
+
+** DVD Packing
+
+#+begin_src scheme :noweb-ref desktop-pkgs
   "handbrake"
   "dvdbackup"
   "libdvdnav"
   "libdvdcss"
 #+end_src
-
-*** dvdpack
 
 #+begin_src shell :tangle (expand-tangle-target ".local/bin/dvdpack") :tangle-mode (identity #o555)
   #!/usr/bin/env bash
@@ -12435,83 +12647,9 @@ Stripping rules are:
 
   HandBrakeCLI --input "${DVD_DIR}" --output "${DVD_PACK_VIDEO}" ${hb_opts}
 #+end_src
-*** vp9encode
+** CD Ripping
 
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/vp9encode") :tangle-mode (identity #o555)
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  if [[ $# -ge 1 ]]; then
-    INPUT_VIDEO=$1
-    if [[ $# -eq 2 ]]; then
-      OUTPUT_VIDEO=$2
-    else
-      OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").webm
-    fi
-  fi
-  WORK_DIR="${INPUT_VIDEO%.*}"_work
-
-  vp9_opts_pass1='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 28 -pass 1 -an -f null'
-  vp9_opts_pass2='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 28 -pass 2 -map_metadata 0'
-  opus_opts='-c:a libopus -b:a 128k -ac 2'
-
-  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass1} /dev/null \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
-#+end_src
-*** av1encode
-
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/av1encode") :tangle-mode (identity #o555)
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  if [[ $# -ge 1 ]]; then
-    INPUT_VIDEO=$1
-    if [[ $# -eq 2 ]]; then
-      OUTPUT_VIDEO=$2
-    else
-      OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").webm
-    fi
-  fi
-  WORK_DIR="${INPUT_VIDEO%.*}"_work
-
-  av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf 26"
-  av1_opts_pass1="${av1_opts_common} -pass 1 -an -f null"
-  av1_opts_pass2="${av1_opts_common} -pass 2 -map_metadata 0"
-  opus_opts='-c:a libopus -b:a 128k -ac 2'
-
-  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass1} /dev/null \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
-#+end_src
-
-** encode audio files
-
-- usage
-  + encode bulk podcast files for 64kb/s (in Dired)
-    : $ nohup parallel opusencode "{}" "{.}".oga ::: *
-
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/opusencode") :tangle-mode (identity #o555)
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  if [[ $# -ge 1 ]]; then
-    INPUT_VIDEO=$1
-    if [[ $# -eq 2 ]]; then
-      OUTPUT_VIDEO=$2
-    else
-      OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").oga
-    fi
-  fi
-
-  opus_opts="-c:a libopus -b:a 64k -ac 2"
-
-  ffmpeg -i "${INPUT_VIDEO}" ${opus_opts} "${OUTPUT_VIDEO}"
-#+end_src
-
-** rip my CDs
-
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref desktop-pkgs
   "abcde"
   "cdrtools"
   "easytag"
@@ -12523,10 +12661,12 @@ Stripping rules are:
 
     OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
   #+END_SRC
-** create tutorial videos
+** Tutorial Video Creation
 :PROPERTIES:
 :CREATED:  [2022-08-15 Mon 20:13]
 :END:
+
+[[https://www.thregr.org/~wavexx/software/screenkey/][Screencast your keys.]]
 
 : $ screenkey -p fixed -g 1090x248+1470+348
 
@@ -12536,8 +12676,25 @@ Stripping rules are:
   "gimp"
   "obs"
   "kdenlive"
+  "audacity"
 #+end_src
 
 #+begin_src json :tangle no  :tangle (expand-tangle-target ".config/screenkey.json")  :tangle-mode (identity #o644)
   {"no_systray": false, "timeout": 0.5, "recent_thr": 0.1, "compr_cnt": 3, "ignore": [], "position": "bottom", "persist": false, "font_desc": "Sans Bold", "font_size": "medium", "font_color": "white", "bg_color": "black", "opacity": 0.9, "key_mode": "composed", "bak_mode": "baked", "mods_mode": "emacs", "mods_only": false, "multiline": false, "vis_shift": true, "vis_space": true, "geometry": null, "screen": 0, "start_disabled": false, "mouse": false, "button_hide_duration": 2.0}
 #+end_src
+* Distributions
+:PROPERTIES:
+:CREATED:  [2022-09-03 Sat 14:59]
+:END:
+** Linux Mint (Cinnamon Desktop)
+:PROPERTIES:
+:CREATED:  [2022-09-03 Sat 15:00]
+:ID:       f3cd9a3b-9ff5-4cc8-807e-846f3f04c97a
+:END:
+- Back-up Cinnamon Desktop Configuration
+  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
+    11 1 1 * * env bash -ci "dconf dump /org/cinnamon/ > ~/.config/linuxmint/cinnamon.conf"
+  #+end_src
+
+  To thaw backed up config
+  : $ dconf load /org/cinnamon/ < ~/.config/linuxmint/cinnamon.conf
