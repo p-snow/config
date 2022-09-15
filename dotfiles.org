@@ -12456,18 +12456,156 @@ Stripping rules are:
 #+end_src
 * Workflows
 
-** encode video files
+** Transcode Video Files
+:PROPERTIES:
+:CREATED:  [2022-09-15 Thu 14:44]
+:END:
+
+Transcoding my local video files with open codec, like VP9 and AV1, is effective for disc space usage.
 
 #+begin_src scheme :noweb-ref desktop-pkgs
   "ffmpeg"
   "dav1d"
+#+end_src
+
+#+begin_src shell :noweb-ref transc-shared
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  CRF=28
+  KBITRATE_AUDIO=128
+
+  function usage() {
+    cat <<_EOT_
+  Usage:
+    $(basename $0) [OPTIONS] <video_in> [<video_out>]
+
+  Description:
+    $(basename $0) encodes <video_in> to <video_out> in specified codec.
+
+  Options:
+    -c <CRF>      CRF value instead of ${CRF} (DEFAULT)
+    -B <AUDIO_BR> Audio Bitrate in kbps
+
+  _EOT_
+  }
+
+  if [ "${OPTIND}" = 1 ]; then
+    while getopts c:B:h OPT
+    do
+      case ${OPT} in
+      c)
+        CRF=${OPTARG}
+        ;;
+      B)
+        CRF=${OPTARG}
+        ;;
+      h)
+        usage
+        ;;
+      \?)
+        echo "Try to enter the h option." 1>&2
+        ;;
+      esac
+    done
+  else
+    echo "No installed getopts-command." 1>&2
+    exit 1
+  fi
+
+  shift $((OPTIND - 1))
+
+  if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+    usage
+    exit -1
+  fi
+
+  INPUT_VIDEO=$1
+  if [ ! -e "${INPUT_VIDEO}" ]; then
+    echo "${INPUT_VIDEO} does not exist." 1>&2
+    exit -1
+  fi
+
+  if [[ $# -eq 2 ]]; then
+    output_cand=$2
+  else
+    output_cand=$(basename "${INPUT_VIDEO}").webm
+  fi
+  if [ -e ${output_cand} ]; then
+    OUTPUT_VIDEO=${output_cand%.*}_$(date +%Y%m%d_%H%M).webm
+  else
+    OUTPUT_VIDEO="${output_cand}"
+  fi
+
+  WORK_DIR="${INPUT_VIDEO%.*}"
+#+end_src
+
+*** vp9 transcoding
+
+- transcode video to vp9
+  : $ vp9transc video_orig.mkv video_vp9.webm
+
+#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/vp9transc") :tangle-mode (identity #o555)
+  <<transc-shared>>
+
+  vp9_opts_pass1="-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf ${CRF} -pass 1 -an -f null"
+  vp9_opts_pass2="-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf ${CRF} -pass 2 -map_metadata 0"
+  opus_opts="-c:a libopus -b:a ${KBITRATE_AUDIO}k -ac 2"
+
+  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass1} /dev/null \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
+#+end_src
+*** av1 transcoding
+
+- transcode video to av1
+  : $ av1transc video_orig.mkv video_av1.webm
+
+#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/av1transc") :tangle-mode (identity #o555)
+  <<transc-shared>>
+
+  av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf ${CRF}"
+  av1_opts_pass1="${av1_opts_common} -pass 1 -an -f null"
+  av1_opts_pass2="${av1_opts_common} -pass 2 -map_metadata 0"
+  opus_opts='-c:a libopus -b:a ${KBITRATE_AUDIO}k -ac 2'
+
+  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass1} /dev/null \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
+#+end_src
+
+** Transcode Audio Files
+
+- usage
+  + encode bulk podcast files for 64kb/s (in Dired)
+    : $ nohup parallel opusencode "{}" "{.}".oga ::: *
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/opusencode") :tangle-mode (identity #o555)
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  if [[ $# -ge 1 ]]; then
+    INPUT_VIDEO=$1
+    if [[ $# -eq 2 ]]; then
+      OUTPUT_VIDEO=$2
+    else
+      OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").oga
+    fi
+  fi
+
+  opus_opts="-c:a libopus -b:a 64k -ac 2"
+
+  ffmpeg -i "${INPUT_VIDEO}" ${opus_opts} "${OUTPUT_VIDEO}"
+#+end_src
+
+** DVD Packing
+
+#+begin_src scheme :noweb-ref desktop-pkgs
   "handbrake"
   "dvdbackup"
   "libdvdnav"
   "libdvdcss"
 #+end_src
-
-*** dvdpack
 
 #+begin_src shell :tangle (expand-tangle-target ".local/bin/dvdpack") :tangle-mode (identity #o555)
   #!/usr/bin/env bash
@@ -12507,81 +12645,7 @@ Stripping rules are:
 
   HandBrakeCLI --input "${DVD_DIR}" --output "${DVD_PACK_VIDEO}" ${hb_opts}
 #+end_src
-*** vp9encode
-
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/vp9encode") :tangle-mode (identity #o555)
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  if [[ $# -ge 1 ]]; then
-    INPUT_VIDEO=$1
-    if [[ $# -eq 2 ]]; then
-      OUTPUT_VIDEO=$2
-    else
-      OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").webm
-    fi
-  fi
-  WORK_DIR="${INPUT_VIDEO%.*}"_work
-
-  vp9_opts_pass1='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 28 -pass 1 -an -f null'
-  vp9_opts_pass2='-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf 28 -pass 2 -map_metadata 0'
-  opus_opts='-c:a libopus -b:a 128k -ac 2'
-
-  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass1} /dev/null \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
-#+end_src
-*** av1encode
-
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/av1encode") :tangle-mode (identity #o555)
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  if [[ $# -ge 1 ]]; then
-    INPUT_VIDEO=$1
-    if [[ $# -eq 2 ]]; then
-      OUTPUT_VIDEO=$2
-    else
-      OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").webm
-    fi
-  fi
-  WORK_DIR="${INPUT_VIDEO%.*}"_work
-
-  av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf 26"
-  av1_opts_pass1="${av1_opts_common} -pass 1 -an -f null"
-  av1_opts_pass2="${av1_opts_common} -pass 2 -map_metadata 0"
-  opus_opts='-c:a libopus -b:a 128k -ac 2'
-
-  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass1} /dev/null \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
-#+end_src
-
-** encode audio files
-
-- usage
-  + encode bulk podcast files for 64kb/s (in Dired)
-    : $ nohup parallel opusencode "{}" "{.}".oga ::: *
-
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/opusencode") :tangle-mode (identity #o555)
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  if [[ $# -ge 1 ]]; then
-    INPUT_VIDEO=$1
-    if [[ $# -eq 2 ]]; then
-      OUTPUT_VIDEO=$2
-    else
-      OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").oga
-    fi
-  fi
-
-  opus_opts="-c:a libopus -b:a 64k -ac 2"
-
-  ffmpeg -i "${INPUT_VIDEO}" ${opus_opts} "${OUTPUT_VIDEO}"
-#+end_src
-
-** rip my CDs
+** CD Ripping
 
 #+begin_src scheme :noweb-ref desktop-pkgs
   "abcde"
@@ -12595,7 +12659,7 @@ Stripping rules are:
 
     OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
   #+END_SRC
-** create tutorial videos
+** Tutorial Video Creation
 :PROPERTIES:
 :CREATED:  [2022-08-15 Mon 20:13]
 :END:
