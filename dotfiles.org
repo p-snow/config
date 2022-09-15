@@ -7778,6 +7778,21 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
      (t "")))
 #+end_src
 
+***** list someday tasks
+:PROPERTIES:
+:CREATED:  [2022-09-15 Thu 22:06]
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org-ql-view
+    (push `("Someday tasks"
+            :buffers-files org-agenda-files
+            :query (todo ,org-todo-keyword-4)
+            :super-groups ((:auto-outline-path))
+            :sort (priority date))
+          org-ql-views))
+#+end_src
+
 ***** learning english words/phrases
 
 1. Capture an word to study by invoking my/org-english-capture
@@ -7839,10 +7854,11 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
                     end))
 
   (with-eval-after-load 'org-ql-view
-    (push `("English phrase list"
+    (push `("English words to learn"
             :buffers-files ,(list my/org-english-file)
             :query (and (tags "drill")
-                        (tags "fd_en")))
+                        (tags "fd_en"))
+            :sort (scheduled date))
           org-ql-views))
 
   (with-eval-after-load 'org-capture
