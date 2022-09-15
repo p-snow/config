@@ -40,10 +40,11 @@
 :CREATED:  [2022-09-07 Wed 19:08]
 :END:
 
-*** System Fonts
-:PROPERTIES:
-:CREATED:  [2022-09-13 Tue 16:24]
-:END:
+*** Fontconfig
+
+#+begin_src scheme :noweb-ref desktop-pkgs
+  "fontconfig"
+#+end_src
 
 #+begin_src scheme :noweb-ref desktop-pkgs
   "font-ipa-ex"
@@ -51,10 +52,12 @@
   "font-inconsolata"
 #+end_src
 
-*** Fontconfig
-
-#+begin_src scheme
-  "fontconfig"
+#+begin_src xml :noweb tangle :tangle (expand-tangle-target ".config/fontconfig/fonts.conf")
+  <?xml version='1.0'?>
+  <!DOCTYPE fontconfig SYSTEM 'fonts.dtd'>
+  <fontconfig>
+    <dir><<home-dir()>>/.guix-extra-profiles/desktop/desktop/share/fonts</dir>
+  </fontconfig>
 #+end_src
 
 - install available fonts by rescanning font directories
