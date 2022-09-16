@@ -25,12 +25,227 @@
   #+begin_src shell :eval no-export
     echo -n "${EMAIL}" | cut -d'@' -f2
   #+end_src
-- utility functions
-  #+name: hours-in-sec
-  #+begin_src emacs-lisp :var h=1
-    (* h 60 60)
+
+* Distributions
+:PROPERTIES:
+:CREATED:  [2022-09-03 Sat 14:59]
+:END:
+** Linux Mint (Cinnamon Desktop)
+:PROPERTIES:
+:CREATED:  [2022-09-03 Sat 15:00]
+:ID:       f3cd9a3b-9ff5-4cc8-807e-846f3f04c97a
+:END:
+- Back-up Cinnamon Desktop Configuration
+  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
+    11 1 1 * * env bash -ci "dconf dump /org/cinnamon/ > ~/.config/linuxmint/cinnamon.conf"
   #+end_src
 
+  To thaw backed up config
+  : $ dconf load /org/cinnamon/ < ~/.config/linuxmint/cinnamon.conf
+** GNU Guix
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/SystemCrafters/guix-installer/releases.atom" soft_update)
+#+end_src
+
+#+begin_src shell :noweb-ref bashrc
+  GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
+
+  # fill in a variable below like a comment line
+  # if you'd like to acticate specific profiles under GUIX_EXTRA_PROFILES
+  ACTIVE_PROFILE_NAMES=()
+  # ACTIVE_PROFILE_NAMES=(base emacs)
+
+  profiles=()
+  if [ ${#ACTIVE_PROFILE_NAMES[@]} -eq 0 ]; then
+    profiles="${GUIX_EXTRA_PROFILES}/*"
+  else
+    for name in ${ACTIVE_PROFILE_NAMES[@]}; do
+      profiles+=("${GUIX_EXTRA_PROFILES}/${name}")
+    done
+  fi
+
+  for profile in ${profiles[@]}; do
+    GUIX_PROFILE="${profile}/$(basename ${profile})"
+    if [ -f ${GUIX_PROFILE}/etc/profile ]; then
+      . "${GUIX_PROFILE}"/etc/profile
+    fi
+  done
+
+  export GUIX_PROFILE="$HOME/.guix-profile"
+  . "$GUIX_PROFILE/etc/profile"
+
+  export GUIX_PROFILE="$HOME/.config/guix/current"
+  . "$GUIX_PROFILE/etc/profile"
+
+  export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
+#+end_src
+
+*** Channel definitions
+
+#+begin_src scheme :tangle (expand-tangle-target ".config/guix/base-channels.scm")
+  (list (channel
+         (name 'nonguix)
+         (url "https://gitlab.com/nonguix/nonguix"))
+        (channel
+         (name 'guix)
+         (url "https://git.savannah.gnu.org/git/guix.git"))
+        (channel
+         (name 'flat)
+         (url "https://github.com/flatwhatson/guix-channel.git")))
+#+end_src
+
+*** Manifests
+- base
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/base.scm")
+    (specifications->manifest
+     '("coreutils"
+       "diffutils"
+       "parallel"
+       "gawk"
+       "sed"
+       "tar"
+       "zip"
+       "unzip"
+       "zstd"
+       "shadow"
+       "sshfs"
+       "grep"
+       "ripgrep"
+       "less"
+       "gnupg"
+       "pwgen"
+       "file"
+       "nkf"
+       "lsof"
+       "tree"
+       "poppler"
+       "pass-git-helper"
+       "stow"
+       "pandoc"
+       "nss-certs"
+       "openssl"
+       "glibc-locales"
+       "procps"
+       "time"
+       "htop"
+       "net-tools"
+       "curl"
+       "wget"
+       "ghc-tldr"
+       "speedtest-cli"
+       "fdisk"
+       "gptfdisk"
+       "ddrescue"
+       "sqlite"
+       "libarchive"
+       "ffmpeg"
+       "dav1d"
+       <<base-pkgs>>))
+  #+end_src
+- desktop
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/desktop.scm")
+    (specifications->manifest
+     '("font-adobe-source-han-sans"
+       "imagemagick"
+       "pulseaudio"
+       "gparted"
+       "vlc"
+       "gcompris-qt"
+       <<desktop-pkgs>>))
+  #+end_src
+- creative
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/creative.scm")
+    (specifications->manifest
+     '(;; "krita"
+       <<creative-pkgs>>))
+  #+end_src
+- devel (software development)
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/devel.scm")
+    (specifications->manifest
+     '("binutils"
+       "make"
+       "llvm"
+       "cmake"
+       "libtool"
+       "texinfo"
+       "shellcheck"
+       "global"
+       "perl"
+       <<devel-pkgs>>))
+  #+end_src
+- emacs
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/emacs.scm")
+    (specifications->manifest
+     '("isync"
+       <<emacs-pkgs>>
+       "stunnel"
+       "wordnet"))
+  #+end_src
+- wine
+  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/wine.scm")
+    (specifications->manifest
+     '("wine64"
+       "winetricks"))
+  #+end_src
+*** Activating Profiles
+
+This script accepts a space-separated list of manifest file names (without extension) under the =~/.config/guix/manifests= folder and then installs those profiles for the first time.  For example:
+
+: activate-profiles base emacs
+
+#+begin_src sh :tangle :tangle (expand-tangle-target ".local/bin/activate-profiles") :shebang #!/bin/sh :tangle-mode (identity #o755)
+  GREEN='\033[1;32m'
+  RED='\033[1;30m'
+  NC='\033[0m'
+  GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
+
+  profiles=$*
+  if [ $# -eq 0 ]; then
+      profiles="$HOME/.config/guix/manifests/*.scm";
+  fi
+
+  for profile in $profiles; do
+    # Remove the path and file extension, if any
+    profileName=$(basename $profile)
+    profileName="${profileName%.*}"
+    profilePath="$GUIX_EXTRA_PROFILES/$profileName"
+    manifestPath=$HOME/.config/guix/manifests/$profileName.scm
+
+    if [ -f $manifestPath ]; then
+      echo
+      echo -e "${GREEN}Activating profile:" $manifestPath "${NC}"
+      echo
+
+      mkdir -p $profilePath
+      guix package --manifest=$manifestPath --profile="$profilePath/$profileName"
+
+      # Source the new profile
+      GUIX_PROFILE="$profilePath/$profileName"
+      if [ -f $GUIX_PROFILE/etc/profile ]; then
+          . "$GUIX_PROFILE"/etc/profile
+      else
+          echo -e "${RED}Couldn't find profile:" $GUIX_PROFILE/etc/profile "${NC}"
+      fi
+    else
+      echo "No profile found at path" $profilePath
+    fi
+  done
+#+end_src
+*** Updating Channels
+
+This script makes it easy to update all channels to the latest commit based on an original channel file.
+
+: update-channels
+
+You can use ~/.config/guix/channels.scm to replicate exact packages on another machine with
+
+: guix pull -C ~/.config/guix/channels.scm
+
+#+begin_src sh :tangle (expand-tangle-target ".local/bin/update-channels") :shebang #!/bin/sh :tangle-mode (identity #o755)
+  guix pull --channels=$HOME/.config/guix/base-channels.scm
+  guix describe --format=channels > ~/.config/guix/channels.scm
+#+end_src
 * System Components
 :PROPERTIES:
 :CREATED:  [2022-09-13 Tue 16:14]
@@ -71,6 +286,478 @@
 #+begin_src scheme
   "gnome-font-viewer"
 #+end_src
+
+** Bash
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "bash"
+#+end_src
+
+- bash profile
+  #+BEGIN_SRC bash :tangle (expand-tangle-target ".bash_profile")
+    #!/usr/bin/env bash
+
+    if [ -f ~/.bashrc ]; then
+       source ~/.bashrc
+    fi
+  #+END_SRC
+- bashrc
+  #+BEGIN_SRC bash :noweb yes :tangle (expand-tangle-target ".bashrc")
+    #!/usr/bin/env bash
+
+    if [ -f ~/.bashrc.secret ]; then
+       source ~/.bashrc.secret
+    fi
+
+    export VIEWER=less
+
+    USER_PATHS=(
+      "${HOME}/usr/bin"
+      "${HOME}/.local/bin"
+    )
+    for path in "${USER_PATHS[@]}"; do
+      if [ -d "${path}" ]; then
+        export PATH="${path}:$PATH"
+      fi
+    done
+
+    if [ -e $HOME/.bash_aliases ]; then
+      source $HOME/.bash_aliases
+    fi
+    if [ -e $HOME/.bash_functions ]; then
+      source $HOME/.bash_functions
+    fi
+
+    # prompt
+    MACHINE=$(echo $(uname -n) | awk -F . '{print $1}')
+    PS1="[\u@${MACHINE}:\\W]\n\$ "
+
+    # function/variable used in libvterm/emacs
+    vterm_printf(){
+      if [ -n "$TMUX" ]; then
+        # Tell tmux to pass the escape sequences through
+        # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
+        printf "\ePtmux;\e\e]%s\007\e\\" "$1"
+      elif [ "${TERM%%-*}" = "screen" ]; then
+        # GNU screen (screen, screen-256color, screen-256color-bce)
+        printf "\eP\e]%s\007\e\\" "$1"
+      else
+        printf "\e]%s\e\\" "$1"
+      fi
+    }
+
+    vterm_prompt_end(){
+      vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
+    }
+
+    PROMPT_COMMAND='echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
+
+    case ${TERM} in
+    dumb)
+      ;;
+    xterm-256color)
+      export LANG=en_US.UTF-8
+      PS1=$PS1'\[$(vterm_prompt_end)\]'
+      ;;
+    ,*)
+      export LANG=ja_JP.UTF-8
+      ;;
+    esac
+
+    export WINEARCH=win64
+    export WINEPREFIX=~/.wine
+
+    <<bashrc>>
+  #+END_SRC
+- aliases
+  #+begin_src bash :tangle (expand-tangle-target ".bash_aliases")
+    alias ..="cd ../"
+    alias l="ls -F"
+    alias ll="l -lh"
+    alias la="l -a"
+    alias lal="l -alh"
+    alias lld="l -ld"
+    alias cp="cp -i"
+    alias mv="mv -i"
+    alias rm="rm -i"
+    alias rmf="rm -rf"
+    alias mkdir="mkdir -pv"
+    alias rmdir="rmdir -v"
+    alias ff='find . -type f -iname'
+
+    alias cputemp='cat /sys/class/thermal/thermal_zone0/temp'
+    alias ipaddr="hostname -I | cut -f1 -d' '"
+  #+end_src
+- functions
+  #+begin_src bash :tangle (expand-tangle-target ".bash_functions")
+    function cl() {
+        DIR="$*";
+            # if no DIR given, go home
+            if [ $# -lt 1 ]; then
+              DIR=$HOME;
+        fi;
+
+        builtin cd "${DIR}" && \
+          # use your preferred ls command
+          ls -F --color=auto
+    }
+
+    function cpuinfo {
+      cores=$(nproc)
+      frequency=$(grep MHz /proc/cpuinfo | head -1 | awk -F ' ' '{print $4" MHz"}')
+      model=$(grep "model name" /proc/cpuinfo | head -1 | sed -r 's/^.{13}//')
+      echo "CPU Model: $model"
+      echo "CPU Cores: $cores"
+      echo "Frequency: $frequency"
+    }
+
+    function dual() {
+      if [ $# -eq 0 ]; then
+        du_arg="./* ./.[^.]*"
+      else
+        du_arg=""
+        for v in "$@"
+        do
+          if [ -f ${v} ]; then
+            du_arg="${du_arg} ${v}"
+          elif [ -d ${v} ]; then
+            du_arg="${du_arg} ${v}/* ${v}/.[^.]*"
+          fi
+        done
+      fi
+
+      ionice -c2 -n7 nice -n19 du -scD ${du_arg} 2>/dev/null
+    }
+    export -f dual
+
+    function mkcdir() {
+      mkdir -p -- "$1" && cd -P -- "$1"
+    }
+
+    function rms() {
+      read -p 'shred all files - are you sure (y/n) ? ' ans
+      test x$ans == xy && (
+        for file in "$@"; do
+          if [ -f "${file}" ]; then
+            shred -uzv "${file}"
+          elif [ -d "${file}" ]; then
+            find "${file}" -type f -exec shred -uzv {} \;
+            rm -rf "${file}"
+          fi
+        done
+      )
+    }
+
+    # A simple script to check on system resources
+    function chksys() {
+      clear
+
+      echo "Memory Usage:"
+      /usr/bin/free -h
+
+      echo $'\n'$"Disk Usage:"
+      /bin/df -h /dev/sd[a-z][1-9] 2>/dev/null
+
+      echo $'\n'$"Uptime:"
+      /usr/bin/uptime
+    }
+  #+end_src
+- profile
+  #+BEGIN_SRC bash :tangle (expand-tangle-target ".profile")
+    # ~/.profile: executed by the command interpreter for login shells.
+    # This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
+    # exists.
+    # see /usr/share/doc/bash/examples/startup-files for examples.
+    # the files are located in the bash-doc package.
+
+    # the default umask is set in /etc/profile; for setting the umask
+    # for ssh logins, install and configure the libpam-umask package.
+    #umask 022
+
+    # if running bash
+    if [ -n "$BASH_VERSION" ]; then
+        # include .bash_profile if it exists
+        if [ -f "$HOME/.bash_profile" ]; then
+            . "$HOME/.bash_profile"
+        fi
+    fi
+
+    # set PATH so it includes user's private bin if it exists
+    if [ -d "$HOME/bin" ] ; then
+        PATH="$HOME/bin:$PATH"
+    fi
+
+    # set PATH so it includes user's private bin if it exists
+    if [ -d "$HOME/.local/bin" ] ; then
+        PATH="$HOME/.local/bin:$PATH"
+    fi
+  #+END_SRC
+** Systemd
+
+- systemd-tmpfiles
+
+  [[https://www.freedesktop.org/software/systemd/man/systemd-tmpfiles-setup.service.html][systemd-tmpfiles]] manages file creation and deletion. In this section, all settings focus on user level file cleanup and deletion under /home directory.
+
+  You may need to enable systemd-tmpfiles service for user
+  : $ cd /usr/lib/systemd/user
+  : $ cp systemd-tmpfiles-* ~/.config/systemd/user/
+  : $ systemctl --user enable systemd-tmpfiles-setup.service systemd-tmpfiles-clean.timer
+
+  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/user-tmpfiles.d/cleanup.conf")
+    D <<home-dir()>>/.local/share/Trash/files 0700 - - 2w
+    d <<home-dir()>>/tmp 0755 - - 1w
+    d <<home-dir()>>/Downloads 0755 - - 4w
+    <<tmpfiles-cleanup>>
+  #+end_src
+
+** Vixie Cron
+
+#+begin_src conf :noweb yes :tangle (expand-tangle-target ".config/crontab/pc")
+  MAILTO="<<email()>>"
+
+  BIN_DIR="<<home-dir()>>/bin"
+  LOG_DIR="<<home-dir()>>/.local/state/log"
+
+  <<cronjob-pc>>
+#+end_src
+
+** Btrfs
+
+Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mechanism.
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "btrfs-progs"
+#+end_src
+
+*** btrbk
+
+[[https://digint.ch/btrbk/doc/btrbk.1.html][Btrbk]] supports for taking snapshots and backups
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "btrbk"
+#+end_src
+
+**** btrbk.conf
+
+[[https://digint.ch/btrbk/doc/btrbk.conf.5.html][btrbk.conf documentation]]
+
+#+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/btrbk/btrbk.conf")
+  snapshot_dir snapshots
+  timestamp_format long
+  incremental yes
+
+  volume /mnt/in01
+    subvolume incumbents/home
+      snapshot_name home-local
+      snapshot_preserve 36h 3d 2w 1m
+      snapshot_preserve_min 6h
+    subvolume incumbents/home
+      snapshot_name home-backup
+      target send-receive /mnt/ex02/backups
+      target_preserve 1d 10w 6m 1y
+      target_preserve_min latest
+#+end_src
+
+**** snapshot/backup script
+
+- snapshot
+  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
+    */15 * * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf --loglevel error snapshot *-local >> $LOG_DIR/snaphome.log 2>&1"
+  #+end_src
+
+- backup
+
+  #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/bkhome") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+    BTRBK_CONF=~/.config/btrbk/btrbk.conf
+
+    pwsudo btrbk --config "${BTRBK_CONF}" --dry-run run *-backup \
+     && pwsudo btrbk --config "${BTRBK_CONF}" run *-backup
+  #+end_src
+
+  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
+    10 3 * * * /bin/bash -ci "bkhome >> $LOG_DIR/bkhome.log 2>&1"
+  #+end_src
+
+*** snapshots management                      :ARCHIVE:
+
+A structure described below is expected under all devices.
+
+/mountpoint/
+├── backups
+├── incumbents
+└── snapshots
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/btrfs_snap") :tangle-mode (identity #o755)
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  DATETIME=`date "+%Y%m%d-%H%M"`
+  BTRFS_MNTS=("/mnt/ssd01"
+              "/mnt/nvme01")
+
+  # back up server data beforehand
+  ssh -q -o BatchMode="yes" -o ConnectTimeout=10 sv04 "exit" \
+    && rsync -arhv sv04:~/var/backup ~/share/sv04
+
+  # take snapshots for all btrfs subvolumes
+  for btrfs_mnt in ${BTRFS_MNTS[@]}; do
+    if mountpoint ${btrfs_mnt} >/dev/null 2>&1; then
+      for subv in ${btrfs_mnt}/incumbents/*; do
+        subv_base=$(basename ${subv})
+        if [ ! -d "${btrfs_mnt}/snapshots/${subv_base}" ]; then
+          mkdir -p "${btrfs_mnt}/snapshots/${subv_base}"
+        fi
+        btrfs subvolume snapshot "${subv}" "${btrfs_mnt}/snapshots/${subv_base}/${DATETIME}"
+      done
+    fi
+  done
+  #+end_src
+
+*** backup to another device                  :ARCHIVE:
+
+: $ btrfs_back
+
+#+begin_src shell :tangle (expand-tangle-target ".local/bin/btrfs_back") :tangle-mode (identity #o755)
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  MNT_SSD=/mnt/ssd01
+  MNT_HDD=/mnt/hdd01
+
+  function backup_subvol() {
+    local _src_snap_dir=$1
+    local _src_back_dir=$2
+    local _dst_back_dir=$3
+
+    echo "Name: $(basename ${_src_back_dir})"
+
+    mkdir -pv "${_src_back_dir}"
+    mkdir -pv "${_dst_back_dir}"
+
+    src_back_last=$((ls -d "${_src_back_dir}"/* 2>/dev/null | sort | tail -1 | xargs basename) || echo -n "")
+    snap_last=$(ls -d "${_src_snap_dir}"/* 2>/dev/null | sort | tail -1 | xargs basename || echo -n "")
+
+    # create readonly clone of last snapshot
+    if [[ "${src_back_last}" < "${snap_last}" ]]; then
+      echo btrfs subv snap -r "${_src_snap_dir}/${snap_last}" "${_src_back_dir}/${src_back_last}"
+    fi
+
+    exit;
+
+    # determine parent btrfs subvolume
+    parent=
+    dst_backs=$(ls -d "${_dst_back_dir}"/* 2>/dev/null | sort || echo -n "")
+    if [ ${#dst_backs} -ne 0 ]; then
+      for dst_back in "${dst_backs[@]}"; do
+        test=$(basename ${dst_back})
+        if [ -d "${_src_back_dir}/${test}" ]; then
+          parent=${test}
+        fi
+      done
+    fi
+
+    # determine subvolume to send in source device
+    subvol=
+    if [ ${#src_back_last} -ne 0 ]; then
+      if [[ "${parent}" < "${src_back_last}" ]] && [ ! -d "${_dst_back_dir}/${src_back_last}" ]; then
+        subvol=${src_back_last}
+      fi
+    fi
+
+    echo "Parent: ${parent}"
+    echo "Subvol: ${subvol}"
+
+    if [ -n "${parent}" ] && [ -n "${subvol}" ]; then
+      echo "Invoke incremental backup"
+      sudo btrfs send -p "${_src_back_dir}/${parent}" "${_src_back_dir}/${subvol}" | sudo btrfs receive "${_dst_back_dir}"
+    elif [ -z "${parent}" ] && [ -n "${subvol}" ]; then
+      echo "Invoke full backup"
+      sudo btrfs send "${_src_back_dir}/${subvol}" | sudo btrfs receive "${_dst_back_dir}"
+    fi
+
+    echo "--------"
+  }
+
+  backup_subvol "${MNT_SSD}"/snapshots/doc "${MNT_SSD}"/backups/doc "${MNT_HDD}"/backups/doc
+  # backup_subvol "${MNT_SSD}"/snapshots/share "${MNT_SSD}"/backups/share "${MNT_HDD}"/backups/share
+#+end_src
+** XDG
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "xdg-utils"
+#+end_src
+
+*** xdg-mime
+- ask default application for text/plain
+  : $ xdg-mime query default text/plain
+
+#+begin_src conf :tangle (expand-tangle-target ".config/mimeapps.list") :tangle-mode (identity #o644)
+  [Added Associations]
+  inode/directory=io.github.celluloid_player.Celluloid.desktop;nemo.desktop;
+
+  [Default Applications]
+  inode/directory=nemo.desktop
+#+end_src
+
+*** xdg-user-dirs
+
+#+begin_src conf :tangle (expand-tangle-target ".config/user-dirs.dirs") :tangle-mode (identity #o644)
+  # This file is written by xdg-user-dirs-update
+  # If you want to change or add directories, just edit the line you're
+  # interested in. All local changes will be retained on the next run.
+  # Format is XDG_xxx_DIR="$HOME/yyy", where yyy is a shell-escaped
+  # homedir-relative path, or XDG_xxx_DIR="/yyy", where /yyy is an
+  # absolute path. No other format is supported.
+  #
+  XDG_DESKTOP_DIR="$HOME/Desktop"
+  XDG_DOWNLOAD_DIR="$HOME/Downloads"
+  XDG_TEMPLATES_DIR="$HOME/Templates"
+  XDG_PUBLICSHARE_DIR="$HOME/Public"
+  XDG_DOCUMENTS_DIR="$HOME/Documents"
+  XDG_MUSIC_DIR="$HOME/Music"
+  XDG_PICTURES_DIR="$HOME/Pictures"
+  XDG_VIDEOS_DIR="$HOME/Videos"
+#+end_src
+
+#+begin_src conf :tangle (expand-tangle-target ".config/user-dirs.locale") :tangle-mode (identity #o644)
+  en_US
+#+end_src
+** GnuPG (gpg)
+[[https://wiki.archlinux.org/title/GnuPG][
+GnuPG - ArchWiki]]
+
+- gpg config
+  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".gnupg/gpg.conf")
+    with-keygrip
+  #+end_src
+- gpg-agent config
+  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".gnupg/gpg-agent.conf")
+    # pinentry-program /usr/bin/pinentry-curses
+    pinentry-program /usr/bin/pinentry
+    allow-emacs-pinentry
+    allow-loopback-pinentry
+    enable-ssh-support
+    max-cache-ttl <<hours-in-sec(h=700)>>
+    default-cache-ttl <<hours-in-sec(h=700)>>
+    default-cache-ttl-ssh <<hours-in-sec(h=48)>>
+  #+end_src
+- mandatory config to use pinentry-curses for gpg-agent
+
+  #+begin_src shell :noweb-ref bashrc
+    export GPG_TTY=$(tty)
+
+    # Refresh gpg-agent tty in case user switches into an X session
+    gpg-connect-agent updatestartuptty /bye >/dev/null
+  #+end_src
+
+  #+begin_src conf :tangle (expand-tangle-target ".ssh/config")
+    Match host * exec "gpg-connect-agent UPDATESTARTUPTTY /bye"
+  #+end_src
+- utility
+  #+name: hours-in-sec
+  #+begin_src emacs-lisp :var h=1
+    (* h 60 60)
+  #+end_src
 
 * Application Configurations
 :PROPERTIES:
@@ -8038,240 +8725,6 @@ This section mainly for elisp code associated with some other programs.
   <<additional-elisp>>
 #+end_src
 
-** Bash
-
-#+begin_src scheme :noweb-ref base-pkgs
-  "bash"
-#+end_src
-
-- bash profile
-  #+BEGIN_SRC bash :tangle (expand-tangle-target ".bash_profile")
-    #!/usr/bin/env bash
-
-    if [ -f ~/.bashrc ]; then
-       source ~/.bashrc
-    fi
-  #+END_SRC
-- bashrc
-  #+BEGIN_SRC bash :noweb yes :tangle (expand-tangle-target ".bashrc")
-    #!/usr/bin/env bash
-
-    if [ -f ~/.bashrc.secret ]; then
-       source ~/.bashrc.secret
-    fi
-
-    export VIEWER=less
-
-    USER_PATHS=(
-      "${HOME}/usr/bin"
-      "${HOME}/.local/bin"
-    )
-    for path in "${USER_PATHS[@]}"; do
-      if [ -d "${path}" ]; then
-        export PATH="${path}:$PATH"
-      fi
-    done
-
-    if [ -e $HOME/.bash_aliases ]; then
-      source $HOME/.bash_aliases
-    fi
-    if [ -e $HOME/.bash_functions ]; then
-      source $HOME/.bash_functions
-    fi
-
-    # prompt
-    MACHINE=$(echo $(uname -n) | awk -F . '{print $1}')
-    PS1="[\u@${MACHINE}:\\W]\n\$ "
-
-    # function/variable used in libvterm/emacs
-    vterm_printf(){
-      if [ -n "$TMUX" ]; then
-        # Tell tmux to pass the escape sequences through
-        # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
-        printf "\ePtmux;\e\e]%s\007\e\\" "$1"
-      elif [ "${TERM%%-*}" = "screen" ]; then
-        # GNU screen (screen, screen-256color, screen-256color-bce)
-        printf "\eP\e]%s\007\e\\" "$1"
-      else
-        printf "\e]%s\e\\" "$1"
-      fi
-    }
-
-    vterm_prompt_end(){
-      vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
-    }
-
-    PROMPT_COMMAND='echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
-
-    case ${TERM} in
-    dumb)
-      ;;
-    xterm-256color)
-      export LANG=en_US.UTF-8
-      PS1=$PS1'\[$(vterm_prompt_end)\]'
-      ;;
-    ,*)
-      export LANG=ja_JP.UTF-8
-      ;;
-    esac
-
-    export WINEARCH=win64
-    export WINEPREFIX=~/.wine
-
-    <<bashrc>>
-  #+END_SRC
-- aliases
-  #+begin_src bash :tangle (expand-tangle-target ".bash_aliases")
-    alias ..="cd ../"
-    alias l="ls -F"
-    alias ll="l -lh"
-    alias la="l -a"
-    alias lal="l -alh"
-    alias lld="l -ld"
-    alias cp="cp -i"
-    alias mv="mv -i"
-    alias rm="rm -i"
-    alias rmf="rm -rf"
-    alias mkdir="mkdir -pv"
-    alias rmdir="rmdir -v"
-    alias ff='find . -type f -iname'
-
-    alias cputemp='cat /sys/class/thermal/thermal_zone0/temp'
-    alias ipaddr="hostname -I | cut -f1 -d' '"
-  #+end_src
-- functions
-  #+begin_src bash :tangle (expand-tangle-target ".bash_functions")
-    function cl() {
-        DIR="$*";
-            # if no DIR given, go home
-            if [ $# -lt 1 ]; then
-              DIR=$HOME;
-        fi;
-
-        builtin cd "${DIR}" && \
-          # use your preferred ls command
-          ls -F --color=auto
-    }
-
-    function cpuinfo {
-      cores=$(nproc)
-      frequency=$(grep MHz /proc/cpuinfo | head -1 | awk -F ' ' '{print $4" MHz"}')
-      model=$(grep "model name" /proc/cpuinfo | head -1 | sed -r 's/^.{13}//')
-      echo "CPU Model: $model"
-      echo "CPU Cores: $cores"
-      echo "Frequency: $frequency"
-    }
-
-    function dual() {
-      if [ $# -eq 0 ]; then
-        du_arg="./* ./.[^.]*"
-      else
-        du_arg=""
-        for v in "$@"
-        do
-          if [ -f ${v} ]; then
-            du_arg="${du_arg} ${v}"
-          elif [ -d ${v} ]; then
-            du_arg="${du_arg} ${v}/* ${v}/.[^.]*"
-          fi
-        done
-      fi
-
-      ionice -c2 -n7 nice -n19 du -scD ${du_arg} 2>/dev/null
-    }
-    export -f dual
-
-    function mkcdir() {
-      mkdir -p -- "$1" && cd -P -- "$1"
-    }
-
-    function rms() {
-      read -p 'shred all files - are you sure (y/n) ? ' ans
-      test x$ans == xy && (
-        for file in "$@"; do
-          if [ -f "${file}" ]; then
-            shred -uzv "${file}"
-          elif [ -d "${file}" ]; then
-            find "${file}" -type f -exec shred -uzv {} \;
-            rm -rf "${file}"
-          fi
-        done
-      )
-    }
-
-    # A simple script to check on system resources
-    function chksys() {
-      clear
-
-      echo "Memory Usage:"
-      /usr/bin/free -h
-
-      echo $'\n'$"Disk Usage:"
-      /bin/df -h /dev/sd[a-z][1-9] 2>/dev/null
-
-      echo $'\n'$"Uptime:"
-      /usr/bin/uptime
-    }
-  #+end_src
-- profile
-  #+BEGIN_SRC bash :tangle (expand-tangle-target ".profile")
-    # ~/.profile: executed by the command interpreter for login shells.
-    # This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
-    # exists.
-    # see /usr/share/doc/bash/examples/startup-files for examples.
-    # the files are located in the bash-doc package.
-
-    # the default umask is set in /etc/profile; for setting the umask
-    # for ssh logins, install and configure the libpam-umask package.
-    #umask 022
-
-    # if running bash
-    if [ -n "$BASH_VERSION" ]; then
-        # include .bash_profile if it exists
-        if [ -f "$HOME/.bash_profile" ]; then
-            . "$HOME/.bash_profile"
-        fi
-    fi
-
-    # set PATH so it includes user's private bin if it exists
-    if [ -d "$HOME/bin" ] ; then
-        PATH="$HOME/bin:$PATH"
-    fi
-
-    # set PATH so it includes user's private bin if it exists
-    if [ -d "$HOME/.local/bin" ] ; then
-        PATH="$HOME/.local/bin:$PATH"
-    fi
-  #+END_SRC
-** Cron
-
-#+begin_src conf :noweb yes :tangle (expand-tangle-target ".config/crontab/pc")
-  MAILTO="<<email()>>"
-
-  BIN_DIR="<<home-dir()>>/bin"
-  LOG_DIR="<<home-dir()>>/.local/state/log"
-
-  <<cronjob-pc>>
-#+end_src
-
-** Systemd
-
-- systemd-tmpfiles
-
-  [[https://www.freedesktop.org/software/systemd/man/systemd-tmpfiles-setup.service.html][systemd-tmpfiles]] manages file creation and deletion. In this section, all settings focus on user level file cleanup and deletion under /home directory.
-
-  You may need to enable systemd-tmpfiles service for user
-  : $ cd /usr/lib/systemd/user
-  : $ cp systemd-tmpfiles-* ~/.config/systemd/user/
-  : $ systemctl --user enable systemd-tmpfiles-setup.service systemd-tmpfiles-clean.timer
-
-  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/user-tmpfiles.d/cleanup.conf")
-    D <<home-dir()>>/.local/share/Trash/files 0700 - - 2w
-    d <<home-dir()>>/tmp 0755 - - 1w
-    d <<home-dir()>>/Downloads 0755 - - 4w
-    <<tmpfiles-cleanup>>
-  #+end_src
-
 ** Findutils
 
 [[https://www.gnu.org/software/findutils/][GNU Findutils]] offers following commands
@@ -9091,97 +9544,6 @@ aspell - interactive spell checker
 #+begin_src conf :tangle (expand-tangle-target ".aspell.conf")
   lang en_US
 #+end_src
-** asdf-vm                                     :ARCHIVE:
-Extendable version manager
-- call for init script in bashrc
-  #+begin_src shell
-    . $HOME/.asdf/asdf.sh
-    . $HOME/.asdf/completions/asdf.bash
-
-    export RUBYLIB=${RUBYLIB}:${HOME}/.local/lib
-  #+end_src
-- define versions
-  #+begin_src conf :comments noweb :tangle (expand-tangle-target ".tool-versions")
-    ruby 2.6.8
-    python 3.8.5
-  #+end_src
-
-  steps to install tools for specific versions
-  1. install plugins
-     : $ asdf plugin add ruby
-     : $ asdf plugin add python
-
-  2. install tools
-     : $ cd ~ && asdf install
-
-*** asdf-ruby
-#+begin_src conf :comments noweb :tangle (expand-tangle-target ".default-gems")
-  thor 1.2.1
-  pry 0.14.1
-  rubocop 1.26
-  exifr 1.2.6
-  streamio-ffmpeg
-#+end_src
-*** asdf-python
-#+begin_src python :tangle (expand-tangle-target ".default-python-packages")
-  lxml
-  jedi
-  ical2orgpy
-  Send2Trash
-#+end_src
-** Python
-
-#+begin_src scheme :noweb-ref base-pkgs
-  "python"
-  "python-sphinx"
-  "python-lxml"
-  "python-jedi"
-  "python-send2trash"
-  "python-matplotlib"
-#+end_src
-
-** Ruby
-
-#+begin_src scheme :noweb-ref base-pkgs
-  "ruby"
-  "ruby-pry"
-  "ruby-rubocop"
-  "ruby-thor"
-#+end_src
-
-#+begin_src shell :noweb-ref bashrc
-  export RUBYLIB=${HOME}/.local/lib
-#+end_src
-
-** Node.js
-:PROPERTIES:
-:CREATED:  [2022-08-01 Mon 13:52]
-:END:
-
-#+name: npm-prefix
-#+begin_src shell :eval no-export
-  echo ${HOME}/.npm-global
-#+end_src
-
-#+begin_src scheme :noweb-ref base-pkgs
-  "node"
-#+end_src
-
-#+begin_src shell :noweb yes :noweb-ref bashrc
-  NODE_PATH="<<npm-prefix()>>/lib/node_modules:${NODE_PATH}"
-  PATH="<<npm-prefix()>>/bin:${PATH}"
-  MANPATH="<<npm-prefix()>>/share/man:${MANPATH}"
-#+end_src
-
-#+begin_src bash :noweb yes :tangle (expand-tangle-target ".npmrc")
-  prefix=<<npm-prefix()>>
-#+end_src
-
-- make a directory for global npm packages
-  #+begin_src shell :tangle no :noweb yes
-    mkdir -pv <<npm-prefix()>>
-  #+end_src
-
 ** textlint
 :PROPERTIES:
 :CREATED:  [2022-07-31 Sun 14:53]
@@ -9401,239 +9763,6 @@ Extendable version manager
 2. Start systemd service for xkeysnail
    : $ systemctl --user enable xkeysnail
    : $ systemctl --user start xkeysnail
-** GnuPG (gpg)
-[[https://wiki.archlinux.org/title/GnuPG][GnuPG - ArchWiki]]
-
-- gpg config
-  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".gnupg/gpg.conf")
-    with-keygrip
-  #+end_src
-- gpg-agent config
-  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".gnupg/gpg-agent.conf")
-    # pinentry-program /usr/bin/pinentry-curses
-    pinentry-program /usr/bin/pinentry
-    allow-emacs-pinentry
-    allow-loopback-pinentry
-    enable-ssh-support
-    max-cache-ttl <<hours-in-sec(h=700)>>
-    default-cache-ttl <<hours-in-sec(h=700)>>
-    default-cache-ttl-ssh <<hours-in-sec(h=48)>>
-  #+end_src
-- mandatory config to use pinentry-curses for gpg-agent
-
-  #+begin_src shell :noweb-ref bashrc
-    export GPG_TTY=$(tty)
-
-    # Refresh gpg-agent tty in case user switches into an X session
-    gpg-connect-agent updatestartuptty /bye >/dev/null
-  #+end_src
-
-  #+begin_src conf :tangle (expand-tangle-target ".ssh/config")
-    Match host * exec "gpg-connect-agent UPDATESTARTUPTTY /bye"
-  #+end_src
-
-** GNU Guix
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/SystemCrafters/guix-installer/releases.atom" soft_update)
-#+end_src
-
-#+begin_src shell :noweb-ref bashrc
-  GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
-
-  # fill in a variable below like a comment line
-  # if you'd like to acticate specific profiles under GUIX_EXTRA_PROFILES
-  ACTIVE_PROFILE_NAMES=()
-  # ACTIVE_PROFILE_NAMES=(base emacs)
-
-  profiles=()
-  if [ ${#ACTIVE_PROFILE_NAMES[@]} -eq 0 ]; then
-    profiles="${GUIX_EXTRA_PROFILES}/*"
-  else
-    for name in ${ACTIVE_PROFILE_NAMES[@]}; do
-      profiles+=("${GUIX_EXTRA_PROFILES}/${name}")
-    done
-  fi
-
-  for profile in ${profiles[@]}; do
-    GUIX_PROFILE="${profile}/$(basename ${profile})"
-    if [ -f ${GUIX_PROFILE}/etc/profile ]; then
-      . "${GUIX_PROFILE}"/etc/profile
-    fi
-  done
-
-  export GUIX_PROFILE="$HOME/.guix-profile"
-  . "$GUIX_PROFILE/etc/profile"
-
-  export GUIX_PROFILE="$HOME/.config/guix/current"
-  . "$GUIX_PROFILE/etc/profile"
-
-  export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
-#+end_src
-
-*** Channel definitions
-
-#+begin_src scheme :tangle (expand-tangle-target ".config/guix/base-channels.scm")
-  (list (channel
-         (name 'nonguix)
-         (url "https://gitlab.com/nonguix/nonguix"))
-        (channel
-         (name 'guix)
-         (url "https://git.savannah.gnu.org/git/guix.git"))
-        (channel
-         (name 'flat)
-         (url "https://github.com/flatwhatson/guix-channel.git")))
-#+end_src
-
-*** Manifests
-- base
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/base.scm")
-    (specifications->manifest
-     '("coreutils"
-       "diffutils"
-       "parallel"
-       "gawk"
-       "sed"
-       "tar"
-       "zip"
-       "unzip"
-       "zstd"
-       "shadow"
-       "sshfs"
-       "grep"
-       "ripgrep"
-       "less"
-       "gnupg"
-       "pwgen"
-       "file"
-       "nkf"
-       "lsof"
-       "tree"
-       "poppler"
-       "pass-git-helper"
-       "stow"
-       "pandoc"
-       "nss-certs"
-       "openssl"
-       "glibc-locales"
-       "procps"
-       "time"
-       "htop"
-       "net-tools"
-       "curl"
-       "wget"
-       "ghc-tldr"
-       "speedtest-cli"
-       "fdisk"
-       "gptfdisk"
-       "ddrescue"
-       "sqlite"
-       "libarchive"
-       <<base-pkgs>>))
-  #+end_src
-- desktop
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/desktop.scm")
-    (specifications->manifest
-     '("font-adobe-source-han-sans"
-       "imagemagick"
-       "pulseaudio"
-       "gparted"
-       "vlc"
-       "gcompris-qt"
-       <<desktop-pkgs>>))
-  #+end_src
-- creative
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/creative.scm")
-    (specifications->manifest
-     '(;; "krita"
-       <<creative-pkgs>>))
-  #+end_src
-- devel (software development)
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/devel.scm")
-    (specifications->manifest
-     '("binutils"
-       "make"
-       "llvm"
-       "cmake"
-       "libtool"
-       "texinfo"
-       "shellcheck"
-       "global"
-       "perl"
-       <<devel-pkgs>>))
-  #+end_src
-- emacs
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/emacs.scm")
-    (specifications->manifest
-     '("isync"
-       <<emacs-pkgs>>
-       "stunnel"
-       "wordnet"))
-  #+end_src
-- wine
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/wine.scm")
-    (specifications->manifest
-     '("wine64"
-       "winetricks"))
-  #+end_src
-*** Activating Profiles
-
-This script accepts a space-separated list of manifest file names (without extension) under the =~/.config/guix/manifests= folder and then installs those profiles for the first time.  For example:
-
-: activate-profiles base emacs
-
-#+begin_src sh :tangle :tangle (expand-tangle-target ".local/bin/activate-profiles") :shebang #!/bin/sh :tangle-mode (identity #o755)
-  GREEN='\033[1;32m'
-  RED='\033[1;30m'
-  NC='\033[0m'
-  GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
-
-  profiles=$*
-  if [ $# -eq 0 ]; then
-      profiles="$HOME/.config/guix/manifests/*.scm";
-  fi
-
-  for profile in $profiles; do
-    # Remove the path and file extension, if any
-    profileName=$(basename $profile)
-    profileName="${profileName%.*}"
-    profilePath="$GUIX_EXTRA_PROFILES/$profileName"
-    manifestPath=$HOME/.config/guix/manifests/$profileName.scm
-
-    if [ -f $manifestPath ]; then
-      echo
-      echo -e "${GREEN}Activating profile:" $manifestPath "${NC}"
-      echo
-
-      mkdir -p $profilePath
-      guix package --manifest=$manifestPath --profile="$profilePath/$profileName"
-
-      # Source the new profile
-      GUIX_PROFILE="$profilePath/$profileName"
-      if [ -f $GUIX_PROFILE/etc/profile ]; then
-          . "$GUIX_PROFILE"/etc/profile
-      else
-          echo -e "${RED}Couldn't find profile:" $GUIX_PROFILE/etc/profile "${NC}"
-      fi
-    else
-      echo "No profile found at path" $profilePath
-    fi
-  done
-#+end_src
-*** Updating Channels
-
-This script makes it easy to update all channels to the latest commit based on an original channel file.
-
-: update-channels
-
-You can use ~/.config/guix/channels.scm to replicate exact packages on another machine with
-
-: guix pull -C ~/.config/guix/channels.scm
-
-#+begin_src sh :tangle (expand-tangle-target ".local/bin/update-channels") :shebang #!/bin/sh :tangle-mode (identity #o755)
-  guix pull --channels=$HOME/.config/guix/base-channels.scm
-  guix describe --format=channels > ~/.config/guix/channels.scm
-#+end_src
 ** SKK
 
 SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
@@ -10362,166 +10491,6 @@ you are required to locate that package where emacs can search.
     (LilyPond-pdf-command "firefox")
     (LilyPond-midi-command "fluidsynth -a alsa -m alsa_seq -l"))
 #+end_src
-** Btrfs
-
-Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mechanism.
-
-#+begin_src scheme :noweb-ref base-pkgs
-  "btrfs-progs"
-#+end_src
-
-*** btrbk
-
-[[https://digint.ch/btrbk/doc/btrbk.1.html][Btrbk]] supports for taking snapshots and backups
-
-#+begin_src scheme :noweb-ref base-pkgs
-  "btrbk"
-#+end_src
-
-**** btrbk.conf
-
-[[https://digint.ch/btrbk/doc/btrbk.conf.5.html][btrbk.conf documentation]]
-
-#+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/btrbk/btrbk.conf")
-  snapshot_dir snapshots
-  timestamp_format long
-  incremental yes
-
-  volume /mnt/in01
-    subvolume incumbents/home
-      snapshot_name home-local
-      snapshot_preserve 36h 3d 2w 1m
-      snapshot_preserve_min 6h
-    subvolume incumbents/home
-      snapshot_name home-backup
-      target send-receive /mnt/ex02/backups
-      target_preserve 1d 10w 6m 1y
-      target_preserve_min latest
-#+end_src
-
-**** snapshot/backup script
-
-- snapshot
-  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-    */15 * * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf --loglevel error snapshot *-local >> $LOG_DIR/snaphome.log 2>&1"
-  #+end_src
-
-- backup
-
-  #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/bkhome") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
-    BTRBK_CONF=~/.config/btrbk/btrbk.conf
-
-    pwsudo btrbk --config "${BTRBK_CONF}" --dry-run run *-backup \
-     && pwsudo btrbk --config "${BTRBK_CONF}" run *-backup
-  #+end_src
-
-  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-    10 3 * * * /bin/bash -ci "bkhome >> $LOG_DIR/bkhome.log 2>&1"
-  #+end_src
-
-*** snapshots management                      :ARCHIVE:
-
-A structure described below is expected under all devices.
-
-/mountpoint/
-├── backups
-├── incumbents
-└── snapshots
-
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/btrfs_snap") :tangle-mode (identity #o755)
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  DATETIME=`date "+%Y%m%d-%H%M"`
-  BTRFS_MNTS=("/mnt/ssd01"
-              "/mnt/nvme01")
-
-  # back up server data beforehand
-  ssh -q -o BatchMode="yes" -o ConnectTimeout=10 sv04 "exit" \
-    && rsync -arhv sv04:~/var/backup ~/share/sv04
-
-  # take snapshots for all btrfs subvolumes
-  for btrfs_mnt in ${BTRFS_MNTS[@]}; do
-    if mountpoint ${btrfs_mnt} >/dev/null 2>&1; then
-      for subv in ${btrfs_mnt}/incumbents/*; do
-        subv_base=$(basename ${subv})
-        if [ ! -d "${btrfs_mnt}/snapshots/${subv_base}" ]; then
-          mkdir -p "${btrfs_mnt}/snapshots/${subv_base}"
-        fi
-        btrfs subvolume snapshot "${subv}" "${btrfs_mnt}/snapshots/${subv_base}/${DATETIME}"
-      done
-    fi
-  done
-  #+end_src
-
-*** backup to another device                  :ARCHIVE:
-
-: $ btrfs_back
-
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/btrfs_back") :tangle-mode (identity #o755)
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  MNT_SSD=/mnt/ssd01
-  MNT_HDD=/mnt/hdd01
-
-  function backup_subvol() {
-    local _src_snap_dir=$1
-    local _src_back_dir=$2
-    local _dst_back_dir=$3
-
-    echo "Name: $(basename ${_src_back_dir})"
-
-    mkdir -pv "${_src_back_dir}"
-    mkdir -pv "${_dst_back_dir}"
-
-    src_back_last=$((ls -d "${_src_back_dir}"/* 2>/dev/null | sort | tail -1 | xargs basename) || echo -n "")
-    snap_last=$(ls -d "${_src_snap_dir}"/* 2>/dev/null | sort | tail -1 | xargs basename || echo -n "")
-
-    # create readonly clone of last snapshot
-    if [[ "${src_back_last}" < "${snap_last}" ]]; then
-      echo btrfs subv snap -r "${_src_snap_dir}/${snap_last}" "${_src_back_dir}/${src_back_last}"
-    fi
-
-    exit;
-
-    # determine parent btrfs subvolume
-    parent=
-    dst_backs=$(ls -d "${_dst_back_dir}"/* 2>/dev/null | sort || echo -n "")
-    if [ ${#dst_backs} -ne 0 ]; then
-      for dst_back in "${dst_backs[@]}"; do
-        test=$(basename ${dst_back})
-        if [ -d "${_src_back_dir}/${test}" ]; then
-          parent=${test}
-        fi
-      done
-    fi
-
-    # determine subvolume to send in source device
-    subvol=
-    if [ ${#src_back_last} -ne 0 ]; then
-      if [[ "${parent}" < "${src_back_last}" ]] && [ ! -d "${_dst_back_dir}/${src_back_last}" ]; then
-        subvol=${src_back_last}
-      fi
-    fi
-
-    echo "Parent: ${parent}"
-    echo "Subvol: ${subvol}"
-
-    if [ -n "${parent}" ] && [ -n "${subvol}" ]; then
-      echo "Invoke incremental backup"
-      sudo btrfs send -p "${_src_back_dir}/${parent}" "${_src_back_dir}/${subvol}" | sudo btrfs receive "${_dst_back_dir}"
-    elif [ -z "${parent}" ] && [ -n "${subvol}" ]; then
-      echo "Invoke full backup"
-      sudo btrfs send "${_src_back_dir}/${subvol}" | sudo btrfs receive "${_dst_back_dir}"
-    fi
-
-    echo "--------"
-  }
-
-  backup_subvol "${MNT_SSD}"/snapshots/doc "${MNT_SSD}"/backups/doc "${MNT_HDD}"/backups/doc
-  # backup_subvol "${MNT_SSD}"/snapshots/share "${MNT_SSD}"/backups/share "${MNT_HDD}"/backups/share
-#+end_src
 ** Rsync
 
 #+begin_src scheme :noweb-ref base-pkgs
@@ -10624,47 +10593,6 @@ A structure described below is expected under all devices.
       </target>
     </pool>
 #+end_src
-** XDG Util
-
-#+begin_src scheme :noweb-ref base-pkgs
-  "xdg-utils"
-#+end_src
-
-*** xdg-mime
-- ask default application for text/plain
-  : $ xdg-mime query default text/plain
-
-#+begin_src conf :tangle (expand-tangle-target ".config/mimeapps.list") :tangle-mode (identity #o644)
-  [Added Associations]
-  inode/directory=io.github.celluloid_player.Celluloid.desktop;nemo.desktop;
-
-  [Default Applications]
-  inode/directory=nemo.desktop
-#+end_src
-
-*** xdg-user-dirs
-
-#+begin_src conf :tangle (expand-tangle-target ".config/user-dirs.dirs") :tangle-mode (identity #o644)
-  # This file is written by xdg-user-dirs-update
-  # If you want to change or add directories, just edit the line you're
-  # interested in. All local changes will be retained on the next run.
-  # Format is XDG_xxx_DIR="$HOME/yyy", where yyy is a shell-escaped
-  # homedir-relative path, or XDG_xxx_DIR="/yyy", where /yyy is an
-  # absolute path. No other format is supported.
-  #
-  XDG_DESKTOP_DIR="$HOME/Desktop"
-  XDG_DOWNLOAD_DIR="$HOME/Downloads"
-  XDG_TEMPLATES_DIR="$HOME/Templates"
-  XDG_PUBLICSHARE_DIR="$HOME/Public"
-  XDG_DOCUMENTS_DIR="$HOME/Documents"
-  XDG_MUSIC_DIR="$HOME/Music"
-  XDG_PICTURES_DIR="$HOME/Pictures"
-  XDG_VIDEOS_DIR="$HOME/Videos"
-#+end_src
-
-#+begin_src conf :tangle (expand-tangle-target ".config/user-dirs.locale") :tangle-mode (identity #o644)
-  en_US
-#+end_src
 ** Calibre
 
 [[https://calibre-ebook.com/download_linux][Calibre for linux]] is a e-book reader. I use it in the mood of reading epub in GUI app.
@@ -10692,6 +10620,97 @@ A structure described below is expected under all devices.
 :CREATED:  [2022-08-04 Thu 14:55]
 :END:
 
+** Python
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "python"
+  "python-sphinx"
+  "python-lxml"
+  "python-jedi"
+  "python-send2trash"
+  "python-matplotlib"
+#+end_src
+
+** Ruby
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "ruby"
+  "ruby-pry"
+  "ruby-rubocop"
+  "ruby-thor"
+#+end_src
+
+#+begin_src shell :noweb-ref bashrc
+  export RUBYLIB=${HOME}/.local/lib
+#+end_src
+
+** Node.js
+:PROPERTIES:
+:CREATED:  [2022-08-01 Mon 13:52]
+:END:
+
+#+name: npm-prefix
+#+begin_src shell :eval no-export
+  echo ${HOME}/.npm-global
+#+end_src
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "node"
+#+end_src
+
+#+begin_src shell :noweb yes :noweb-ref bashrc
+  NODE_PATH="<<npm-prefix()>>/lib/node_modules:${NODE_PATH}"
+  PATH="<<npm-prefix()>>/bin:${PATH}"
+  MANPATH="<<npm-prefix()>>/share/man:${MANPATH}"
+#+end_src
+
+#+begin_src bash :noweb yes :tangle (expand-tangle-target ".npmrc")
+  prefix=<<npm-prefix()>>
+#+end_src
+
+- make a directory for global npm packages
+  #+begin_src shell :tangle no :noweb yes
+    mkdir -pv <<npm-prefix()>>
+  #+end_src
+
+** asdf-vm                                     :ARCHIVE:
+Extendable version manager
+- call for init script in bashrc
+  #+begin_src shell
+    . $HOME/.asdf/asdf.sh
+    . $HOME/.asdf/completions/asdf.bash
+
+    export RUBYLIB=${RUBYLIB}:${HOME}/.local/lib
+  #+end_src
+- define versions
+  #+begin_src conf :comments noweb :tangle (expand-tangle-target ".tool-versions")
+    ruby 2.6.8
+    python 3.8.5
+  #+end_src
+
+  steps to install tools for specific versions
+  1. install plugins
+     : $ asdf plugin add ruby
+     : $ asdf plugin add python
+
+  2. install tools
+     : $ cd ~ && asdf install
+
+*** asdf-ruby
+#+begin_src conf :comments noweb :tangle (expand-tangle-target ".default-gems")
+  thor 1.2.1
+  pry 0.14.1
+  rubocop 1.26
+  exifr 1.2.6
+  streamio-ffmpeg
+#+end_src
+*** asdf-python
+#+begin_src python :tangle (expand-tangle-target ".default-python-packages")
+  lxml
+  jedi
+  ical2orgpy
+  Send2Trash
+#+end_src
 ** Tree Sitter
 :PROPERTIES:
 :CREATED:  [2022-08-04 Thu 14:55]
@@ -12491,11 +12510,6 @@ Stripping rules are:
 
 Transcoding my local video files with open codec, like VP9 and AV1, is effective for disc space usage.
 
-#+begin_src scheme :noweb-ref desktop-pkgs
-  "ffmpeg"
-  "dav1d"
-#+end_src
-
 #+begin_src shell :noweb-ref transc-shared
   #!/usr/bin/env bash
   set -euo pipefail
@@ -12708,19 +12722,3 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 #+begin_src json :tangle no  :tangle (expand-tangle-target ".config/screenkey.json")  :tangle-mode (identity #o644)
   {"no_systray": false, "timeout": 0.5, "recent_thr": 0.1, "compr_cnt": 3, "ignore": [], "position": "bottom", "persist": false, "font_desc": "Sans Bold", "font_size": "medium", "font_color": "white", "bg_color": "black", "opacity": 0.9, "key_mode": "composed", "bak_mode": "baked", "mods_mode": "emacs", "mods_only": false, "multiline": false, "vis_shift": true, "vis_space": true, "geometry": null, "screen": 0, "start_disabled": false, "mouse": false, "button_hide_duration": 2.0}
 #+end_src
-* Distributions
-:PROPERTIES:
-:CREATED:  [2022-09-03 Sat 14:59]
-:END:
-** Linux Mint (Cinnamon Desktop)
-:PROPERTIES:
-:CREATED:  [2022-09-03 Sat 15:00]
-:ID:       f3cd9a3b-9ff5-4cc8-807e-846f3f04c97a
-:END:
-- Back-up Cinnamon Desktop Configuration
-  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-    11 1 1 * * env bash -ci "dconf dump /org/cinnamon/ > ~/.config/linuxmint/cinnamon.conf"
-  #+end_src
-
-  To thaw backed up config
-  : $ dconf load /org/cinnamon/ < ~/.config/linuxmint/cinnamon.conf
