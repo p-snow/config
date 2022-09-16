@@ -4,7 +4,7 @@
 
 #+STARTUP: overview
 
-* Definitions
+* Personal Information
 - my home directory
   #+name: home-dir
   #+begin_src shell :eval no-export
@@ -241,11 +241,14 @@ init.el devote itself to call for remaining config files.
   (dolist (file (directory-files "~/.emacs.d/user" t "\.el$"))
     (funcall #'load-file file))
 #+end_src
-**** keybindings
+**** Personal Preferences
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/00-keybinds.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/02-preferences.el")
 :END:
-***** global keybindings
+
+Settings in this section are influenced a great deal by my personal preference. Please be meticulous when you borrow.
+
+***** Key Bindings
 
 #+begin_src emacs-lisp
   (global-set-key (kbd "C-M-o") #'open-line)
@@ -273,8 +276,8 @@ init.el devote itself to call for remaining config files.
   (put 'downcase-region 'disabled nil)
 #+end_src
 
-swap C-h/M-h and <BS>(C-?)/M-<BS> advised at [[https://www.emacswiki.org/emacs/BackspaceKey][EmacsWiki: Backspace Key]]
-#+begin_src emacs-lisp
+- swap C-h/M-h and <BS>(C-?)/M-<BS> advised at [[https://www.emacswiki.org/emacs/BackspaceKey][EmacsWiki: Backspace Key]]
+  #+begin_src emacs-lisp
     ;; map backspace [delete-backward-char] and C-? to C-h
     (define-key key-translation-map [?\C-?] [?\C-h])
     (define-key key-translation-map (kbd "C-?") [?\C-h])
@@ -287,35 +290,26 @@ swap C-h/M-h and <BS>(C-?)/M-<BS> advised at [[https://www.emacswiki.org/emacs/B
 
     ;; map M-h [mark-paragraph] to M-backspace
     (define-key key-translation-map [?\M-h] [?\M-\d])
-#+end_src
+  #+end_src
+- Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
+  #+begin_src emacs-lisp
+    (substitute-key-definition 'list-buffers
+                               'ibuffer
+                               global-map)
+  #+end_src
+- lambda-key
+  [[https://www.emacswiki.org/emacs/DocumentingKeyBindingToLambda][lambda-key]] is nice idea to remedy lambda bindings with define-key.
 
-Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
-#+begin_src emacs-lisp
-  (substitute-key-definition 'list-buffers
-                             'ibuffer
-                             global-map)
-#+end_src
+  #+begin_src emacs-lisp
+    (defun lambda-key (keymap key def)
+      "Wrap`define-key' to provide documentation."
+      (set 'sym (make-symbol (documentation def)))
+      (fset sym def)
+      (define-key keymap key sym))
+  #+end_src
 
-***** lambda-key
+***** Language
 
-[[https://www.emacswiki.org/emacs/DocumentingKeyBindingToLambda][lambda-key]] is nice idea to remedy lambda bindings with define-key.
-
-#+begin_src emacs-lisp
-  (defun lambda-key (keymap key def)
-    "Wrap`define-key' to provide documentation."
-    (set 'sym (make-symbol (documentation def)))
-    (fset sym def)
-    (define-key keymap key sym))
-#+end_src
-
-**** attributional settings
-:PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/02-attr.el")
-:END:
-
-Each setting in this section belongs my personal attribution, e.g. primary language to use, characteristic of visual perception or inputting and outputting devices. Note that applying the settings as is would make you uncomfortable.
-
-***** language
 [[info:emacs#Language Environments][emacs#Language Environments]]
 
 #+begin_src emacs-lisp
@@ -335,7 +329,7 @@ Each setting in this section belongs my personal attribution, e.g. primary langu
   (set-keyboard-coding-system 'utf-8-unix)
   (setq locale-coding-system 'utf-8-unix)
 #+end_src
-***** visual facets
+***** Startup Conditions
 
 #+begin_src emacs-lisp
   ;; do not use basic GUI facets
@@ -353,8 +347,22 @@ Each setting in this section belongs my personal attribution, e.g. primary langu
   ;; conceal distractions at startup
   (setf initial-scratch-message "")
   (setf inhibit-startup-screen t)
+
+  ;; use emacs in full screen mode
+  (use-package emacs
+    :no-require t
+    :hook
+    ((after-init server-after-make-frame) .
+     (lambda ()
+       (when (member (window-system) '(x ns w32))
+         (set-frame-parameter nil 'fullscreen 'fullboth)))))
+
+  ;; (add-hook 'server-after-make-frame-hook
+  ;;           (lambda ()
+  ;;             (when (member (window-system) '(x ns w32))
+  ;;               (set-frame-parameter nil 'fullscreen 'fullboth))))
 #+end_src
-***** fontsets
+***** Fontsets
 
 #+begin_src emacs-lisp
   (create-fontset-from-ascii-font "IPAGothic" nil "default")
@@ -377,7 +385,7 @@ Each setting in this section belongs my personal attribution, e.g. primary langu
   (set-fontset-font t 'symbol "Noto Sans Symbols2" nil 'append)
 #+end_src
 
-***** faces
+***** Faces
 :PROPERTIES:
 :CREATED:  [2022-09-11 Sun 16:55]
 :END:
@@ -443,7 +451,7 @@ Caveat: There are some face definitions which use an extra large font since I am
                 "My customized face offers variable pitch fonts for displaying lists."))))))
 #+end_src
 
-***** modifier keys
+***** Modifier Keys
 
 #+begin_src emacs-lisp
   (cond
@@ -461,19 +469,18 @@ Caveat: There are some face definitions which use an extra large font since I am
           mac-function-modifier      'hyper)))
 #+end_src
 
-***** displaying
+***** Performance Tuning
+:PROPERTIES:
+:CREATED:  [2022-09-16 Fri 12:08]
+:END:
 
 #+begin_src emacs-lisp
   (setq-default bidi-display-reordering nil)
-
-  ;; use emacs in full screen mode
-  (when (member (window-system) '(x ns w32))
-    (set-frame-parameter nil 'fullscreen 'fullboth))
 #+end_src
 
-**** basic preference
+**** Custom Variables
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/01-pref.el")
+:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/01-custom.el")
 :ID:       587bc395-6321-4f59-97e6-6f0b62518b20
 :END:
 
