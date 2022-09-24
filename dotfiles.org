@@ -6695,14 +6695,14 @@ It's confortable to read long material such as web page , epub file or email wit
            (fmt-quality (cond
                          ;; using mobile Wi-Fi
                          ((string-prefix-p "192.168.179." ipv4-addr)
-                          "bestvideo[height<=?240]+worstaudio/best")
+                          "b[filesize<20M] / w")
                          ;; using wired network or broad wifi
                          ((or (string-prefix-p "192.168.100." ipv4-addr)
                               (member wifi-ssid '("saint_laurent_ap" "FREE_SPOT")))
-                          "bestvideo[height<=?720]+bestaudio/best")
+                          "bv*[height<=720]+ba/b")
                          ;; using unknown network
                          (t
-                          "worstvideo+worstaudio"))))
+                          "wv*+wa/w"))))
       (format "%s" fmt-quality)))
 
   (global-set-key (kbd "C-c D v") 'my/download-video-at-point)
