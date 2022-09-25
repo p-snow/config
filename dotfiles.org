@@ -1058,6 +1058,9 @@ Settings in this section are influenced a great deal by my personal preference. 
   (create-fontset-from-ascii-font "IPAexMincho" nil "exmincho")
   (set-fontset-font "fontset-exmincho" 'japanese-jisx0208 "IPAexMincho")
 
+  (create-fontset-from-ascii-font "IPAexGothic" nil "exgothic")
+  (set-fontset-font "fontset-exgothic" 'japanese-jisx0208 "IPAexGothic")
+
   (create-fontset-from-ascii-font "IPAMincho" nil "mincho")
   (set-fontset-font "fontset-mincho" 'japanese-jisx0208 "IPAMincho")
 
@@ -1105,8 +1108,8 @@ Caveat: There are some face definitions which use an extra large font since I am
      . (lambda ()
          (buffer-face-set
           (or (ignore-errors (check-face 'my/reading-face))
-              (defface my/reading-face `((t . (:font "fontset-exmincho"
-                                                     :height ,(my/normalized-font-size 900))))
+              (defface my/reading-face `((t . (:font "fontset-exgothic"
+                                                     :height ,(my/normalized-font-size 850))))
                 "My customized face offers great legibility for reading articles.")))))
     ((Info-mode help-mode helpful-mode woman-mode)
      . (lambda ()
