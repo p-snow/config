@@ -6,27 +6,42 @@
 #+STARTUP: overview
 
 * Personal Information
-- home directory path
+** Local Directories
++ home directory
   #+name: home-dir
   #+begin_src shell :eval no-export
     echo "${HOME}"
   #+end_src
-- my email address
-  #+name: email
-  #+begin_src bash
-    echo -n "${EMAIL}"
++ share directory
+  #+name: share-dir
+  #+begin_src shell :eval no-export
+    echo "${HOME}/data/share"
   #+end_src
-  + account name
-    #+name: account
-    #+begin_src shell :eval no-export
-      echo -n "${EMAIL}" | cut -d'@' -f1
-    #+end_src
-  + network name
-    #+name: my-network
-    #+begin_src shell :eval no-export
-      echo -n "${EMAIL}" | cut -d'@' -f2
-    #+end_src
-
++ video directory
+  #+name: video-dir
+  #+begin_src shell :eval no-export
+    echo "${HOME}/data/videos"
+  #+end_src
++ audio directory
+  #+name: audio-dir
+  #+begin_src shell :eval no-export
+    echo "${HOME}/data/audios"
+  #+end_src
+** Email
+#+name: email
+#+begin_src bash
+  echo -n "${EMAIL}"
+#+end_src
++ account name
+  #+name: account
+  #+begin_src shell :eval no-export
+    echo -n "${EMAIL}" | cut -d'@' -f1
+  #+end_src
++ network name
+  #+name: my-network
+  #+begin_src shell :eval no-export
+    echo -n "${EMAIL}" | cut -d'@' -f2
+  #+end_src
 * Distributions
 :PROPERTIES:
 :CREATED:  [2022-09-03 Sat 14:59]
@@ -765,11 +780,13 @@ These process must be evaluated beforehand.
 
 ***** global variable definitions
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
   (setf user-emacs-directory
-        (expand-file-name (file-name-as-directory "~/share/emacs")))
+        (expand-file-name "emacs" "<<share-dir()>>"))
   (setf user-emacs-directory-default
         (expand-file-name (file-name-as-directory "~/.emacs.d")))
+
+  (defvar my/user-share-directory "<<share-dir()>>")
 #+end_src
 ***** package.el
 
@@ -1182,7 +1199,7 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save][auto saving mechanism]] come to the rescue.
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-  d <<home-dir()>>/share/emacs/auto-save-list 0755 - - 2w
+  d <<share-dir()>>/emacs/auto-save-list 0755 - - 2w
 #+end_src
 
 #+begin_src emacs-lisp
@@ -1884,7 +1901,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+end_src
 
 #+begin_src emacs-lisp
-  (defvar skk-dir (expand-file-name "~/share/skk"))
+  (defvar skk-dir (expand-file-name "skk" my/user-share-directory))
   (defvar skk-dotemacs-dir (expand-file-name "ddskk" user-emacs-directory-default))
 
   (use-package ddskk
@@ -2540,7 +2557,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 
 You need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-message-store.html][issue 'mu init' command]] before using mu4e.
 Command in practice presumably looks like:
-: mu init --maildir=~/share/mail --muhome=~/share/mu --my-address=jim@example.com --my-address=bob@example.com
+: mu init --maildir=~/data/share/mail --muhome=~/share/mu --my-address=jim@example.com --my-address=bob@example.com
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "mu"
@@ -2686,7 +2703,7 @@ Command in practice presumably looks like:
     (elfeed-search-checked-title-face ((t (:foreground "darkblue"))))
     :custom
     (elfeed-use-curl t)
-    (elfeed-db-directory (expand-file-name "~/share/emacs/elfeed"))
+    (elfeed-db-directory (expand-file-name "elfeed" user-emacs-directory))
     (elfeed-search-date-format '("%Y%m%d" 8 :left))
     (elfeed-search-title-min-width 100)
     (elfeed-search-title-max-width 120)
@@ -4028,7 +4045,7 @@ org-roam v2
 ***** utility functions for org
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-  d <<home-dir()>>/share/emacs/org-readable 0755 - - 3d
+  d <<share-dir()>>/emacs/org-readable 0755 - - 3d
 #+end_src
 
 #+begin_src emacs-lisp
@@ -5163,17 +5180,17 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+end_src
 
 #+begin_src emacs-lisp
+  (use-package dash-docs
+    :custom
+    (dash-docs-docsets-path
+     (file-name-concat my/user-share-directory "dash/docsets")))
+
   (add-to-list 'load-path
                (expand-file-name "elpa/consult-dash-20220621.226" user-emacs-directory-default))
 
-  (require 'dash-docs)
-
-  (customize-set-variable 'dash-docs-docsets-path
-                          (expand-file-name "~/share/dash/docsets"))
-
-  (require 'consult-dash)
-
-  (global-set-key (kbd "M-s M-d") 'consult-dash)
+  (use-package consult-dash
+    :after dash-docs
+    :bind ("M-s M-d" . consult-dash))
 
   (defmacro my/add-dash-docsets-hook (hook docsets)
     `(add-hook ,hook
@@ -5573,7 +5590,8 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
 #+end_src
 
 #+begin_src emacs-lisp
-  (defvar my/twittering-resource-dir "~/share/emacs/twmode")
+  (defvar my/twittering-resource-dir
+    (expand-file-name "twmode" user-emacs-directory))
 
   (use-package twittering-mode
     :straight (twittering-mode
@@ -5729,7 +5747,7 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-  d <<home-dir()>>/share/emacs/undo-tree 0755 - - 3w
+  d <<share-dir()>>/emacs/undo-tree 0755 - - 3w
 #+end_src
 
 #+begin_src emacs-lisp
@@ -6550,8 +6568,10 @@ It's confortable to read long material such as web page , epub file or email wit
 
 ***** download media file
 
-#+begin_src emacs-lisp
-  (defvar my/download-video-dir "~/media/video" "Directory where downloaded video locate.")
+#+begin_src emacs-lisp :noweb tangle
+  (defvar my/download-video-dir
+    (file-name-concat "<<video-dir()>>" "downloads")
+    "Directory where downloaded video locate.")
 
   (defun my/download-video (url &optional filename playlistp)
     "Download video from `URL'.
@@ -6609,7 +6629,9 @@ It's confortable to read long material such as web page , epub file or email wit
                    (alert (format "Downloaded: %s" (or filename-lex url-lex)) :severity 'normal :style 'fringe)
                  (alert (format "Failed(%d): %s" exit-status (or filename-lex url-lex)) :severity 'urgent :style 'fringe)))))))))
 
-  (defvar my/download-audio-dir "~/media/audio" "Directory where downloaded audio locate.")
+  (defvar my/download-audio-dir
+    (file-name-concat "<<audio-dir()>>" "downloads")
+    "Directory where downloaded audio locate.")
 
   (defun my/download-audio (url &optional filename)
     "Download audio from `URL'.
@@ -7911,7 +7933,7 @@ Provide a function to Build a clock table summing up time by tag.
 This set of code (open-file) offers file opener functionality in my liking. With open-file, PDF and EPUB, which is either local or on the web, is viewed in EWW (text browser in Emacs) after the process of converted into html. Video and audio is played in MPV media player. Open-file is available in elisp commands for opening files (e.g. org-open-at-point for org links, browse-url and dired-open-file). With any command above, invoking with single prefix (C-u) inflict to open file in Emacs, and invoking with double prefix (C-u C-u) inflict to open files in default application.
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-  d <<home-dir()>>/share/emacs/open-file 0755 - - 14d
+  d <<share-dir()>>/emacs/open-file 0755 - - 14d
 #+end_src
 
 #+begin_src emacs-lisp
@@ -8359,7 +8381,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
 
   (require 'alert)
 
-  (defvar alarm-sound (expand-file-name "~/media/music/levelup.mp3"))
+  (defvar alarm-sound (expand-file-name "~/data/media/music/levelup.mp3"))
   (alert-define-style 'alarm
                       :title "alarm"
                       :notifier
@@ -9758,10 +9780,10 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 
 *** derive unique entries in user-jisyo
 
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/skkdic_uniq.sh") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/skkdic_uniq.sh") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
   tmp_euc=$(mktemp)
   tmp_utf8=$(mktemp)
-  skk_dir=~/share/skk
+  skk_dir=<<share-dir()>>/skk
   skk_get_dir=${skk_dir}/get-jisyo
   dic_orig=${skk_dir}/jisyo
   dic_uniq=${skk_dir}/jisyo.uniq
@@ -10487,9 +10509,9 @@ you are required to locate that package where emacs can search.
   12 1 * * * /bin/bash -ci "sync_sv04 >> $LOG_DIR/sync_sv04.log 2>&1"
 #+end_src
 
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/sync_sv04") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/sync_sv04") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
   ssh -q -o BatchMode="yes" -o ConnectTimeout=10 sv04 "exit 0" \
-    && rsync -arhv sv04:~/var/backup ~/share/sv04
+    && rsync -arhv sv04:~/var/backup <<share-dir()>>/sv04
 #+end_src
 
 *** backup script                             :ARCHIVE:
@@ -10499,10 +10521,10 @@ you are required to locate that package where emacs can search.
 
   OPT="-aPh"
   LINK="--link-dest=../last/"
-  DEST="ns01:~/share/backups"
+  DEST="ns01:~/data/share/backups"
   DATETIME=`date "+%Y%m%d-%H%M"`
 
-  ssh -q -o BatchMode="yes" -o ConnectTimeout=10 ns01 "(cd ~/share/backups; mkdir -p pc01 sv04; exit)" || exit 1
+  ssh -q -o BatchMode="yes" -o ConnectTimeout=10 ns01 "(cd ~/data/share/backups; mkdir -p pc01 sv04; exit)" || exit 1
 
   # take a snapshot for pc01
   # if ssh ns01 "[ -h ~/share/backups/pc01/last ]"; then
@@ -10515,7 +10537,7 @@ you are required to locate that package where emacs can search.
 
   # take a snapshot for sv04
   if mountpoint /mnt/sv04 >/dev/null 2>&1; then
-    if ssh ns01 "[ -h ~/share/backups/sv04/last ]"; then
+    if ssh ns01 "[ -h ~/data/share/backups/sv04/last ]"; then
       rsync -aPhrv $LINK --exclude-from=${HOME}/.config/rsync/exclude_sv04.txt /mnt/sv04/ ${DEST}/sv04/${DATETIME}
       ssh ns01 "(cd share/backups/sv04; unlink last; ln -s ${DATETIME} last)"
     else
@@ -10927,7 +10949,7 @@ These scripts (declutter_xxx) keep things decluttered.
   #+begin_src shell :tangle (expand-tangle-target ".local/bin/mysql_backup")
     #!/usr/bin/env bash
 
-    BACKUP_DIR=~/share/backups/mysql
+    BACKUP_DIR=~/data/share/backups/mysql
     RAW_SQL="$(date +%Y%m%d_%H%M)_backup.sql"
     TAR_SQL="${RAW_SQL}.txz"
 
@@ -12547,7 +12569,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 *** vp9 transcoding
 
 - transcode video to vp9
-  : $ vp9transc video_orig.mkv video_vp9.webm
+  : $ vp9transc -c 32 video_orig.mkv video_vp9.webm
 
 #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/vp9transc") :tangle-mode (identity #o555)
   <<transc-shared>>
