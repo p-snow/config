@@ -5,7 +5,7 @@
 #+STARTUP: overview
 
 * Personal Information
-- my home directory
+- home directory path
   #+name: home-dir
   #+begin_src shell :eval no-export
     echo "${HOME}"
@@ -15,16 +15,16 @@
   #+begin_src bash
     echo -n "${EMAIL}"
   #+end_src
-- user account part of my email
-  #+name: account
-  #+begin_src shell :eval no-export
-    echo -n "${EMAIL}" | cut -d'@' -f1
-  #+end_src
-- network part of my email
-  #+name: my-network
-  #+begin_src shell :eval no-export
-    echo -n "${EMAIL}" | cut -d'@' -f2
-  #+end_src
+  + account name
+    #+name: account
+    #+begin_src shell :eval no-export
+      echo -n "${EMAIL}" | cut -d'@' -f1
+    #+end_src
+  + network name
+    #+name: my-network
+    #+begin_src shell :eval no-export
+      echo -n "${EMAIL}" | cut -d'@' -f2
+    #+end_src
 
 * Distributions
 :PROPERTIES:
@@ -12256,7 +12256,10 @@ A script which executes command with elevating privilege using password from pas
   fi
 #+end_src
 
-** gitsync
+** gitsync                                     :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-09-29 Thu 16:42]
+:END:
 
 - gitsync-local
   #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/gitsync-local")
