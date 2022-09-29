@@ -1,5 +1,6 @@
 #+TITLE: My Configuration Collection
 #+PROPERTY: header-args       :mkdirp yes
+#+PROPERTY: header-args:bash  :shebang "#!/usr/bin/env bash\nset -euo pipefail\n"
 #+PROPERTY: tangle-target-dir ~/dotfiles
 
 #+STARTUP: overview
@@ -295,7 +296,7 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
 #+end_src
 
 - bash profile
-  #+BEGIN_SRC bash :tangle (expand-tangle-target ".bash_profile")
+  #+BEGIN_SRC shell :tangle (expand-tangle-target ".bash_profile")
     #!/usr/bin/env bash
 
     if [ -f ~/.bashrc ]; then
@@ -303,7 +304,7 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
     fi
   #+END_SRC
 - bashrc
-  #+BEGIN_SRC bash :noweb yes :tangle (expand-tangle-target ".bashrc")
+  #+BEGIN_SRC shell :noweb yes :tangle (expand-tangle-target ".bashrc")
     #!/usr/bin/env bash
 
     if [ -f ~/.bashrc.secret ]; then
@@ -371,7 +372,7 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
     <<bashrc>>
   #+END_SRC
 - aliases
-  #+begin_src bash :tangle (expand-tangle-target ".bash_aliases")
+  #+begin_src shell :tangle (expand-tangle-target ".bash_aliases")
     alias ..="cd ../"
     alias l="ls -F"
     alias ll="l -lh"
@@ -390,7 +391,7 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
     alias ipaddr="hostname -I | cut -f1 -d' '"
   #+end_src
 - functions
-  #+begin_src bash :tangle (expand-tangle-target ".bash_functions")
+  #+begin_src shell :tangle (expand-tangle-target ".bash_functions")
     function cl() {
         DIR="$*";
             # if no DIR given, go home
@@ -464,7 +465,7 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
     }
   #+end_src
 - profile
-  #+BEGIN_SRC bash :tangle (expand-tangle-target ".profile")
+  #+BEGIN_SRC shell :tangle (expand-tangle-target ".profile")
     # ~/.profile: executed by the command interpreter for login shells.
     # This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
     # exists.
@@ -10668,7 +10669,7 @@ you are required to locate that package where emacs can search.
   MANPATH="<<npm-prefix()>>/share/man:${MANPATH}"
 #+end_src
 
-#+begin_src bash :noweb yes :tangle (expand-tangle-target ".npmrc")
+#+begin_src shell :noweb yes :tangle (expand-tangle-target ".npmrc")
   prefix=<<npm-prefix()>>
 #+end_src
 
