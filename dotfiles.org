@@ -2266,6 +2266,10 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/eww.el")
 :END:
 
+#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+  d <<share-dir()>>/emacs/eww-view-in-org 0755 - - 3d
+#+end_src
+
 #+begin_src emacs-lisp
   (with-eval-after-load 'shr
     (customize-set-variable 'shr-width 10000)
@@ -2290,7 +2294,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
                ("C-j" . eww-follow-link)
                ("T" . eww-goto-title-heading)
                ("L" . my/eww-goto-heading)
-               ("O" . my/eww-convert-to-org)
+               ("O" . my/eww-view-in-org)
                :map eww-bookmark-mode-map
                ("C-j" . eww-bookmark-browse)))
 
@@ -2305,18 +2309,22 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
                                                title nil)
                                            url "")) t)))
 
-  (defun my/eww-convert-to-org ()
+  (defun my/eww-view-in-org ()
     "Convert current html page into one org file and show it.
 
   This is handy if you would like to check a page index comfortably."
     (interactive)
     (let ((source (plist-get eww-data :source))
           (src-html (make-temp-file "source-"))
-          (dst-org (expand-file-name (format "%s.org" (org-id-uuid)) "~/tmp"))
+          (dst-org (file-name-concat user-emacs-directory
+                                     "eww-view-in-org"
+                                     (format "%s.org" (org-id-uuid))))
           (coding-system-for-write 'utf-8-unix)
           (org-startup-folded t))
       (with-temp-buffer
         (insert source)
+        (make-directory
+         (file-name-directory (directory-file-name dst-org)) t)
         (write-region (point-min) (point-max) src-html nil)
         (call-process-shell-command (format "pandoc %s -f html -t org -o %s"
                                             (shell-quote-argument src-html)
