@@ -12233,14 +12233,12 @@ Utility for sendind email programatically
 
 A script which executes command with elevating privilege using password from pass command.
 
-#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/pwsudo")
-  #!/usr/bin/env bash
-
+#+begin_src bash :noweb tangle :tangle (expand-tangle-target ".local/bin/pwsudo")
   _userid=$(whoami)
   _hostname=$(hostname)
 
   if pass show "${_hostname}/${_userid}" >/dev/null 2>&1; then
-    pass show "${_hostname}/${_userid}" | head -1 | sudo -sES "PATH=$PATH" "$@"
+    pass show "${_hostname}/${_userid}" | head -1 | sudo -sES -p "" "PATH=$PATH" "$@"
   else
     sudo -sE "PATH=$PATH" "$@"
   fi
