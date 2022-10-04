@@ -3390,14 +3390,15 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (customize-set-variable 'org-log-states-order-reversed t)
     (add-hook 'org-after-todo-state-change-hook
               #'my/org-remove-priority-if-done)
-    )
+    (add-hook 'org-after-todo-state-change-hook
+              #'my/org-remove-done-if-nonrepeated-habit))
 
   ;;;###autoload
   (defun my/org-remove-priority-if-done ()
     "Remove priority if todo state of the entry at point has changed to `org-done-keywords'."
     (when (and
            ;; the entry has one of org-done-keywords
-           (org-string-match-p
+           (string-match-p
             (eval `(rx (or ,org-done-keyword-0
                            ,org-done-keyword-1
                            ,org-done-keyword-2)))
@@ -3409,6 +3410,14 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                          (and (looking-at org-heading-regexp)
                               (org-get-priority (match-string 0)))))))
       (org-priority 'remove)))
+
+  (defun my/org-remove-done-if-nonrepeated-habit ()
+    "Reset todo state of the entry at point if it is habit without repeats."
+    (when (and (string-match-p org-done-keyword-0
+                               org-state)
+               (org-is-habit-p)
+               (not (org-get-scheduled-time (point))))
+      (org-todo "")))
 #+end_src
 
 ****** Org Structure
