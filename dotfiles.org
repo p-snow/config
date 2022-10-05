@@ -5173,6 +5173,29 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/packages.el")
 :END:
 
+***** mentor
+:PROPERTIES:
+:CREATED:  [2022-10-04 Tue 22:09]
+:END:
+
+[[https://github.com/skangas/mentor][mentor]] is a rTorrent client for emacs.
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-mentor"
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
+  (autoload #'mentor "mentor" nil t)
+
+  (with-eval-after-load 'mentor
+    (customize-set-variable 'mentor-rtorrent-download-directory
+                            (expand-file-name "data/media/torrent"
+                                              "<<home-dir()>>"))
+    (customize-set-variable 'mentor-rtorrent-keep-session t)
+    (customize-set-variable 'mentor-rtorrent-external-rpc
+                            "<<rtorrent-sock()>>"))
+#+end_src
+
 ***** Geiser
 :PROPERTIES:
 :CREATED:  [2022-09-06 Tue 15:26]
@@ -6863,6 +6886,7 @@ It's confortable to read long material such as web page , epub file or email wit
       ("c" calendar)
       ("%" calc)
       ("?" woman)
+      ("t" mentor)
       ("\\" locate-with-filter)
       (";" my/tldr)
       ("q" quickrun)
@@ -10641,6 +10665,44 @@ you are required to locate that package where emacs can search.
 #+begin_src conf :tangle (expand-tangle-target ".config/yt-dlp/config")
   -o %(title)s.%(ext)s
   --trim-filenames 80
+#+end_src
+
+** rTorrent
+:PROPERTIES:
+:CREATED:  [2022-10-05 Wed 15:26]
+:END:
+
+[[https://github.com/rakshasa/rtorrent/wiki][rTorrent]] is a bittorrent client using ncurses.
+
+# #+begin_src scheme :noweb-ref base-pkgs
+#   "rtorrent"
+# #+end_src
+
+#+name: rtorrent-sock
+#+begin_src emacs-lisp :eval no-export
+  (expand-file-name "~/.local/share/rtorrent-rpc.socket")
+#+end_src
+
+#+begin_src conf :noweb tangle :tangle (expand-tangle-target ".rtorrent.rc")
+  network.scgi.open_local = <<rtorrent-sock()>>
+  execute.nothrow = chmod,770,<<rtorrent-sock()>>
+  encoding.add = utf8
+#+end_src
+
+#+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/systemd/user/rtorrent.service")
+  [Unit]
+  Description=rTorrent
+  After=network.target
+
+  [Service]
+  Type=simple
+  WorkingDirectory=<<home-dir()>>/data/media/torrent
+  ExecStart=/bin/bash -ic 'rtorrent -o system.daemon.set=true'
+  Restart=on-failure
+  RestartSec=3
+
+  [Install]
+  WantedBy=default.target
 #+end_src
 
 * Development Infrastructures
