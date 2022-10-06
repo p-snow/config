@@ -46,18 +46,43 @@
 :PROPERTIES:
 :CREATED:  [2022-09-03 Sat 14:59]
 :END:
+** Ubuntu
+:PROPERTIES:
+:CREATED:  [2022-10-06 Thu 15:32]
+:END:
+
+initialization script for a ubuntu account
+
+#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/initialize-ubuntu-desktop") :shebang #!/bin/sh :tangle-mode (identity #o755)
+  start-systemd-services
+
+  <<ubuntu-setup>>
+#+end_src
+
 ** Linux Mint (Cinnamon Desktop)
 :PROPERTIES:
 :CREATED:  [2022-09-03 Sat 15:00]
 :ID:       f3cd9a3b-9ff5-4cc8-807e-846f3f04c97a
 :END:
+
+initialization script for a linuxmint account
+
+#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/initialize-linuxmint-desktop") :shebang #!/bin/sh :tangle-mode (identity #o755)
+  setup-ubuntu
+
+  <<linuxmint-setup>>
+#+end_src
+
 - Back-up Cinnamon Desktop Configuration
   #+begin_src conf :noweb yes :noweb-ref cronjob-pc
     30 1 */2 * * env bash -ci "dconf dump /org/cinnamon/ > ~/.config/linuxmint/cinnamon.conf"
   #+end_src
 
   To thaw backed up config
-  : $ dconf load /org/cinnamon/ < ~/.config/linuxmint/cinnamon.conf
+  #+begin_src conf :noweb yes :noweb-ref linuxmint-setup
+    dconf load /org/cinnamon/ < <<home-dir()>>/.config/linuxmint/cinnamon.conf
+  #+end_src
+
 ** GNU Guix
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
@@ -292,8 +317,10 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
   </fontconfig>
 #+end_src
 
-- install available fonts by rescanning font directories
-  : $ fc-cache -rvf
+install available fonts by rescanning font directories
+#+begin_src conf :noweb yes :noweb-ref ubuntu-setup :tangle no
+  fc-cache -rvf
+#+end_src
 
 *** Font Viewer
 :PROPERTIES:
@@ -511,23 +538,34 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
   #+END_SRC
 ** Systemd
 
-- systemd-tmpfiles
+#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/start-systemd-services") :shebang #!/bin/sh :tangle-mode (identity #o755)
+  <<systemd-service>>
+#+end_src
 
-  [[https://www.freedesktop.org/software/systemd/man/systemd-tmpfiles-setup.service.html][systemd-tmpfiles]] manages file creation and deletion. In this section, all settings focus on user level file cleanup and deletion under /home directory.
+*** systemd-tmpfiles
 
-  You may need to enable systemd-tmpfiles service for user
-  : $ cd /usr/lib/systemd/user
-  : $ cp systemd-tmpfiles-* ~/.config/systemd/user/
-  : $ systemctl --user enable systemd-tmpfiles-setup.service systemd-tmpfiles-clean.timer
+[[https://www.freedesktop.org/software/systemd/man/systemd-tmpfiles-setup.service.html][systemd-tmpfiles]] manages file creation and deletion. In this section, all settings focus on user level file cleanup and deletion under /home directory.
 
-  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/user-tmpfiles.d/cleanup.conf")
-    D <<home-dir()>>/.local/share/Trash/files 0700 - - 2w
-    d <<home-dir()>>/tmp 0755 - - 1w
-    d <<home-dir()>>/Downloads 0755 - - 4w
-    <<tmpfiles-cleanup>>
-  #+end_src
+You may need to enable systemd-tmpfiles service for user
+: $ cd /usr/lib/systemd/user
+: $ cp systemd-tmpfiles-* ~/.config/systemd/user/
+#+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+  systemctl --user enable systemd-tmpfiles-setup.service systemd-tmpfiles-clean.timer
+#+end_src
+
+#+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/user-tmpfiles.d/cleanup.conf")
+  D <<home-dir()>>/.local/share/Trash/files 0700 - - 1w
+  d <<home-dir()>>/tmp 0755 - - 5d
+  d <<home-dir()>>/Downloads 0755 - - 4w
+  <<tmpfiles-cleanup>>
+#+end_src
 
 ** Vixie Cron
+
+#+begin_src conf :noweb yes :noweb-ref ubuntu-setup :tangle no
+  crontab -r
+  crontab <<home-dir()>>/.config/crontab/pc
+#+end_src
 
 #+begin_src conf :noweb yes :tangle (expand-tangle-target ".config/crontab/pc")
   MAILTO="<<email()>>"
@@ -9789,6 +9827,12 @@ aspell - interactive spell checker
   # }, "Emacs-like keys")
   #+end_src
 - xkeysnail.service
+
+  #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+    systemctl --user enable xkeysnail
+    systemctl --user start xkeysnail
+  #+end_src
+
   #+begin_src conf :tangle (expand-tangle-target ".config/systemd/user/xkeysnail.service")
     [Unit]
     Description=xkeysnail
@@ -9804,11 +9848,7 @@ aspell - interactive spell checker
     [Install]
     WantedBy=default.target
   #+end_src
-*** how to make xkeysnail daemonize
-1. Install xkeysnail on guix
-2. Start systemd service for xkeysnail
-   : $ systemctl --user enable xkeysnail
-   : $ systemctl --user start xkeysnail
+
 ** SKK
 
 SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
@@ -9863,7 +9903,11 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
   #+end_src
 - a script to download voices
 
-  #+begin_src shell :tangle no :async
+  #+begin_src conf :noweb yes :noweb-ref ubuntu-setup :tangle no
+    download-festival-voices
+  #+end_src
+
+  #+begin_src shell :tangle (expand-tangle-target ".local/bin/download-festival-voices") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
     work_dir=~/.local/share/festival
     voices=(
       cmu_us_aew_cg
@@ -9908,7 +9952,11 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
   #+end_example
 - download hts voices
 
-  #+begin_src shell :tangle no :async
+  #+begin_src conf :noweb yes :noweb-ref ubuntu-setup :tangle no
+    download-hts-voices
+  #+end_src
+
+  #+begin_src shell :tangle (expand-tangle-target ".local/bin/download-hts-voices") #!/usr/bin/env bash :tangle-mode (identity #o755)
     data_dir=~/.local/share/hts-voice
 
     if [ ! -d "${data_dir}" ]; then
@@ -10687,6 +10735,11 @@ you are required to locate that package where emacs can search.
   network.scgi.open_local = <<rtorrent-sock()>>
   execute.nothrow = chmod,770,<<rtorrent-sock()>>
   encoding.add = utf8
+#+end_src
+
+#+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+  systemctl --user enable rtorrent.service
+  systemctl --user start rtorrent.service
 #+end_src
 
 #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/systemd/user/rtorrent.service")
@@ -12268,7 +12321,7 @@ Utility for sendind email programatically
   from email.utils import formatdate
 
   def sendmail(mail_to, mail_from, subject, message):
-      smtp_host = 'smtp.daisychain.jp'
+      smtp_host = 'smtp.<<my-network()>>'
       smtp_port = '465'
       smtp_user = '<<email()>>'.split(sep='@')[0]
       smtp_pass = subprocess.run(["pass {}:{}/{} | head -1".format(smtp_host, smtp_port, smtp_user)], stdout=subprocess.PIPE, shell=True).stdout.decode().strip()
