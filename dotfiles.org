@@ -120,6 +120,13 @@ initialization script for a linuxmint account
   . "$GUIX_PROFILE/etc/profile"
 
   export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
+
+
+  if [ -n "$GUIX_ENVIRONMENT" ]; then
+      if [[ $PS1 =~ (.*)"\\$" ]]; then
+          PS1="${BASH_REMATCH[1]} [env]\\\$ "
+      fi
+  fi
 #+end_src
 
 *** Channel definitions
