@@ -1254,7 +1254,7 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
   (customize-set-variable 'auto-save-timeout 25)
   (customize-set-variable 'auto-save-default nil)
   (customize-set-variable 'auto-save-list-file-prefix
-                          (concat user-emacs-directory "auto-save-list/.saves-"))
+                          (file-name-concat user-emacs-directory "auto-save-list/.saves-"))
 
   (customize-set-variable 'auto-save-visited-mode t)
   (customize-set-variable 'auto-save-visited-interval 900)
@@ -3646,6 +3646,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-clock-into-drawer "CLOCK")
     (org-clock-out-when-done t)
     (org-clock-persist t)
+    (org-clock-persist-file (file-name-concat user-emacs-directory "org-clock-save.el"))
     (org-clock-persist-query-resume nil)
     (org-clock-string-limit 20)
     (org-clock-continuously t)
