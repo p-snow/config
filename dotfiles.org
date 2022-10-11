@@ -1818,8 +1818,13 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+begin_src emacs-lisp :noweb yes
   (use-package locate
     :custom
-    (locate-fcodes-file "<<locate-db()>>")
+    (locate-command "plocate")
+    (locate-make-command-line #'my/plocate-make-command-line)
+    (locate-fcodes-file "<<plocate-db()>>")
     (locate-update-path (expand-file-name "~/")))
+
+  (defun my/plocate-make-command-line (search-string)
+    (list locate-command "-d" "<<plocate-db()>>" "--ignore-case" "--existing" "--regexp" search-string))
 #+end_src
 
 ***** Applications
@@ -4531,7 +4536,7 @@ speed commands and hydra-org.
     :custom
     (consult-line-start-from-top t)
     (consult-project-root-function #'project-root-function)
-    (consult-locate-args "locate --database=<<locate-db()>> --ignore-case --existing --regex"))
+    (consult-locate-args "plocate -d <<plocate-db()>> --ignore-case --existing --regexp"))
 
   (defun project-root-function ()
     (when-let (project (project-current))
@@ -8319,7 +8324,7 @@ This set of code (open-file) offers file opener functionality in my liking. With
 
 lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lfile/][Kerl Voit's implementation]].
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/lfile.el")
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-tangle-target ".emacs.d/site-lisp/lfile.el")
   (defcustom my/lfile-root "~/" "docstring")
 
   (defmacro my/expand-lfile (file body exclude-search)
@@ -8435,7 +8440,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
                               ))
                     (split-string
                      (shell-command-to-string
-                      (format "locate -ie \"%s\""
+                      (format "plocate -d <<plocate-db()>> -ie \"%s\""
                               (or (and match-idx
                                        (match-string 1 pattern))
                                   pattern)
@@ -8854,36 +8859,43 @@ This section mainly for elisp code associated with some other programs.
 - find
 - locate
 - updatedb
-
-  CAUTION: This config for locate program in GNU Findutil. It would be problematic if you install mlocate, which is another locate implementation, via a package manager of your choice.
-
-  + guix packages
-
-    #+begin_src scheme :noweb-ref base-pkgs
-      "findutils"
-    #+end_src
-  + definitions
-
-    #+name: locate-db
-    #+begin_src emacs-lisp :noweb yes
-      (file-name-concat "<<share-dir()>>" "locate/locatedb")
-    #+end_src
-
-    #+begin_src shell :noweb yes :noweb-ref bashrc
-      export LOCATE_PATH=<<locate-db()>>
-      export PRUNEPATHS='<<home-dir()>>/\.local/share/Trash/.+ .*\.git/.*'
-    #+end_src
-  + updatedb script for user home directory
-
-    #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/updatedb_home") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
-      [[ -d $(dirname <<locate-db()>>) ]] || mkdir -p $(dirnmae <<locate-db()>>) && pwsudo updatedb --localpaths='<<home-dir()>>' --output=<<locate-db()>>
-    #+end_src
-  + updatedb cron job
-
-    #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-      30 4 * * * /bin/bash -ci "updatedb_home >> $LOG_DIR/updatedb_home.log 2>&1"
-    #+end_src
 - xargs
+
+'locate' is GNU implementation of mlocate. I prefer 'plocate', which is fast than mlocate, for indexed file searching,
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "findutils"
+#+end_src
+
+** plocate
+:PROPERTIES:
+:CREATED:  [2022-10-11 Tue 16:52]
+:END:
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "plocate"
+#+end_src
+
+#+name: plocate-db
+#+begin_src emacs-lisp :noweb yes
+  (file-name-concat "<<share-dir()>>" "plocate/plocate.db")
+#+end_src
+
+#+begin_src shell :noweb yes :noweb-ref bashrc
+  export LOCATE_PATH=<<plocate-db()>>
+#+end_src
+
+#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/updatedb-home") :tangle-mode (identity #o755)
+  #!/usr/bin/env bash
+
+  [[ -d $(dirname <<plocate-db()>>) ]] \
+   || mkdir -p $(dirnmae <<plocate-db()>>) \
+     && which -a updatedb | grep sbin | xargs -I{} sh -c '{} -l 0 -U '<<home-dir()>>' -o <<plocate-db()>>'
+#+end_src
+
+#+begin_src conf :noweb yes :noweb-ref cronjob-pc
+  30 4 * * * /bin/bash -ci "updatedb-home >> $LOG_DIR/updatedb-home.log 2>&1"
+#+end_src
 
 ** OpenSSH
 
