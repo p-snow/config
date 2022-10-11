@@ -619,7 +619,7 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
     subvolume incumbents/home
       snapshot_name home-backup
       target send-receive /mnt/exbak/backups
-      target_preserve 1d 10w 6m 1y
+      target_preserve 10w 6m 1y
       target_preserve_min latest
 #+end_src
 
@@ -640,7 +640,7 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
   #+end_src
 
   #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-    10 3 * * * /bin/bash -ci "bkhome >> $LOG_DIR/bkhome.log 2>&1"
+    30 * * * * /bin/bash -ci "bkhome >> $LOG_DIR/bkhome.log 2>&1"
   #+end_src
 
 *** snapshots management                      :ARCHIVE:
@@ -8861,7 +8861,7 @@ This section mainly for elisp code associated with some other programs.
 - updatedb
 - xargs
 
-'locate' is GNU implementation of mlocate. I prefer 'plocate', which is fast than mlocate, for indexed file searching,
+'locate' is GNU implementation of mlocate. I prefer '[[id:c56e19dd-d3b1-4595-be74-0ff7c6558bc8][plocate]]', which is fast than mlocate, for indexed file searching,
 
 #+begin_src scheme :noweb-ref base-pkgs
   "findutils"
@@ -8870,6 +8870,7 @@ This section mainly for elisp code associated with some other programs.
 ** plocate
 :PROPERTIES:
 :CREATED:  [2022-10-11 Tue 16:52]
+:ID:       c56e19dd-d3b1-4595-be74-0ff7c6558bc8
 :END:
 
 #+begin_src scheme :noweb-ref base-pkgs
