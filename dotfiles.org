@@ -1007,21 +1007,6 @@ Settings in this section are influenced a great deal by my personal preference. 
   (put 'downcase-region 'disabled nil)
 #+end_src
 
-- swap C-h/M-h and <BS>(C-?)/M-<BS> advised at [[https://www.emacswiki.org/emacs/BackspaceKey][EmacsWiki: Backspace Key]]
-  #+begin_src emacs-lisp
-    ;; map backspace [delete-backward-char] and C-? to C-h
-    (define-key key-translation-map [?\C-?] [?\C-h])
-    (define-key key-translation-map (kbd "C-?") [?\C-h])
-
-    ;; map M-backspace [backward-kill-word] to M-h
-    (define-key key-translation-map [?\M-\d] [?\M-h])
-
-    ;; map C-h to backspace
-    (define-key key-translation-map [?\C-h] [?\C-?])
-
-    ;; map M-h [mark-paragraph] to M-backspace
-    (define-key key-translation-map [?\M-h] [?\M-\d])
-  #+end_src
 - Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
   #+begin_src emacs-lisp
     (substitute-key-definition 'list-buffers
@@ -1088,10 +1073,8 @@ Settings in this section are influenced a great deal by my personal preference. 
        (when (member (window-system) '(x ns w32))
          (set-frame-parameter nil 'fullscreen 'fullboth)))))
 
-  ;; (add-hook 'server-after-make-frame-hook
-  ;;           (lambda ()
-  ;;             (when (member (window-system) '(x ns w32))
-  ;;               (set-frame-parameter nil 'fullscreen 'fullboth))))
+  ;; enable subword-mode by default
+  (global-subword-mode 1)
 #+end_src
 ***** Fontsets
 
@@ -1392,6 +1375,11 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
 ****** Minibuffer
 
 #+begin_src emacs-lisp
+  (define-key minibuffer-mode-map
+    (kbd "C-h") #'delete-backward-char)
+  (define-key minibuffer-mode-map
+    (kbd "M-h") #'backward-kill-word)
+
   (customize-set-variable 'history-length 300)
   (customize-set-variable 'history-delete-duplicates t)
   (customize-set-variable 'enable-recursive-minibuffers t)
@@ -1486,6 +1474,13 @@ Mouse needs to be unobtrusive in my Emacs experience.
 #+end_src
 
 ***** Convenience
+
+#+begin_src emacs-lisp
+  (require 'repeat)
+
+  (customize-set-variable 'repeat-mode t)
+#+end_src
+
 ****** Abbreviations
 
 #+begin_src emacs-lisp
@@ -3018,7 +3013,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
     (advice-add 'consult-yank-from-kill-ring :around #'advice/vterm-yank-pop))
 
   (defun advice/vterm-yank-pop (orig-fun &rest args)
-    (if (equal major-mode 'vterm-mode)
+    (if (eq major-mode 'vterm-mode)
         (let ((inhibit-read-only t)
               (yank-undo-function (lambda (_start _end) (vterm-undo))))
           (cl-letf (((symbol-function 'insert-for-yank)
@@ -4679,11 +4674,8 @@ speed commands and hydra-org.
            ;; target buffer must be front not buried
            (eq (current-buffer) (window-buffer)))
       (if (my/ascii-string-p (buffer-string))
-          (progn (activate-input-method nil)
-                 (jaword-mode -1)
-                 (subword-mode 1))
-        (progn (activate-input-method default-input-method)
-               (jaword-mode 1)))
+          (activate-input-method nil)
+        (activate-input-method default-input-method))
       (visual-line-mode 1)
       (toggle-truncate-lines -1)))
 #+end_src
@@ -5581,7 +5573,7 @@ Handy commands
            (paredit-mode . show-paren-local-mode)))
 #+end_src
 
-- bug fix
+- workaround
   Thanks to [[https://andreyorst.gitlab.io/posts/2021-09-30-why-is-paredit-is-so-un-emacsy/][this blog post]], a couple of commands in paredit.el are fixed with transient-mark-mode
 
   #+begin_src emacs-lisp
@@ -6149,7 +6141,18 @@ Jaword.elはbackward-wordやforward-wordを日本語に対応させる機能を�
   (use-package jaword
     :straight t
     :custom
-    (jaword-enable-subword t))
+    (jaword-enable-subword t)
+    :hook ((skk-mode
+            . (lambda ()
+                (jaword-mode 1)))
+           (input-method-activate
+            . (lambda ()
+                (when (string= current-input-method "japanese-skk")
+                  (jaword-mode 1))))
+           (input-method-deactivate
+            . (lambda ()
+                (when (string= current-input-method "japanese-skk")
+                  (jaword-mode -1))))))
 #+end_src
 
 ***** hungry-delete                         :ARCHIVE:
@@ -7063,6 +7066,46 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
   (define-key reb-mode-map (kbd "RET") #'reb-replace-regexp)
   (define-key reb-lisp-mode-map (kbd "RET") #'reb-replace-regexp)
   (global-set-key (kbd "C-%") #'re-builder)
+#+end_src
+
+***** repeat maps
+:PROPERTIES:
+:CREATED:  [2022-10-14 Fri 17:43]
+:END:
+
+#+begin_src emacs-lisp
+  (defvar my/delete-repeat-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map "\C-d" (lambda ()
+                               (interactive)
+                               (setq repeat-map 'my/delete-repeat-map)
+                               (if (eq major-mode 'org-mode)
+                                   (org-delete-char 1)
+                                 (delete-char 1))))
+      (define-key map "\M-d" (lambda ()
+                               (interactive)
+                               (setq repeat-map 'my/delete-repeat-map)
+                               (if jaword-mode
+                                   (jaword-kill 1)
+                                 (kill-word 1))))
+      (define-key map "\C-h" (lambda ()
+                               (interactive)
+                               (setq repeat-map 'my/delete-repeat-map)
+                               (if (eq major-mode 'org-mode)
+                                   (org-delete-backward-char 1)
+                                 (delete-backward-char 1))))
+      (define-key map "\M-h" (lambda ()
+                               (interactive)
+                               (setq repeat-map 'my/delete-repeat-map)
+                               (if jaword-mode
+                                   (jaword-kill -1)
+                                 (backward-kill-word 1))))
+      map)
+    "Keymap to repeat `next-error' key sequences.  Used in `repeat-mode'.")
+  (put 'delete-char 'repeat-map 'my/delete-repeat-map)
+  (put 'org-delete-char 'repeat-map 'my/delete-repeat-map)
+  (put 'kill-word 'repeat-map 'my/delete-repeat-map)
+  (put 'jaword-kill 'repeat-map 'my/delete-repeat-map)
 #+end_src
 
 ***** utility lisp functions/commands
