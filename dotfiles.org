@@ -54,9 +54,15 @@
 initialization script for a ubuntu account
 
 #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/initialize-ubuntu-desktop") :shebang #!/bin/sh :tangle-mode (identity #o755)
+  install-apt-packages
   start-systemd-services
 
   <<ubuntu-setup>>
+#+end_src
+
+#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/install-apt-packages") :shebang #!/bin/sh :tangle-mode (identity #o755)
+  sudo apt-get install -y \
+       <<apt-pkgs>>
 #+end_src
 
 ** Linux Mint (Cinnamon Desktop)
@@ -317,6 +323,10 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
   "font-ipa-ex"
   "font-google-noto"
   "font-inconsolata"
+#+end_src
+
+#+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+  fonts-ipafont-mincho fonts-ipafont-gothic
 #+end_src
 
 #+begin_src xml :noweb tangle :tangle (expand-tangle-target ".config/fontconfig/fonts.conf")
@@ -1934,6 +1944,40 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (use-package view
     :diminish view-mode "vw")
 #+end_src
+
+***** Hypermedia
+:PROPERTIES:
+:CREATED:  [2022-10-20 Thu 16:59]
+:END:
+****** Dictionary
+:PROPERTIES:
+:CREATED:  [2022-10-20 Thu 17:01]
+:END:
+
+#+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+  dictd dict \
+        dict-gcide dict-wn \
+        dict-jargon dict-foldoc dict-vera \
+        dict-freedict-eng-jpn dict-freedict-jpn-eng
+#+end_src
+
+#+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+  systemctl start dictd
+#+end_src
+
+#+begin_src emacs-lisp
+  (customize-set-variable 'dictionary-use-single-buffer t)
+  (customize-set-variable 'dictionary-server nil)
+
+  (with-eval-after-load 'dictionary
+    (setq switch-to-buffer-obey-display-actions t)
+    (add-to-list 'display-buffer-alist
+                 '("^\\*Dictionary\\*"
+                   display-buffer-in-tab))
+    (add-hook 'dictionary-mode-hook
+              #'my/lazy-view-enter))
+#+end_src
+
 **** Input Methods
 :PROPERTIES:
 :header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/input-method.el")
@@ -6611,11 +6655,16 @@ It's confortable to read long material such as web page , epub file or email wit
                                        :color blue)
       "Lookup"
       ("g" lookup-google)
+      ("G" lookup-duckduckgo "duckduckgo")
       ("w" lookup-wikipedia-ja)
       ("W" lookup-wikipedia-en)
+      ("d" (lambda (&optional arg)
+             (interactive "P")
+             (if (equal arg '(4))
+                 (funcall-interactively #'dictionary-search nil)
+               (dictionary-lookup-definition))))
       ("a" lookup-amazon "amazon.co.jp")
       ("m" lookup-melpa "melpa")
-      ("d" lookup-duckduckgo "duckduckgo")
       ("l" lookup-weblio "weblio")
       ("y" lookup-youtube "youtube")
       ("e" my/define-word)
