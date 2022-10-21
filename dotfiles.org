@@ -154,6 +154,7 @@ initialization script for a linuxmint account
   #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/base.scm")
     (specifications->manifest
      '("coreutils"
+       "busybox"
        "diffutils"
        "parallel"
        "gawk"
@@ -6876,7 +6877,7 @@ It's confortable to read long material such as web page , epub file or email wit
 
 ***** text to speech
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
   (require 'festival)
 
   (defcustom my/say-maximum-duration 30
@@ -6941,7 +6942,7 @@ It's confortable to read long material such as web page , epub file or email wit
     "Speech TEXT in Japanese using Open JTalk."
     (start-process-shell-command
      my/say--open-jtalk-process nil
-     (format "echo %s | open_jtalk -x /var/lib/mecab/dic/open-jtalk/naist-jdic -m ~/.local/share/hts-voice/mei/mei_angry.htsvoice -ow /tmp/a.wav && aplay /tmp/a.wav"
+     (format "echo %s | open_jtalk -x /var/lib/mecab/dic/open-jtalk/naist-jdic -m <<hts-voice-dir()>>/Voice/mei/mei_angry.htsvoice -ow /tmp/a.wav && aplay /tmp/a.wav"
              (replace-regexp-in-string "[\t\r\n\v\f]+" " " text))))
 #+end_src
 
@@ -10089,32 +10090,31 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 :ID:       ce99b0cf-dd07-4b9e-86b3-b492a8cfb354
 :END:
 
+#+name: hts-voice-dir
+#+begin_src emacs-lisp :noweb yes
+  (expand-file-name "~/.local/share/hts-voice")
+#+end_src
+
 - install on Ubuntu
-  #+begin_example
-    sudo apt install -y \
-         open-jtalk \
-         open-jtalk-mecab-naist-jdic \
-         hts-voice-nitech-jp-atr503-m001
-  #+end_example
+  #+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+    open-jtalk open-jtalk-mecab-naist-jdic hts-voice-nitech-jp-atr503-m001
+  #+end_src
 - download hts voices
 
   #+begin_src conf :noweb yes :noweb-ref ubuntu-setup :tangle no
     download-hts-voices
   #+end_src
 
-  #+begin_src shell :tangle (expand-tangle-target ".local/bin/download-hts-voices") #!/usr/bin/env bash :tangle-mode (identity #o755)
-    data_dir=~/.local/share/hts-voice
+  #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/download-hts-voices") #!/usr/bin/env bash :tangle-mode (identity #o755)
+    data_dir=<<hts-voice-dir()>>
 
     if [ ! -d "${data_dir}" ]; then
       mkdir -p "${data_dir}"
     fi
 
-    cd /tmp \
-      && wget http://sourceforge.net/projects/mmdagent/files/MMDAgent_Example/MMDAgent_Example-1.8/MMDAgent_Example-1.8.zip \
-      && unzip MMDAgent_Example-1.8.zip \
-      && rm -f MMDAgent_Example-1.8.zip \
-      && cp -rf MMDAgent_Example-1.8/Voice/* "${data_dir}" \
-      && echo "Downloaded in ${data_dir}"
+    curl -sL http://sourceforge.net/projects/mmdagent/files/MMDAgent_Example/MMDAgent_Example-1.8/MMDAgent_Example-1.8.zip \
+      | busybox unzip -o -d ${data_dir} - \
+      && ln -sfv ${data_dir}/MMDAgent_Example-1.8/Voice ${data_dir}/
   #+end_src
 
 ** Jack
