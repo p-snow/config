@@ -9781,20 +9781,23 @@ aspell - interactive spell checker
 :ID:       decef153-596d-4821-996e-53cfafe83c8f
 :END:
 
-- how to install textlint and its rules
-  #+begin_src shell :tangle no
-    npm install -g \
-      textlint \
-      @textlint/ast-node-types \
-      textlint-rule-preset-ja-spacing \
-      textlint-rule-preset-ja-technical-writing \
-      textlint-rule-spellcheck-tech-word \
-      textlint-rule-ginger \
-      textlint-rule-write-good \
-      textlint-filter-rule-node-types \
-      textlint-plugin-org \
-      traverse
-  #+end_src
+#+begin_src conf :noweb-ref ubuntu-setup :tangle no
+  install-textlint
+#+end_src
+
+#+begin_src shell :shebang #!/bin/sh :tangle (expand-tangle-target ".local/bin/install-textlint") :tangle-mode (identity #o755)
+  npm install -g \
+    textlint \
+    @textlint/ast-node-types \
+    textlint-rule-preset-ja-spacing \
+    textlint-rule-preset-ja-technical-writing \
+    textlint-rule-spellcheck-tech-word \
+    textlint-rule-ginger \
+    textlint-rule-write-good \
+    textlint-filter-rule-node-types \
+    textlint-plugin-org \
+    traverse
+#+end_src
 
 - config for English
   #+begin_src json :tangle (expand-tangle-target ".textlintrc")
