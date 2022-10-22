@@ -1,5 +1,3 @@
-(load-file "./common.el")
-
 (require 'org)
 (require 'org-crypt)
 (require 'ob-shell)
@@ -8,8 +6,7 @@
              'save-buffer)
 (setq org-crypt-key user-mail-address)
 
-(let* ((dotfiles-path (expand-file-name "./"))
-       (org-files (directory-files dotfiles-path nil "\\.org\\(\\.gpg\\)?$"))
+(let* ((org-files (directory-files "./" nil "\\.org$"))
        (org-confirm-babel-evaluate nil)
        (python-indent-guess-indent-offset nil)
        (org-id-locations-file nil))
@@ -19,13 +16,6 @@
   (dolist (org-file org-files)
     (unless (member org-file '("README.org"))
       (with-current-buffer (find-file-noselect org-file)
-        (org-decrypt-entries)
-        (mapc (lambda (target-file)
-                (when (or (string-match-p "\\.password-store" target-file)
-                          (string-match-p "\\.netrc" target-file))
-                  (call-process-shell-command
-                   (format "gpg -o %1$s -r %2$s -e %3$s; rm -f %3$s"
-                           (concat target-file ".gpg")
-                           user-full-name
-                           target-file))))
-              (mapcar #'expand-file-name (org-babel-tangle)))))))
+        (let ((default-directory (org-entry-get nil "tangle-dest" t)))
+          (org-decrypt-entries)
+          (org-babel-tangle))))))

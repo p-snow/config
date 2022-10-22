@@ -1,7 +1,7 @@
 #+TITLE: My Configuration Collection
+#+PROPERTY: tangle-dest       ~/dotfiles
 #+PROPERTY: header-args       :mkdirp yes
 #+PROPERTY: header-args:bash  :shebang "#!/usr/bin/env bash\nset -euo pipefail\n"
-#+PROPERTY: tangle-target-dir ~/dotfiles
 
 #+STARTUP: overview
 
@@ -53,14 +53,14 @@
 
 initialization script for a ubuntu account
 
-#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/initialize-ubuntu-desktop") :shebang #!/bin/sh :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/initialize-ubuntu-desktop") :shebang #!/bin/sh :tangle-mode (identity #o755)
   install-apt-packages
   start-systemd-services
 
   <<ubuntu-setup>>
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/install-apt-packages") :shebang #!/bin/sh :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/install-apt-packages") :shebang #!/bin/sh :tangle-mode (identity #o755)
   sudo apt-get install -y \
        <<apt-pkgs>>
 #+end_src
@@ -73,7 +73,7 @@ initialization script for a ubuntu account
 
 initialization script for a linuxmint account
 
-#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/initialize-linuxmint-desktop") :shebang #!/bin/sh :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/initialize-linuxmint-desktop") :shebang #!/bin/sh :tangle-mode (identity #o755)
   initialize-ubuntu-desktop
 
   <<linuxmint-setup>>
@@ -137,7 +137,7 @@ initialization script for a linuxmint account
 
 *** Channel definitions
 
-#+begin_src scheme :tangle (expand-tangle-target ".config/guix/base-channels.scm")
+#+begin_src scheme :tangle (expand-file-name ".config/guix/base-channels.scm")
   (list (channel
          (name 'nonguix)
          (url "https://gitlab.com/nonguix/nonguix"))
@@ -151,7 +151,7 @@ initialization script for a linuxmint account
 
 *** Manifests
 - base
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/base.scm")
+  #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/base.scm")
     (specifications->manifest
      '("coreutils"
        "busybox"
@@ -202,7 +202,7 @@ initialization script for a linuxmint account
        <<base-pkgs>>))
   #+end_src
 - desktop
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/desktop.scm")
+  #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/desktop.scm")
     (specifications->manifest
      '("font-adobe-source-han-sans"
        "imagemagick"
@@ -214,13 +214,13 @@ initialization script for a linuxmint account
        <<desktop-pkgs>>))
   #+end_src
 - creative
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/creative.scm")
+  #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/creative.scm")
     (specifications->manifest
      '(;; "krita"
        <<creative-pkgs>>))
   #+end_src
 - devel (software development)
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/devel.scm")
+  #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/devel.scm")
     (specifications->manifest
      '("binutils"
        "make"
@@ -234,7 +234,7 @@ initialization script for a linuxmint account
        <<devel-pkgs>>))
   #+end_src
 - emacs
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/emacs.scm")
+  #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/emacs.scm")
     (specifications->manifest
      '("isync"
        <<emacs-pkgs>>
@@ -242,7 +242,7 @@ initialization script for a linuxmint account
        "wordnet"))
   #+end_src
 - wine
-  #+begin_src scheme :noweb yes :tangle (expand-tangle-target ".config/guix/manifests/wine.scm")
+  #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/wine.scm")
     (specifications->manifest
      '("wine64"
        "winetricks"))
@@ -253,7 +253,7 @@ This script accepts a space-separated list of manifest file names (without exten
 
 : activate-profiles base emacs
 
-#+begin_src sh :tangle :tangle (expand-tangle-target ".local/bin/activate-profiles") :shebang #!/bin/sh :tangle-mode (identity #o755)
+#+begin_src sh :tangle :tangle (expand-file-name ".local/bin/activate-profiles") :shebang #!/bin/sh :tangle-mode (identity #o755)
   GREEN='\033[1;32m'
   RED='\033[1;30m'
   NC='\033[0m'
@@ -301,7 +301,7 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
 
 : guix pull -C ~/.config/guix/channels.scm
 
-#+begin_src sh :tangle (expand-tangle-target ".local/bin/update-channels") :shebang #!/bin/sh :tangle-mode (identity #o755)
+#+begin_src sh :tangle (expand-file-name ".local/bin/update-channels") :shebang #!/bin/sh :tangle-mode (identity #o755)
   guix pull --channels=$HOME/.config/guix/base-channels.scm
   guix describe --format=channels > ~/.config/guix/channels.scm
 #+end_src
@@ -330,7 +330,7 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
   fonts-ipafont-mincho fonts-ipafont-gothic
 #+end_src
 
-#+begin_src xml :noweb tangle :tangle (expand-tangle-target ".config/fontconfig/fonts.conf")
+#+begin_src xml :noweb tangle :tangle (expand-file-name ".config/fontconfig/fonts.conf")
   <?xml version='1.0'?>
   <!DOCTYPE fontconfig SYSTEM 'fonts.dtd'>
   <fontconfig>
@@ -359,7 +359,7 @@ install available fonts by rescanning font directories
 #+end_src
 
 - bash profile
-  #+BEGIN_SRC shell :tangle (expand-tangle-target ".bash_profile")
+  #+BEGIN_SRC shell :tangle (expand-file-name ".bash_profile")
     #!/usr/bin/env bash
 
     if [ -f ~/.bashrc ]; then
@@ -367,7 +367,7 @@ install available fonts by rescanning font directories
     fi
   #+END_SRC
 - bashrc
-  #+BEGIN_SRC shell :noweb yes :tangle (expand-tangle-target ".bashrc")
+  #+BEGIN_SRC shell :noweb yes :tangle (expand-file-name ".bashrc")
     #!/usr/bin/env bash
 
     if [ -f ~/.bashrc.secret ]; then
@@ -435,7 +435,7 @@ install available fonts by rescanning font directories
     <<bashrc>>
   #+END_SRC
 - aliases
-  #+begin_src shell :tangle (expand-tangle-target ".bash_aliases")
+  #+begin_src shell :tangle (expand-file-name ".bash_aliases")
     alias ..="cd ../"
     alias l="ls -F"
     alias ll="l -lh"
@@ -454,7 +454,7 @@ install available fonts by rescanning font directories
     alias ipaddr="hostname -I | cut -f1 -d' '"
   #+end_src
 - functions
-  #+begin_src shell :tangle (expand-tangle-target ".bash_functions")
+  #+begin_src shell :tangle (expand-file-name ".bash_functions")
     function cl() {
         DIR="$*";
             # if no DIR given, go home
@@ -528,7 +528,7 @@ install available fonts by rescanning font directories
     }
   #+end_src
 - profile
-  #+BEGIN_SRC shell :tangle (expand-tangle-target ".profile")
+  #+BEGIN_SRC shell :tangle (expand-file-name ".profile")
     # ~/.profile: executed by the command interpreter for login shells.
     # This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
     # exists.
@@ -559,7 +559,7 @@ install available fonts by rescanning font directories
   #+END_SRC
 ** Systemd
 
-#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/start-systemd-services") :shebang #!/bin/sh :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/start-systemd-services") :shebang #!/bin/sh :tangle-mode (identity #o755)
   <<systemd-service>>
 #+end_src
 
@@ -574,7 +574,7 @@ You may need to enable systemd-tmpfiles service for user
   systemctl --user enable systemd-tmpfiles-setup.service systemd-tmpfiles-clean.timer
 #+end_src
 
-#+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/user-tmpfiles.d/cleanup.conf")
+#+begin_src conf :noweb tangle :tangle (expand-file-name ".config/user-tmpfiles.d/cleanup.conf")
   D <<home-dir()>>/.local/share/Trash/files 0700 - - 1w
   d <<home-dir()>>/tmp 0755 - - 5d
   d <<home-dir()>>/Downloads 0755 - - 4w
@@ -588,7 +588,7 @@ You may need to enable systemd-tmpfiles service for user
   crontab <<home-dir()>>/.config/crontab/pc
 #+end_src
 
-#+begin_src conf :noweb yes :tangle (expand-tangle-target ".config/crontab/pc")
+#+begin_src conf :noweb yes :tangle (expand-file-name ".config/crontab/pc")
   MAILTO="<<email()>>"
 
   BIN_DIR="<<home-dir()>>/bin"
@@ -617,7 +617,7 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 
 [[https://digint.ch/btrbk/doc/btrbk.conf.5.html][btrbk.conf documentation]]
 
-#+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/btrbk/btrbk.conf")
+#+begin_src conf :noweb tangle :tangle (expand-file-name ".config/btrbk/btrbk.conf")
   snapshot_dir snapshots
   timestamp_format long
   incremental yes
@@ -643,7 +643,7 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 
 - backup
 
-  #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/bkhome") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+  #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/bkhome") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
     BTRBK_CONF=~/.config/btrbk/btrbk.conf
 
     pwsudo btrbk --config "${BTRBK_CONF}" --dry-run run *-backup \
@@ -663,7 +663,7 @@ A structure described below is expected under all devices.
 ├── incumbents
 └── snapshots
 
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/btrfs_snap") :tangle-mode (identity #o755)
+#+begin_src shell :tangle (expand-file-name ".local/bin/btrfs_snap") :tangle-mode (identity #o755)
   #!/usr/bin/env bash
   set -euo pipefail
 
@@ -693,7 +693,7 @@ A structure described below is expected under all devices.
 
 : $ btrfs_back
 
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/btrfs_back") :tangle-mode (identity #o755)
+#+begin_src shell :tangle (expand-file-name ".local/bin/btrfs_back") :tangle-mode (identity #o755)
   #!/usr/bin/env bash
   set -euo pipefail
 
@@ -767,7 +767,7 @@ A structure described below is expected under all devices.
 - ask default application for text/plain
   : $ xdg-mime query default text/plain
 
-#+begin_src conf :tangle (expand-tangle-target ".config/mimeapps.list") :tangle-mode (identity #o644)
+#+begin_src conf :tangle (expand-file-name ".config/mimeapps.list") :tangle-mode (identity #o644)
   [Added Associations]
   inode/directory=io.github.celluloid_player.Celluloid.desktop;nemo.desktop;
 
@@ -780,11 +780,11 @@ A structure described below is expected under all devices.
 GnuPG - ArchWiki]]
 
 - gpg config
-  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".gnupg/gpg.conf")
+  #+begin_src conf :noweb tangle :tangle (expand-file-name ".gnupg/gpg.conf")
     with-keygrip
   #+end_src
 - gpg-agent config
-  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".gnupg/gpg-agent.conf")
+  #+begin_src conf :noweb tangle :tangle (expand-file-name ".gnupg/gpg-agent.conf")
     # pinentry-program /usr/bin/pinentry-curses
     pinentry-program /usr/bin/pinentry
     allow-emacs-pinentry
@@ -803,7 +803,7 @@ GnuPG - ArchWiki]]
     gpg-connect-agent updatestartuptty /bye >/dev/null
   #+end_src
 
-  #+begin_src conf :tangle (expand-tangle-target ".ssh/config")
+  #+begin_src conf :tangle (expand-file-name ".ssh/config")
     Match host * exec "gpg-connect-agent UPDATESTARTUPTTY /bye"
   #+end_src
 - utility
@@ -831,7 +831,7 @@ GnuPG - ArchWiki]]
 
 **** early-init.el
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/early-init.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/early-init.el")
 :END:
 
 These process must be evaluated beforehand.
@@ -962,7 +962,7 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 #+end_src
 **** init.el
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/init.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/init.el")
 :END:
 
 init.el devote itself to call for remaining config files.
@@ -985,7 +985,7 @@ init.el devote itself to call for remaining config files.
 #+end_src
 **** Personal Preferences
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/02-preferences.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/02-preferences.el")
 :END:
 
 Settings in this section are influenced a great deal by my personal preference. Please be meticulous when you borrow.
@@ -1208,7 +1208,7 @@ Caveat: There are some face definitions which use an extra large font since I am
 
 **** Custom Variables
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/01-custom.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/01-custom.el")
 :ID:       587bc395-6321-4f59-97e6-6f0b62518b20
 :END:
 
@@ -1981,7 +1981,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 **** Input Methods
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/input-method.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/input-method.el")
 :END:
 
 ***** ddskk
@@ -2093,7 +2093,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 ***** skk init file
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/ddskk/skk-init.el")
+#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/ddskk/skk-init.el")
   ;; -*- mode:emacs-lisp; -*-
   (setq skk-rom-kana-rule-list
         (append skk-rom-kana-rule-list
@@ -2158,7 +2158,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 **** Themes
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/themes.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/themes.el")
 :END:
 ***** modus-themes
 
@@ -2193,7 +2193,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 #+end_src
 **** Dired
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/dired.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/dired.el")
 :END:
 
 #+begin_src emacs-lisp
@@ -2359,7 +2359,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 
 **** EWW
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/eww.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/eww.el")
 :END:
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
@@ -2497,7 +2497,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 #+end_src
 
 ***** extract_headings
-#+begin_src python :tangle (expand-tangle-target ".local/bin/extract_headings") :tangle-mode (identity #o755)
+#+begin_src python :tangle (expand-file-name ".local/bin/extract_headings") :tangle-mode (identity #o755)
   #!/usr/bin/env python3
 
   # This script extract most probable page heading.
@@ -2545,7 +2545,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 #+end_src
 **** Info
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/info.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/info.el")
 :END:
 
 #+begin_src emacs-lisp
@@ -2569,7 +2569,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 
 **** Magit
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/magit.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/magit.el")
 :END:
 
 [[https://github.com/magit/magit][Magit]] is git front end for emacs which is outstandingly powerful.
@@ -2655,7 +2655,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 
 **** Mu4e
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/mu4e.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/mu4e.el")
 :END:
 
 You need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-message-store.html][issue 'mu init' command]] before using mu4e.
@@ -2772,7 +2772,7 @@ Command in practice presumably looks like:
 
 **** Elfeed
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/elfeed.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/elfeed.el")
 :END:
 
 [[https://github.com/skeeto/elfeed][Elfeed]] is a powerful RSS feed reader with tag capability that is one of core software in my input workflow.
@@ -2995,7 +2995,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
 
 **** Terminal emulators (Shells)
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/shell.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/shell.el")
 :END:
 
 #+begin_src emacs-lisp
@@ -3126,7 +3126,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
 
 **** Org-mode
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/org.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/org.el")
 :END:
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
@@ -4507,7 +4507,7 @@ speed commands and hydra-org.
 
 **** Completion framework
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/completion.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/completion.el")
 :END:
 
 ***** vertico
@@ -4701,7 +4701,7 @@ speed commands and hydra-org.
 
 **** text-mode derivatives
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/text-mode.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/text-mode.el")
 :END:
 
 ***** text-mode
@@ -4788,7 +4788,7 @@ speed commands and hydra-org.
 
 **** prog-mode derivatives
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/prog-mode.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/prog-mode.el")
 :END:
 
 ***** prog-mode
@@ -5127,7 +5127,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 **** special-mode derivatives
 :PROPERTIES:
 :CREATED:  [2022-08-23 Tue 18:51]
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/special-mode.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/special-mode.el")
 :END:
 
 ***** special mode
@@ -5160,7 +5160,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 **** Programming
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/programming.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/programming.el")
 :END:
 
 ***** Next Error
@@ -5274,7 +5274,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+end_src
 **** other third-party packages
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/lisp/packages.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/lisp/packages.el")
 :END:
 
 ***** mentor
@@ -6443,7 +6443,7 @@ Major mode for manupulating password store file.
                     :style  'libnotify))
 #+end_src
 
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/volget") :tangle-mode (identity #o755)
+#+begin_src shell :tangle (expand-file-name ".local/bin/volget") :tangle-mode (identity #o755)
   #!/usr/bin/env bash
 
   pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(($SINK + 1 )) | tail -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,'
@@ -6495,7 +6495,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 *** further customization
 **** handy functionalities
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/site-lisp/features.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/site-lisp/features.el")
 :END:
 
 ***** power management
@@ -6948,7 +6948,7 @@ It's confortable to read long material such as web page , epub file or email wit
 
 ****** jsay                                :ARCHIVE:
 
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/jsay") :tangle-mode (identity #o755)
+#+begin_src shell :tangle (expand-file-name ".local/bin/jsay") :tangle-mode (identity #o755)
   #!/usr/bin/env bash
 
   readonly DIC="${HOME}/usr/share/hts/dic"
@@ -6964,7 +6964,7 @@ It's confortable to read long material such as web page , epub file or email wit
 
 ****** esay                                :ARCHIVE:
 
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/esay") :tangle-mode (identity #o755)
+#+begin_src shell :tangle (expand-file-name ".local/bin/esay") :tangle-mode (identity #o755)
   #!/usr/bin/env bash
 
   readonly VOICE="${HOME}/usr/share/hts/voice/cmu_us_arctic_slt.htsvoice"
@@ -7229,7 +7229,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 **** original features
 ***** org-password-store
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-password-store.el")
+#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/org-password-store.el")
   (require 'password-store)
 
   (defcustom my/org-password-store-property "PASSWORD_STORE"
@@ -7500,7 +7500,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 
 ***** org-capture-derived
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-capture-derived.el")
+#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/org-capture-derived.el")
   (require 'thingatpt)
   (require 'whitespace)
 
@@ -7611,7 +7611,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 
 ***** org-relate
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-relate.el")
+#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/org-relate.el")
   (require 'thingatpt)
   (require 'org-ql-search)
 
@@ -7769,7 +7769,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 
 Provide a function to Build a clock table summing up time by tag.
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/clocktable-by-tag.el")
+#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/clocktable-by-tag.el")
   (require 'org-table)
   (require 'org-clock)
 
@@ -7832,7 +7832,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 ***** narrow-dwim
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/narrow-dwim.el")
+#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/narrow-dwim.el")
   (bind-key* "C-x n" 'my/toggle-narrow-dwim)
 
   (defun my/toggle-narrow-dwim (arg)
@@ -7897,7 +7897,7 @@ Provide a function to Build a clock table summing up time by tag.
 #+end_src
 ***** weather
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/weather.el")
+#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/weather.el")
   ;; 気象庁配信の天気情報を加工して表示
 
   (require 'request)
@@ -7964,7 +7964,7 @@ Provide a function to Build a clock table summing up time by tag.
 #+end_src
 ***** view-file (deprecated)                :ARCHIVE:
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/view-file.el")
+#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/view-file.el")
   (defcustom my/view-file--temp-dir "~/tmp/view-file"
     "Directory in which we will work for uncompresssing, decrypting and htmlize.")
   (defvar my/view-file--open-file nil
@@ -8127,7 +8127,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 ***** open-file
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/site-lisp/open-file.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/site-lisp/open-file.el")
 :END:
 
 This set of code (open-file) offers file opener functionality in my liking. With open-file, PDF and EPUB, which is either local or on the web, is viewed in EWW (text browser in Emacs) after the process of converted into html. Video and audio is played in MPV media player. Open-file is available in elisp commands for opening files (e.g. org-open-at-point for org links, browse-url and dired-open-file). With any command above, invoking with single prefix (C-u) inflict to open file in Emacs, and invoking with double prefix (C-u C-u) inflict to open files in default application.
@@ -8419,7 +8419,7 @@ This set of code (open-file) offers file opener functionality in my liking. With
 
 lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lfile/][Kerl Voit's implementation]].
 
-#+begin_src emacs-lisp :noweb tangle :tangle (expand-tangle-target ".emacs.d/site-lisp/lfile.el")
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name ".emacs.d/site-lisp/lfile.el")
   (defcustom my/lfile-root "~/" "docstring")
 
   (defmacro my/expand-lfile (file body exclude-search)
@@ -8557,7 +8557,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
 
 **** org workflows
 :PROPERTIES:
-:header-args+: :tangle (expand-tangle-target ".emacs.d/site-lisp/workflows.el")
+:header-args+: :tangle (expand-file-name ".emacs.d/site-lisp/workflows.el")
 :END:
 
 ***** notification count down timer finished
@@ -8715,7 +8715,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
 1. Capture an word to study by invoking my/org-english-capture
 2. Review words periodically with my/org-english-drill-test-display or its variants
 
-#+begin_src emacs-lisp :tangle (expand-tangle-target ".emacs.d/site-lisp/org-english.el")
+#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/org-english.el")
   (defvar my/org-english-file (file-name-concat org-directory "lists" "english.org")
     "A file where all english words to learn locate.")
 
@@ -8944,7 +8944,7 @@ test code
 
 This section mainly for elisp code associated with some other programs.
 
-#+begin_src emacs-lisp :noweb yes :tangle (expand-tangle-target ".emacs.d/site-lisp/additional.el")
+#+begin_src emacs-lisp :noweb yes :tangle (expand-file-name ".emacs.d/site-lisp/additional.el")
   <<additional-elisp>>
 #+end_src
 
@@ -8981,7 +8981,7 @@ This section mainly for elisp code associated with some other programs.
   export LOCATE_PATH=<<plocate-db()>>
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/updatedb-home") :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/updatedb-home") :tangle-mode (identity #o755)
   #!/usr/bin/env bash
 
   [[ -d $(dirname <<plocate-db()>>) ]] \
@@ -9001,7 +9001,7 @@ This section mainly for elisp code associated with some other programs.
   "openssh"
 #+end_src
 
-#+begin_src conf  :tangle (expand-tangle-target ".ssh/config")
+#+begin_src conf  :tangle (expand-file-name ".ssh/config")
   Include config.d/*
 #+end_src
 
@@ -9012,7 +9012,7 @@ This section mainly for elisp code associated with some other programs.
 #+end_src
 
 - git ignore
-  #+BEGIN_SRC conf :tangle (expand-tangle-target ".config/git/info/ignore")
+  #+BEGIN_SRC conf :tangle (expand-file-name ".config/git/info/ignore")
     #
     # ~/.gitignote
     #
@@ -9106,7 +9106,7 @@ This section mainly for elisp code associated with some other programs.
 
   [[https://magit.vc/manual/magit/How-to-show-diffs-for-gpg_002dencrypted-files_003f.html][This page]] show you how to get diffs of gpg files in Magit.
 
-  #+BEGIN_SRC gitconfig :noweb tangle :tangle (expand-tangle-target ".config/git/config")
+  #+BEGIN_SRC gitconfig :noweb tangle :tangle (expand-file-name ".config/git/config")
     [core]
             excludesfile = <<home-dir()>>/.config/git/info/ignore
             attributesfile = <<home-dir()>>/.config/git/info/attributes
@@ -9156,7 +9156,7 @@ This section mainly for elisp code associated with some other programs.
     <<git-config>>
   #+END_SRC
 - git attributes
-  #+BEGIN_SRC gitattributes :tangle (expand-tangle-target ".config/git/info/attributes")
+  #+BEGIN_SRC gitattributes :tangle (expand-file-name ".config/git/info/attributes")
     ,*.c diff=cpp
     ,*.h diff=cpp
     ,*.cpp diff=cpp
@@ -9216,7 +9216,7 @@ This section mainly for elisp code associated with some other programs.
           root = ~/ghq
 #+end_src
 
-#+begin_src conf :tangle (expand-tangle-target ".config/ghq")
+#+begin_src conf :tangle (expand-file-name ".config/ghq")
   [github.com*]
   username_extractor=specific_line
   line_username=2
@@ -9232,7 +9232,7 @@ This section mainly for elisp code associated with some other programs.
   "password-store"
 #+end_src
 
-#+begin_src conf :tangle (expand-tangle-target ".config/pass-git-helper/git-pass-mapping.ini")
+#+begin_src conf :tangle (expand-file-name ".config/pass-git-helper/git-pass-mapping.ini")
   [github.com*]
   username_extractor=specific_line
   line_username=2
@@ -9251,7 +9251,7 @@ This section mainly for elisp code associated with some other programs.
 #+end_src
 
 - mpv.conf
-  #+begin_src conf :tangle (expand-tangle-target ".config/mpv/mpv.conf")
+  #+begin_src conf :tangle (expand-file-name ".config/mpv/mpv.conf")
     ##################
     # video settings #
     ##################
@@ -9459,7 +9459,7 @@ This section mainly for elisp code associated with some other programs.
     #loop-file=yes
   #+end_src
 - input.conf
-  #+begin_src conf :tangle (expand-tangle-target ".config/mpv/input.conf")
+  #+begin_src conf :tangle (expand-file-name ".config/mpv/input.conf")
     # mpv keybindings
     #
     # Location of user-defined bindings: ~/.config/mpv/input.conf
@@ -9669,7 +9669,7 @@ This section mainly for elisp code associated with some other programs.
     # ? stop                                # stop playback (quit or enter idle mode)
   #+end_src
 - scripts
-  #+begin_src lua :tangle (expand-tangle-target ".config/mpv/scripts/delete_file.lua")
+  #+begin_src lua :tangle (expand-file-name ".config/mpv/scripts/delete_file.lua")
     local utils = require "mp.utils"
 
     del_list = {}
@@ -9716,7 +9716,7 @@ This section mainly for elisp code associated with some other programs.
 
 ** unison
 - music directory syncing
-  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".unison/music.prf")
+  #+begin_src conf :noweb tangle :tangle (expand-file-name ".unison/music.prf")
     # Roots of the synchronization
     root = <<home-dir()>>/mnt/ruizu/Music
     root = <<home-dir()>>/Audio
@@ -9743,7 +9743,7 @@ This section mainly for elisp code associated with some other programs.
 
   #+end_src
 - doc directory backup
-  #+begin_src conf :noweb tangle :tangle (expand-tangle-target ".unison/doc.prf")
+  #+begin_src conf :noweb tangle :tangle (expand-file-name ".unison/doc.prf")
     # Roots of the synchronization
     root = <<home-dir()>>/mnt/ns01
     root = <<home-dir()>>
@@ -9772,7 +9772,7 @@ This section mainly for elisp code associated with some other programs.
   #+end_src
 ** Aspell
 aspell - interactive spell checker
-#+begin_src conf :tangle (expand-tangle-target ".aspell.conf")
+#+begin_src conf :tangle (expand-file-name ".aspell.conf")
   lang en_US
 #+end_src
 ** textlint
@@ -9785,7 +9785,7 @@ aspell - interactive spell checker
   install-textlint
 #+end_src
 
-#+begin_src shell :shebang #!/bin/sh :tangle (expand-tangle-target ".local/bin/install-textlint") :tangle-mode (identity #o755)
+#+begin_src shell :shebang #!/bin/sh :tangle (expand-file-name ".local/bin/install-textlint") :tangle-mode (identity #o755)
   npm install -g \
     textlint \
     @textlint/ast-node-types \
@@ -9800,7 +9800,7 @@ aspell - interactive spell checker
 #+end_src
 
 - config for English
-  #+begin_src json :tangle (expand-tangle-target ".textlintrc")
+  #+begin_src json :tangle (expand-file-name ".textlintrc")
     {
       "rules": {
         "ginger": true,
@@ -9810,7 +9810,7 @@ aspell - interactive spell checker
   #+end_src
 
 - config for Japanese
-  #+begin_src json :tangle (expand-tangle-target ".config/textlint/textlintrc_ja")
+  #+begin_src json :tangle (expand-file-name ".config/textlint/textlintrc_ja")
     {
         "rules": {
             "preset-ja-technical-writing": {
@@ -9838,7 +9838,7 @@ aspell - interactive spell checker
 #+end_src
 
 - config.py
-  #+begin_src python :tangle (expand-tangle-target ".config/xkeysnail/config.py")
+  #+begin_src python :tangle (expand-file-name ".config/xkeysnail/config.py")
   # -*- coding: utf-8 -*-
 
   import re
@@ -9983,7 +9983,7 @@ aspell - interactive spell checker
     systemctl --user start xkeysnail
   #+end_src
 
-  #+begin_src conf :tangle (expand-tangle-target ".config/systemd/user/xkeysnail.service")
+  #+begin_src conf :tangle (expand-file-name ".config/systemd/user/xkeysnail.service")
     [Unit]
     Description=xkeysnail
 
@@ -10010,7 +10010,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 
 *** derive unique entries in user-jisyo
 
-#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/skkdic_uniq.sh") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/skkdic_uniq.sh") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
   tmp_euc=$(mktemp)
   tmp_utf8=$(mktemp)
   skk_dir=<<share-dir()>>/skk
@@ -10039,7 +10039,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 #+end_src
 
 - configuration
-  #+begin_src scheme :noweb tangle :tangle (expand-tangle-target ".festivalrc")
+  #+begin_src scheme :noweb tangle :tangle (expand-file-name ".festivalrc")
     ;; -*- mode:scheme; -*-
     (Parameter.set 'Audio_Required_Format 'aiff)
     (Parameter.set 'Audio_Method 'Audio_Command)
@@ -10057,7 +10057,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
     download-festival-voices
   #+end_src
 
-  #+begin_src shell :tangle (expand-tangle-target ".local/bin/download-festival-voices") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+  #+begin_src shell :tangle (expand-file-name ".local/bin/download-festival-voices") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
     work_dir=~/.local/share/festival
     voices=(
       cmu_us_aew_cg
@@ -10108,7 +10108,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
     download-hts-voices
   #+end_src
 
-  #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/download-hts-voices") #!/usr/bin/env bash :tangle-mode (identity #o755)
+  #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/download-hts-voices") #!/usr/bin/env bash :tangle-mode (identity #o755)
     data_dir=<<hts-voice-dir()>>
 
     if [ ! -d "${data_dir}" ]; then
@@ -10128,7 +10128,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
   "jack-keyboard"
 #+end_src
 
-#+begin_src conf :tangle (expand-tangle-target ".jackdrc")
+#+begin_src conf :tangle (expand-file-name ".jackdrc")
   /usr/bin/jackd -dalsa -dhw:0 -r44100 -p1024 -n3 -Xseq
 #+end_src
 
@@ -10752,14 +10752,14 @@ you are required to locate that package where emacs can search.
   12 1 * * * /bin/bash -ci "sync_sv04 >> $LOG_DIR/sync_sv04.log 2>&1"
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/sync_sv04") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/sync_sv04") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
   ssh -q -o BatchMode="yes" -o ConnectTimeout=10 sv04 "exit 0" \
     && rsync -arhv sv04:~/var/backup <<share-dir()>>/sv04
 #+end_src
 
 *** backup script                             :ARCHIVE:
 
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/back_rsync.sh")
+#+begin_src shell :tangle (expand-file-name ".local/bin/back_rsync.sh")
   #!/usr/bin/env bash
 
   OPT="-aPh"
@@ -10791,7 +10791,7 @@ you are required to locate that package where emacs can search.
  #+end_src
 
 + rsync exclude file for pc01
-  #+begin_src conf :tangle (expand-tangle-target ".config/rsync/exclude_pc01.txt") :tangle-mode (identity #o644)
+  #+begin_src conf :tangle (expand-file-name ".config/rsync/exclude_pc01.txt") :tangle-mode (identity #o644)
     + var
     + var/log
     + var/log/**
@@ -10805,7 +10805,7 @@ you are required to locate that package where emacs can search.
     - *
   #+end_src
 + rsync exclude file for sv04
-  #+begin_src conf :tangle (expand-tangle-target ".config/rsync/exclude_sv04.txt") :tangle-mode (identity #o644)
+  #+begin_src conf :tangle (expand-file-name ".config/rsync/exclude_sv04.txt") :tangle-mode (identity #o644)
     + var
     + var/backup
     + var/backup/**
@@ -10818,7 +10818,7 @@ you are required to locate that package where emacs can search.
   "virt-manager"
 #+end_src
 
-#+begin_src conf :tangle (expand-tangle-target ".config/libvirt/libvirt.conf")
+#+begin_src conf :tangle (expand-file-name ".config/libvirt/libvirt.conf")
   uri_default = "qemu:///system"
 #+end_src
 
@@ -10827,7 +10827,7 @@ you are required to locate that package where emacs can search.
   : $ virsh pool-autostart local
   : $ virsh pool-start local
 
-  #+begin_src xml :noweb tangle :tangle (expand-tangle-target ".config/libvirt/pool.xml")
+  #+begin_src xml :noweb tangle :tangle (expand-file-name ".config/libvirt/pool.xml")
     <pool type='dir'>
       <name>local</name>
       <source>
@@ -10859,7 +10859,7 @@ you are required to locate that package where emacs can search.
   "yt-dlp"
 #+end_src
 
-#+begin_src conf :tangle (expand-tangle-target ".config/yt-dlp/config")
+#+begin_src conf :tangle (expand-file-name ".config/yt-dlp/config")
   -o %(title)s.%(ext)s
   --trim-filenames 80
 #+end_src
@@ -10882,7 +10882,7 @@ As of now, rTorrent on guix does not support for XMLRPC. You need to install fro
   (expand-file-name "~/.local/share/rtorrent-rpc.socket")
 #+end_src
 
-#+begin_src conf :noweb tangle :tangle (expand-tangle-target ".rtorrent.rc")
+#+begin_src conf :noweb tangle :tangle (expand-file-name ".rtorrent.rc")
   network.scgi.open_local = <<rtorrent-sock()>>
   execute.nothrow = chmod,770,<<rtorrent-sock()>>
   encoding.add = utf8
@@ -10893,7 +10893,7 @@ As of now, rTorrent on guix does not support for XMLRPC. You need to install fro
   systemctl --user start rtorrent.service
 #+end_src
 
-#+begin_src conf :noweb tangle :tangle (expand-tangle-target ".config/systemd/user/rtorrent.service")
+#+begin_src conf :noweb tangle :tangle (expand-file-name ".config/systemd/user/rtorrent.service")
   [Unit]
   Description=rTorrent
   After=network.target
@@ -10958,7 +10958,7 @@ As of now, rTorrent on guix does not support for XMLRPC. You need to install fro
   MANPATH="<<npm-prefix()>>/share/man:${MANPATH}"
 #+end_src
 
-#+begin_src shell :noweb yes :tangle (expand-tangle-target ".npmrc")
+#+begin_src shell :noweb yes :tangle (expand-file-name ".npmrc")
   prefix=<<npm-prefix()>>
 #+end_src
 
@@ -10977,7 +10977,7 @@ Extendable version manager
     export RUBYLIB=${RUBYLIB}:${HOME}/.local/lib
   #+end_src
 - define versions
-  #+begin_src conf :comments noweb :tangle (expand-tangle-target ".tool-versions")
+  #+begin_src conf :comments noweb :tangle (expand-file-name ".tool-versions")
     ruby 2.6.8
     python 3.8.5
   #+end_src
@@ -10991,7 +10991,7 @@ Extendable version manager
      : $ cd ~ && asdf install
 
 *** asdf-ruby
-#+begin_src conf :comments noweb :tangle (expand-tangle-target ".default-gems")
+#+begin_src conf :comments noweb :tangle (expand-file-name ".default-gems")
   thor 1.2.1
   pry 0.14.1
   rubocop 1.26
@@ -10999,7 +10999,7 @@ Extendable version manager
   streamio-ffmpeg
 #+end_src
 *** asdf-python
-#+begin_src python :tangle (expand-tangle-target ".default-python-packages")
+#+begin_src python :tangle (expand-file-name ".default-python-packages")
   lxml
   jedi
   ical2orgpy
@@ -11219,7 +11219,7 @@ These scripts (declutter_xxx) keep things decluttered.
 
 ** Database back-up scripts
 - PostgreSQL
-  #+begin_src bash :tangle (expand-tangle-target ".local/bin/postgres_backup")
+  #+begin_src bash :tangle (expand-file-name ".local/bin/postgres_backup")
     #!/usr/bin/env bash
 
     # Usage: $ postgres_backup <db_name> <backup_dir>
@@ -11234,7 +11234,7 @@ These scripts (declutter_xxx) keep things decluttered.
   #+end_src
 
 - MySQL
-  #+begin_src shell :tangle (expand-tangle-target ".local/bin/mysql_backup")
+  #+begin_src shell :tangle (expand-file-name ".local/bin/mysql_backup")
     #!/usr/bin/env bash
 
     BACKUP_DIR=~/data/share/backups/mysql
@@ -11255,7 +11255,7 @@ These scripts (declutter_xxx) keep things decluttered.
 
 This program determine type of the file.
 
-#+begin_src ruby :tangle (expand-tangle-target ".local/lib/filetype.rb")
+#+begin_src ruby :tangle (expand-file-name ".local/lib/filetype.rb")
   #!/usr/bin/env ruby
 
   require 'pathname'
@@ -11368,7 +11368,7 @@ Utility ruby program for manipulating image, audio and video file.
   "dvd+rw-tools"
 #+end_src
 
-#+begin_src ruby :tangle (expand-tangle-target ".local/bin/mediautil")
+#+begin_src ruby :tangle (expand-file-name ".local/bin/mediautil")
   #!/usr/bin/env ruby
 
   require 'thor'
@@ -12221,7 +12221,7 @@ Utility ruby program for manipulating image, audio and video file.
 
 Personal script for encoding family pictures and movies.
 
-#+begin_src ruby :tangle (expand-tangle-target ".local/bin/genalbum")
+#+begin_src ruby :tangle (expand-file-name ".local/bin/genalbum")
   #!/usr/bin/env ruby
 
   require 'fileutils'
@@ -12330,7 +12330,7 @@ Personal script for encoding family pictures and movies.
 
 ** nhp                                         :ARCHIVE:
 Exec command in background
-#+begin_src bash :noweb tangle :tangle (expand-tangle-target ".local/bin/nhp")
+#+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/nhp")
   #!/usr/bin/env bash
 
   readonly MAIL_FROM="<<email()>>"
@@ -12460,7 +12460,7 @@ Exec command in background
 
 ** sendmail.py
 Utility for sendind email programatically
-#+begin_src python :noweb tangle :tangle (expand-tangle-target ".local/bin/sendmail.py")
+#+begin_src python :noweb tangle :tangle (expand-file-name ".local/bin/sendmail.py")
   #!/usr/bin/env python3
 
   import sys
@@ -12508,7 +12508,7 @@ Utility for sendind email programatically
 
 A script which executes command with elevating privilege using password from pass command.
 
-#+begin_src bash :noweb tangle :tangle (expand-tangle-target ".local/bin/pwsudo")
+#+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/pwsudo")
   _userid=$(whoami)
   _hostname=$(hostname)
 
@@ -12525,7 +12525,7 @@ A script which executes command with elevating privilege using password from pas
 :END:
 
 - gitsync-local
-  #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/gitsync-local")
+  #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/gitsync-local")
     #!/usr/bin/env bash
 
     function usage() {
@@ -12585,7 +12585,7 @@ A script which executes command with elevating privilege using password from pas
   #+end_src
 
 - gitsync-remote
-  #+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/gitsync-remote")
+  #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/gitsync-remote")
     #!/usr/bin/env bash
 
     # Local bare repository name
@@ -12710,7 +12710,7 @@ A script which executes command with elevating privilege using password from pas
 ** filetype-cli                                :ARCHIVE:
 Wrapper script for [[* filetype][filetype.rb]].
 
-#+begin_src ruby :tangle (expand-tangle-target ".local/bin/filetype-cli") :tangle-mode (identity #o755)
+#+begin_src ruby :tangle (expand-file-name ".local/bin/filetype-cli") :tangle-mode (identity #o755)
   #!/usr/bin/env ruby
 
   require 'thor'
@@ -12748,7 +12748,7 @@ Stripping rules are:
 - <rb> tag for delimiter will be stripped
 - <rtc> tree for semantic word will be removed
 
-#+begin_src python :tangle (expand-tangle-target ".local/bin/strip_ruby") :tangle-mode (identity #o755)
+#+begin_src python :tangle (expand-file-name ".local/bin/strip_ruby") :tangle-mode (identity #o755)
   #!/usr/bin/env python3
 
   import sys
@@ -12857,7 +12857,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 - transcode video to vp9
   : $ vp9transc -c 32 video_orig.mkv video_vp9.webm
 
-#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/vp9transc") :tangle-mode (identity #o555)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/vp9transc") :tangle-mode (identity #o555)
   <<transc-shared>>
 
   vp9_opts_pass1="-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf ${CRF} -pass 1 -an -f null"
@@ -12873,7 +12873,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 - transcode video to av1
   : $ av1transc video_orig.mkv video_av1.webm
 
-#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/av1transc") :tangle-mode (identity #o555)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/av1transc") :tangle-mode (identity #o555)
   <<transc-shared>>
 
   av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf ${CRF}"
@@ -12892,7 +12892,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
   + encode bulk podcast files for 64kb/s (in Dired)
     : $ nohup parallel opusencode "{}" "{.}".oga ::: *
 
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/opusencode") :tangle-mode (identity #o555)
+#+begin_src shell :tangle (expand-file-name ".local/bin/opusencode") :tangle-mode (identity #o555)
   #!/usr/bin/env bash
   set -euo pipefail
 
@@ -12919,7 +12919,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
   "libdvdcss"
 #+end_src
 
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/dvdpack") :tangle-mode (identity #o555)
+#+begin_src shell :tangle (expand-file-name ".local/bin/dvdpack") :tangle-mode (identity #o555)
   #!/usr/bin/env bash
   set -euo pipefail
 
@@ -12966,7 +12966,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 #+end_src
 
 - abcde
-  #+BEGIN_SRC conf :tangle (expand-tangle-target ".abcde.conf")
+  #+BEGIN_SRC conf :tangle (expand-file-name ".abcde.conf")
     FDKAACENCOPTS='--bitrate 256k'
 
     OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
@@ -12989,7 +12989,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
   "audacity"
 #+end_src
 
-#+begin_src json :tangle no  :tangle (expand-tangle-target ".config/screenkey.json")  :tangle-mode (identity #o644)
+#+begin_src json :tangle no  :tangle (expand-file-name ".config/screenkey.json")  :tangle-mode (identity #o644)
   {"no_systray": false, "timeout": 0.5, "recent_thr": 0.1, "compr_cnt": 3, "ignore": [], "position": "bottom", "persist": false, "font_desc": "Sans Bold", "font_size": "medium", "font_color": "white", "bg_color": "black", "opacity": 0.9, "key_mode": "composed", "bak_mode": "baked", "mods_mode": "emacs", "mods_only": false, "multiline": false, "vis_shift": true, "vis_space": true, "geometry": null, "screen": 0, "start_disabled": false, "mouse": false, "button_hide_duration": 2.0}
 #+end_src
 ** Sync Git Repos Automatically
@@ -13001,7 +13001,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
   0 */2 * * * /bin/bash -ci "ghq-sync >> $LOG_DIR/ghq-sync.log 2>&1"
 #+end_src
 
-#+begin_src shell :tangle (expand-tangle-target ".local/bin/ghq-sync") :shebang #!/usr/bin/env bash :tangle-mode (identity #o500)
+#+begin_src shell :tangle (expand-file-name ".local/bin/ghq-sync") :shebang #!/usr/bin/env bash :tangle-mode (identity #o500)
   ghq_repos=$(ghq list --full-path)
   for repo_path in ${ghq_repos[@]}; do
     cd ${repo_path} && \
@@ -13023,7 +13023,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
           syncCommitMsg = "on $(LC_TIME=en_GB.UTF-8 date) from $(uname -n)"
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-tangle-target ".local/bin/git-sync") :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/git-sync") :tangle-mode (identity #o755)
   #!/usr/bin/env bash
   #
   # git-sync

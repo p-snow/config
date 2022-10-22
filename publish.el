@@ -1,5 +1,3 @@
-(load-file "./common.el")
-
 (require 'package)
 (setq package-user-dir (expand-file-name "./.packages"))
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
