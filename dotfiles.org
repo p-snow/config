@@ -3745,6 +3745,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
        (python   . t)
        (org      . t)
        (lua      . t)
+       (ledger   . t)
        (gnuplot  . t)
        (dot      . t)
        (plantuml . t)
@@ -5277,12 +5278,30 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :header-args+: :tangle (expand-file-name ".emacs.d/lisp/packages.el")
 :END:
 
+***** ledger-mode / flycheck-ledger
+:PROPERTIES:
+:CREATED:  [2022-10-21 Fri 21:08]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-ledger-mode"
+  "emacs-flycheck-ledger"
+#+end_src
+
+#+begin_src emacs-lisp
+  (add-to-list 'auto-mode-alist '("\\.ledger$" . ledger-mode))
+
+  (autoload 'ledger-mode "ledger-mode" "A major mode for Ledger" t)
+  (with-eval-after-load 'ledger-mode
+    (require 'flycheck-ledger))
+#+end_src
+
 ***** mentor
 :PROPERTIES:
 :CREATED:  [2022-10-04 Tue 22:09]
 :END:
 
-[[https://github.com/skangas/mentor][mentor]] is a rTorrent client for emacs.
+[[https://github.com/skangas/mentor][mentor]] is a [[id:bdc987ad-419b-4f36-922d-de75207d85c0][rTorrent]] client for emacs.
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-mentor"
@@ -10867,6 +10886,7 @@ you are required to locate that package where emacs can search.
 ** rTorrent
 :PROPERTIES:
 :CREATED:  [2022-10-05 Wed 15:26]
+:ID:       bdc987ad-419b-4f36-922d-de75207d85c0
 :END:
 
 [[https://github.com/rakshasa/rtorrent/wiki][rTorrent]] is a bittorrent client using ncurses.
@@ -10907,6 +10927,18 @@ As of now, rTorrent on guix does not support for XMLRPC. You need to install fro
 
   [Install]
   WantedBy=default.target
+#+end_src
+
+** Ledger
+:PROPERTIES:
+:CREATED:  [2022-10-21 Fri 20:55]
+:END:
+
+[[https://www.ledger-cli.org/3.0/doc/ledger-mode.html][Ledger]] is double-entry accounting cli tool. [[https://hledger.org/][hledger]] is feature rich reimplementation of ledger in Haskell. User data in ledger is interoperable for hledger and vice versa.
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "ledger"
+  "hledger"
 #+end_src
 
 * Development Infrastructures
