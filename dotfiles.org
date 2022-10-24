@@ -3175,6 +3175,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-agenda-start-on-weekday 1)
     (org-agenda-skip-deadline-if-done t)
     (org-agenda-include-diary t)
+    (org-stuck-projects `(,(concat "+" my/org-project-tag)
+                          (,org-todo-keyword-0 ,org-todo-keyword-1 ,org-todo-keyword-2)
+                          nil ""))
     ;; next 3 custom settings contribute to build agenda view fast
     (org-agenda-inhibit-startup t)
     (org-agenda-dim-blocked-tasks nil)
@@ -3324,14 +3327,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
        ("d" "Done tasks"
         ((org-ql-search-block '(done)
                               ((org-ql-block-header "Done/Canceled/Pending task")))))
-       ("#" "stuck project"
-        ((org-ql-search-block `(and (tags "project")
-                                    ;; exclude projects
-                                    (not (children (todo ,org-todo-keyword-0
-                                                         ,org-todo-keyword-1
-                                                         ,org-todo-keyword-2))))
-                              ((org-ql-block-header "Stuck projects")))))
-       ("p" "Projects" tags "+project")
+       ("p" "Projects" tags ,(concat "+" my/org-project-tag))
        ("h" "Habits in consistency graph"
         agenda ""
         ((org-agenda-span 'day)
@@ -3485,7 +3481,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (add-hook 'org-after-todo-state-change-hook
               #'my/org-remove-priority-if-done)
     (add-hook 'org-after-todo-state-change-hook
-              #'my/org-remove-done-if-nonrepeated-habit))
+              #'my/org-remove-done-if-nonrepeated-habit)
+    (add-hook 'org-after-todo-state-change-hook
+              #'my/org-close-project))
 
   ;;;###autoload
   (defun my/org-remove-priority-if-done ()
@@ -3512,6 +3510,18 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                (org-is-habit-p)
                (not (org-get-scheduled-time (point))))
       (org-todo "")))
+
+  (defun my/org-close-project ()
+    "Try to close the project entry which this entry belongs.
+
+  If the project entry has BLOCKER property, Ord EDNA prohibit the entry to close."
+    (when (member org-state
+                  `(,org-done-keyword-0 ,org-done-keyword-1 ,org-done-keyword-2))
+      (save-excursion
+        (org-back-to-heading t)
+        (org-speed-move-safe 'outline-up-heading)
+        (and (member my/org-project-tag (org-get-tags))
+             (org-todo org-done-keyword-0)))))
 #+end_src
 
 ****** Org Structure
@@ -3658,6 +3668,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (customize-set-variable 'org-use-tag-inheritance "ARCHIVE")
   (customize-set-variable 'org-tags-column -57)
+
+  (defvar my/org-project-tag "project" "A tag for projects")
 #+end_src
 
 ****** Org Properties
@@ -3678,7 +3690,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :after org
     :custom
     (org-refile-targets
-     `((org-agenda-files :tag . "project")
+     `((org-agenda-files :tag . ,my/org-project-tag)
        (,(directory-files-recursively org-directory "\\.org$") :tag . "refile"))))
 #+end_src
 ****** Org Time
@@ -3919,6 +3931,23 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+end_src
 
 ***** external packages for org
+****** org-edna
+:PROPERTIES:
+:CREATED:  [2022-10-24 Mon 15:28]
+:END:
+
+[[https://www.nongnu.org/org-edna-el/][Org Edna]] allows to org entries to be blockers and action triggers, which is very intresting feature especially for managing successive set of tasks or any correlated tasks.
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-edna"
+#+end_src
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org
+    (require 'org-edna)
+    (org-edna-mode 1))
+#+end_src
+
 ****** org-contacts
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
@@ -7634,7 +7663,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
   (defconst org-relate-property "PARENT"
     "Property name for child nodes to look up parent node.")
   (defcustom org-relate-parent-tag-list
-    '("project" "refile")
+    `(,my/org-project-tag "refile")
     "A list of tags all parent nodes must have one of them.")
   (defcustom org-relate-target-files
     (directory-files-recursively org-directory "\\.org$")
