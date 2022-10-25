@@ -8954,6 +8954,31 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
       my/org-english-file
       `(heading ,word)))
 
+  (defun my/org-english-level (word)
+    "Return difficulty level of `WORD' in number."
+    (let ((str (my/org-english-insert-japanese-pronunciation word)))
+      (string-to-number
+       (if (string-match
+            (rx (seq "【レベル】"
+                     (group-n 1 (repeat 1 2 digit))))
+            str)
+           (match-string 1 str)
+         "99"))))
+
+  ;; TODO: This fun is NOT practical because of network cost.
+  (defun my/org-ql--english-level< (a b)
+    "Return non-nil if A's difficulty level is higher than B's.
+  A and B are Org headline elements."
+    (cl-macrolet ((level (item)
+                         `(my/org-english-level
+                           (org-element-property :raw-value ,item))))
+      (let ((a-level (level a))
+            (b-level (level b)))
+        (cond ((and (numberp a-level) (numberp b-level))
+               (< a-level b-level))
+              (a-level t)
+              (b-level nil)))))
+
   (provide 'my/org-english)
 #+end_src
 
