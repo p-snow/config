@@ -5190,6 +5190,24 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 :header-args+: :tangle (expand-file-name ".emacs.d/lisp/programming.el")
 :END:
 
+***** sMerge
+:PROPERTIES:
+:CREATED:  [2022-10-25 Tue 19:57]
+:END:
+
+sMerge can be used to solve merging problems. The code below kicks off sMerge if there is a collision sign.
+
+#+begin_src emacs-lisp
+  (autoload 'smerge-mode "smerge-mode" nil t)
+
+  (defun my/try-smerge ()
+    (save-excursion
+      (goto-char (point-min))
+      (when (re-search-forward "^<<<<<<< " nil t)
+        (smerge-mode 1))))
+  (add-hook 'find-file-hook 'my/try-smerge t)
+#+end_src
+
 ***** Next Error
 
 #+begin_src emacs-lisp
