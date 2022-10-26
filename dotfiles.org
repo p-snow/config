@@ -3194,10 +3194,13 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
         agenda ""
         ((org-agenda-skip-function
           (lambda ()
-            ;; skip entry which has 'web' tag even if it has deadline
+            ;; skip entries whose tag is 'web' and does not have todo state
             (and (save-excursion
-                   (let ((tags (org-get-tags)))
-                     (member "web" tags)))
+                   (and (member "web" (org-get-tags))
+                        (not (member (org-get-todo-state)
+                                     `(,org-todo-keyword-0
+                                       ,org-todo-keyword-1
+                                       ,org-todo-keyword-2)))))
                  (progn (outline-next-heading) (point)))))))
        ("l" "Log entries in a week"
         agenda ""
