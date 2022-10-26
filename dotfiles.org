@@ -53,7 +53,7 @@
 
 initialization script for a ubuntu account
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/initialize-ubuntu-desktop") :shebang #!/bin/sh :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :noweb-sep "\n\n" :tangle (expand-file-name ".local/bin/initialize-ubuntu-desktop") :shebang #!/bin/bash :tangle-mode (identity #o755)
   install-apt-packages
   start-systemd-services
 
@@ -5258,7 +5258,7 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
   (defun my/grep-ripgrep-all ()
     "Grep many kind of files like pdf, epub and more."
     (interactive)
-    (let ((grep-find-command '("rga --with-filename --no-heading --line-number --color never -e ''" . 66)))
+    (let ((grep-find-command '("rga --with-filename --no-heading --line-number --color never -e '' ./*" . 66)))
       (call-interactively 'grep-find)))
 
   (global-set-key (kbd "M-s R") 'my/grep-ripgrep-all)
@@ -11069,6 +11069,23 @@ As of now, rTorrent on guix does not support for XMLRPC. You need to install fro
 #+begin_src scheme :noweb-ref base-pkgs
   "ledger"
   "hledger"
+#+end_src
+
+** ripgrep-all
+:PROPERTIES:
+:CREATED:  [2022-10-26 Wed 10:39]
+:END:
+
+[[https://github.com/phiresky/ripgrep-all][ripgrep-all]] or rga command enables to search media files such as pdf documents or epub files in grep-like way.
+
+#+begin_src shell :noweb yes :noweb-ref ubuntu-setup :tangle no
+  rga_url=https://github.com/phiresky/ripgrep-all/releases/download/v0.9.6
+  rga_fname=ripgrep_all-v0.9.6-x86_64-unknown-linux-musl.tar.gz
+  rga_workdir=/tmp
+  rga_lbinpath=<<home-dir()>>/.local/bin
+
+  curl -sL "${rga_url}/${rga_fname}" | tar zxf - -C ${rga_workdir} \
+    && cp -fv ${rga_workdir}/${rga_fname%.tar.gz}/{rga,rga-preproc} ${rga_lbinpath}
 #+end_src
 
 * Development Infrastructures
