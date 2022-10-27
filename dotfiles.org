@@ -151,7 +151,6 @@ initialization script for a linuxmint account
   #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/base.scm")
     (specifications->manifest
      '("coreutils"
-       "busybox"
        "diffutils"
        "parallel"
        "gawk"
@@ -10248,16 +10247,19 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
     download-hts-voices
   #+end_src
 
-  #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/download-hts-voices") #!/usr/bin/env bash :tangle-mode (identity #o755)
+  #+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/download-hts-voices") :tangle-mode (identity #o755)
     data_dir=<<hts-voice-dir()>>
+    hts_workdir=/tmp
+    hts_fname=MMDAgent_Example-1.8.zip
 
     if [ ! -d "${data_dir}" ]; then
       mkdir -p "${data_dir}"
     fi
 
-    curl -sL http://sourceforge.net/projects/mmdagent/files/MMDAgent_Example/MMDAgent_Example-1.8/MMDAgent_Example-1.8.zip \
-      | busybox unzip -o -d ${data_dir} - \
-      && ln -sfv ${data_dir}/MMDAgent_Example-1.8/Voice ${data_dir}/
+    cd "${hts_workdir}" \
+      && curl -sLO http://sourceforge.net/projects/mmdagent/files/MMDAgent_Example/${hts_fname%.zip}/${hts_fname} \
+      && unzip -o -d ${data_dir} ${hts_fname} \
+      && ln -sfv ${data_dir}/${hts_fname%.zip}/Voice ${data_dir}/
   #+end_src
 
 ** Jack
