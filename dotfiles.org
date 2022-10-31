@@ -11131,6 +11131,11 @@ As of now, rTorrent on guix does not support for XMLRPC. You need to install fro
 
 #+begin_src shell :noweb-ref bashrc
   export RUBYLIB=${HOME}/.local/lib
+
+  # set path for ruby gems in local
+  if which ruby >/dev/null && which gem >/dev/null; then
+    PATH="$(ruby -r rubygems -e 'puts Gem.user_dir')/bin:$PATH"
+  fi
 #+end_src
 
 ** Node.js
