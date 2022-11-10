@@ -8832,10 +8832,13 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
                            (buffer-substring (region-beginning) (region-end))
                          (read-string "Phrase: "))))
     (let* ((sentence-end-double-space nil)
-           (org-english-word word)
+           (org-english-word (downcase word))
            (match-entry (org-ql-select
                           `(,my/org-english-file)
-                          `(and (heading ,(format "%s" word))
+                          `(and (heading-regexp
+                                 ,(eval `(rx word-start
+                                             ,org-english-word
+                                             word-end)))
                                 (tags "drill"))
                           :action 'element-with-markers))
            (sentence (replace-regexp-in-string word
@@ -9012,7 +9015,9 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
                          (read-string "Word: "))))
     (org-ql-search
       my/org-english-file
-      `(heading ,word)))
+      `(heading-regexp ,(eval `(rx word-start
+                                   ,(downcase word)
+                                   word-end)))))
 
   (defun my/org-english-level (word)
     "Return difficulty level of `WORD' in number."
