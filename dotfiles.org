@@ -2005,6 +2005,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
                                          :height ,(my/normalized-font-size 860))))
       "Default face for ddskk candidates."
       :group 'skk-dcomp)
+    (setq skk-get-jisyo-directory (expand-file-name "get-jisyo" skk-dir))
     :custom
     (skk-kakutei-key (kbd "C-x j"))
     (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
@@ -2068,7 +2069,6 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (skk-compare-jisyo-size-when-saving t)
     (skk-save-jisyo-instantly t)
     ;; jisyo file/directory
-    (skk-get-jisyo-directory (expand-file-name "get-jisyo" skk-dir))
     (skk-jisyo `(,(expand-file-name "jisyo" skk-dir) . utf-8))
     (skk-backup-jisyo (expand-file-name "jisyo.bak" skk-dir))
     (skk-large-jisyo (expand-file-name "SKK-JISYO.L" skk-get-jisyo-directory))
