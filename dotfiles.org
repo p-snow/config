@@ -5338,7 +5338,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :CREATED:  [2022-10-25 Tue 18:02]
 :END:
 
-[[https://github.com/victorhge/iedit][IEdit]] is not only replacement for M-%/C-M-% but it highlights symbol occurences to change. [[https://www.masteringemacs.org/article/iedit-interactive-multi-occurrence-editing-in-your-buffer][An adviced]] custom function 'my/iedit-dwim' replaces symbols in defun unless prefix arg is given.
+[[https://github.com/victorhge/iedit][IEdit]] is not only replacement for M-%/C-M-% but it highlights symbol occurences to change. [[https://www.masteringemacs.org/article/iedit-interactive-multi-occurrence-editing-in-your-buffer][This advise]] would be useful for anyone who needs dedicated command to replace symbols in defun.
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-iedit"
@@ -5348,26 +5348,10 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
   (customize-set-variable 'iedit-toggle-key-default (kbd "C-\""))
   (customize-set-variable 'iedit-auto-narrow t)
 
-  ;; require clause sits here to supress key occupation warning
+  ;; require clause should sit here to supress key occupation warning
   (require 'iedit)
 
-  (global-set-key (kbd "C-\"") 'my/iedit-dwim)
-
-  (defun my/iedit-dwim (arg)
-    "Starts iedit but uses \\[narrow-to-defun] to limit its scope."
-    (interactive "P")
-    (if arg
-        (iedit-mode)
-      (save-excursion
-        (save-restriction
-          (widen)
-          ;; this function determines the scope of `iedit-start'.
-          (if iedit-mode
-              (iedit-done)
-            ;; `current-word' can of course be replaced by other
-            ;; functions.
-            (narrow-to-defun)
-            (iedit-start (current-word) (point-min) (point-max)))))))
+  (global-set-key (kbd "C-\"") 'iedit-mode)
 #+end_src
 
 ***** ledger-mode / flycheck-ledger
