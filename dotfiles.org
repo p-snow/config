@@ -3188,7 +3188,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-agenda-dim-blocked-tasks nil)
     (org-agenda-use-tag-inheritance nil)
     (org-agenda-files
-     (list (file-name-as-directory (file-name-concat org-directory "agenda"))))
+     (mapcar (lambda (sub-dir)
+               (file-name-as-directory
+                (file-name-concat org-directory sub-dir)))
+             '("agenda")))
     (org-agenda-prefix-format '((agenda   . "%?-12t% s")
                                 (timeline . "  %s")
                                 (todo     . " ")
