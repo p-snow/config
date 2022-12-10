@@ -3614,7 +3614,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
               (format "%s::datetree/" (file-name-concat org-directory "archive" (format-time-string "archive_%Y.org"))))
              ((member todo-state
                       `(,org-todo-keyword-4 ,org-done-keyword-2))
-              (format "%s::* suspended tasks" (file-name-concat org-directory "archive" (format-time-string "archive_%Y.org")))))))
+              (format "%s::* suspended tasks" ;; (file-name-concat org-directory "archive" (format-time-string "archive_%Y.org"))
+                      (file-name-concat org-directory "archive" "suspended.org"))))))
       (when (stringp org-archive-location)
         (org-relate-interrelate)
         (advice-add #'org-datetree-find-date-create :override
@@ -8788,7 +8789,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
      (t "")))
 #+end_src
 
-***** list someday tasks
+***** list someday/pending tasks
 :PROPERTIES:
 :CREATED:  [2022-09-15 Thu 22:06]
 :END:
@@ -8796,28 +8797,23 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
 #+begin_src emacs-lisp
   (with-eval-after-load 'org-ql-view
     (push `("Someday tasks"
-            :buffers-files org-agenda-files
-            :query (todo ,org-todo-keyword-4)
-            :super-groups ((:auto-outline-path))
-            :sort (priority date))
-          org-ql-views))
-#+end_src
-
-***** list suspended tasks
-:PROPERTIES:
-:CREATED:  [2022-10-10 Mon 20:47]
-:END:
-
-#+begin_src emacs-lisp
-  (with-eval-after-load 'org-ql-view
-    (push `("Suspended tasks"
             :buffers-files
-            ,(file-expand-wildcards
-              (file-name-concat org-directory "archive" (format-time-string "archive_*.org")))
-            :query (parent (heading "suspended tasks"))
-            :super-groups ((:auto-property "ARCHIVE_FILE"))
-            :sort (priority date))
-          org-ql-views))
+            ,(append
+              (org-agenda-files)
+              (list (file-name-concat org-directory "archive" "suspended.org")))
+            :query (todo ,org-todo-keyword-4)
+            :super-groups ((:auto-property "ARCHIVE_OLPATH"))
+            :sort (scheduled priority date))
+          org-ql-views)
+    (push `("Pending tasks"
+            :buffers-files
+            ,(append
+              (org-agenda-files)
+              (list (file-name-concat org-directory "archive" "suspended.org")))
+            :query (todo ,org-done-keyword-2)
+            :super-groups ((:auto-property "ARCHIVE_OLPATH"))
+            :sort (scheduled priority date))
+          org-ql-views)  )
 #+end_src
 
 ***** learning english words/phrases
