@@ -3700,10 +3700,18 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-refile
     :after org
+    :hook (org-after-refile-insert . my/org-archive-suspended-task)
     :custom
     (org-refile-targets
      `((org-agenda-files :tag . ,my/org-project-tag)
        (,(directory-files-recursively org-directory "\\.org$") :tag . "refile"))))
+
+  (defun my/org-archive-suspended-task ()
+    "Archive this entry to the file for suspended tasks if the TODO state fits the bill."
+    (interactive)
+    (when (member (org-entry-get nil "TODO")
+                  `(,org-todo-keyword-4 ,org-done-keyword-2))
+      (org-archive-subtree)))
 #+end_src
 ****** Org Time
 
