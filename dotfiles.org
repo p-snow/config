@@ -3756,7 +3756,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Babel
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "graphviz"
   "plantuml"
 #+end_src
 
@@ -3782,6 +3781,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-babel-python-command (executable-find "python3"))
     (org-babel-ruby-command (executable-find "ruby"))
     :config
+    (add-to-list 'org-src-lang-modes
+                 '("dot" . graphviz-dot))
     (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
     (cond
      ((string= system-type "gnu/linux")
@@ -10921,6 +10922,24 @@ you are required to locate that package where emacs can search.
     (LilyPond-pdf-command "firefox")
     (LilyPond-midi-command "fluidsynth -a alsa -m alsa_seq -l"))
 #+end_src
+
+** Graphviz
+:PROPERTIES:
+:CREATED:  [2022-12-12 Mon 13:36]
+:END:
+
+Documentation is available at [[https://graphviz.org/documentation/][here]] and [[https://graphviz.org/gallery/][gallery]] is also useful.
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "graphviz"
+  "emacs-graphviz-dot-mode"
+#+end_src
+
+#+begin_src emacs-lisp :noweb-ref additional-elisp
+  (use-package graphviz-dot-mode
+    :mode ("\\.\\(?:dot\\|gz\\)$" . graphviz-dot-mode))
+#+end_src
+
 ** Rsync
 
 #+begin_src scheme :noweb-ref base-pkgs
