@@ -3601,19 +3601,26 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
   If archiving location is datetree, it supposed to be iso week tree."
     (interactive)
+    (when (member (org-get-todo-state)
+                  `(,org-warning-keyword-0 ,org-todo-keyword-0 ,org-todo-keyword-1 ,org-todo-keyword-2))
+      (org-todo org-done-keyword-1))
     (let* ((todo-state (org-get-todo-state))
+           (closed-time (org-entry-get nil "CLOSED" t))
            (org-archive-location
             (cond
              ((member todo-state
-                      `(,org-warning-keyword-0 ,org-todo-keyword-0 ,org-todo-keyword-1 ,org-todo-keyword-2))
-              (org-todo org-done-keyword-1)
-              (format "%s::datetree/" (file-name-concat org-directory "archive" (format-time-string "archive_%Y.org"))))
-             ((member todo-state
                       `(nil ,org-done-keyword-0 ,org-done-keyword-1))
-              (format "%s::datetree/" (file-name-concat org-directory "archive" (format-time-string "archive_%Y.org"))))
+              (format "%s::datetree/"
+                      (file-name-concat org-directory "archive"
+                                        (format "archive_%s.org"
+                                                (if closed-time
+                                                    (nth 5
+                                                         (parse-time-string
+                                                          (substring closed-time 1 -1)))
+                                                  (format-time-string "%Y"))))))
              ((member todo-state
                       `(,org-todo-keyword-4 ,org-done-keyword-2))
-              (format "%s::* suspended tasks" ;; (file-name-concat org-directory "archive" (format-time-string "archive_%Y.org"))
+              (format "%s::* suspended tasks"
                       (file-name-concat org-directory "archive" "suspended.org"))))))
       (when (stringp org-archive-location)
         (org-relate-interrelate)
