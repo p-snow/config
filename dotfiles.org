@@ -3604,6 +3604,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (when (member (org-get-todo-state)
                   `(,org-warning-keyword-0 ,org-todo-keyword-0 ,org-todo-keyword-1 ,org-todo-keyword-2))
       (org-todo org-done-keyword-1))
+    (when (string= (org-get-todo-state)
+                   org-todo-keyword-4)
+      (org-toggle-tag "review" 'on))
     (let* ((todo-state (org-get-todo-state))
            (closed-time (org-entry-get nil "CLOSED" t))
            (org-archive-location
@@ -8804,7 +8807,52 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
      (t "")))
 #+end_src
 
-***** list someday/pending tasks
+***** manage subordinate tasks
+:PROPERTIES:
+:CREATED:  [2022-12-12 Mon 09:14]
+:END:
+
+- subordinate task lifecycle
+  #+HEADER: :file ./subordinate_task_lifecycle.png
+  #+begin_src dot :tangle no
+    digraph{
+            "web browsing" [shape = hexagon];
+            "web browsing" -> task [label = "read later"];
+            elfeed [shape = hexagon];
+            elfeed -> task [label = "watch later"];
+            "web browsing" -> someday [label = "read someday"];
+            task -> someday [label = "expired"];
+            someday -> task [label = "review (active)"];
+            task -> pending [label = "abandoned"];
+            subgraph cluster_0 {
+                    someday -> someday [label = "review (inactive)"];
+                    pending;
+                    label = "suspended.org";
+            }
+    }
+  #+end_src
+
+****** review tasks (reevaluate)
+:PROPERTIES:
+:CREATED:  [2022-12-12 Mon 09:18]
+:END:
+
+#+begin_src emacs-lisp
+  (defun my/review-tasks (resume-p)
+    "Start or resume (if RESUME-P is non-nil) a session for reviewing tasks."
+    (interactive "P")
+    (progn
+      (org-id-goto "58da20ee-97a9-4463-96b8-6ebb1084b9b7")
+      (let ((org-drill-scope 'tree)
+            (org-drill-question-tag "review")
+            (org-drill-match nil)
+            (org-drill-maximum-items-per-session 25)
+            (org-drill-hide-item-headings-p nil)
+            (org-startup-indented nil))
+        (org-drill nil nil resume-p))))
+#+end_src
+
+****** list suspended tasks
 :PROPERTIES:
 :CREATED:  [2022-09-15 Thu 22:06]
 :END:
@@ -8818,7 +8866,15 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
               (list (file-name-concat org-directory "archive" "suspended.org")))
             :query (todo ,org-todo-keyword-4)
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
-            :sort (scheduled priority date))
+            :sort (priority date))
+          org-ql-views)
+    (push `("Review tasks"
+            :buffers-files
+            ,(append
+              (org-agenda-files)
+              (list (file-name-concat org-directory "archive" "suspended.org")))
+            :query (todo ,org-todo-keyword-4)
+            :sort (scheduled))
           org-ql-views)
     (push `("Pending tasks"
             :buffers-files
@@ -8828,7 +8884,14 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             :query (todo ,org-done-keyword-2)
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
             :sort (scheduled priority date))
-          org-ql-views)  )
+          org-ql-views)
+    (push `("Web tasks by tags"
+            :buffers-files org-agenda-files
+            :query (and (tags "web")
+                        (not (done)))
+            :super-groups ((:auto-tags))
+            :sort (priority date))
+          org-ql-views))
 #+end_src
 
 ***** learning english words/phrases
