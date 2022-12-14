@@ -8885,9 +8885,10 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
             :sort (scheduled priority date))
           org-ql-views)
-    (push `("Web tasks by tags"
+    (push `("Tasks on Web/Book"
             :buffers-files org-agenda-files
-            :query (and (tags "web")
+            :query (and (or (tags "web")
+                            (tags "book"))
                         (not (done)))
             :super-groups ((:auto-tags))
             :sort (priority date))
