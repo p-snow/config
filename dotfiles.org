@@ -6942,7 +6942,7 @@ It's confortable to read long material such as web page , epub file or email wit
                   (format "yt-dlp --extract-audio %s" url)
                 (concat (format "curl -LJs %s" url)
                         (and filename-lex
-                             (format " -o %s.%s" filename-lex
+                             (format " -o \"%s.%s\"" filename-lex
                                      (file-name-extension url)))))))
      (lambda (process desc)
        (when (eq (process-status process) 'exit)
