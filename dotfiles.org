@@ -5399,13 +5399,13 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+end_src
 
 #+begin_src emacs-lisp
-  (add-to-list 'auto-mode-alist '("\\.ledger$" . ledger-mode))
-
-  (autoload 'ledger-mode "ledger-mode" "A major mode for Ledger" t)
-  (with-eval-after-load 'ledger-mode
+  (use-package ledger-mode
+    :bind (:map ledger-mode-map
+                ("C-c C-y" . ledger-copy-transaction-at-point))
+    :custom
+    (ledger-reconcile-default-commodity "\\")
+    :config
     (require 'flycheck-ledger))
-
-  (customize-set-variable 'ledger-reconcile-default-commodity "\\")
 #+end_src
 
 ***** mentor
