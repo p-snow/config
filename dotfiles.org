@@ -4006,13 +4006,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (use-package org-drill
     :after org
     :custom
-    (org-drill-spaced-repetition-algorithm 'sm5)
-    (org-drill-sm5-initial-interval 10.0)
-    (org-drill-add-random-noise-to-intervals-p t)
-    (org-drill-adjust-intervals-for-early-and-late-repetitions-p t)
-    (org-drill-days-before-old 20)
-    (org-drill-learn-fraction 0.65)
-    (org-drill-overdue-interval-factor 1.6))
+    (org-drill-spaced-repetition-algorithm 'sm5))
 #+end_src
 
 ****** org-ql
@@ -8897,8 +8891,11 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
 
 ***** learning english words/phrases
 
-1. Capture an word to study by invoking my/org-english-capture
-2. Review words periodically with my/org-english-drill-test-display or its variants
+My workflow for acquiring English words is:
+1. Capture a word which come across in the article I'm reading with my/org-english-capture
+   - Captured words will be appended to my English word list
+2. Review my English word list with my/org-english-drill everyday
+   - Org-drill ask questions to level up my vocabulary
 
 #+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/org-english.el")
   (defvar my/org-english-file (file-name-concat org-directory "lists" "english.org")
@@ -9056,8 +9053,14 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
        (org-id-goto "de0983a7-9d1a-4ef8-b882-148c401e862d")
        (let ((org-drill-scope 'tree)
              (org-drill-question-tag "drill")
-             (org-drill-maximum-items-per-session 25)
+             (org-drill-maximum-items-per-session 30)
              (org-drill-hide-item-headings-p t)
+             (org-drill-sm5-initial-interval 7.0)
+             (org-drill-add-random-noise-to-intervals-p t)
+             (org-drill-adjust-intervals-for-early-and-late-repetitions-p t)
+             (org-drill-days-before-old 15)
+             (org-drill-learn-fraction 0.55)
+             (org-drill-overdue-interval-factor 1.4)
              (org-startup-indented nil))
          (org-indent-mode -1)
          (visual-line-mode 1)
@@ -9076,17 +9079,14 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
     (interactive)
     (with-org-drill-english-config (org-drill-resume)))
 
-  (defun my/org-english-drill-nontrivial ()
-    ""
+  (defun my/org-english-list-undrilled ()
+    "List english words which haven't been tested before in level ascending order."
     (interactive)
-    (let ((org-drill-match "-trivial"))
-      (with-org-drill-english-config (org-drill))))
-
-  (defun my/org-english-drill-new ()
-    ""
-    (interactive)
-    (let ((org-drill-match "-DRILL_TOTAL_REPEATS>0"))
-      (with-org-drill-english-config (org-drill))))
+    (org-ql-search my/org-english-file
+      '(and (tags "drill")
+            (tags "fd_en")
+            (not (property "DRILL_LAST_REVIEWED")))
+      :sort 'my/org-ql--english-level<))
 
   (defun my/org-english-lookup (word)
     "Look up WORD in my archive files using `org-ql-search'."
@@ -9111,7 +9111,9 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
       (let ((local-str (with-current-buffer (find-file-noselect my/org-english-file)
                          (let ((headline (org-ql-select
                                            `(,my/org-english-file)
-                                           `(and (heading ,word)
+                                           `(and (heading-regexp ,(eval `(rx word-start
+                                                                             ,(downcase word)
+                                                                             word-end)))
                                                  (tags "drill"))
                                            :action 'element-with-markers)))
                            (org-with-point-at (plist-get (cadar headline) :org-marker)
