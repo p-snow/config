@@ -197,6 +197,15 @@ initialization script for a linuxmint account
        "dav1d"
        "jq"
        "pup"
+       "binutils"
+       "make"
+       "llvm"
+       "cmake"
+       "libtool"
+       "texinfo"
+       "shellcheck"
+       "global"
+       "perl"
        <<base-pkgs>>))
   #+end_src
 - desktop
@@ -209,27 +218,15 @@ initialization script for a linuxmint account
        "vlc"
        "gcompris-qt"
        "gnome-disk-utility"
+       "wine64"
+       "winetricks"
        <<desktop-pkgs>>))
   #+end_src
 - creative
   #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/creative.scm")
     (specifications->manifest
-     '(;; "krita"
+     '("krita"
        <<creative-pkgs>>))
-  #+end_src
-- devel (software development)
-  #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/devel.scm")
-    (specifications->manifest
-     '("binutils"
-       "make"
-       "llvm"
-       "cmake"
-       "libtool"
-       "texinfo"
-       "shellcheck"
-       "global"
-       "perl"
-       <<devel-pkgs>>))
   #+end_src
 - emacs
   #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/emacs.scm")
@@ -238,12 +235,6 @@ initialization script for a linuxmint account
        <<emacs-pkgs>>
        "stunnel"
        "wordnet"))
-  #+end_src
-- wine
-  #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/wine.scm")
-    (specifications->manifest
-     '("wine64"
-       "winetricks"))
   #+end_src
 *** Activating Profiles
 
@@ -4900,7 +4891,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** scheme-mode
 
-#+begin_src scheme :noweb-ref devel-pkgs
+#+begin_src scheme :noweb-ref base-pkgs
   "mit-scheme"
 #+end_src
 
@@ -11341,7 +11332,7 @@ Extendable version manager
 :CREATED:  [2022-08-04 Thu 14:55]
 :END:
 
-#+begin_src scheme :noweb-ref devel-pkgs
+#+begin_src scheme :noweb-ref base-pkgs
   "tree-sitter"
 #+end_src
 
@@ -11364,7 +11355,7 @@ Extendable version manager
 
 [[https://github.com/castwide/solargraph][Solargraph]] is Ruby Language Server.
 
-#+begin_src scheme :noweb-ref devel-pkgs
+#+begin_src scheme :noweb-ref base-pkgs
   "ruby-solargraph"
 #+end_src
 
