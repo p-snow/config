@@ -6479,6 +6479,9 @@ Major mode for manupulating password store file.
     (setq nov-file-name (abbreviate-file-name nov-file-name)))
 #+end_src
 ***** yasnippet
+:PROPERTIES:
+:ID:       e91bfa7e-79be-4abc-ac0c-232aa3ccddda
+:END:
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-yasnippet"
@@ -6508,6 +6511,27 @@ Major mode for manupulating password store file.
   (use-package yasnippet-snippets
     :after yasnippet)
 #+end_src
+***** yankpad
+:PROPERTIES:
+:CREATED:  [2022-12-18 Sun 16:01]
+:END:
+
+[[https://github.com/Kungsgeten/yankpad][Yankpad]] enables us to define snippets in org-mode for [[id:e91bfa7e-79be-4abc-ac0c-232aa3ccddda][yasnippet]] or [[https://www.emacswiki.org/emacs/SkeletonMode][Skeltom]].
+
+#+begin_src emacs-lisp
+  (use-package yankpad
+    :straight t
+    :bind (("C-c y i" . yankpad-insert)
+           ("C-c y TAB" . yankpad-expand)
+           ("C-c y p" . company-yankpad)
+           ("C-c y c" . yankpad-capture-snippet)
+           ("C-c y l" . yankpad-reload)
+           ("C-c y z" . yankpad-repeat)
+           ("C-c y e" . yankpad-edit))
+    :custom
+    (yankpad-file (expand-file-name "lists/yankpad.org" org-directory)))
+#+end_src
+
 ***** pdf-tools
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
