@@ -9097,11 +9097,12 @@ My workflow for acquiring English words is:
   (defun my/org-english-list-undrilled ()
     "List english words which haven't been tested before in level ascending order."
     (interactive)
-    (org-ql-search my/org-english-file
-      '(and (tags "drill")
-            (tags "fd_en")
-            (not (property "DRILL_LAST_REVIEWED")))
-      :sort 'my/org-ql--english-level<))
+    (with-current-buffer (find-file-noselect my/org-english-file)
+      (org-ql-search my/org-english-file
+        '(and (tags "drill")
+              (tags "fd_en")
+              (not (property "DRILL_LAST_REVIEWED")))
+        :sort 'my/org-ql--english-level<)))
 
   (defun my/org-english-lookup (word)
     "Look up WORD in my archive files using `org-ql-search'."
