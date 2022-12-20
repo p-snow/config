@@ -803,7 +803,7 @@ GnuPG - ArchWiki]]
 
 * Application Configurations
 :PROPERTIES:
-:header-args+: :tangle-mode (identity #o444)
+:header-args+: :tangle-mode (identity #o644)
 :END:
 
 ** GNU Emacs
@@ -8571,8 +8571,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
         ((= 0 (length paths))
          (message "Sorry, no results found for query: %s" file))
         ((<= 1 (length paths))
-         ,body
-         ))))
+         ,body))))
 
   (defun my/lfile-follow-link (file _)
     "Open FILE given in lfile org link type."
@@ -8669,15 +8668,14 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
                       (concat resolved-path
                               (when (and match-idx
                                          (not exclude-search))
-                                (match-string 2 pattern))
-                              ))
+                                (match-string 2 pattern))))
                     (split-string
                      (shell-command-to-string
                       (format "plocate -d <<plocate-db()>> -ie \"%s\""
-                              (or (and match-idx
-                                       (match-string 1 pattern))
-                                  pattern)
-                              ))
+                              (shell-quote-argument
+                               (or (and match-idx
+                                        (match-string 1 pattern))
+                                   pattern))))
                      "\n" t))))
       ""))
 
