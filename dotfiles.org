@@ -1309,6 +1309,25 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 ***** Environment
 
 ****** Frames
+******* Desktop
+:PROPERTIES:
+:CREATED:  [2022-12-20 Tue 16:06]
+:END:
+
+[[info:emacs#Saving Emacs Sessions][Info manual for Saving Emacs Sessions]] describes how to set up desktop-save-mode.
+'--no-desktop' option for emacs command will disable forcibly desktop-save-mode .
+
+#+begin_src emacs-lisp
+  (use-package desktop
+    :custom
+    (desktop-restore-frames nil)
+    (desktop-restore-eager 0)
+    (desktop-lazy-idle-delay 10)
+    :config
+    (desktop-change-dir (expand-file-name "desktop" user-emacs-directory))
+    (desktop-save-mode 1))
+#+end_src
+
 ******* Cursor
 
 #+begin_src emacs-lisp
