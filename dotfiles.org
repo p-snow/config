@@ -840,24 +840,73 @@ These process must be evaluated beforehand.
 #+begin_src emacs-lisp
   (require 'package)
 
-  (customize-set-variable
-   'package-archives
-   '(("gnu" . "http://elpa.gnu.org/packages/")
-     ("melpa" . "http://melpa.org/packages/")))
-  (customize-set-variable 'package-enable-at-startup nil)
+  (add-to-list 'package-archives
+               '("melpa" . "https://melpa.org/packages/")
+               t)
+  (customize-set-variable 'package-enable-at-startup t)
   (customize-set-variable 'package-user-dir
                           (expand-file-name "elpa" user-emacs-directory-default))
-
-  (package-initialize t)
 #+end_src
 
-***** straight.el
+***** load cl-lib
+
+Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah-checkouts/gnu/emacs/news/NEWS.27.1][officially deprecated]].
+
+#+begin_src emacs-lisp
+  (require 'cl-lib)
+#+end_src
+***** use-package
+
+[[https://jwiegley.github.io/use-package/][Official manual]] is handy especially when you look up [[https://jwiegley.github.io/use-package/keywords/][Keywords]].
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-use-package"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/jwiegley/use-package/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (require 'use-package)
+  (require 'use-package-ensure)
+
+  (customize-set-variable 'use-package-compute-statistics t)
+  (customize-set-variable 'use-package-verbose nil)
+#+end_src
+
+use-package depends on following packages internally
+
+****** diminish
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-diminish"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package diminish)
+#+end_src
+
+****** delight
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-delight"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package delight)
+#+end_src
+
+***** straight.el                           :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-12-23 Fri 20:17]
+:END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
   ("https://github.com/raxod502/straight.el/releases.atom" soft_update)
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (customize-set-variable 'straight-recipes-gnu-elpa-use-mirror t)
   (customize-set-variable 'straight-base-dir user-emacs-directory-default)
   (customize-set-variable 'straight-vc-git-default-clone-depth 1)
@@ -901,61 +950,16 @@ These process must be evaluated beforehand.
       ("q" nil)))
 #+end_src
 
-***** use-package
-
-[[https://jwiegley.github.io/use-package/][Official manual]] is handy especially when you look up [[https://jwiegley.github.io/use-package/keywords/][Keywords]].
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-use-package"
-#+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/jwiegley/use-package/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (require 'use-package)
-
-  (customize-set-variable
-   'use-package-ensure-function 'straight-use-package-ensure-function)
-#+end_src
-
-use-package depends on following packages internally
-
-****** diminish
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-diminish"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package diminish)
-#+end_src
-
-****** delight
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-delight"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package delight)
-#+end_src
-
-***** load cl-lib
-
-Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah-checkouts/gnu/emacs/news/NEWS.27.1][officially deprecated]].
-
-#+begin_src emacs-lisp
-  (require 'cl-lib)
-#+end_src
 **** init.el
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name ".emacs.d/init.el")
 :END:
 
 init.el devote itself to call for remaining config files.
-
+***** load user config
+:PROPERTIES:
+:CREATED:  [2022-12-24 Sat 14:56]
+:END:
 #+begin_src emacs-lisp
   (customize-set-variable
    'custom-file
@@ -972,6 +976,8 @@ init.el devote itself to call for remaining config files.
   (dolist (file (directory-files "~/.emacs.d/user" t "\.el$"))
     (funcall #'load-file file))
 #+end_src
+
+
 **** Personal Preferences
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name ".emacs.d/lisp/02-preferences.el")
@@ -1911,7 +1917,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+begin_src emacs-lisp
   (use-package calendar
     :commands calendar
-    :straight japanese-holidays
+    :ensure japanese-holidays
     :hook
     ((calendar-today-visible calendar-today-invisible) . japanese-holiday-mark-weekend)
     (calendar-today-visible . calendar-mark-today)
@@ -2024,8 +2030,6 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
     (skk-init-file (expand-file-name "skk-init.el" skk-dotemacs-dir))
     (skk-byte-compile-init-file t)
-    (skk-tut-file
-     (expand-file-name "etc/SKK.tut" (straight--repos-dir "ddskk")))
     ;; cursor color
     (skk-use-color-cursor t)
     (skk-cursor-hiragana-color "orange")
@@ -2303,7 +2307,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 
 #+begin_src emacs-lisp
   (use-package dired-single
-    :straight t
+    :ensure t
     :after dired
     :bind (:map dired-mode-map
                 ("C-j" . dired-single-buffer)
@@ -2339,7 +2343,7 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 
 #+begin_src emacs-lisp
   (use-package dired-hide-dotfiles
-    :straight t
+    :ensure t
     :after dired
     :bind (:map dired-mode-map
                 ("," . dired-clean-directory)
@@ -2650,17 +2654,20 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
     (git-annex-dired-annexed-unavailable ((t (:foreground "red3")))))
 #+end_src
 
-***** magit-annex
+***** magit-annex                           :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-12-24 Sat 15:47]
+:END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-magit-annex"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#   "emacs-magit-annex"
+# #+end_src
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
   ("https://github.com/magit/magit-annex/releases.atom" soft_update)
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package magit-annex)
 #+end_src
 
@@ -2679,6 +2686,7 @@ Command in practice presumably looks like:
 
 #+begin_src emacs-lisp
   (use-package mu4e
+    :defer 3
     :delight
     (mu4e-main-mode    " MU")
     (mu4e-headers-mode " MU")
@@ -4023,52 +4031,67 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 [[https://github.com/alphapapa/org-ql][Org QL]] enables me to issue queries to search org entries with either SQL-like format or plain search strings.
 
+patch for org-ql@0.6.2 wierd behaver
+#+begin_src emacs-lisp
+  (add-to-list 'load-path
+               "~/.emacs.d/elpa/ov-20200326.1042/")
+  (add-to-list 'load-path
+               "~/.emacs.d/elpa/org-super-agenda-20220826.2315/")
+  (add-to-list 'load-path
+               "~/.emacs.d/elpa/peg-1.0.1")
+  (add-to-list 'load-path
+               "~/.emacs.d/elpa/org-ql-20221210.233/")
+#+end_src
+
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-ql"
+  ;; "emacs-org-ql"
 #+end_src
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
   ("https://github.com/alphapapa/org-ql/releases.atom" soft_update)
 #+end_src
 
-#+begin_src emacs-lisp
-  (with-eval-after-load 'org
-    (require 'org-ql)
+#+begin_src emacs-lisp :tangle no
+  (use-package org-ql
+    :ensure t
+    :after (org org-expiry)
+    :custom
+    (org-ql-search-directories-files-recursive t)
+    :config
     (require 'org-ql-search)
-    (customize-set-variable 'org-ql-search-directories-files-recursive t)
     (org-ql-defpred (tags-expanded expanded-tags tags-x xtags) (&rest tags)
-      "Return non-nil if current heading has one or more of TAGS.
+                    "Return non-nil if current heading has one or more of TAGS.
   If TAGS contains a group tag, all tags in the group is used to match.
   Both inherited and local tags is tested."
-      :normalizers ((`(,predicate-names . ,tags)
-                     `(tags-expanded ,@tags)))
-      :body (apply #'org-ql--predicate-tags
-                   (seq-uniq (--mapcat (org-tags-expand it t)
-                                       tags))))
+                    :normalizers ((`(,predicate-names . ,tags)
+                                   `(tags-expanded ,@tags)))
+                    :body (apply #'org-ql--predicate-tags
+                                 (seq-uniq (--mapcat (org-tags-expand it t)
+                                                     tags))))
     (org-ql-defpred (category-inherited) (&rest categories)
-      "Return non-nil if current heading has CATEGORY.
+                    "Return non-nil if current heading has CATEGORY.
   Ancestors are looked up If current heading has no CATEGORY."
-      :body (when-let ((category (or (org-get-category (point))
-                                     (org-entry-get (point) "CATEGORY" t))))
-              (cl-typecase categories
-                (null t)
-                (otherwise (member category categories)))))
-    (with-eval-after-load 'org-expiry
-      (require 'org-element)
-      (org-ql-defpred expired ()
-        "Return non-nil if the entry is expired."
-        :body (org-expiry-expired-p))))
+                    :body (when-let ((category (or (org-get-category (point))
+                                                   (org-entry-get (point) "CATEGORY" t))))
+                            (cl-typecase categories
+                              (null t)
+                              (otherwise (member category categories)))))
+    (org-ql-defpred expired ()
+                    "Return non-nil if the entry is expired."
+                    :body (org-expiry-expired-p)))
 #+end_src
 
-****** org-ml
+****** org-ml                              :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-12-23 Fri 20:02]
+:END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
   ("https://github.com/ndwarshuis/org-ml/releases.atom" soft_update)
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package org-ml
-    :straight t
     :after org)
 #+end_src
 
@@ -4115,6 +4138,7 @@ org-roam v2
 #+begin_src emacs-lisp
   (use-package org-mime
     :after org
+    :defer 5
     :config
     (push '("Send An Email") org-speed-commands))
 #+end_src
@@ -4132,7 +4156,10 @@ org-roam v2
     :bind (("C-c C-;" . org-web-tools-insert-link-for-url)))
 #+end_src
 
-****** org-volume
+****** org-volume                          :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-12-23 Fri 21:59]
+:END:
 
 [[https://github.com/akirak/org-volume][org-volume]] can be used to insert book information in dynamic block.
 
@@ -4140,7 +4167,7 @@ org-roam v2
   ("https://github.com/akirak/org-volume/releases.atom" soft_update)
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package org-volume
     :straight (org-volume
                :host github
@@ -4156,7 +4183,7 @@ org-roam v2
 
 #+begin_src emacs-lisp
   (use-package org-clock-convenience
-    :straight t
+    :ensure t
     :after (org)
     :bind (:map org-agenda-mode-map
                 ("@"   . org-clock-convenience-fill-gap)
@@ -5543,10 +5570,10 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 
 #+begin_src emacs-lisp
   (use-package tree-sitter-langs
-    :straight t)
+    :ensure t)
 
   (use-package tree-sitter
-    :straight t
+    :ensure t
     :after tree-sitter-langs
     :hook ((tree-sitter-after-on . tree-sitter-hl-mode))
     :config
@@ -5572,10 +5599,11 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 
 #+begin_src emacs-lisp
   (use-package whole-line-or-region
-    :straight t
+    :ensure t
     :config
     (whole-line-or-region-global-mode 1))
 #+end_src
+
 ***** projectile                     :ARCHIVE:ignore:
 :PROPERTIES:
 :CREATED:  [2022-08-03 Wed 21:10]
@@ -5729,7 +5757,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 
 #+begin_src emacs-lisp
   (use-package avy-migemo
-    :straight t
+    :ensure t
     :bind (("M-g M-a" . avy-migemo-goto-char-timer)
            ("M-g a" . avy-migemo-goto-char-timer)
            :map isearch-mode-map
@@ -5874,16 +5902,16 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
   ("https://github.com/hayamiz/twittering-mode/releases.atom" soft_update)
 #+end_src
 
+#+begin_src scheme :noweb-ref emacs-pkgs
+  ;; "emacs-twittering-mode"
+#+end_src
+
 #+begin_src emacs-lisp
   (defvar my/twittering-resource-dir
     (expand-file-name "twmode" user-emacs-directory))
 
   (use-package twittering-mode
-    :straight (twittering-mode
-               :host github
-               :repo "hayamiz/twittering-mode"
-               :fork (:host github
-                            :repo "p-snow/twittering-mode"))
+    :ensure t
     :delight " TW"
     :after hydra
     :commands twit
@@ -6017,7 +6045,7 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
 
 #+begin_src emacs-lisp
   (use-package comment-dwim-2
-    :straight t
+    :ensure t
     :defer 1
     :bind ("M-;" . comment-dwim-2)
     :config
@@ -6129,7 +6157,7 @@ helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mod
 
 #+begin_src emacs-lisp
   (use-package define-word
-    :straight t
+    :ensure t
     :custom
     (define-word-displayfn-alist
       '((wordnik . my/define-word--display-in-buffer)
@@ -6293,7 +6321,7 @@ migemo allows me to search incrementally Japanese words using roma-ji expression
 
 #+begin_src emacs-lisp
   (use-package migemo
-    :straight t
+    :ensure t
     :ensure-system-package cmigemo
     :custom
     (migemo-command "cmigemo")
@@ -6327,7 +6355,7 @@ Jaword.elはbackward-wordやforward-wordを日本語に対応させる機能を�
 
 #+begin_src emacs-lisp
   (use-package jaword
-    :straight t
+    :ensure t
     :custom
     (jaword-enable-subword t)
     :hook ((skk-mode
@@ -6351,7 +6379,7 @@ Aggressively delete successive white spaces.
   ("https://github.com/nflath/hungry-delete/releases.atom" soft_update)
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package hungry-delete
     :straight t
     :diminish
@@ -6402,7 +6430,7 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
   ("https://github.com/coldnew/pangu-spacing/releases.atom" soft_update)
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package pangu-spacing
     :straight t
     :diminish pangu-spacing-mode
@@ -6539,7 +6567,7 @@ Major mode for manupulating password store file.
 
 #+begin_src emacs-lisp
   (use-package yankpad
-    :straight t
+    :ensure t
     :bind (("C-c y i" . yankpad-insert)
            ("C-c y TAB" . yankpad-expand)
            ("C-c y p" . company-yankpad)
@@ -6627,7 +6655,7 @@ Major mode for manupulating password store file.
 
 ***** app-launcher                          :ARCHIVE:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package app-launcher
     :straight '(app-launcher
                 :host github
