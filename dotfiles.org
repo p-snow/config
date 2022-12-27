@@ -3356,7 +3356,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                     (not (habit)))
                               ((org-ql-block-header "Remaining task")))))
        ("d" "Done tasks"
-        ((org-ql-search-block '(done)
+        ((org-ql-search-block '(and (done)
+                                    (not (tags "project")))
                               ((org-ql-block-header "Done/Canceled/Pending task")))))
        ("p" "Projects" tags ,(concat "+" my/org-project-tag))
        ("h" "Habits in consistency graph"
