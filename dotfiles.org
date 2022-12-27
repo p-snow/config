@@ -1271,6 +1271,7 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 
 #+begin_src emacs-lisp
   (use-package recentf
+    :defer 1
     :custom
     (recentf-exclude '(".gz" ".xz" ".zip" ".gpg"))
     (recentf-max-saved-items 200)
@@ -1279,6 +1280,7 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
     :config
     (recentf-mode 1))
 #+end_src
+
 ****** Tramp
 
 #+begin_src emacs-lisp
@@ -1430,7 +1432,7 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
 
 #+begin_src emacs-lisp
   (use-package savehist
-    :defer 2
+    :defer 1
     :custom
     (savehist-save-minibuffer-history t)
     (savehist-additional-variables '(kill-ring))
@@ -3063,6 +3065,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
 
 #+begin_src emacs-lisp
   (use-package vterm
+    :commands vterm
     :delight " VT"
     :diminish ((vterm-copy-mode . "vc"))
     :custom
@@ -3757,6 +3760,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-habit
     :after org
+    :defer t
     :custom
     (org-habit-graph-column 32)
     (org-habit-preceding-days 14)
@@ -3868,16 +3872,18 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org Link
 
 #+begin_src emacs-lisp
-  (require 'ol)
-
-  (org-link-set-parameters "src" :follow #'org-babel-ref-resolve)
-  (org-link-set-parameters
-   "sudo"
-   (lambda (cmd)
-     "Run CMD with sudo."
-     (shell-command
-      (concat "echo " (shell-quote-argument (read-passwd "Password? "))
-              " | sudo -S " cmd))))
+  (use-package ol
+    :after org
+    :defer t
+    :config
+    (org-link-set-parameters "src" :follow #'org-babel-ref-resolve)
+    (org-link-set-parameters
+     "sudo"
+     (lambda (cmd)
+       "Run CMD with sudo."
+       (shell-command
+        (concat "echo " (shell-quote-argument (read-passwd "Password? "))
+                " | sudo -S " cmd)))))
 #+end_src
 
 ******* Org Follow Link
@@ -4038,6 +4044,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-drill
     :after org
+    :defer t
     :custom
     (org-drill-spaced-repetition-algorithm 'sm5))
 #+end_src
@@ -4167,7 +4174,6 @@ org-roam v2
 #+begin_src emacs-lisp
   (use-package org-web-tools
     :after org
-    :demand t
     :bind (("C-c C-;" . org-web-tools-insert-link-for-url)))
 #+end_src
 
@@ -5617,7 +5623,8 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 
 #+begin_src emacs-lisp
   (use-package tree-sitter-langs
-    :ensure t)
+    :ensure t
+    :defer t)
 
   (use-package tree-sitter
     :ensure t
@@ -6533,9 +6540,9 @@ Major mode for manupulating password store file.
 
 #+begin_src emacs-lisp
   (use-package pass
-    :config
-    (bind-keys :map pass-mode-map
-               ("C-j" . pass-view)))
+    :commands pass
+    :bind (:map pass-mode-map
+                ("C-j" . pass-view)))
 #+end_src
 
 ***** password-store
@@ -6558,7 +6565,6 @@ Major mode for manupulating password store file.
 
 #+begin_src emacs-lisp
   (use-package nov
-    :demand t
     :mode ("\\.epub$" . nov-mode)
     :hook (nov-mode . nov-abbreviate-file-name)
     :custom
@@ -6579,32 +6585,26 @@ Major mode for manupulating password store file.
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-yasnippet"
+  "emacs-yasnippet-snippets"
 #+end_src
 
 #+begin_src emacs-lisp
   (use-package yasnippet
-    :delight (snippet-mode " SN")
-    :diminish (yas-minor-mode . "ys")
+    :commands
+    (yas-new-snippet yas-insert-snippet yas-visit-snippet-file yas-minor-mode-on)
     :hook
     ((prog-mode org-mode shell-mode) . yas-minor-mode-on)
     :custom
     (yas-triggers-in-field t)
     (yas-snippet-dirs
-     `(,(expand-file-name "snippets" user-emacs-directory-default)))
+     (list (expand-file-name "snippets" user-emacs-directory-default)))
     :config
-    ;; work around code
-    (yas-reload-all))
-#+end_src
-****** yasnippet-snippets
+    (yas-reload-all nil))
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-yasnippet-snippets"
-#+end_src
-
-#+begin_src emacs-lisp
   (use-package yasnippet-snippets
     :after yasnippet)
 #+end_src
+
 ***** yankpad
 :PROPERTIES:
 :CREATED:  [2022-12-18 Sun 16:01]
