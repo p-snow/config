@@ -3366,9 +3366,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
          (org-agenda-use-time-grid nil)
          (org-agenda-prefix-format '((agenda . "")))
          (org-habit-show-all-today t)
-         (org-habit-graph-column 32)
-         (org-habit-preceding-days 14)
-         (org-habit-following-days 21)
          (org-agenda-sorting-strategy '(scheduled-up))
          ;; display habits only
          (org-agenda-skip-function
@@ -3751,6 +3748,21 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+end_src
 
 ******* Org Progress
+
+******** Org Habit
+:PROPERTIES:
+:CREATED:  [2022-12-27 Tue 12:58]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package org-habit
+    :after org
+    :custom
+    (org-habit-graph-column 32)
+    (org-habit-preceding-days 14)
+    (org-habit-following-days 21)
+    (org-habit-show-habits-only-for-today t))
+#+end_src
 
 ******** Org Clock
 
