@@ -6976,58 +6976,49 @@ It's confortable to read long material such as web page , epub file or email wit
   (defun my/download-video (url &optional filename playlistp)
     "Download video from `URL'.
 
+  With `C-u' prefix, open `my/download-video-dir' instead.
   If optional argument `FILENAME' is passed, try to use this as filename.
   If optional argument `PLAYLISTP' is passed, try to download all videos in playlist
   instead of single video."
-    (interactive (list (read-string "URL: ")))
-    (when (string-match "https?://www.youtube.com.+" url)
-      (let* ((url-orig (match-string 0 url))
-             (urlobj-orig (url-generic-parse-url url-orig))
-             (pq-orig (url-path-and-query urlobj-orig))
-             (yt-url
-              (if (and (not playlistp)
-                       (string= (car pq-orig) "/watch")
-                       (assoc-string "list" (url-parse-query-string (cdr pq-orig))))
-                  (url-recreate-url
-                   (url-parse-make-urlobj (url-type urlobj-orig)
-                                          (url-user urlobj-orig)
-                                          (url-password urlobj-orig)
-                                          (url-host urlobj-orig)
-                                          (url-portspec urlobj-orig)
-                                          (concat (car pq-orig) "?"
-                                                  (url-build-query-string
-                                                   (list (assoc "v" (url-parse-query-string (cdr pq-orig))))))
-                                          (url-target urlobj-orig)
-                                          (url-attributes urlobj-orig)
-                                          (url-fullness urlobj-orig)))
-                url)))
-        (setq lexical-binding t)
-        (setq url-lex url)
-        (setq filename-lex (if filename
-                               (replace-regexp-in-string
-                                "[\\?\"/:|’]" "" filename)
-                             nil))
-        (message "Downloading: %s" (or filename-lex url))
-        (set-process-sentinel
-         (start-process-shell-command
-          "download video" nil
-          (format "cd \"%1$s\" && nohup yt-dlp %2$s \"%3$s\" >/dev/null 2>&1"
-                  (expand-file-name my/download-video-dir)
-                  (mapconcat #'identity
-                             (list (format "--format \"%s\"" (ytdl-format))
-                                   (when (and filename-lex
-                                              (not playlistp)
-                                              (not (string= (car pq-orig) "/playlist")))
-                                     (format "--output %s" (shell-quote-argument filename-lex)))
-                                   (when playlistp "--yes-playlist --ignore-errors --download-archive downloaded.txt"))
-                             " ")
-                  yt-url))
-         (lambda (process desc)
-           (when (eq (process-status process) 'exit)
-             (let ((exit-status (process-exit-status process)))
-               (if (= exit-status 0)
-                   (alert (format "Downloaded: %s" (or filename-lex url-lex)) :severity 'normal :style 'fringe)
-                 (alert (format "Failed(%d): %s" exit-status (or filename-lex url-lex)) :severity 'urgent :style 'fringe)))))))))
+    (interactive (list (or current-prefix-arg
+                           (thing-at-point-url-at-point)
+                           (read-string "URL: "))))
+    (if (equal url '(4))
+        (find-file my/download-video-dir)
+      (when (and (stringp url)
+                 (string-match "https?://www.youtube.com.+" url))
+        (let* ((default-directory my/download-video-dir)
+               (url-orig (match-string 0 url))
+               (urlobj-orig (url-generic-parse-url url-orig))
+               (pq-orig (url-path-and-query urlobj-orig))
+               (yt-url
+                (if (and (not playlistp)
+                         (string= (car pq-orig) "/watch")
+                         (assoc-string "list" (url-parse-query-string (cdr pq-orig))))
+                    (url-recreate-url
+                     (url-parse-make-urlobj (url-type urlobj-orig)
+                                            (url-user urlobj-orig)
+                                            (url-password urlobj-orig)
+                                            (url-host urlobj-orig)
+                                            (url-portspec urlobj-orig)
+                                            (concat (car pq-orig) "?"
+                                                    (url-build-query-string
+                                                     (list (assoc "v" (url-parse-query-string (cdr pq-orig))))))
+                                            (url-target urlobj-orig)
+                                            (url-attributes urlobj-orig)
+                                            (url-fullness urlobj-orig)))
+                  url)))
+          (detached-shell-command
+           (format "yt-dlp %1$s \"%2$s\""
+                   (mapconcat #'identity
+                              (list (format "--format '%s'" (ytdl-format))
+                                    (when (and filename
+                                               (not playlistp)
+                                               (not (string= (car pq-orig) "/playlist")))
+                                      (format "--output %s" (shell-quote-argument filename)))
+                                    (when playlistp "--yes-playlist --ignore-errors --download-archive downloaded.txt"))
+                              " ")
+                   yt-url))))))
 
   (defvar my/download-audio-dir
     (file-name-concat "<<audio-dir()>>" "downloads")
@@ -7036,35 +7027,26 @@ It's confortable to read long material such as web page , epub file or email wit
   (defun my/download-audio (url &optional filename)
     "Download audio from `URL'.
 
+  With `C-u' prefix, open `my/download-audio-dir' instead.
   If optional argument `FILENAME' is given use this as a filename."
-    (interactive (list (read-string "URL: ")))
-    (setq lexical-binding t)
-    (setq url-lex url)
-    (setq filename-lex (if filename
-                           (replace-regexp-in-string
-                            "[\\?\"/:|’]" "" filename)
-                         nil))
-    (message "Downloading: %s" (or filename-lex url))
-    (set-process-sentinel
-     (start-process-shell-command
-      "download audio" nil
-      (format "cd %s && nohup %s >/dev/null 2>&1"
-              (shell-quote-argument (expand-file-name my/download-audio-dir))
-              (if (string-match-p "https?://www.youtube.com.+" url)
-                  (format "yt-dlp --extract-audio %s" url)
-                (concat (format "curl -LJs %s" url)
-                        (and filename-lex
-                             (format " -o \"%s.%s\"" filename-lex
-                                     (file-name-extension url)))))))
-     (lambda (process desc)
-       (when (eq (process-status process) 'exit)
-         (let ((exit-status (process-exit-status process)))
-           (if (= exit-status 0)
-               (alert (format "Downloaded: %s" (or filename-lex url-lex)) :severity 'normal :style 'fringe)
-             (alert (format "Failed(%d): %s" exit-status (or filename-lex url-lex)) :severity 'urgent :style 'fringe)))))))
+    (interactive (list (or current-prefix-arg
+                           (thing-at-point-url-at-point)
+                           (read-string "URL: "))))
+    (let ((default-directory my/download-audio-dir))
+      (if (equal url '(4))
+          (find-file my/download-audio-dir)
+        (detached-shell-command
+         (if (string-match-p "https?://www.youtube.com.+" url)
+             (format "yt-dlp --extract-audio %s" url)
+           (concat (format "curl -LJ %s" url)
+                   (and filename
+                        (format " -o '%s.%s'" filename
+                                (file-name-extension url)))))))))
 
   (defun show-media-duration (url)
     "Return a duration value for media located at URL."
+    (interactive (list (or (thing-at-point-url-at-point)
+                           (read-string "URL: "))))
     (when-let ((duration (cond
                           ((string-match "https?://www.youtube.com.+" url)
                            (car (split-string (shell-command-to-string
@@ -7074,25 +7056,6 @@ It's confortable to read long material such as web page , epub file or email wit
                                                (format "ffmpeg -i \"%s\" 2>&1 | grep Duration | awk -F '[ ]+' '{print substr($3, 0, length($3)-1)}'" url))))))))
       (message "Duration: %s" (if (stringp duration)
                                   duration "N/A"))))
-
-  (defun my/download-video-at-point ()
-    "Download video file from url currently pointed."
-    (interactive)
-    (when-let ((url (thing-at-point-url-at-point)))
-      (my/download-video url)))
-
-  (defun my/download-audio-at-point ()
-    "Download audio file from url currently pointed."
-    (interactive)
-    (let ((url (thing-at-point-url-at-point)))
-      (when url
-        (my/download-audio url))))
-
-  (defun my/show-media-duration-at-point ()
-    "Show duration of media file which cursor currently pointed."
-    (interactive)
-    (if-let* ((url (thing-at-point-url-at-point)))
-        (show-media-duration url)))
 
   (defun ytdl-format ()
     "Return appropriate format option value for youtube-dl command."
@@ -7111,9 +7074,9 @@ It's confortable to read long material such as web page , epub file or email wit
                           "wv*+wa/w"))))
       (format "%s" fmt-quality)))
 
-  (global-set-key (kbd "C-c D v") 'my/download-video-at-point)
-  (global-set-key (kbd "C-c D a") 'my/download-audio-at-point)
-  (global-set-key (kbd "C-c D =") 'my/show-media-duration-at-point)
+  (global-set-key (kbd "C-c D v") 'my/download-video)
+  (global-set-key (kbd "C-c D a") 'my/download-audio)
+  (global-set-key (kbd "C-c D =") 'my/show-media-duration)
 #+end_src
 
 ***** text to speech
