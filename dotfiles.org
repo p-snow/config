@@ -4688,13 +4688,16 @@ speed commands and hydra-org.
       (car (project-roots project))))
 #+end_src
 
-****** consult-dir
+****** consult-dir                         :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-12-27 Tue 17:01]
+:END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-consult-dir"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#   "emacs-consult-dir"
+# #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package consult-dir
     :bind (("C-x C-d" . consult-dir)
            :map vertico-map
@@ -5397,6 +5400,35 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name ".emacs.d/lisp/packages.el")
 :END:
+
+***** detached
+:PROPERTIES:
+:CREATED:  [2022-12-27 Tue 15:35]
+:END:
+
+#+begin_src scheme :noweb-ref emacs-pkgs
+  "emacs-detached"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package detached
+    :init
+    (detached-init)
+    :bind
+    (([remap async-shell-command] . detached-shell-command)
+     ([remap compile] . detached-compile)
+     ([remap recompile] . detached-compile-recompile))
+    :custom
+    (detached-terminal-data-command system-type)
+    (detached-terminal-data-command system-type))
+
+  (use-package detached-list
+    :bind
+    ("C-x C-d" . detached-list-sessions)
+    (:map detached-list-mode-map
+          ("C-m" . detached-list-open-session)
+          ("C-j" . detached-list-open-session)))
+#+end_src
 
 ***** emacs-guix
 :PROPERTIES:
