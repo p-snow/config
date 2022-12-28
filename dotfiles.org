@@ -3057,21 +3057,27 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-vterm"
+  "emacs-multi-vterm"
 #+end_src
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
   ("https://github.com/akermu/emacs-libvterm/releases.atom" soft_update)
+  ("https://github.com/suonlight/multi-vterm/releases.atom" soft_update)
 #+end_src
 
 #+begin_src emacs-lisp
   (use-package vterm
-    :commands vterm
+    :commands (vterm multi-vterm multi-vterm-next)
+    :bind (:map vterm-mode-map
+                ("C-c M-n" . multi-vterm-next)
+                ("C-c M-p" . multi-vterm-prev))
     :delight " VT"
     :diminish ((vterm-copy-mode . "vc"))
     :custom
     (vterm-min-window-width 55)
     (vterm-buffer-name-string "vterm %s")
     :config
+    (require 'multi-vterm)
     (bind-keys :map vterm-mode-map
                ("C-h" . vterm-send-backspace)
                ("M-h" . vterm-send-meta-backspace)
@@ -3083,33 +3089,6 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
                ("C-j" . vterm-copy-mode-done))
     (advice-add 'consult-yank-from-kill-ring :around #'advice/vterm-yank-pop))
 
-  (defun advice/vterm-yank-pop (orig-fun &rest args)
-    (if (eq major-mode 'vterm-mode)
-        (let ((inhibit-read-only t)
-              (yank-undo-function (lambda (_start _end) (vterm-undo))))
-          (cl-letf (((symbol-function 'insert-for-yank)
-                     (lambda (str) (vterm-send-string str t))))
-            (apply orig-fun args)))
-      (apply orig-fun args)))
-#+end_src
-
-****** multi-vterm
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-multi-vterm"
-#+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/suonlight/multi-vterm/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package multi-vterm
-    :after vterm
-    :bind (:map vterm-mode-map
-                ("C-c M-n" . multi-vterm-next)
-                ("C-c M-p" . multi-vterm-prev)))
-
   (defun my/multi-vterm (&optional arg)
     "Switch between existing vterm buffers.
 
@@ -3119,6 +3098,15 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
     (if (equal arg '(4))
         (multi-vterm)
       (multi-vterm-next)))
+
+  (defun advice/vterm-yank-pop (orig-fun &rest args)
+    (if (eq major-mode 'vterm-mode)
+        (let ((inhibit-read-only t)
+              (yank-undo-function (lambda (_start _end) (vterm-undo))))
+          (cl-letf (((symbol-function 'insert-for-yank)
+                     (lambda (str) (vterm-send-string str t))))
+            (apply orig-fun args)))
+      (apply orig-fun args)))
 #+end_src
 
 ***** eshell
