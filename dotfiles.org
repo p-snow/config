@@ -4382,24 +4382,37 @@ org-roam v2
               (kill-whole-line))))
         (org-clock-remove-empty-clock-drawer))))
 
-  (defun org-download-video-link-at-point (&optional playlistp)
-    "Download video file at point.
-  With `C-u' prefix arg, try to download all videos in playlist.
+  (defun my/org-download-video-link-at-point ()
+    "Download video file described in org link at point.
 
-  Video file is expected to appear in org-link."
-    (interactive "P")
-    (org-link-at-point-map (lambda (url title)
-                             (my/download-video url title playlistp))))
-
-  (defun org-download-audio-link-at-point ()
-    "Download audio file at point.
-
-  Audio file is expected to appear in org-link."
+  With `C-u' prefix find `my/download-video-dir' instead."
     (interactive)
-    (org-link-at-point-map (lambda (url title)
-                             (my/download-audio url title))))
+    (cl-multiple-value-bind (url title)
+        (ignore-errors
+          (org-link-at-point-map
+           (lambda (link desc)
+             (cl-values link desc))))
+      (if (and (not current-prefix-arg)
+               url)
+          (my/download-video url title)
+        (call-interactively #'my/download-video))))
 
-  (defun org-show-media-duration-at-point ()
+  (defun my/org-download-audio-link-at-point ()
+    "Download audio file described in org link at point.
+
+  With `C-u' prefix find `my/download-audio-dir' instead."
+    (interactive)
+    (cl-multiple-value-bind (url title)
+        (ignore-errors
+          (org-link-at-point-map
+           (lambda (link desc)
+             (cl-values link desc))))
+      (if (and (not current-prefix-arg)
+               url)
+          (my/download-audio url title)
+        (call-interactively #'my/download-audio))))
+
+  (defun my/org-show-media-duration-at-point ()
     "Show duration of media at point."
     (interactive)
     (org-link-at-point-map (lambda (url title)
@@ -4605,9 +4618,9 @@ speed commands and hydra-org.
     (define-key map (kbd "C->") #'org-next-link)
     (define-key map (kbd "C-c @") #'org-mark-element)
     (define-key map (kbd "C-c C-SPC") #'org-mark-subtree)
-    (define-key map (kbd "C-c D v") #'org-download-video-link-at-point)
-    (define-key map (kbd "C-c D a") #'org-download-audio-link-at-point)
-    (define-key map (kbd "C-c D =") #'org-show-media-duration-at-point)
+    (define-key map (kbd "C-c D v") #'my/org-download-video-link-at-point)
+    (define-key map (kbd "C-c D a") #'my/org-download-audio-link-at-point)
+    (define-key map (kbd "C-c D =") #'my/org-show-media-duration-at-point)
     (define-key map (kbd "C-c !") #'org-readable)
     (define-key map (kbd "C-c C-a") nil)
     (define-key map (kbd "C-,") nil)
@@ -7009,7 +7022,7 @@ It's confortable to read long material such as web page , epub file or email wit
                                             (url-fullness urlobj-orig)))
                   url)))
           (detached-shell-command
-           (format "yt-dlp %1$s \"%2$s\""
+           (format "yt-dlp %1$s '%2$s'"
                    (mapconcat #'identity
                               (list (format "--format '%s'" (ytdl-format))
                                     (when (and filename
@@ -8354,7 +8367,7 @@ This set of code (open-file) offers file opener functionality in my liking. With
   (defvar my/open-file-media-extensions
     '("mpg" "mpeg" "mp3" "mp4" "m4v" "m4a"
       "avi" "wmv" "wav" "mov" "flv" "mkv" "webm"
-      "ogv" "oga" "ogx" "ogg" "spx"
+      "ogv" "oga" "ogx" "ogg" "spx" "opus"
       "xbm" "pbm" "pgm" "ppm" "pnm" "png" "gif" "bmp" "tif" "jpeg" "jpg")
     "Extensions files which can play with media player must have.")
 
