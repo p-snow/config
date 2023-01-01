@@ -3816,6 +3816,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
        (shell    . t)
        (ruby     . t)
        (python   . t)
+       (scheme   . t)
        (org      . t)
        (lua      . t)
        (ledger   . t)
@@ -4977,6 +4978,12 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 #+begin_src scheme :noweb-ref base-pkgs
   "mit-scheme"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package scheme
+    :mode (("\\.guix-channel" . scheme-mode)
+           ("\\.guix-authorizations" . scheme-mode)))
 #+end_src
 
 ***** c-mode
