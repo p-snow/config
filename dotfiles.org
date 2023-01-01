@@ -1802,12 +1802,28 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 ***** External
 
-****** EasyPG (epg)
+****** EasyPG
 
 #+begin_src emacs-lisp
   (use-package epg
     :custom
     (epg-pinentry-mode 'loopback))
+#+end_src
+
+******* Epa (EasyPG Assistant)
+:PROPERTIES:
+:CREATED:  [2023-01-01 Sun 15:03]
+:END:
+
+[[info:epa#Top][EasyPG Assistant (epa)]] enables users to manage their GnuPG keys and exert encryption/sign with them.
+
+#+begin_src emacs-lisp :noweb tangle
+  (use-package epa
+    :after epg
+    :bind (("C-x : l" . epa-list-keys)
+           ("C-x : L" . epa-list-secret-keys))
+    :config
+    (setq epa-file-encrypt-to "<<email()>>"))
 #+end_src
 
 ****** Server
@@ -9489,6 +9505,9 @@ This section mainly for elisp code associated with some other programs.
     [user]
             email = 6841207+p-snow@users.noreply.github.com
             name = p-snow
+            signingkey = 0D2BAF0E8AEF0306
+    [commit]
+            gpgsign = true
     [credential]
             helper = <<home-dir()>>/.guix-extra-profiles/base/base/bin/pass-git-helper -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
     <<git-config>>
