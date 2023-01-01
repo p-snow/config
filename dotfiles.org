@@ -2615,7 +2615,17 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
                 :map magit-repolist-mode-map
                 ("C-j" . magit-repolist-status))
     :custom
-    (magit-repository-directories '(("~/git" . 1))))
+    (magit-repository-directories '(("~/git" . 1)))
+    (magit-log-show-refname-after-summary t)
+    ;; %GG denotes signature key info botained by --show-signature option in git log command
+    (magit-revision-headers-format
+     (mapconcat #'identity
+                (list "Author:     %aN <%aE>"
+                      "AuthorDate: %ad"
+                      "Commit:     %cN <%cE>"
+                      "CommitDate: %cd"
+                      "%GG")
+                "\n")))
 #+end_src
 
 ***** git-modes
