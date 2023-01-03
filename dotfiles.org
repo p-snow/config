@@ -2035,9 +2035,8 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (defvar skk-dir (expand-file-name "skk" my/user-share-directory))
   (defvar skk-dotemacs-dir (expand-file-name "ddskk" user-emacs-directory-default))
 
-  (use-package ddskk
+  (use-package skk
     :defer t
-    :bind ("C-x j" . skk-mode)
     :init
     (customize-set-variable 'default-input-method "japanese-skk")
     (defface skk-candidate `((t . (:font "fontset-default"
@@ -2123,7 +2122,10 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     ;; (skk-server-inhibit-startup-server t)
     ;; study
     (skk-study-file (expand-file-name "study" skk-dir))
-    (skk-study-backup-file (expand-file-name "study.bak" skk-dir)))
+    (skk-study-backup-file (expand-file-name "study.bak" skk-dir))
+    :config
+    ;; ward off activating skk-auto-fill-mode inadvertently
+    (bind-keys ("C-x j" . skk-mode)))
 #+end_src
 
 ***** skk init file
@@ -6250,6 +6252,7 @@ helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mod
 #+begin_src emacs-lisp
   (use-package define-word
     :ensure t
+    :defer t
     :custom
     (define-word-displayfn-alist
       '((wordnik . my/define-word--display-in-buffer)
