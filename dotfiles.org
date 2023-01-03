@@ -5624,26 +5624,29 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :CREATED:  [2022-08-02 Tue 20:08]
 :END:
 
+[[https://protesilaos.com/emacs/denote][Denote]] leverages note taking in org mode by providing file naming scheme and backlink capability.
+
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-denote"
 #+end_src
 
 #+begin_src emacs-lisp
-  (require 'denote)
-
-  (customize-set-variable 'denote-directory
-                          (file-name-concat org-directory "notes"))
-
-  (with-eval-after-load 'org-capture
-    (setq denote-org-capture-specifiers "%l\n%i\n%?")
-    (add-to-list 'org-capture-templates
-                 '("n" "New note (with denote.el)" plain
-                   (file denote-last-path)
-                   #'denote-org-capture
-                   :no-save t
-                   :immediate-finish nil
-                   :kill-buffer t
-                   :jump-to-captured t)))
+  (use-package denote
+    :defer 4
+    :custom
+    (denote-directory
+     (file-name-concat org-directory "notes"))
+    :config
+    (with-eval-after-load 'org-capture
+      (setq denote-org-capture-specifiers "%l\n%i\n%?")
+      (add-to-list 'org-capture-templates
+                   '("n" "New note (with denote.el)" plain
+                     (file denote-last-path)
+                     #'denote-org-capture
+                     :no-save t
+                     :immediate-finish nil
+                     :kill-buffer t
+                     :jump-to-captured t))))
 #+end_src
 
 ***** tree-sitter
