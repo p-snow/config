@@ -2197,8 +2197,9 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 :END:
 ***** modus-themes
 
-I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modus-themes/][conforms to WCAG AAA]]
-[[https://protesilaos.com/codelog/2022-04-21-modus-themes-colour-theory/][This blog post]] explains how the package determines colors theoretically and perceptually.
+I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modus-themes/][conforms to WCAG AAA]]. [[https://protesilaos.com/codelog/2022-04-21-modus-themes-colour-theory/][This blog post]] explains how this package determines colors theoretically and perceptually.
+
+Following configuration is for version 4 of modus-themes which takes breaking change from previous major version.
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-modus-themes"
@@ -2206,26 +2207,20 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 
 #+begin_src emacs-lisp
   (use-package modus-themes
-    :init
-    ;; Add all your customizations prior to loading the themes
-    (setq modus-themes-region '(bg-only no-extend)
-          modus-themes-bold-constructs t
-          modus-themes-italic-constructs t
-          modus-themes-paren-match '(bold intense underline)
-          modus-themes-syntax '(alt-syntax)
-          modus-themes-headings
-          '(((1 . (background overline background 1.0))
-             (2 . (overline rainbow 1.0))
-             (3 . (overline 1.0))
-             (t . (monochrome))))
-          modus-themes-org-blocks 'tinted-background)
-    ;; Load the theme files before enabling a theme
-    (modus-themes-load-themes)
+    :custom
+    (modus-themes-to-toggle '(modus-vivendi
+                              modus-vivendi-tinted
+                              modus-vivendi-deuteranopia))
+    (modus-themes-org-blocks 'tinted-background)
+    (modus-themes-bold-constructs t)
     :config
-    ;; Load the theme of your choice:
-    (modus-themes-load-vivendi)
-    :bind ("<f6>" . modus-themes-toggle))
+    (customize-set-variable 'modus-themes-common-palette-overrides
+                            modus-themes-preset-overrides-faint)
+    (load-theme (car modus-themes-to-toggle) t t)
+    (enable-theme (car modus-themes-to-toggle))
+    (bind-keys ("<f6>" . modus-themes-toggle)))
 #+end_src
+
 **** Dired
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name ".emacs.d/lisp/dired.el")
