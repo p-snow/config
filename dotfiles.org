@@ -2616,17 +2616,18 @@ Following configuration is for version 4 of modus-themes which takes breaking ch
 
 #+begin_src emacs-lisp
   (use-package magit
-    :delight
-    (magit-status-mode " MG")
-    (magit-revision-mode " MG")
-    :bind (:map magit-status-mode-map
-                ("C-j" . magit-visit-thing)
-                ("/"   . magit-file-checkout)
-                (";"   . magit-list-repositories)
-                :map magit-log-mode-map
-                ("C-j" . magit-visit-thing)
-                :map magit-repolist-mode-map
-                ("C-j" . magit-repolist-status))
+    :commands (magit magit-status)
+    :bind (("C-x M" . magit-status)
+           :map magit-status-mode-map
+           ("C-j" . magit-visit-thing)
+           ("/"   . magit-file-checkout)
+           (";"   . magit-list-repositories)
+           :map magit-log-mode-map
+           ("C-j" . magit-visit-thing)
+           :map magit-repolist-mode-map
+           ("C-j" . magit-repolist-status))
+    :delight ((magit-status-mode " MG")
+              (magit-revision-mode " MG"))
     :custom
     (magit-repository-directories '(("~/git" . 1)))
     (magit-log-show-refname-after-summary t)
@@ -5405,7 +5406,12 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
   (use-package project
     :config
     (add-to-list 'project-switch-commands
-                 '(project-dired "Dired root")))
+                 '(project-dired "Dired root"))
+    (with-eval-after-load 'magit
+      (bind-keys :map project-prefix-map
+                 ("M" . magit-project-status))
+      (add-to-list 'project-switch-commands
+                   '(magit-project-status "Magit"))))
 #+end_src
 
 ***** log-view
@@ -7235,12 +7241,11 @@ It's confortable to read long material such as web page , epub file or email wit
       ("D" dired-jump)
       ("=" ediff)
       ("@" twit)
-      ("g" magit-status)
       ("r" re-builder)
       ("w" eww)
       ("W" eww-switch-to-buffer)
       ("m" mu4e)
-      ("M" mu4e-alert-view-unread-mails)
+      ("M" magit-status)
       ("p" proced)
       ("P" list-processes)
       ("d" run-dig)
