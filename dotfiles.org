@@ -143,7 +143,19 @@ initialization script for a linuxmint account
          (url "https://gitlab.com/nonguix/nonguix"))
         (channel
          (name 'guix)
-         (url "https://git.savannah.gnu.org/git/guix.git")))
+         (url "https://git.savannah.gnu.org/git/guix.git"))
+        (channel
+         (name 'guix-jp)
+         (url "https://gitlab.com/guix-jp/channel")
+         (branch "main"))
+        (channel
+         (name 'p-snow)
+         (url "https://github.com/p-snow/guix-channel")
+         (introduction
+          (make-channel-introduction
+           "3a10227fbc2d5e9744aced43f820a0d3bf64add5"
+           (openpgp-fingerprint
+            "CF56 FC53 3AD6 6A67 6FDC  1D73 0D2B AF0E 8AEF 0306")))))
 #+end_src
 
 *** Manifests
@@ -310,14 +322,15 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
 #+end_src
 
 #+begin_src scheme :noweb-ref desktop-pkgs
+  "font-ipa"
   "font-ipa-ex"
   "font-google-noto"
   "font-inconsolata"
 #+end_src
 
-#+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
-  fonts-ipafont-mincho fonts-ipafont-gothic
-#+end_src
+# #+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+#   fonts-ipafont-mincho fonts-ipafont-gothic
+# #+end_src
 
 #+begin_src xml :noweb tangle :tangle (expand-file-name ".config/fontconfig/fonts.conf")
   <?xml version='1.0'?>
@@ -4804,7 +4817,7 @@ speed commands and hydra-org.
     :custom (completion-styles '(orderless)))
 #+end_src
 
-****** migemo support
+****** support for migemo in orderless
 
 #+begin_src emacs-lisp
   (defun orderless-migemo (component)
