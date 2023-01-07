@@ -992,7 +992,7 @@ init.el devote itself to call for remaining config files.
 #+end_src
 
 
-**** Personal Preferences
+**** Basic Preferences
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name ".emacs.d/lisp/02-preferences.el")
 :END:
@@ -1065,26 +1065,26 @@ Settings in this section are influenced a great deal by my personal preference. 
   (set-keyboard-coding-system 'utf-8-unix)
   (setq locale-coding-system 'utf-8-unix)
 #+end_src
-***** Startup Conditions
+***** States at Startup
 
 #+begin_src emacs-lisp
-  ;; do not use basic GUI facets
+  ;; distractions are not welcome
   (tool-bar-mode -1)
   (menu-bar-mode -1)
   (scroll-bar-mode -1)
   (tooltip-mode -1)
 
-  ;; fringe is preferably as thin as possible
+  ;; the more obtrusive a fringe, the preferable it is if discernable
   (set-fringe-mode 15)
 
   ;; do not use visual bell
-  (setf visible-bell nil)
+  (customize-set-variable 'visible-bell nil)
 
-  ;; conceal distractions at startup
+  ;; these are annoying
   (setf initial-scratch-message "")
   (setf inhibit-startup-screen t)
 
-  ;; use emacs in full screen mode
+  ;; launch in full screen at start-up
   (use-package emacs
     :no-require t
     :hook
@@ -1092,9 +1092,6 @@ Settings in this section are influenced a great deal by my personal preference. 
      (lambda ()
        (when (member (window-system) '(x ns w32))
          (set-frame-parameter nil 'fullscreen 'fullboth)))))
-
-  ;; enable subword-mode by default
-  (global-subword-mode 1)
 #+end_src
 ***** Fontsets
 
@@ -1522,9 +1519,8 @@ Mouse needs to be unobtrusive in my Emacs experience.
 ***** Convenience
 
 #+begin_src emacs-lisp
-  (require 'repeat)
-
-  (customize-set-variable 'repeat-mode t)
+  (repeat-mode 1)
+  (global-subword-mode 1)
 #+end_src
 
 ****** Abbreviations
