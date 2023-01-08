@@ -7081,7 +7081,9 @@ It's confortable to read long material such as web page , epub file or email wit
                                     (when (and filename
                                                (not playlistp)
                                                (not (string= (car pq-orig) "/playlist")))
-                                      (format "--output %s" (shell-quote-argument filename)))
+                                      (format "--output %s"
+                                              (shell-quote-argument
+                                               (my/file-name-validate filename))))
                                     (when playlistp "--yes-playlist --ignore-errors --download-archive downloaded.txt"))
                               " ")
                    yt-url))))))
@@ -7106,7 +7108,9 @@ It's confortable to read long material such as web page , epub file or email wit
              (format "yt-dlp --extract-audio %s" url)
            (concat (format "curl -LJ %s" url)
                    (and filename
-                        (format " -o '%s.%s'" filename
+                        (format " -o '%s.%s'"
+                                (shell-quote-argument
+                                 (my/file-name-validate filename))
                                 (file-name-extension url)))))))))
 
   (defun show-media-duration (url)
@@ -7493,9 +7497,78 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
          (format "\\`[%s]+\\'" "[:ascii:]’“”–")
          string)
       t))
+
+  (defun my/file-name-validate (string)
+    "Replace / with ⧸ in `STRING' so that it can be used as an file name in Linux file system."
+    (concat (seq-mapcat (lambda (char)
+                          (string-replace "/" "⧸"
+                                          (string char)))
+                        string)))
 #+end_src
 
 **** original features
+***** org-price-checker
+:PROPERTIES:
+:CREATED:  [2023-01-06 Fri 13:43]
+:END:
+
+#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/org-price-checker.el")
+  (defvar my/org-price-checker-retrievers
+    '(("www\.amazon\.co\.jp" . my/org-price-checker-retriever-amazon-jp))
+    "An alist.")
+
+  (defun my/org-price-checker-check ()
+    "docstring"
+    (interactive)
+    (when-let* ((url (org-entry-get (point) "PRICE_URL"))
+                (ret (assoc-default url my/org-price-checker-retrievers #'string-match))
+                (val (funcall ret url)))
+      (setq-local last-val (org-entry-get (point) "PRICE_LAST"))
+      (when (or (not last-val)
+                (and (stringp last-val)
+                     (not (string= val last-val))))
+        (setq-local org-log-note-headings
+                    (append (default-value 'org-log-note-headings)
+                            `((price . ,(concat (format "Price %-8s" val)
+                                                (if last-val
+                                                    (format "from %-8s" last-val)
+                                                  (make-string 13 ? ))
+                                                " on %t")))))
+        (org-add-log-setup 'price nil nil 'time)
+        (org-entry-put (point) "PRICE_LAST" val))))
+
+  (defun my/org-price-checker-retriever-amazon-jp (url)
+    "docstring"
+    (concat (seq-mapcat (lambda (char)
+                          (string-replace "\\" "¥"
+                                          (string (japanese-hankaku char))))
+                        (string-trim (shell-command-to-string
+                                      (format "curl --silent -A 'Mozilla/5.0' \"%s\" \\
+    \| pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \\
+    \| jq -r '.[0].text'"
+                                              url))))))
+#+end_src
+
+****** unit test for my/org-price-checker-retrievers
+:PROPERTIES:
+:CREATED:  [2023-01-07 Sat 20:36]
+:END:
+
+#+begin_src emacs-lisp
+#+end_src
+
+****** price change notification
+:PROPERTIES:
+:CREATED:  [2023-01-07 Sat 20:03]
+:END:
+
+#+begin_src shell :tangle no
+  emacs --batch
+#+end_src
+
+#+begin_src emacs-lisp
+#+end_src
+
 ***** org-password-store
 
 #+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/org-password-store.el")
