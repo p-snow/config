@@ -2989,31 +2989,6 @@ Command in practice presumably looks like:
            (url (or (caar (elfeed-entry-enclosures entry))
                     (elfeed-entry-link entry))))
       (show-media-duration url)))
-
-  (defun elfeed-search-org-capture-derived (&optional arg)
-    "Create actionable org task derived from current elfeed entry.
-
-  If called with C-u prefix, ask user to specify tags and target."
-    (interactive "P")
-    (let ((entries (elfeed-search-selected)))
-      (save-window-excursion
-        (cl-loop for entry in entries
-                 do (progn
-                      (elfeed-show-entry entry)
-                      (let ((org-capture-derived-tags (format ":web:%s"
-                                                              (cond
-                                                               ((or (member 'video (elfeed-entry-tags entry))
-                                                                    (member 'audio (elfeed-entry-tags entry)))
-                                                                "ac_watch:")
-                                                               (t "ac_read:"))))
-                            (org-capture-derived-target "f215ba42-6610-4019-a0a5-f790ebb26e29")
-                            (org-capture-derived-deadline-in-day 7))
-                        (call-interactively #'org-capture-derived))
-                      (elfeed-kill-buffer))))
-      (elfeed-search-untag-all-unchecked)
-      (unless (use-region-p) (forward-line -1))
-      (elfeed-search-tag-all-checked)
-      (mapc #'elfeed-search-update-entry entries)))
 #+end_src
 
 ***** elfeed-org
@@ -7852,9 +7827,12 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
   (provide 'my/org-archive-datetree)
 #+end_src
 
-***** org-capture-derived
+***** org-capture-derived                   :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-01-08 Sun 18:03]
+:END:
 
-#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/org-capture-derived.el")
+#+begin_src emacs-lisp :tangle no
   (require 'thingatpt)
   (require 'whitespace)
 
