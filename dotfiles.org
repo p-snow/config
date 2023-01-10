@@ -5599,6 +5599,18 @@ How to use detached.el
   "emacs-geiser-guile"
 #+end_src
 
+#+begin_src emacs-lisp :noweb yes
+  (use-package geiser-guile
+    :commands (scheme-mode)
+    :config
+    (add-to-list 'geiser-guile-load-path
+                 (file-name-concat "<<ghq-root()>>" "git.savannah.gnu.org/git/guix"))
+    (with-eval-after-load 'yasnippet
+      (add-to-list 'yas-snippet-dirs
+                   (file-name-concat "<<ghq-root()>>" "git.savannah.gnu.org/git/guix/etc/snippets/yas")))
+    (load-file (file-name-concat "<<ghq-root()>>" "git.savannah.gnu.org/git/guix/etc/copyright.el")))
+#+end_src
+
 ***** consult-dash
 :PROPERTIES:
 :CREATED:  [2022-08-05 Fri 16:56]
@@ -9665,9 +9677,14 @@ This section mainly for elisp code associated with some other programs.
   "ghq"
 #+end_src
 
-#+begin_src gitconfig :noweb-ref git-config
+#+name: ghq-root
+#+begin_src shell :eval no-export
+  echo ~/ghq
+#+end_src
+
+#+begin_src gitconfig :noweb yes :noweb-ref git-config
   [ghq]
-          root = ~/ghq
+          root = <<ghq-root()>>
 #+end_src
 
 #+begin_src conf :tangle (expand-file-name ".config/ghq")
