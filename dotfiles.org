@@ -3505,19 +3505,15 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (customize-set-variable 'org-enforce-todo-dependencies t)
     (customize-set-variable
      'org-todo-keywords
-     `((sequence ,(format "%s(t/!)" org-todo-keyword-0)
-                 ,(format "%s(u/!)" org-warning-keyword-0)
-                 ,(format "%s(g/!)" org-todo-keyword-1)
-                 ,(format "%s(i/!)" org-todo-keyword-2)
+     `((sequence ,(format "%s(t)" org-todo-keyword-0)
+                 ,(format "%s(u)" org-warning-keyword-0)
+                 ,(format "%s(g)" org-todo-keyword-1)
+                 ,(format "%s(i)" org-todo-keyword-2)
+                 ,(format "%s(s!/!)" org-todo-keyword-4)
                  "|"
-                 ,(format "%s(d/@)" org-done-keyword-0)
-                 ,(format "%s(x/@)" org-done-keyword-1)
-                 ,(format "%s(p/@)" org-done-keyword-2))
-       (sequence ,(format "%s(t/!)" org-todo-keyword-0)
-                 ,(format "%s(s/!)" org-todo-keyword-4)
-                 "|"
-                 ,(format "%s(x/@)" org-done-keyword-1)
-                 ,(format "%s(p/@)" org-done-keyword-2))))
+                 ,(format "%s(d!/@)" org-done-keyword-0)
+                 ,(format "%s(x!/@)" org-done-keyword-1)
+                 ,(format "%s(p!/@)" org-done-keyword-2))))
     (customize-set-variable
      'org-todo-keyword-faces
      `((,org-warning-keyword-0 . "red1")
@@ -3528,9 +3524,13 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
        (,org-done-keyword-0    . "gray30")
        (,org-done-keyword-1    . "dark gray")
        (,org-done-keyword-2    . "sea green")))
-    (customize-set-variable 'org-log-done 'time)
     (customize-set-variable 'org-log-into-drawer t)
     (customize-set-variable 'org-log-states-order-reversed t)
+    (customize-set-variable 'org-log-note-clock-out nil)
+    (customize-set-variable 'org-log-done 'time)
+    (customize-set-variable 'org-log-refile 'time)
+    (customize-set-variable 'org-log-reschedule 'time)
+    (customize-set-variable 'org-log-redeadline 'time)
     (customize-set-variable 'org-closed-keep-when-no-todo nil)
     (add-hook 'org-after-todo-state-change-hook
               #'my/org-remove-priority-if-done)
