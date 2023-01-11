@@ -847,8 +847,28 @@ These process must be evaluated beforehand.
   (setf user-emacs-directory-default
         (expand-file-name (file-name-as-directory "~/.emacs.d")))
 
+  (defvar my/user-config-dir "~/.emacs.d/elisp/config"
+    "docstring")
+  (defvar my/user-batch-dir "~/.emacs.d/elisp/batch"
+    "docstring")
+  (defvar my/user-package-dir "~/.emacs.d/site-elisp"
+    "docstring")
+
   (defvar my/user-share-directory "<<share-dir()>>")
 #+end_src
+***** custom file
+:PROPERTIES:
+:CREATED:  [2023-01-10 Tue 18:48]
+:END:
+
+#+begin_src emacs-lisp
+  (customize-set-variable 'custom-file
+                          (expand-file-name "custom.el" user-emacs-directory-default))
+
+  (when (file-readable-p custom-file)
+    (load custom-file))
+#+end_src
+
 ***** package.el
 
 #+begin_src emacs-lisp
@@ -964,33 +984,40 @@ use-package depends on following packages internally
       ("q" nil)))
 #+end_src
 
-**** init.el
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/init.el")
-:END:
+**** loading sequence
 
-init.el devote itself to call for remaining config files.
-***** load user config
+***** init.el
 :PROPERTIES:
 :CREATED:  [2022-12-24 Sat 14:56]
 :END:
-#+begin_src emacs-lisp
-  (customize-set-variable
-   'custom-file
-   (expand-file-name "custom.el" user-emacs-directory-default))
-  (when (file-exists-p custom-file)
-    (load custom-file))
 
+init.el devote itself to call for remaining config files.
+
+#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/init.el")
+  (push "~/.emacs.d/elisp" load-path)
+  (require 'user-init)
+
+  ;; TODO: delete sexps below
   (dolist (file (directory-files "~/.emacs.d/lisp" t "\.el$"))
     (funcall #'load-file file))
   (dolist (file (directory-files "~/.emacs.d/site-lisp" t "\.el$"))
     (funcall #'load-file file))
-  (dolist (file (directory-files "~/.emacs.d/secrets" t "\.el$"))
-    (funcall #'load-file file))
-  (dolist (file (directory-files "~/.emacs.d/user" t "\.el$"))
-    (funcall #'load-file file))
 #+end_src
 
+***** load user config files
+:PROPERTIES:
+:CREATED:  [2023-01-10 Tue 18:46]
+:END:
+
+#+begin_src emacs-lisp  :tangle (expand-file-name ".emacs.d/elisp/user-init.el")
+  (dolist (file (directory-files-recursively my/user-config-dir
+                                             (rx (seq ".el" eol))))
+    (funcall #'load-file file))
+
+  (provide 'user-init)
+
+  ;;; user-init ends here
+#+end_src
 
 **** Basic Preferences
 :PROPERTIES:
@@ -1214,7 +1241,7 @@ Caveat: There are some face definitions which use an extra large font since I am
 
 **** Custom Variables
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/01-custom.el")
+:header-args+: :tangle (expand-file-name "my-custom-variables.el" my/user-config-dir)
 :ID:       587bc395-6321-4f59-97e6-6f0b62518b20
 :END:
 
