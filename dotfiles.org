@@ -820,6 +820,11 @@ GnuPG - ArchWiki]]
 :header-args+: :tangle-mode (identity #o644)
 :END:
 
+#+name: user-bin-dir
+#+begin_src emacs-lisp :noweb yes :var dot-home=(org-entry-get nil "tangle-dest" t)
+  (expand-file-name ".local/bin" dot-home)
+#+end_src
+
 ** GNU Emacs
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
@@ -830,6 +835,11 @@ GnuPG - ArchWiki]]
   export EDITOR="emacsclient -c -a emacs"
 #+end_src
 
+#+name: emacs-dir
+#+begin_src emacs-lisp :noweb yes :var dot-home=(org-entry-get nil "tangle-dest" t)
+  (expand-file-name ".emacs.d" dot-home)
+#+end_src
+
 *** general configuration
 
 **** early-init.el
@@ -837,7 +847,7 @@ GnuPG - ArchWiki]]
 :header-args+: :tangle (expand-file-name ".emacs.d/early-init.el")
 :END:
 
-These process must be evaluated beforehand.
+Early init file defines fundamental variables used from both normal Emacs session and batch mode.
 
 ***** global variable definitions
 
@@ -847,15 +857,28 @@ These process must be evaluated beforehand.
   (setf user-emacs-directory-default
         (expand-file-name (file-name-as-directory "~/.emacs.d")))
 
-  (defvar my/user-config-dir "~/.emacs.d/elisp/config"
-    "docstring")
-  (defvar my/user-batch-dir "~/.emacs.d/elisp/batch"
-    "docstring")
-  (defvar my/user-package-dir "~/.emacs.d/site-elisp"
-    "docstring")
+  (defvar my/user-lisp-dir
+    (expand-file-name "elisp" "<<emacs-dir()>>")
+    "Directory beneath which user Emacs config files are placed.")
+  (defvar my/user-config-dir
+    (expand-file-name "config" my/user-lisp-dir)
+    "Directory beneath which user Emacs init files are placed.")
+  (defvar my/user-batch-dir
+    (expand-file-name "batch" my/user-lisp-dir)
+    "Directory beneath which user Emacs batch files are placed.")
+  (defvar my/user-package-dir
+    (expand-file-name "site-elisp" "<<emacs-dir()>>")
+    "Directory beneath which Emacs packages including mime are placed.")
 
+  (defvar my/user-bin-dir
+    (expand-file-name "<<user-bin-dir()>>")
+    "Directory beneath which local binary files are placed.")
   (defvar my/user-share-directory "<<share-dir()>>")
+
+  (push my/user-lisp-dir load-path)
+  (push my/user-package-dir load-path)
 #+end_src
+
 ***** custom file
 :PROPERTIES:
 :CREATED:  [2023-01-10 Tue 18:48]
@@ -994,7 +1017,6 @@ use-package depends on following packages internally
 init.el devote itself to call for remaining config files.
 
 #+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/init.el")
-  (push "~/.emacs.d/elisp" load-path)
   (require 'user-init)
 
   ;; TODO: delete sexps below
@@ -4494,7 +4516,7 @@ org-roam v2
           (org-export-with-toc nil)
           (org-export-with-author nil))
       (org-ascii-export-as-ascii nil t t t)
-      (mail-simple-send (or (org-entry-get (point) "MAIL_TO" t)
+      (mail-send-string (or (org-entry-get (point) "MAIL_TO" t)
                             (read-string "MAIL_TO: "))
                         heading
                         (with-current-buffer export-buf-name
@@ -6815,6 +6837,37 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 #+end_src
 
 *** further customization
+**** my packages
+:PROPERTIES:
+:CREATED:  [2023-01-12 Thu 14:14]
+:END:
+***** text-mail
+
+#+begin_src emacs-lisp :tangle (expand-file-name "text-mail.el" my/user-package-dir)
+  (require 'message)
+
+  (defun mail-send-string (mailto subject body)
+    "Default function to send a mail with SUBJECT and BODY to myself."
+    (save-excursion
+      (let ((message-kill-buffer-on-exit t))
+        (message-mail mailto subject)
+        (message-goto-body)
+        (insert body)
+        (message-send-and-exit))))
+
+  (defun mail-send-buffer (mailto)
+    "Send the current buffer contents as a email.
+
+  If region is active, send the string in the region instead."
+    (let ((mail-subj (buffer-name))
+          (mail-body (if (use-region-p)
+                         (buffer-substring (region-beginning) (region-end))
+                       (buffer-string))))
+      (mail-send-string mailto mail-subj mail-body)))
+
+  (provide 'text-mail)
+#+end_src
+
 **** handy functionalities
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name ".emacs.d/site-lisp/features.el")
@@ -7022,29 +7075,6 @@ It's confortable to read long material such as web page , epub file or email wit
       (display-buffer buffer '((display-buffer-pop-up-window)
                                . ((window-height . 8))))
       (switch-to-buffer-other-window buffer)))
-#+end_src
-
-***** sending email
-
-#+begin_src emacs-lisp
-  (defun mail-simple-send (mailto subject body)
-    "Default function to send a mail with SUBJECT and BODY to myself."
-    (save-excursion
-      (let ((message-kill-buffer-on-exit t))
-        (message-mail mailto subject)
-        (message-goto-body)
-        (insert body)
-        (message-send-and-exit))))
-
-  (defun mail-buffer (mailto)
-    "Send the current buffer contents as a email.
-
-  If region is active, send the string in the region instead."
-    (let ((mail-subj (buffer-name))
-          (mail-body (if (use-region-p)
-                         (buffer-substring (region-beginning) (region-end))
-                       (buffer-string))))
-      (mail-simple-send mailto mail-subj mail-body)))
 #+end_src
 
 ***** download media file
@@ -7522,23 +7552,26 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 #+end_src
 
 **** original features
-***** org-price-checker
+***** org-web-track
 :PROPERTIES:
 :CREATED:  [2023-01-06 Fri 13:43]
 :END:
 
-#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/org-price-checker.el")
+#+begin_src emacs-lisp :tangle (expand-file-name "org-web-track.el" my/user-package-dir)
+  (defvar org-web-track-url-property "TRACK_URL" "docstring")
+  (defvar org-web-track-last-value-property "TRACK_VALUE_LAST" "docstring")
+
   (defvar my/org-price-checker-retrievers
     '(("www\.amazon\.co\.jp" . my/org-price-checker-retriever-amazon-jp))
     "An alist.")
 
-  (defun my/org-price-checker-check ()
+  (defun org-web-track-update ()
     "docstring"
     (interactive)
-    (when-let* ((url (org-entry-get (point) "PRICE_URL"))
-                (ret (assoc-default url my/org-price-checker-retrievers #'string-match))
-                (val (funcall ret url)))
-      (setq-local last-val (org-entry-get (point) "PRICE_LAST"))
+    (when-let* ((url (org-entry-get (point) org-web-track-url-property))
+                (val (funcall (assoc-default url my/org-price-checker-retrievers #'string-match)
+                              url)))
+      (setq-local last-val (org-entry-get (point) org-web-track-last-value-property))
       (when (or (not last-val)
                 (and (stringp last-val)
                      (not (string= val last-val))))
@@ -7550,7 +7583,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
                                                   (make-string 13 ? ))
                                                 " on %t")))))
         (org-add-log-setup 'price nil nil 'time)
-        (org-entry-put (point) "PRICE_LAST" val))))
+        (org-entry-put (point) org-web-track-last-value-property val))))
 
   (defun my/org-price-checker-retriever-amazon-jp (url)
     "docstring"
@@ -7562,24 +7595,71 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
     \| pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \\
     \| jq -r '.[0].text'"
                                               url))))))
+
+  (provide 'org-web-track)
+#+end_src
+
+****** web track mail
+:PROPERTIES:
+:CREATED:  [2023-01-07 Sat 20:03]
+:END:
+
+Send a mail to notify the tracking value of some items have changed.
+
+#+HEADER: :var batch_dir=(expand-file-name my/user-batch-dir)
+#+begin_src shell :eval no :results verbatim :noweb yes :tangle (expand-file-name "web-track-mail" my/user-bin-dir) :tangle-mode (identity #o755)
+  # emacs -batch -l ~/.emacs.d/batch-lisp/org-price-checker-batch.el 2>/dev/null
+  emacs -batch \
+        -l "<<emacs-dir()>>/early-init.el" \
+        -l "${batch_dir}/org-web-track-mail.el"
+#+end_src
+
+#+begin_src conf :noweb yes :noweb-ref cronjob-pc
+  50 2 * * * /bin/bash -ci "web-track-mail >> $LOG_DIR/web-track-mail.log 2>&1"
+#+end_src
+
+#+begin_src emacs-lisp :tangle (expand-file-name "org-web-track-mail.el" my/user-batch-dir)
+  (add-to-list 'load-path
+               "~/.emacs.d/elpa/ov-20200326.1042/")
+  (add-to-list 'load-path
+               "~/.emacs.d/elpa/org-super-agenda-20220826.2315/")
+  (add-to-list 'load-path
+               "~/.emacs.d/elpa/peg-1.0.1")
+  (add-to-list 'load-path
+               "~/.emacs.d/elpa/org-ql-20221210.233/")
+
+  (require 'org)
+  (require 'org-ql)
+  (require 'text-mail)
+  (require 'org-web-track)
+
+  (let (mail-msg)
+    (mapc (lambda (price-entry)
+            (let* ((heading (org-element-property :raw-value price-entry))
+                   (track-url (org-element-property :TRACK_URL price-entry))
+                   (value-last (org-element-property :TRACK_VALUE_LAST price-entry))
+                   (value (funcall (assoc-default track-url my/org-price-checker-retrievers #'string-match)
+                                   track-url)))
+              (unless (string= value value-last)
+                (setq mail-msg
+                      (concat mail-msg
+                              (format "\"%s\": %s => %s\n"
+                                      heading value-last value))))))
+          (org-ql-select
+            (directory-files-recursively org-directory
+                                         (rx (seq ".org" eol)))
+            `(and (property ,org-web-track-url-property)
+                  (not (tags ,org-archive-tag)))))
+    (when (stringp mail-msg)
+      (mail-send-string user-mail-address
+                        "Web Track Results"
+                        mail-msg)))
 #+end_src
 
 ****** unit test for my/org-price-checker-retrievers
 :PROPERTIES:
 :CREATED:  [2023-01-07 Sat 20:36]
 :END:
-
-#+begin_src emacs-lisp
-#+end_src
-
-****** price change notification
-:PROPERTIES:
-:CREATED:  [2023-01-07 Sat 20:03]
-:END:
-
-#+begin_src shell :tangle no
-  emacs --batch
-#+end_src
 
 #+begin_src emacs-lisp
 #+end_src
