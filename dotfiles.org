@@ -1083,16 +1083,6 @@ Settings in this section are influenced a great deal by my personal preference. 
                                'ibuffer
                                global-map)
   #+end_src
-- lambda-key
-  [[https://www.emacswiki.org/emacs/DocumentingKeyBindingToLambda][lambda-key]] is nice idea to remedy lambda bindings with define-key.
-
-  #+begin_src emacs-lisp
-    (defun lambda-key (keymap key def)
-      "Wrap`define-key' to provide documentation."
-      (set 'sym (make-symbol (documentation def)))
-      (fset sym def)
-      (define-key keymap key sym))
-  #+end_src
 
 ***** Language
 
@@ -6854,10 +6844,48 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
   (provide 'text-mail)
 #+end_src
 
-**** handy functionalities
+**** handy functionalities (utilities)
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/site-lisp/features.el")
+:header-args+: :tangle (expand-file-name "utilities.el" my/user-config-dir)
 :END:
+
+***** lambda key
+:PROPERTIES:
+:CREATED:  [2023-01-19 Thu 12:33]
+:END:
+
+[[https://www.emacswiki.org/emacs/DocumentingKeyBindingToLambda][lambda-key]] is nice idea to remedy lambda bindings with define-key.
+
+#+begin_src emacs-lisp
+  (defun lambda-key (keymap key def)
+    "Wrap`define-key' to provide documentation."
+    (set 'sym (make-symbol (documentation def)))
+    (fset sym def)
+    (define-key keymap key sym))
+#+end_src
+
+***** sudo editing
+:PROPERTIES:
+:CREATED:  [2023-01-19 Thu 11:58]
+:END:
+
+[[help:my/sudo-edit][my/sudo-edit]] is a helper command when I need to edit with sudo privilege inspired by [[https://emacsredux.com/blog/2013/04/21/edit-files-as-root/][this blog post]].
+
+#+begin_src emacs-lisp
+  (defun my/sudo-edit (&optional arg)
+    "Edit currently visited file as root.
+
+  With a prefix ARG prompt for a file to visit.
+  Will also prompt for a file to visit if current
+  buffer is not visiting a file."
+    (interactive "P")
+    (if (or arg (not buffer-file-name))
+        (find-file (concat "/sudo:root@localhost:"
+                           (ido-read-file-name "Find file(as root): ")))
+      (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+
+  (global-set-key (kbd "C-x C-r") #'my/sudo-edit)
+#+end_src
 
 ***** power management
 Shut down emacs automatically when remaining power of laptop PC lower than [[help:battery-load-low][battery-load-low]]
@@ -7463,7 +7491,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
   (put 'jaword-kill 'repeat-map 'my/delete-repeat-map)
 #+end_src
 
-***** utility lisp functions/commands
+***** miscellaneous functions/commands
 
 #+begin_src emacs-lisp
   (defun my/copy-line-number ()
@@ -13130,7 +13158,7 @@ Utility for sendind email programatically
 
 ** pwsudo
 
-A script which executes command with elevating privilege using password from pass command.
+Nifty script that executes command with elevating privilege using password from pass command.
 
 #+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/pwsudo")
   _userid=$(whoami)
