@@ -842,6 +842,9 @@ GnuPG - ArchWiki]]
 #+end_src
 
 *** general configuration
+:PROPERTIES:
+:header-args+: :tangle (expand-file-name "my-general-config.el" my/user-config-dir)
+:END:
 
 **** early-init.el
 :PROPERTIES:
@@ -1042,10 +1045,35 @@ init.el devote itself to call for remaining config files.
   ;;; user-init ends here
 #+end_src
 
+**** Themes
+
+***** modus-themes
+
+I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modus-themes/][conforms to WCAG AAA]]. [[https://protesilaos.com/codelog/2022-04-21-modus-themes-colour-theory/][This blog post]] explains how this package determines colors theoretically and perceptually.
+
+Following configuration is for version 4 of modus-themes which takes breaking change from previous major version.
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-modus-themes"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package modus-themes
+    :custom
+    (modus-themes-to-toggle '(modus-vivendi
+                              modus-vivendi-tinted
+                              modus-vivendi-deuteranopia))
+    (modus-themes-org-blocks 'tinted-background)
+    (modus-themes-bold-constructs t)
+    :config
+    (customize-set-variable 'modus-themes-common-palette-overrides
+                            modus-themes-preset-overrides-faint)
+    (load-theme (car modus-themes-to-toggle) t t)
+    (enable-theme (car modus-themes-to-toggle))
+    (bind-keys ("<f6>" . modus-themes-toggle)))
+#+end_src
+
 **** Basic Preferences
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/02-preferences.el")
-:END:
 
 Settings in this section are influenced a great deal by my personal preference. Please be meticulous when you borrow.
 
@@ -2067,9 +2095,6 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+end_src
 
 **** Input Methods
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/input-method.el")
-:END:
 
 ***** ddskk
 
@@ -2243,40 +2268,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
                       (skk-del-alist key skk-rom-kana-rule-list)))))
 #+end_src
 
-**** Themes
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/themes.el")
-:END:
-***** modus-themes
-
-I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modus-themes/][conforms to WCAG AAA]]. [[https://protesilaos.com/codelog/2022-04-21-modus-themes-colour-theory/][This blog post]] explains how this package determines colors theoretically and perceptually.
-
-Following configuration is for version 4 of modus-themes which takes breaking change from previous major version.
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-modus-themes"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package modus-themes
-    :custom
-    (modus-themes-to-toggle '(modus-vivendi
-                              modus-vivendi-tinted
-                              modus-vivendi-deuteranopia))
-    (modus-themes-org-blocks 'tinted-background)
-    (modus-themes-bold-constructs t)
-    :config
-    (customize-set-variable 'modus-themes-common-palette-overrides
-                            modus-themes-preset-overrides-faint)
-    (load-theme (car modus-themes-to-toggle) t t)
-    (enable-theme (car modus-themes-to-toggle))
-    (bind-keys ("<f6>" . modus-themes-toggle)))
-#+end_src
-
 **** Dired
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/dired.el")
-:END:
 
 #+begin_src emacs-lisp
   (use-package dired
@@ -2440,9 +2432,6 @@ Following configuration is for version 4 of modus-themes which takes breaking ch
 #+end_src
 
 **** EWW
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/eww.el")
-:END:
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
   d <<share-dir()>>/emacs/eww-view-in-org 0755 - - 3d
@@ -2626,9 +2615,6 @@ Following configuration is for version 4 of modus-themes which takes breaking ch
       print(out_root_str)
 #+end_src
 **** Info
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/info.el")
-:END:
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'info
@@ -2650,9 +2636,6 @@ Following configuration is for version 4 of modus-themes which takes breaking ch
 #+end_src
 
 **** Magit
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/magit.el")
-:END:
 
 [[https://github.com/magit/magit][Magit]] is git front end for emacs which is outstandingly powerful.
 
@@ -2750,9 +2733,6 @@ Following configuration is for version 4 of modus-themes which takes breaking ch
 #+end_src
 
 **** Mu4e
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/mu4e.el")
-:END:
 
 You need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-message-store.html][issue 'mu init' command]] before using mu4e.
 Command in practice presumably looks like:
@@ -2868,9 +2848,6 @@ Command in practice presumably looks like:
   #+end_src
 
 **** Elfeed
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/elfeed.el")
-:END:
 
 [[https://github.com/skeeto/elfeed][Elfeed]] is a powerful RSS feed reader with tag capability that is one of core software in my input workflow.
 
@@ -3067,9 +3044,6 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
 #+end_src
 
 **** Terminal emulators (Shells)
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/shell.el")
-:END:
 
 #+begin_src emacs-lisp
   (setf shell-command-switch "-c")
@@ -4655,9 +4629,6 @@ speed commands and hydra-org.
 #+end_src
 
 **** Completion framework
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/completion.el")
-:END:
 
 ***** vertico
 
@@ -4852,9 +4823,6 @@ speed commands and hydra-org.
 #+end_src
 
 **** text-mode derivatives
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/text-mode.el")
-:END:
 
 ***** text-mode
 
@@ -4939,9 +4907,6 @@ speed commands and hydra-org.
 #+end_src
 
 **** prog-mode derivatives
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/prog-mode.el")
-:END:
 
 ***** prog-mode
 
@@ -5285,7 +5250,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 **** special-mode derivatives
 :PROPERTIES:
 :CREATED:  [2022-08-23 Tue 18:51]
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/special-mode.el")
 :END:
 
 ***** special mode
@@ -5317,9 +5281,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 #+end_src
 
 **** Programming
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/programming.el")
-:END:
 
 ***** sMerge
 :PROPERTIES:
@@ -5457,9 +5418,6 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     (vc-follow-symlinks t))
 #+end_src
 **** other third-party packages
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/packages.el")
-:END:
 
 ***** detached
 :PROPERTIES:
@@ -5474,7 +5432,7 @@ How to use detached.el
 - with shell-command
   - invoke/call detached-shell-command
 
-#+begin_src scheme :noweb-ref emacs-pkgs
+#+begin_src scheme :noweb-ref emacs-pkgs :tangle no
   "dtach"
   "emacs-detached"
 #+end_src
@@ -5633,7 +5591,9 @@ How to use detached.el
   (use-package consult-dash
     :after dash-docs
     :bind ("M-s M-d" . consult-dash))
+#+end_src
 
+#+begin_src emacs-lisp :tangle (expand-file-name "00-my-early-config.el" my/user-config-dir)
   (defmacro my/add-dash-docsets-hook (hook docsets)
     `(add-hook ,hook
                (lambda ()
@@ -6813,6 +6773,10 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 #+end_src
 
 *** further customization
+:PROPERTIES:
+:header-args+: :tangle (expand-file-name "my-features.el" my/user-config-dir)
+:END:
+
 **** my packages
 :PROPERTIES:
 :CREATED:  [2023-01-12 Thu 14:14]
@@ -6844,9 +6808,10 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
   (provide 'text-mail)
 #+end_src
 
-**** handy functionalities (utilities)
+**** utility macros/functions
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "utilities.el" my/user-config-dir)
+:CREATED:  [2023-01-19 Thu 16:56]
+:header-args+: :tangle (expand-file-name "00-my-early-config.el" my/user-config-dir)
 :END:
 
 ***** lambda key
@@ -6863,6 +6828,9 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
     (fset sym def)
     (define-key keymap key sym))
 #+end_src
+
+
+**** handy features
 
 ***** sudo editing
 :PROPERTIES:
@@ -7628,7 +7596,7 @@ Send a mail to notify the tracking value of some items have changed.
         -l "${batch_dir}/org-web-track-mail.el"
 #+end_src
 
-#+begin_src conf :noweb yes :noweb-ref cronjob-pc
+#+begin_src conf :noweb yes :noweb-ref cronjob-pc :tangle no
   50 2 * * * /bin/bash -ci "web-track-mail >> $LOG_DIR/web-track-mail.log 2>&1"
 #+end_src
 
