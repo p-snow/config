@@ -827,6 +827,9 @@ GnuPG - ArchWiki]]
 #+end_src
 
 ** GNU Emacs
+:PROPERTIES:
+:CREATED:  [2023-01-20 Fri 10:22]
+:END:
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs"
@@ -844,11 +847,12 @@ GnuPG - ArchWiki]]
 *** general configuration
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-general-config.el" my/user-config-dir)
+:CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
 **** early-init.el
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/early-init.el")
+:header-args+: :tangle (expand-file-name "early-init.el" user-emacs-directory-default)
 :END:
 
 Early init file defines fundamental variables used from both normal Emacs session and batch mode.
@@ -916,6 +920,7 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 #+begin_src emacs-lisp
   (require 'cl-lib)
 #+end_src
+
 ***** use-package
 
 [[https://jwiegley.github.io/use-package/][Official manual]] is handy especially when you look up [[https://jwiegley.github.io/use-package/keywords/][Keywords]].
@@ -6775,6 +6780,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 *** further customization
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-features.el" my/user-config-dir)
+:CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
 **** my packages
@@ -6829,8 +6835,84 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
     (define-key keymap key sym))
 #+end_src
 
+***** miscellaneous functions/commands
+
+#+begin_src emacs-lisp
+  (defun my/copy-line-number ()
+    "Copy the line number of current point into the kill ring."
+    (interactive)
+    (let ((line-number (number-to-string (line-number-at-pos))))
+      (message "Line number: %s" line-number)
+      (kill-new line-number)))
+  (global-set-key (kbd "C-M-S-w") 'my/copy-line-number)
+
+  (defun my/insert-time-stamp (&optional arg)
+    "Insert date string with format derived in deterministic way with ARG."
+    (interactive "P")
+    (let* ((simple-fmt "%Y%m%d")
+           (concise-fmt "%Y-%m-%d")
+           (verbose-fmt "%Y-%m-%d %H:%M:%S")
+           (fmt-in-use (cond
+                        ((equal arg '(16))
+                         (read-string "time format: "
+                                      "%Y-%m-%d %H:%M:%S"))
+                        ((equal arg '(4))
+                         verbose-fmt)
+                        (t (cond
+                            ((eq major-mode 'text-mode) concise-fmt)
+                            ((eq major-mode 'dired-mode) simple-fmt)
+                            (t simple-fmt))))))
+      (insert (format-time-string fmt-in-use))))
+  (global-set-key (kbd "C-c .") 'my/insert-time-stamp)
+
+  (defun my/drag-line-backward ()
+    "Drag up current line for one."
+    (interactive)
+    (transpose-lines 1)
+    (previous-line 2))
+  (global-set-key (kbd "M-S-<up>") 'my/drag-line-backward)
+
+  (defun my/drag-line-forward ()
+    "Drag down current line for one."
+    (interactive)
+    (next-line 1)
+    (transpose-lines 1)
+    (previous-line 1))
+  (global-set-key (kbd "M-S-<down>") 'my/drag-line-forward)
+
+  (defun my/comment-box (b e)
+    "Draw a box comment around the region but arrange for the region
+    to extend to at least the fill column. Place the point after the
+    comment box."
+    (interactive "r")
+    (let ((e (copy-marker e t)))
+      (goto-char b)
+      (end-of-line)
+      (insert-char ?  (- fill-column (current-column)))
+      (comment-box b e 1)
+      (goto-char e)
+      (set-marker e nil)))
+
+  (defun my/ascii-string-p (string)
+    "Return non-nil if `STRING' seems to be made of ASCII."
+    (if (length> string 0)
+        (string-match-p
+         (format "\\`[%s]+\\'" "[:ascii:]’“”–")
+         string)
+      t))
+
+  (defun my/file-name-validate (string)
+    "Replace / with ⧸ in `STRING' so that it can be used as an file name in Linux file system."
+    (concat (seq-mapcat (lambda (char)
+                          (string-replace "/" "⧸"
+                                          (string char)))
+                        string)))
+#+end_src
 
 **** handy features
+:PROPERTIES:
+:CREATED:  [2023-01-20 Fri 10:59]
+:END:
 
 ***** sudo editing
 :PROPERTIES:
@@ -7459,81 +7541,10 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
   (put 'jaword-kill 'repeat-map 'my/delete-repeat-map)
 #+end_src
 
-***** miscellaneous functions/commands
-
-#+begin_src emacs-lisp
-  (defun my/copy-line-number ()
-    "Copy the line number of current point into the kill ring."
-    (interactive)
-    (let ((line-number (number-to-string (line-number-at-pos))))
-      (message "Line number: %s" line-number)
-      (kill-new line-number)))
-  (global-set-key (kbd "C-M-S-w") 'my/copy-line-number)
-
-  (defun my/insert-time-stamp (&optional arg)
-    "Insert date string with format derived in deterministic way with ARG."
-    (interactive "P")
-    (let* ((simple-fmt "%Y%m%d")
-           (concise-fmt "%Y-%m-%d")
-           (verbose-fmt "%Y-%m-%d %H:%M:%S")
-           (fmt-in-use (cond
-                        ((equal arg '(16))
-                         (read-string "time format: "
-                                      "%Y-%m-%d %H:%M:%S"))
-                        ((equal arg '(4))
-                         verbose-fmt)
-                        (t (cond
-                            ((eq major-mode 'text-mode) concise-fmt)
-                            ((eq major-mode 'dired-mode) simple-fmt)
-                            (t simple-fmt))))))
-      (insert (format-time-string fmt-in-use))))
-  (global-set-key (kbd "C-c .") 'my/insert-time-stamp)
-
-  (defun my/drag-line-backward ()
-    "Drag up current line for one."
-    (interactive)
-    (transpose-lines 1)
-    (previous-line 2))
-  (global-set-key (kbd "M-S-<up>") 'my/drag-line-backward)
-
-  (defun my/drag-line-forward ()
-    "Drag down current line for one."
-    (interactive)
-    (next-line 1)
-    (transpose-lines 1)
-    (previous-line 1))
-  (global-set-key (kbd "M-S-<down>") 'my/drag-line-forward)
-
-  (defun my/comment-box (b e)
-    "Draw a box comment around the region but arrange for the region
-    to extend to at least the fill column. Place the point after the
-    comment box."
-    (interactive "r")
-    (let ((e (copy-marker e t)))
-      (goto-char b)
-      (end-of-line)
-      (insert-char ?  (- fill-column (current-column)))
-      (comment-box b e 1)
-      (goto-char e)
-      (set-marker e nil)))
-
-  (defun my/ascii-string-p (string)
-    "Return non-nil if `STRING' seems to be made of ASCII."
-    (if (length> string 0)
-        (string-match-p
-         (format "\\`[%s]+\\'" "[:ascii:]’“”–")
-         string)
-      t))
-
-  (defun my/file-name-validate (string)
-    "Replace / with ⧸ in `STRING' so that it can be used as an file name in Linux file system."
-    (concat (seq-mapcat (lambda (char)
-                          (string-replace "/" "⧸"
-                                          (string char)))
-                        string)))
-#+end_src
-
 **** original features
+:PROPERTIES:
+:CREATED:  [2023-01-20 Fri 10:59]
+:END:
 ***** org-web-track
 :PROPERTIES:
 :CREATED:  [2023-01-06 Fri 13:43]
@@ -8976,6 +8987,9 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
 #+end_src
 
 **** org workflows
+:PROPERTIES:
+:CREATED:  [2023-01-20 Fri 10:59]
+:END:
 
 ***** notification count down timer finished
 
@@ -9467,10 +9481,13 @@ test code
 #+end_src
 
 **** additional emacs lisp code
+:PROPERTIES:
+:CREATED:  [2023-01-20 Fri 10:59]
+:END:
 
 This section mainly for elisp code associated with some other programs.
 
-#+begin_src emacs-lisp :noweb yes :tangle
+#+begin_src emacs-lisp :noweb yes
   <<additional-elisp>>
 #+end_src
 

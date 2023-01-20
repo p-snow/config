@@ -1,10 +1,8 @@
 (require 'org)
-(require 'org-crypt)
 (require 'ob-shell)
 
 (remove-hook 'org-babel-pre-tangle-hook
              'save-buffer)
-(setq org-crypt-key user-mail-address)
 
 (let* ((org-files (directory-files "./" nil "\\.org$"))
        (org-confirm-babel-evaluate nil)
@@ -14,8 +12,8 @@
           (org-babel-lob-ingest org-file))
         org-files)
   (dolist (org-file org-files)
-    (unless (member org-file '("README.org"))
+    (unless (member org-file '("README.org" "index.org"))
+      (princ org-file)
       (with-current-buffer (find-file-noselect org-file)
         (let ((default-directory (org-entry-get nil "tangle-dest" t)))
-          (org-decrypt-entries)
           (org-babel-tangle))))))
