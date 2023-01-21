@@ -9094,8 +9094,13 @@ This section mainly for elisp code associated with some other programs.
 
 #+begin_src emacs-lisp :tangle (expand-file-name "my-config.el" my/user-config-dir)
   (use-package org-web-track
-    :bind (("C-o w v" . org-web-track-view)
-           ("C-o w c" . org-agenda-web-track-columns)))
+    :bind (("C-o w u" . org-web-track-update)
+           ("C-o w v" . org-web-track-view)
+           :map org-agenda-mode-map
+           ("W" . org-agenda-web-track-columns))
+    :custom
+    (org-agenda-bulk-custom-functions
+     '((?W org-agenda-web-track-update))))
 #+end_src
 
 #+begin_src emacs-lisp :tangle (expand-file-name "org-web-track.el" my/user-package-dir)
@@ -9113,13 +9118,13 @@ This section mainly for elisp code associated with some other programs.
           (last-date (org-entry-get (point) "TRACK_DATE"))
           (last-val (org-entry-get (point) org-web-track-last-value-property)))
       (unless (or (and (not url)
-                       (user-error "TRACK_URL is missing."))
+                       (user-error "TRACK_URL is missing"))
                   (and last-date
                        (not (time-less-p (time-add
                                           (encode-time (org-parse-time-string last-date))
                                           (days-to-time 1))
                                          (encode-time (parse-time-string (current-time-string)))))
-                       (user-error "NOT ELAPSED 1 DAY.")))
+                       (user-error "Have not elapsed 1 day since last update")))
         (setq-local val (funcall (assoc-default url my/org-price-checker-retrievers #'string-match)
                                  url))
         (when (or (not last-val)
