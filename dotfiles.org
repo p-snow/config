@@ -1108,6 +1108,8 @@ Settings in this section are influenced a great deal by my personal preference. 
   ;; suppress prompting in (up/down)case-region
   (put 'upcase-region 'disabled nil)
   (put 'downcase-region 'disabled nil)
+
+  (unbind-key "C-o")
 #+end_src
 
 - Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
@@ -3186,6 +3188,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :defer t
     :mode (("\\.org$" . org-mode))
     :interpreter (("org" . org-mode))
+    :bind (("C-o C-s" . org-save-all-org-buffers)
+           ("C-o @" . org-mark-subtree)
+           ("C-o i" . org-info-find-node)
+           ("C-o &" . org-mark-ring-goto))
     :config
     (add-hook 'org-log-buffer-setup-hook
               (lambda ()
@@ -3207,9 +3213,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-agenda
     :after (org org-ql)
-    :bind (:map org-agenda-mode-map
-                ("C-j" . org-agenda-switch-to)
-                ("M" . org-agenda-month-view))
+    :bind (("C-o a" . org-agenda)
+           :map org-agenda-mode-map
+           ("C-j" . org-agenda-switch-to)
+           ("M" . org-agenda-month-view))
     :hook
     (org-agenda-mode . (lambda ()
                          (delete-other-windows)
@@ -3426,6 +3433,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                 (org-clock-sum)
                 (org-clock-sum-today)))
             (org-agenda-files))))
+  (bind-keys ("C-o =" . org-clock-sum-all))
 
   (defun org-get-latest-clock-log-time (pom)
     "Get the latest clock log time stamp in org entry at POM as a time object.
@@ -3457,6 +3465,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-capture
     :after org
+    :bind ("C-o c" . org-capture)
     :hook
     (org-capture-mode . (lambda ()
                           (delete-other-windows)))
@@ -3574,11 +3583,15 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org Structure
 
 #+begin_src emacs-lisp
-  (add-hook 'org-mode-hook 'org-indent-mode)
+  (use-package org-indent
+    :after org
+    :bind ("C-o TAB" . org-indent-mode)
+    :hook (org-mode . org-indent-mode))
 
-  (customize-set-variable 'org-startup-indented t)
-  (customize-set-variable 'org-bookmark-names-plist nil)
-  (customize-set-variable 'org-M-RET-may-split-line '((default . nil)))
+  (with-eval-after-load 'org
+    (customize-set-variable 'org-startup-indented t)
+    (customize-set-variable 'org-bookmark-names-plist nil)
+    (customize-set-variable 'org-M-RET-may-split-line '((default . nil))))
 #+end_src
 
 ******* Org Edit Structure
@@ -3710,6 +3723,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
            (year (decoded-time-year d)))
       (find-file (file-name-concat org-directory "archive" (format "archive_%d.org" year)))
       (org-datetree-find-iso-week-create `(,month ,day ,year))))
+  (bind-keys ("C-o f" . my/org-archive-find--iso-datetree))
 #+end_src
 
 ******* Org Inline Tasks
@@ -3789,6 +3803,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-clock
     :after org
+    :bind (("C-o j" . org-clock-goto)
+           ("C-o I" . org-clock-in)
+           ("C-o O" . org-clock-out)
+           ("C-o X" . org-clock-cancel))
     :custom
     (org-clock-into-drawer "CLOCK")
     (org-clock-out-when-done t)
@@ -3891,6 +3909,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package ol
     :after org
+    :bind ("C-o s" . org-store-link)
     :defer 3
     :config
     (org-link-set-parameters "src" :follow #'org-babel-ref-resolve)
@@ -4078,9 +4097,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   ("https://github.com/alphapapa/org-ql/releases.atom" soft_update)
 #+end_src
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package org-ql
-    :after (org org-expiry)
+    :after org
+    :bind (("C-o q q" . org-ql-search)
+           ("C-o q v" . org-ql-view))
     :custom
     (org-ql-search-directories-files-recursive t)
     :config
@@ -4102,9 +4123,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
               (cl-typecase categories
                 (null t)
                 (otherwise (member category categories)))))
-    (org-ql-defpred expired ()
-      "Return non-nil if the entry is expired."
-      :body (org-expiry-expired-p)))
+    (with-eval-after-load 'org-expiry
+      (org-ql-defpred expired ()
+        "Return non-nil if the entry is expired."
+        :body (org-expiry-expired-p))))
 #+end_src
 
 ****** org-ml                              :ARCHIVE:
@@ -4292,6 +4314,7 @@ org-roam v2
             (dolist (f (directory-files (expand-file-name dir org-directory) "\.org$"))
               (org-babel-lob-ingest f)))
           '("agenda" "lists" "wiki" "notes")))
+  (bind-keys ("C-o b i" . my/org-babel-lob-ingest-batch))
 
   (defvar org-readable-directory
     (expand-file-name "org-readable"
@@ -4340,6 +4363,7 @@ org-roam v2
      ((org-in-subtree-not-table-p)
       (org-save-outline-visibility t
         (org-reset-checkbox-state-subtree)))))
+  (bind-keys ("C-o SPC" . my/org-reset-dwim))
 
   (defun my/org-clock-remove-old-clock-entries (n &optional min)
     "Remove clock entries whose end is older than N weeks in current subtree.
@@ -4574,38 +4598,6 @@ speed commands and hydra-org.
        ("?" . org-speed-command-help)
        ("<" . (org-agenda-set-restriction-lock 'subtree))
        (">" . (org-agenda-remove-restriction-lock)))))
-
-  (with-eval-after-load 'hydra
-    (defhydra hydra-org (global-map "C-o"
-                                    :color teal)
-      "Org Search"
-      ("a" org-agenda)
-      ("c" org-capture)
-      ("t" org-set-tags-command)
-      ("j" org-clock-goto)
-      ("g" consult-org-agenda)
-      ("h" consult-outline)
-      ("ee" my/org-english-capture)
-      ("ed" my/org-english-drill)
-      ("eD" my/org-english-drill-resume)
-      ("ec" my/cloze-deletion-replace)
-      ("s" org-store-link)
-      ("C-s" org-save-all-org-buffers)
-      ("TAB" org-indent-mode)
-      ("i" org-info-find-node)
-      ("&" org-mark-ring-goto)
-      ("I" org-clock-in)
-      ("O" org-clock-out)
-      ("X" org-clock-cancel)
-      ("qq" org-ql-search)
-      ("qv" org-ql-view)
-      ("r" my/org-archive-find--iso-datetree)
-      ("le" my/org-english-lookup)
-      ("bi" my/org-babel-lob-ingest-batch)
-      ("@" org-mark-subtree)
-      ("=" org-clock-sum-all)
-      ("SPC" my/org-reset-dwim)
-      ("C-g" nil "quit")))
 #+end_src
 
 ****** org mode map
@@ -4689,6 +4681,7 @@ speed commands and hydra-org.
           ("M-s m" . consult-multi-occur)
           ("M-s k" . consult-keep-lines)
           ("M-s u" . consult-focus-lines)
+          ("C-o g" . consult-org-agenda)
           :map isearch-mode-map
           ("M-n" . consult-isearch)
           ("M-l" . consult-line)
@@ -9052,7 +9045,194 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
           org-ql-views))
 #+end_src
 
-***** learning english words/phrases
+**** additional emacs lisp code
+:PROPERTIES:
+:CREATED:  [2023-01-20 Fri 10:59]
+:END:
+
+This section mainly for elisp code associated with some other programs.
+
+#+begin_src emacs-lisp :noweb yes
+  <<additional-elisp>>
+#+end_src
+
+*** my packages
+:PROPERTIES:
+:CREATED:  [2023-01-12 Thu 14:14]
+:END:
+**** text-mail
+
+#+begin_src emacs-lisp :tangle (expand-file-name "text-mail.el" my/user-package-dir)
+  (require 'message)
+
+  (defun mail-send-string (mailto subject body)
+    "Default function to send a mail with SUBJECT and BODY to myself."
+    (save-excursion
+      (let ((message-kill-buffer-on-exit t))
+        (message-mail mailto subject)
+        (message-goto-body)
+        (insert body)
+        (message-send-and-exit))))
+
+  (defun mail-send-buffer (mailto)
+    "Send the current buffer contents as a email.
+
+  If region is active, send the string in the region instead."
+    (let ((mail-subj (buffer-name))
+          (mail-body (if (use-region-p)
+                         (buffer-substring (region-beginning) (region-end))
+                       (buffer-string))))
+      (mail-send-string mailto mail-subj mail-body)))
+
+  (provide 'text-mail)
+#+end_src
+
+**** org-web-track
+:PROPERTIES:
+:CREATED:  [2023-01-06 Fri 13:43]
+:END:
+
+#+begin_src emacs-lisp :tangle (expand-file-name "my-config.el" my/user-config-dir)
+  (use-package org-web-track
+    :bind (("C-o w v" . org-web-track-view)
+           ("C-o w c" . org-agenda-web-track-columns)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle (expand-file-name "org-web-track.el" my/user-package-dir)
+  (defvar org-web-track-url-property "TRACK_URL" "docstring")
+  (defvar org-web-track-last-value-property "TRACK_VALUE" "docstring")
+
+  (defvar my/org-price-checker-retrievers
+    '(("www\.amazon\.co\.jp" . my/org-price-checker-retriever-amazon-jp))
+    "An alist.")
+
+  (defun org-web-track-update ()
+    "docstring"
+    (interactive)
+    (let ((url (org-entry-get (point) org-web-track-url-property))
+          (last-date (org-entry-get (point) "TRACK_DATE"))
+          (last-val (org-entry-get (point) org-web-track-last-value-property)))
+      (unless (or (and (not url)
+                       (user-error "TRACK_URL is missing."))
+                  (and last-date
+                       (not (time-less-p (time-add
+                                          (encode-time (org-parse-time-string last-date))
+                                          (days-to-time 1))
+                                         (encode-time (parse-time-string (current-time-string)))))
+                       (user-error "NOT ELAPSED 1 DAY.")))
+        (setq-local val (funcall (assoc-default url my/org-price-checker-retrievers #'string-match)
+                                 url))
+        (when (or (not last-val)
+                  (and (stringp last-val)
+                       (not (string= val last-val))))
+          (setq-local org-log-note-headings
+                      (append (default-value 'org-log-note-headings)
+                              `((web-track . ,(concat (format "Value %-7s" val)
+                                                      (if last-val
+                                                          (format "from %-7s" last-val)
+                                                        (make-string 13 ? ))
+                                                      " on %t")))))
+          (org-add-log-setup 'web-track nil nil 'time)
+          (and (stringp last-val)
+               (org-entry-put (point) "TRACK_VALUE_PREV" last-val))
+          (org-entry-put (point) org-web-track-last-value-property val)
+          (org-entry-put (point) "TRACK_DATE" (format-time-string (org-time-stamp-format t t)))))))
+
+  (defun org-agenda-web-track-update ()
+    ""
+    (interactive)
+    (org-agenda-archive-with #'org-web-track-update))
+
+  (defun my/org-price-checker-retriever-amazon-jp (url)
+    "docstring"
+    (concat (seq-mapcat (lambda (char)
+                          (string-replace "\\" "¥"
+                                          (string (japanese-hankaku char))))
+                        (string-trim (shell-command-to-string
+                                      (format "curl --silent -A 'Mozilla/5.0' \"%s\" \\
+    \| pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \\
+    \| jq -r '.[0].text'"
+                                              url))))))
+
+  (defun org-web-track-view ()
+    ""
+    (interactive)
+    (let ((org-agenda-files
+           (mapcar (lambda (sub-dir)
+                     (file-name-as-directory
+                      (file-name-concat org-directory sub-dir)))
+                   '("agenda" "wiki" "notes" "lists" "archive"))))
+      (when (require 'org-ql nil t)
+        (org-ql-search (org-agenda-files) '(property "TRACK_URL")))))
+
+  (defun org-agenda-web-track-columns ()
+    "docstring"
+    (interactive)
+    (when (eq major-mode 'org-agenda-mode)
+      (let* ((org-agenda-overriding-columns-format "%20ITEM %7TRACK_VALUE(VALUE) %7TRACK_VALUE_PREV(PREV) %TRACK_DATE(DATE)"))
+        (org-agenda-columns))))
+
+  (provide 'org-web-track)
+#+end_src
+
+***** web track mail
+:PROPERTIES:
+:CREATED:  [2023-01-07 Sat 20:03]
+:END:
+
+Send a mail to notify the tracking value of some items have changed.
+
+#+HEADER: :var batch_dir=(expand-file-name my/user-batch-dir)
+#+begin_src shell :eval yes :results verbatim :noweb yes :tangle (expand-file-name "web-track-mail" my/user-bin-dir) :tangle-mode (identity #o755)
+  emacs -batch \
+        -l "<<emacs-dir()>>/early-init.el" \
+        -l "${batch_dir}/org-web-track-mail.el"
+#+end_src
+
+#+RESULTS:
+
+#+begin_src conf :noweb yes :noweb-ref cronjob-pc :tangle no
+  50 2 * * * /bin/bash -ci "web-track-mail >> $LOG_DIR/web-track-mail.log 2>&1"
+#+end_src
+
+#+begin_src emacs-lisp :tangle (expand-file-name "org-web-track-mail.el" my/user-batch-dir)
+  (require 'org)
+  (require 'org-ql)
+  (require 'text-mail)
+  (require 'org-web-track)
+
+  (let (mail-msg)
+    (mapc (lambda (price-entry)
+            (let* ((heading (org-element-property :raw-value price-entry))
+                   (track-url (org-element-property :TRACK_URL price-entry))
+                   (value-last (org-element-property :TRACK_VALUE price-entry))
+                   (value (funcall (assoc-default track-url my/org-price-checker-retrievers #'string-match)
+                                   track-url)))
+              (unless (string= value value-last)
+                (setq mail-msg
+                      (concat mail-msg
+                              (format "\"%s\": %s => %s\n"
+                                      heading value-last value))))))
+          (org-ql-select
+            (directory-files-recursively org-directory
+                                         (rx (seq ".org" eol)))
+            `(and (property ,org-web-track-url-property)
+                  (not (tags ,org-archive-tag)))))
+    (when (stringp mail-msg)
+      (mail-send-string user-mail-address
+                        "Web Track Results"
+                        mail-msg)))
+#+end_src
+
+***** unit test for my/org-price-checker-retrievers
+:PROPERTIES:
+:CREATED:  [2023-01-07 Sat 20:36]
+:END:
+
+#+begin_src emacs-lisp
+#+end_src
+
+**** learning english words/phrases
 
 My workflow for acquiring English words is:
 1. Capture a word which come across in the article I'm reading with my/org-english-capture
@@ -9060,7 +9240,15 @@ My workflow for acquiring English words is:
 2. Review my English word list with my/org-english-drill everyday
    - Org-drill ask questions to level up my vocabulary
 
-#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/org-english.el")
+#+begin_src emacs-lisp :tangle (expand-file-name "my-config.el" my/user-config-dir)
+  (use-package org-english
+    :bind (("C-o e e" . my/org-english-capture)
+           ("C-o e d" . my/org-english-drill)
+           ("C-o e D" . my/org-english-drill-resume)
+           ("C-o e c" . my/cloze-deletion-replace)))
+#+end_src
+
+#+begin_src emacs-lisp  :tangle (expand-file-name "org-english.el" my/user-package-dir)
   (defvar my/org-english-file (file-name-concat org-directory "lists" "english.org")
     "A file where all english words to learn locate.")
 
@@ -9336,191 +9524,6 @@ test code
                      "【レベル】8、【発音！】《名・形》trǽvəːrs 《動》trəvʌ́rs、【＠】トゥラヴァース、トラバース")))
 #+end_src
 
-**** additional emacs lisp code
-:PROPERTIES:
-:CREATED:  [2023-01-20 Fri 10:59]
-:END:
-
-This section mainly for elisp code associated with some other programs.
-
-#+begin_src emacs-lisp :noweb yes
-  <<additional-elisp>>
-#+end_src
-
-*** my packages
-:PROPERTIES:
-:CREATED:  [2023-01-12 Thu 14:14]
-:END:
-**** text-mail
-
-#+begin_src emacs-lisp :tangle (expand-file-name "text-mail.el" my/user-package-dir)
-  (require 'message)
-
-  (defun mail-send-string (mailto subject body)
-    "Default function to send a mail with SUBJECT and BODY to myself."
-    (save-excursion
-      (let ((message-kill-buffer-on-exit t))
-        (message-mail mailto subject)
-        (message-goto-body)
-        (insert body)
-        (message-send-and-exit))))
-
-  (defun mail-send-buffer (mailto)
-    "Send the current buffer contents as a email.
-
-  If region is active, send the string in the region instead."
-    (let ((mail-subj (buffer-name))
-          (mail-body (if (use-region-p)
-                         (buffer-substring (region-beginning) (region-end))
-                       (buffer-string))))
-      (mail-send-string mailto mail-subj mail-body)))
-
-  (provide 'text-mail)
-#+end_src
-
-**** org-web-track
-:PROPERTIES:
-:CREATED:  [2023-01-06 Fri 13:43]
-:END:
-
-#+begin_src emacs-lisp :tangle (expand-file-name "my-config.el" my/user-config-dir)
-  (use-package org-web-track)
-#+end_src
-
-#+begin_src emacs-lisp :tangle (expand-file-name "org-web-track.el" my/user-package-dir)
-  (defvar org-web-track-url-property "TRACK_URL" "docstring")
-  (defvar org-web-track-last-value-property "TRACK_VALUE" "docstring")
-
-  (defvar my/org-price-checker-retrievers
-    '(("www\.amazon\.co\.jp" . my/org-price-checker-retriever-amazon-jp))
-    "An alist.")
-
-  (defun org-web-track-update ()
-    "docstring"
-    (interactive)
-    (let ((url (org-entry-get (point) org-web-track-url-property))
-          (last-date (org-entry-get (point) "TRACK_DATE"))
-          (last-val (org-entry-get (point) org-web-track-last-value-property)))
-      (unless (or (and (not url)
-                       (user-error "TRACK_URL is missing."))
-                  (and last-date
-                       (not (time-less-p (time-add
-                                          (encode-time (org-parse-time-string last-date))
-                                          (days-to-time 1))
-                                         (encode-time (parse-time-string (current-time-string)))))
-                       (user-error "NOT ELAPSED 1 DAY.")))
-        (setq-local val (funcall (assoc-default url my/org-price-checker-retrievers #'string-match)
-                                 url))
-        (when (or (not last-val)
-                  (and (stringp last-val)
-                       (not (string= val last-val))))
-          (setq-local org-log-note-headings
-                      (append (default-value 'org-log-note-headings)
-                              `((web-track . ,(concat (format "Value %-7s" val)
-                                                      (if last-val
-                                                          (format "from %-7s" last-val)
-                                                        (make-string 13 ? ))
-                                                      " on %t")))))
-          (org-add-log-setup 'web-track nil nil 'time)
-          (and (stringp last-val)
-               (org-entry-put (point) "TRACK_VALUE_PREV" last-val))
-          (org-entry-put (point) org-web-track-last-value-property val)
-          (org-entry-put (point) "TRACK_DATE" (format-time-string (org-time-stamp-format t t)))))))
-
-  (defun org-agenda-web-track-update ()
-    ""
-    (interactive)
-    (org-agenda-archive-with #'org-web-track-update))
-
-  (defun my/org-price-checker-retriever-amazon-jp (url)
-    "docstring"
-    (concat (seq-mapcat (lambda (char)
-                          (string-replace "\\" "¥"
-                                          (string (japanese-hankaku char))))
-                        (string-trim (shell-command-to-string
-                                      (format "curl --silent -A 'Mozilla/5.0' \"%s\" \\
-    \| pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \\
-    \| jq -r '.[0].text'"
-                                              url))))))
-
-  (defun org-web-track-view ()
-    ""
-    (interactive)
-    (let ((org-agenda-files
-           (mapcar (lambda (sub-dir)
-                     (file-name-as-directory
-                      (file-name-concat org-directory sub-dir)))
-                   '("agenda" "wiki" "notes" "lists" "archive"))))
-      (when (require 'org-ql nil t)
-        (org-ql-search (org-agenda-files) '(property "TRACK_URL")))))
-
-  (defun org-agenda-web-track-columns ()
-    "docstring"
-    (interactive)
-    (when (eq major-mode 'org-agenda-mode)
-      (let* ((org-agenda-overriding-columns-format "%20ITEM %7TRACK_VALUE(VALUE) %7TRACK_VALUE_PREV(PREV) %TRACK_DATE(DATE)"))
-        (org-agenda-columns))))
-
-  (provide 'org-web-track)
-#+end_src
-
-***** web track mail
-:PROPERTIES:
-:CREATED:  [2023-01-07 Sat 20:03]
-:END:
-
-Send a mail to notify the tracking value of some items have changed.
-
-#+HEADER: :var batch_dir=(expand-file-name my/user-batch-dir)
-#+begin_src shell :eval yes :results verbatim :noweb yes :tangle (expand-file-name "web-track-mail" my/user-bin-dir) :tangle-mode (identity #o755)
-  # emacs -batch -l ~/.emacs.d/batch-lisp/org-price-checker-batch.el 2>/dev/null
-  emacs -batch \
-        -l "<<emacs-dir()>>/early-init.el" \
-        -l "${batch_dir}/org-web-track-mail.el"
-#+end_src
-
-#+RESULTS:
-
-#+begin_src conf :noweb yes :noweb-ref cronjob-pc :tangle no
-  50 2 * * * /bin/bash -ci "web-track-mail >> $LOG_DIR/web-track-mail.log 2>&1"
-#+end_src
-
-#+begin_src emacs-lisp :tangle (expand-file-name "org-web-track-mail.el" my/user-batch-dir)
-  (require 'org)
-  (require 'org-ql)
-  (require 'text-mail)
-  (require 'org-web-track)
-
-  (let (mail-msg)
-    (mapc (lambda (price-entry)
-            (let* ((heading (org-element-property :raw-value price-entry))
-                   (track-url (org-element-property :TRACK_URL price-entry))
-                   (value-last (org-element-property :TRACK_VALUE_LAST price-entry))
-                   (value (funcall (assoc-default track-url my/org-price-checker-retrievers #'string-match)
-                                   track-url)))
-              (unless (string= value value-last)
-                (setq mail-msg
-                      (concat mail-msg
-                              (format "\"%s\": %s => %s\n"
-                                      heading value-last value))))))
-          (org-ql-select
-            (directory-files-recursively org-directory
-                                         (rx (seq ".org" eol)))
-            `(and (property ,org-web-track-url-property)
-                  (not (tags ,org-archive-tag)))))
-    (when (stringp mail-msg)
-      (mail-send-string user-mail-address
-                        "Web Track Results"
-                        mail-msg)))
-#+end_src
-
-***** unit test for my/org-price-checker-retrievers
-:PROPERTIES:
-:CREATED:  [2023-01-07 Sat 20:36]
-:END:
-
-#+begin_src emacs-lisp
-#+end_src
 
 ** Findutils
 
