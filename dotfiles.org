@@ -9104,19 +9104,19 @@ This section mainly for elisp code associated with some other programs.
 #+end_src
 
 #+begin_src emacs-lisp :tangle (expand-file-name "org-web-track.el" my/user-package-dir)
-  (defvar org-web-track-url-property "TRACK_URL" "docstring")
-  (defvar org-web-track-last-value-property "TRACK_VALUE" "docstring")
+  (defvar org-web-track-trackers
+    '(("www\.amazon\.co\.jp" . org-web-track-tracker--amazon-jp))
+    "An alist for tracking each site.
 
-  (defvar my/org-price-checker-retrievers
-    '(("www\.amazon\.co\.jp" . my/org-price-checker-retriever-amazon-jp))
-    "An alist.")
+  Each element is for specific site whose car is regexp for the site url and
+  cdr is a function responsible for tracking data in the site.")
 
   (defun org-web-track-update ()
-    "docstring"
+    "Update tracking data for org entry at point."
     (interactive)
-    (let ((url (org-entry-get (point) org-web-track-url-property))
+    (let ((url (org-entry-get (point) "TRACK_URL"))
           (last-date (org-entry-get (point) "TRACK_DATE"))
-          (last-val (org-entry-get (point) org-web-track-last-value-property)))
+          (last-val (org-entry-get (point) "TRACK_VALUE")))
       (unless (or (and (not url)
                        (user-error "TRACK_URL is missing"))
                   (and last-date
@@ -9130,7 +9130,7 @@ This section mainly for elisp code associated with some other programs.
                       (format "curl -o /dev/null --connect-timeout 1 -lsf \"%s\"" url))
                      0))
              (user-error "URL is not accessible"))
-        (and (not (setq-local val (funcall (assoc-default url my/org-price-checker-retrievers #'string-match)
+        (and (not (setq-local val (funcall (assoc-default url org-web-track-trackers #'string-match)
                                            url)))
              (user-error "Could not retrieve valid value"))
         (org-entry-put (point) "TRACK_DATE" (format-time-string (org-time-stamp-format t t)))
@@ -9139,7 +9139,7 @@ This section mainly for elisp code associated with some other programs.
                        (not (string= val last-val))))
           (and (stringp last-val)
                (org-entry-put (point) "TRACK_VALUE_PREV" last-val))
-          (org-entry-put (point) org-web-track-last-value-property val)
+          (org-entry-put (point) "TRACK_VALUE" val)
           (setq-local org-log-note-headings
                       (append (default-value 'org-log-note-headings)
                               `((web-track . ,(concat (format "Value %-7s" val)
@@ -9150,12 +9150,12 @@ This section mainly for elisp code associated with some other programs.
           (org-add-log-setup 'web-track nil nil 'time)))))
 
   (defun org-agenda-web-track-update ()
-    ""
+    "Invoke `org-web-track-update' in org agenda mode."
     (interactive)
     (org-agenda-archive-with #'org-web-track-update))
 
-  (defun my/org-price-checker-retriever-amazon-jp (url)
-    "docstring"
+  (defun org-web-track-tracker--amazon-jp (url)
+    "A tracker responsible for retrieving price data in URL."
     (concat (seq-mapcat (lambda (char)
                           (string-replace "\\" "¥"
                                           (string (japanese-hankaku char))))
@@ -9166,7 +9166,7 @@ This section mainly for elisp code associated with some other programs.
                                               url))))))
 
   (defun org-web-track-view ()
-    ""
+    "Open Org Agenda view with tracking items which hold TRACK_URL property."
     (interactive)
     (let ((org-agenda-files
            (mapcar (lambda (sub-dir)
@@ -9177,7 +9177,7 @@ This section mainly for elisp code associated with some other programs.
         (org-ql-search (org-agenda-files) '(property "TRACK_URL")))))
 
   (defun org-agenda-web-track-columns ()
-    "docstring"
+    "Display column view showing TRACK_VALUE,TRACK_VALUE_PREV and TRACK_DATE property in org agenda view."
     (interactive)
     (when (eq major-mode 'org-agenda-mode)
       (let* ((org-agenda-overriding-columns-format "%20ITEM %7TRACK_VALUE(VALUE) %7TRACK_VALUE_PREV(PREV) %TRACK_DATE(DATE)"))
@@ -9217,7 +9217,7 @@ Send a mail to notify the tracking value of some items have changed.
             (let* ((heading (org-element-property :raw-value price-entry))
                    (track-url (org-element-property :TRACK_URL price-entry))
                    (value-last (org-element-property :TRACK_VALUE price-entry))
-                   (value (funcall (assoc-default track-url my/org-price-checker-retrievers #'string-match)
+                   (value (funcall (assoc-default track-url org-web-track-trackers #'string-match)
                                    track-url)))
               (unless (string= value value-last)
                 (setq mail-msg
@@ -9227,7 +9227,7 @@ Send a mail to notify the tracking value of some items have changed.
           (org-ql-select
             (directory-files-recursively org-directory
                                          (rx (seq ".org" eol)))
-            `(and (property ,org-web-track-url-property)
+            `(and (property ,"TRACK_URL")
                   (not (tags ,org-archive-tag)))))
     (when (stringp mail-msg)
       (mail-send-string user-mail-address
