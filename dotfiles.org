@@ -9124,12 +9124,22 @@ This section mainly for elisp code associated with some other programs.
                                           (encode-time (org-parse-time-string last-date))
                                           (days-to-time 1))
                                          (encode-time (parse-time-string (current-time-string)))))
-                       (user-error "Have not elapsed 1 day since last update")))
-        (setq-local val (funcall (assoc-default url my/org-price-checker-retrievers #'string-match)
-                                 url))
+                       (user-error "Not elapsed 1 day since last update")))
+        ;; check if URL is available
+        (and (not (= (call-process-shell-command
+                      (format "curl -o /dev/null --connect-timeout 1 -lsf \"%s\"" url))
+                     0))
+             (user-error "URL is not accessible"))
+        (and (not (setq-local val (funcall (assoc-default url my/org-price-checker-retrievers #'string-match)
+                                           url)))
+             (user-error "Could not retrieve valid value"))
+        (org-entry-put (point) "TRACK_DATE" (format-time-string (org-time-stamp-format t t)))
         (when (or (not last-val)
                   (and (stringp last-val)
                        (not (string= val last-val))))
+          (and (stringp last-val)
+               (org-entry-put (point) "TRACK_VALUE_PREV" last-val))
+          (org-entry-put (point) org-web-track-last-value-property val)
           (setq-local org-log-note-headings
                       (append (default-value 'org-log-note-headings)
                               `((web-track . ,(concat (format "Value %-7s" val)
@@ -9137,11 +9147,7 @@ This section mainly for elisp code associated with some other programs.
                                                           (format "from %-7s" last-val)
                                                         (make-string 13 ? ))
                                                       " on %t")))))
-          (org-add-log-setup 'web-track nil nil 'time)
-          (and (stringp last-val)
-               (org-entry-put (point) "TRACK_VALUE_PREV" last-val))
-          (org-entry-put (point) org-web-track-last-value-property val)
-          (org-entry-put (point) "TRACK_DATE" (format-time-string (org-time-stamp-format t t)))))))
+          (org-add-log-setup 'web-track nil nil 'time)))))
 
   (defun org-agenda-web-track-update ()
     ""
