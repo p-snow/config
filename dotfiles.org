@@ -4470,45 +4470,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
       (org-add-log-setup 'state new-heading old-heading 'state)))
 #+end_src
 
-****** sending org subtree contents via email
-
-#+begin_src emacs-lisp
-  (with-eval-after-load 'org-keys
-    (add-to-list 'org-speed-commands
-                 '("M" . my/org-subtree-send-email)
-                 t))
-
-  (defun my/org-subtree-send-email (&optional arg)
-    "Send a html email extracted from current org entry.
-
-  Given a `\\[universal-argument]' prefix `ARG', send an ascii email instead."
-    (interactive "P")
-    (cond
-     ((equal arg '(4))
-      (call-interactively #'my/org-subtree-send-email-ascii))
-     (t
-      (let ((org-mime-use-property-inheritance t))
-        (and (require 'org-mime nil t)
-             (call-interactively #'org-mime-org-subtree-htmlize))))))
-
-  (defun my/org-subtree-send-email-ascii ()
-    "Send a mail whose contents converted from current org entry.
-
-  Format of mail contents is plain text."
-    (interactive)
-    (let ((heading (org-get-heading t t t t))
-          (org-export-show-temporary-export-buffer nil)
-          (export-buf-name "*Org ASCII Export*")
-          (org-export-with-toc nil)
-          (org-export-with-author nil))
-      (org-ascii-export-as-ascii nil t t t)
-      (mail-send-string (or (org-entry-get (point) "MAIL_TO" t)
-                            (read-string "MAIL_TO: "))
-                        heading
-                        (with-current-buffer export-buf-name
-                          (buffer-string)))
-      (kill-buffer export-buf-name)))
-#+end_src
 
 **** Old Org-mode
 :PROPERTIES:
@@ -8827,7 +8788,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
                              :follow #'my/lfile-follow-link--sys))
 #+end_src
 
-**** New org workflows
+**** additional org tweaks
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
 :END:
@@ -8919,6 +8880,69 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
           org-ql-views))
 #+end_src
 
+***** sending org subtree contents via email
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org-keys
+    (add-to-list 'org-speed-commands
+                 '("M" . my/org-subtree-send-email)
+                 t))
+
+  (defun my/org-subtree-send-email (&optional arg)
+    "Send a html email extracted from current org entry.
+
+  Given a `\\[universal-argument]' prefix `ARG', send an ascii email instead."
+    (interactive "P")
+    (cond
+     ((equal arg '(4))
+      (call-interactively #'my/org-subtree-send-email-ascii))
+     (t
+      (let ((org-mime-use-property-inheritance t))
+        (and (require 'org-mime nil t)
+             (call-interactively #'org-mime-org-subtree-htmlize))))))
+
+  (defun my/org-subtree-send-email-ascii ()
+    "Send a mail whose contents converted from current org entry.
+
+  Format of mail contents is plain text."
+    (interactive)
+    (let ((heading (org-get-heading t t t t))
+          (org-export-show-temporary-export-buffer nil)
+          (export-buf-name "*Org ASCII Export*")
+          (org-export-with-toc nil)
+          (org-export-with-author nil))
+      (org-ascii-export-as-ascii nil t t t)
+      (mail-send-string (or (org-entry-get (point) "MAIL_TO" t)
+                            (read-string "MAIL_TO: "))
+                        heading
+                        (with-current-buffer export-buf-name
+                          (buffer-string)))
+      (kill-buffer export-buf-name)))
+#+end_src
+***** pad void time in org clock
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org-clock
+    (add-hook 'org-clock-out-hook #'my/org-clock-pad-void-time)
+    (add-hook 'org-clock-cancel-hook #'my/org-clock-pad-void-time))
+
+  (defun my/org-clock-pad-void-time ()
+    "Clock in the 'Break' task if the previous task has clocked out."
+    ;; remove old clock entries if the entry is neither habit nor have any todo keywords
+    (when (or (org-is-habit-p)
+              (not (org-get-todo-state)))
+      (my/org-clock-remove-old-clock-entries 4 5))
+    (and (boundp 'org-timer-countdown-timer)
+         org-timer-countdown-timer
+         (org-timer-stop))
+    (save-excursion
+      (let ((break-entry-id "d49d97de-58ec-4e41-b58c-491a9e216e1c"))
+        (when (and (not org-clock-clocking-in)
+                   (not (string= (or (org-id-get) "")
+                                 break-entry-id)))
+          (org-id-goto break-entry-id)
+          (org-clock-in)))))
+#+end_src
 
 **** org workflows                                                  :ARCHIVE:
 :PROPERTIES:
@@ -8976,9 +9000,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
 #+begin_src emacs-lisp
   (with-eval-after-load 'org
     (require 'org-clock)
-    (add-hook 'org-clock-in-prepare-hook #'my/org-clock-in-set-timer)
-    (add-hook 'org-clock-out-hook #'my/org-clock-out-have-a-break)
-    (add-hook 'org-clock-cancel-hook #'my/org-clock-out-have-a-break))
+    (add-hook 'org-clock-in-prepare-hook #'my/org-clock-in-set-timer))
 
   (defun my/org-clock-in-set-timer ()
     "Start count down timer for a clocked in entry.
@@ -9001,23 +9023,6 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
        (todo
         (let ((org-timer-default-timer "25"))
           (org-timer-set-timer '(64)))))))
-
-  ;;;###autoload
-  (defun my/org-clock-out-have-a-break ()
-    "Clock in the 'Break' task if the previous task has clocked out."
-    ;; remove old clock entries if the entry is neither habit nor have any todo keywords
-    (when (or (org-is-habit-p)
-              (not (org-get-todo-state)))
-      (my/org-clock-remove-old-clock-entries 4 5))
-    (and org-timer-countdown-timer
-         (org-timer-stop))
-    (save-excursion
-      (let ((break-entry-id "d49d97de-58ec-4e41-b58c-491a9e216e1c"))
-        (when (and (not org-clock-clocking-in)
-                   (not (string= (or (org-id-get) "")
-                                 break-entry-id)))
-          (org-id-goto break-entry-id)
-          (org-clock-in)))))
 #+end_src
 
 ***** jotting down (memo)
