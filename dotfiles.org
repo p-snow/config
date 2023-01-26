@@ -3777,7 +3777,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
               (format "%s::* suspended tasks"
                       (file-name-concat org-directory "archive" "suspended.org"))))))
       (when (stringp org-archive-location)
-        (org-relate-interrelate)
+        (and (require 'org-relate nil t)
+             (org-relate-interrelate))
         (advice-add #'org-datetree-find-date-create :override
                     #'org-datetree-find-iso-week-create)
         (apply oldfun r)
@@ -3860,20 +3861,12 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org Refile
 
 #+begin_src emacs-lisp
-  (with-eval-after-load 'org-refile
+  (with-eval-after-load 'org
     (customize-set-variable 'org-refile-targets
                             `((org-agenda-files :tag . ,my/org-project-tag)
-                              (,(directory-files-recursively org-directory "\\.org$") :tag . "refile")))
-    (add-hook 'org-after-refile-insert-hook
-              #'my/org-archive-suspended-task))
-
-  (defun my/org-archive-suspended-task ()
-    "Archive this entry to the file for suspended tasks if the TODO state fits the bill."
-    (interactive)
-    (when (member (org-entry-get nil "TODO")
-                  `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
-      (org-archive-subtree)))
+                              (,(directory-files-recursively org-directory "\\.org$") :tag . "refile"))))
 #+end_src
+
 ****** Org Time
 
 #+begin_src emacs-lisp
@@ -4274,6 +4267,17 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :defer t)
 #+end_src
 
+****** org-web-tools
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-web-tools"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package org-web-tools
+    :bind ("C-c C-;" . org-web-tools-insert-link-for-url))
+#+end_src
+
 ***** utility functions for org
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
@@ -4477,18 +4481,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 :END:
 
 ***** external packages for org
-****** org-web-tools
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-web-tools"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package org-web-tools
-    :after org
-    :bind (("C-c C-;" . org-web-tools-insert-link-for-url)))
-#+end_src
-
 ****** org-volume                          :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2022-12-23 Fri 21:59]
@@ -7843,163 +7835,6 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
       ""))
 #+end_src
 
-***** org-relate
-
-# #+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/org-relate.el")
-#+begin_src emacs-lisp :tangle no
-  (require 'thingatpt)
-  (require 'org-ql-search)
-
-  (defconst org-relate-property "PARENT"
-    "Property name for child nodes to look up parent node.")
-  (defcustom org-relate-parent-tag-list
-    `(,my/org-project-tag "refile")
-    "A list of tags all parent nodes must have one of them.")
-  (defcustom org-relate-target-files
-    (directory-files-recursively org-directory "\\.org$")
-    "A list of target files to search relation nodes.")
-
-  (with-eval-after-load 'org
-    (bind-key "C-c %" #'org-relate-search
-              org-mode-map))
-
-  (with-eval-after-load 'org-keys
-    (setf (map-elt org-speed-commands "%") #'org-relate-search)
-    (setf (map-elt org-speed-commands "&") #'org-relate-interrelate)
-    (push '("Org-Relate Operation") org-speed-commands))
-
-  (with-eval-after-load 'org-agenda
-    (bind-keys :map org-agenda-mode-map
-               ("&" . org-agenda-relation-interrelate)))
-
-  (defun org-relate-search ()
-    "Search for entries related to the entry at point.
-
-  User who would like to search for parent and children of that, namely siblings,
-   must press 'p'.
-  User who would like to search for children of this entry must press 'c'.
-  User who would like to search for friends either pointing to this entry
-   or pointed from this entry must be press 'f'.
-  User who would like to search for all listed above must press 'a'."
-    (interactive)
-    (let* ((org-super-agenda-properties-inherit nil)
-           (char (read-char-from-minibuffer "Target: [a]ll [p]arent [c]hild [f]riend"))
-           (queries (seq-remove 'null
-                                (cond
-                                 ((equal char ?a) (list (org-relate--search-parent-org-ql-query)
-                                                        (org-relate--search-children-org-ql-query)
-                                                        (org-relate--search-friends-refer-org-ql-query)
-                                                        (org-relate--search-friends-referred-org-ql-query)
-                                                        (org-relate--search-siblings-org-ql-query)))
-                                 ((equal char ?p) (list (org-relate--search-parent-org-ql-query)
-                                                        (org-relate--search-siblings-org-ql-query)))
-                                 ((equal char ?c) (list (org-relate--search-children-org-ql-query)))
-                                 ((equal char ?f) (list (org-relate--search-friends-refer-org-ql-query)
-                                                        (org-relate--search-friends-referred-org-ql-query)))))))
-      (if queries
-          (org-ql-search org-relate-target-files
-            (seq-reduce (lambda (accum elem)
-                          (push elem (cdr (last accum)))
-                          accum)
-                        (mapcar 'car queries)
-                        '(or))
-            :super-groups (mapcar 'cdr queries))
-        (message "No query found"))))
-
-  (defun org-relate--search-children-org-ql-query ()
-    (when-let* ((id (org-id-get))
-                (rel-prop-link (format "[[id:%s]]" id)))
-      `((or (property ,org-relate-property ,id)
-            (property ,org-relate-property ,rel-prop-link)) .
-            (:name "Children" :auto-property ,org-relate-property))))
-
-  (defun org-relate--search-parent-org-ql-query ()
-    (if-let* ((prop-ref (org-entry-get (point) org-relate-property))
-              (index (string-match (format "\\(%s\\)" thing-at-point-uuid-regexp) prop-ref))
-              (parent-id (match-string 0 prop-ref)))
-        `((property "ID" ,parent-id) .
-          (:name "Parent" :auto-property "ID"))))
-
-  (defun org-relate--search-siblings-org-ql-query ()
-    (if-let* ((prop-ref (org-entry-get (point) org-relate-property))
-              (index (string-match (format "\\(%s\\)" thing-at-point-uuid-regexp) prop-ref))
-              (parent-id (match-string 0 prop-ref))
-              (parent-id-link (format "[[id:%s]]" parent-id)))
-        `((or (property ,org-relate-property ,parent-id)
-              (property ,org-relate-property ,parent-id-link)) .
-              (:name "Siblings" :auto-property ,org-relate-property))))
-
-  (defun org-relate--search-friends-refer-org-ql-query ()
-    (when-let* ((id (org-id-get))
-                (ref-re (format "\\[\\[id:%s\\].*\\]" id)))
-      `((regexp ,ref-re) .
-        (:name "Friends pointing to this entry" :regexp ,ref-re))))
-
-  (defun org-relate--search-friends-referred-org-ql-query ()
-    (let* ((id-link-re (format "\\[\\[id:\\(%s\\)\\].*\\]" thing-at-point-uuid-regexp))
-           (end (or (save-excursion
-                      (outline-next-heading))
-                    (point-max))))
-      (when (save-excursion
-              (re-search-forward id-link-re end t))
-        `((property "ID" ,(match-string 1)) .
-          (:name "Friends to whom this entry is pointing" :auto-property ("ID" ,(match-string 1)))))))
-
-  (defun org-relate-interrelate ()
-    "Make parent-child relationship by inserting property.
-
-  This command must be called in parent node which should have one of `org-relate-parent-tag-list'."
-    (interactive)
-    ;; relate the entry at point and its children if the entry has some of `org-relate-parent-tag-list'
-    (save-excursion
-      (org-back-to-heading)
-      (when (cl-some (lambda (parent-tag)
-                       (member parent-tag (org-get-tags)))
-                     org-relate-parent-tag-list)
-        (let* ((ref-id (org-id-get-create))
-               (ent-link (format "[[id:%s]]" ref-id)))
-          (and (org-goto-first-child)
-               (cl-labels ((set-ref-id-to-siblings
-                            (ref-link)
-                            (org-set-property org-relate-property
-                                              ref-link)
-                            (and (org-goto-sibling)
-                                 (set-ref-id-to-siblings ref-link))))
-                 (set-ref-id-to-siblings ent-link))))))
-    ;; relate the entry at point and a parent if the parent has some of `org-relate-parent-tag-list'
-    (let (parent-link)
-      (save-excursion
-        (org-up-heading-safe)
-        (when (seq-some (lambda (parent-tag)
-                          (member parent-tag (org-get-tags)))
-                        org-relate-parent-tag-list)
-          (setq parent-link (format "[[id:%s]]" (org-id-get-create)))))
-      (and parent-link
-           (org-set-property org-relate-property
-                             parent-link))))
-
-  (defun org-agenda-relation-interrelate ()
-    "Invoke `org-relate-interrelate' in agenda view."
-    (interactive)
-    (org-agenda-check-no-diary)
-    (let* ((hdmarker (or (org-get-at-bol 'org-hd-marker)
-                         (org-agenda-error)))
-           (buffer (marker-buffer hdmarker))
-           (pos (marker-position hdmarker))
-           (inhibit-read-only t)
-           newhead)
-      (org-with-remote-undo buffer
-        (with-current-buffer buffer
-          (widen)
-          (goto-char pos)
-          (org-show-context 'agenda)
-          (call-interactively 'org-relate-interrelate)
-          (end-of-line 1)
-          (setq newhead (org-get-heading))))))
-
-  (provide 'org-relate)
-#+end_src
-
 ***** clocktable-by-tag with org-clock
 
 Provide a function to Build a clock table summing up time by tag.
@@ -8880,6 +8715,21 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
           org-ql-views))
 #+end_src
 
+****** immediate archiving someday task
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org-refile
+    (add-hook 'org-after-refile-insert-hook
+              #'my/org-archive-suspended-task))
+
+  (defun my/org-archive-suspended-task ()
+    "Archive this entry to the file for suspended tasks if the TODO state fits the bill."
+    (interactive)
+    (when (member (org-entry-get nil "TODO")
+                  `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
+      (org-archive-subtree)))
+#+end_src
+
 ***** sending org subtree contents via email
 
 #+begin_src emacs-lisp
@@ -9535,6 +9385,161 @@ test code
                      "【レベル】8、【発音！】《名・形》trǽvəːrs 《動》trəvʌ́rs、【＠】トゥラヴァース、トラバース")))
 #+end_src
 
+**** org-relate
+
+#+begin_src emacs-lisp :tangle (expand-file-name "org-relate.el" my/user-package-dir)
+  (require 'thingatpt)
+  (require 'org-ql-search)
+
+  (defconst org-relate-property "PARENT"
+    "Property name for child nodes to look up parent node.")
+  (defcustom org-relate-parent-tag-list
+    `(,my/org-project-tag "refile")
+    "A list of tags all parent nodes must have one of them.")
+  (defcustom org-relate-target-files
+    (directory-files-recursively org-directory "\\.org$")
+    "A list of target files to search relation nodes.")
+
+  (with-eval-after-load 'org
+    (bind-key "C-c %" #'org-relate-search
+              org-mode-map))
+
+  (with-eval-after-load 'org-keys
+    (setf (map-elt org-speed-commands "%") #'org-relate-search)
+    (setf (map-elt org-speed-commands "&") #'org-relate-interrelate)
+    (push '("Org-Relate Operation") org-speed-commands))
+
+  (with-eval-after-load 'org-agenda
+    (bind-keys :map org-agenda-mode-map
+               ("&" . org-agenda-relation-interrelate)))
+
+  (defun org-relate-search ()
+    "Search for entries related to the entry at point.
+
+  User who would like to search for parent and children of that, namely siblings,
+   must press 'p'.
+  User who would like to search for children of this entry must press 'c'.
+  User who would like to search for friends either pointing to this entry
+   or pointed from this entry must be press 'f'.
+  User who would like to search for all listed above must press 'a'."
+    (interactive)
+    (let* ((org-super-agenda-properties-inherit nil)
+           (char (read-char-from-minibuffer "Target: [a]ll [p]arent [c]hild [f]riend"))
+           (queries (seq-remove 'null
+                                (cond
+                                 ((equal char ?a) (list (org-relate--search-parent-org-ql-query)
+                                                        (org-relate--search-children-org-ql-query)
+                                                        (org-relate--search-friends-refer-org-ql-query)
+                                                        (org-relate--search-friends-referred-org-ql-query)
+                                                        (org-relate--search-siblings-org-ql-query)))
+                                 ((equal char ?p) (list (org-relate--search-parent-org-ql-query)
+                                                        (org-relate--search-siblings-org-ql-query)))
+                                 ((equal char ?c) (list (org-relate--search-children-org-ql-query)))
+                                 ((equal char ?f) (list (org-relate--search-friends-refer-org-ql-query)
+                                                        (org-relate--search-friends-referred-org-ql-query)))))))
+      (if queries
+          (org-ql-search org-relate-target-files
+            (seq-reduce (lambda (accum elem)
+                          (push elem (cdr (last accum)))
+                          accum)
+                        (mapcar 'car queries)
+                        '(or))
+            :super-groups (mapcar 'cdr queries))
+        (message "No query found"))))
+
+  (defun org-relate--search-children-org-ql-query ()
+    (when-let* ((id (org-id-get))
+                (rel-prop-link (format "[[id:%s]]" id)))
+      `((or (property ,org-relate-property ,id)
+            (property ,org-relate-property ,rel-prop-link)) .
+            (:name "Children" :auto-property ,org-relate-property))))
+
+  (defun org-relate--search-parent-org-ql-query ()
+    (if-let* ((prop-ref (org-entry-get (point) org-relate-property))
+              (index (string-match (format "\\(%s\\)" thing-at-point-uuid-regexp) prop-ref))
+              (parent-id (match-string 0 prop-ref)))
+        `((property "ID" ,parent-id) .
+          (:name "Parent" :auto-property "ID"))))
+
+  (defun org-relate--search-siblings-org-ql-query ()
+    (if-let* ((prop-ref (org-entry-get (point) org-relate-property))
+              (index (string-match (format "\\(%s\\)" thing-at-point-uuid-regexp) prop-ref))
+              (parent-id (match-string 0 prop-ref))
+              (parent-id-link (format "[[id:%s]]" parent-id)))
+        `((or (property ,org-relate-property ,parent-id)
+              (property ,org-relate-property ,parent-id-link)) .
+              (:name "Siblings" :auto-property ,org-relate-property))))
+
+  (defun org-relate--search-friends-refer-org-ql-query ()
+    (when-let* ((id (org-id-get))
+                (ref-re (format "\\[\\[id:%s\\].*\\]" id)))
+      `((regexp ,ref-re) .
+        (:name "Friends pointing to this entry" :regexp ,ref-re))))
+
+  (defun org-relate--search-friends-referred-org-ql-query ()
+    (let* ((id-link-re (format "\\[\\[id:\\(%s\\)\\].*\\]" thing-at-point-uuid-regexp))
+           (end (or (save-excursion
+                      (outline-next-heading))
+                    (point-max))))
+      (when (save-excursion
+              (re-search-forward id-link-re end t))
+        `((property "ID" ,(match-string 1)) .
+          (:name "Friends to whom this entry is pointing" :auto-property ("ID" ,(match-string 1)))))))
+
+  (defun org-relate-interrelate ()
+    "Make parent-child relationship by inserting property.
+
+  This command must be called in parent node which should have one of `org-relate-parent-tag-list'."
+    (interactive)
+    ;; relate the entry at point and its children if the entry has some of `org-relate-parent-tag-list'
+    (save-excursion
+      (org-back-to-heading)
+      (when (cl-some (lambda (parent-tag)
+                       (member parent-tag (org-get-tags)))
+                     org-relate-parent-tag-list)
+        (let* ((ref-id (org-id-get-create))
+               (ent-link (format "[[id:%s]]" ref-id)))
+          (and (org-goto-first-child)
+               (cl-labels ((set-ref-id-to-siblings
+                            (ref-link)
+                            (org-set-property org-relate-property
+                                              ref-link)
+                            (and (org-goto-sibling)
+                                 (set-ref-id-to-siblings ref-link))))
+                 (set-ref-id-to-siblings ent-link))))))
+    ;; relate the entry at point and a parent if the parent has some of `org-relate-parent-tag-list'
+    (let (parent-link)
+      (save-excursion
+        (org-up-heading-safe)
+        (when (seq-some (lambda (parent-tag)
+                          (member parent-tag (org-get-tags)))
+                        org-relate-parent-tag-list)
+          (setq parent-link (format "[[id:%s]]" (org-id-get-create)))))
+      (and parent-link
+           (org-set-property org-relate-property
+                             parent-link))))
+
+  (defun org-agenda-relation-interrelate ()
+    "Invoke `org-relate-interrelate' in agenda view."
+    (interactive)
+    (org-agenda-check-no-diary)
+    (let* ((hdmarker (or (org-get-at-bol 'org-hd-marker)
+                         (org-agenda-error)))
+           (buffer (marker-buffer hdmarker))
+           (pos (marker-position hdmarker))
+           (inhibit-read-only t)
+           newhead)
+      (org-with-remote-undo buffer
+        (with-current-buffer buffer
+          (widen)
+          (goto-char pos)
+          (org-show-context 'agenda)
+          (call-interactively 'org-relate-interrelate)
+          (end-of-line 1)
+          (setq newhead (org-get-heading))))))
+
+  (provide 'org-relate)
+#+end_src
 
 ** Findutils
 
