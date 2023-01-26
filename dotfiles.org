@@ -2837,14 +2837,13 @@ Command in practice presumably looks like:
 - use contact info from org-contacts
 
   #+begin_src emacs-lisp
-    (use-package mu4e-actions
-      :after (mu4e org-contacts)
-      :config
-      (setq mu4e-org-contacts-file (car org-contacts-files))
+    (with-eval-after-load 'mu4e
       (add-to-list 'mu4e-headers-actions
                    '("Contact to add" . mu4e-action-add-org-contact) t)
       (add-to-list 'mu4e-view-actions
-                   '("Contact to add" . mu4e-action-add-org-contact) t))
+                   '("Contact to add" . mu4e-action-add-org-contact) t)
+      (with-eval-after-load 'org-contacts
+        (setq mu4e-org-contacts-file (car org-contacts-files))))
   #+end_src
 
 **** Elfeed
@@ -3699,7 +3698,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
      ("$" . org-archive-subtree)
      ("!" . org-readable)
      ("o" . org-open-at-point)
-     ("M" . org-send-email)
      ("?" . org-speed-command-help)
      ("<" . (org-agenda-set-restriction-lock 'subtree))
      (">" . (org-agenda-remove-restriction-lock))))
@@ -4158,6 +4156,124 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-drill-spaced-repetition-algorithm 'sm5))
 #+end_src
 
+****** org-ql
+
+[[https://github.com/alphapapa/org-ql][Org QL]] enables me to issue queries to search org entries with either SQL-like format or plain search strings.
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-ql"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/alphapapa/org-ql/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package org-ql
+    :bind (("C-o q q" . org-ql-search)
+           ("C-o q v" . org-ql-view))
+    :custom
+    (org-ql-search-directories-files-recursive t)
+    :config
+    (require 'org-ql-search)
+    (org-ql-defpred (tags-expanded expanded-tags tags-x xtags) (&rest tags)
+      "Return non-nil if current heading has one or more of TAGS.
+  If TAGS contains a group tag, all tags in the group is used to match.
+  Both inherited and local tags is tested."
+      :normalizers ((`(,predicate-names . ,tags)
+                     `(tags-expanded ,@tags)))
+      :body (apply #'org-ql--predicate-tags
+                   (seq-uniq (--mapcat (org-tags-expand it t)
+                                       tags))))
+    (org-ql-defpred (category-inherited) (&rest categories)
+      "Return non-nil if current heading has CATEGORY.
+  Ancestors are looked up If current heading has no CATEGORY."
+      :body (when-let ((category (or (org-get-category (point))
+                                     (org-entry-get (point) "CATEGORY" t))))
+              (cl-typecase categories
+                (null t)
+                (otherwise (member category categories)))))
+    (with-eval-after-load 'org-expiry
+      (org-ql-defpred expired ()
+        "Return non-nil if the entry is expired."
+        :body (org-expiry-expired-p))))
+#+end_src
+
+****** org-contacts
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-contacts"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package org-contacts
+    :after org
+    :custom
+    (org-contacts-files
+     `(,(file-name-concat org-directory "lists" "contacts.org.gpg"))))
+#+end_src
+
+****** org-ml                              :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-12-23 Fri 20:02]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/ndwarshuis/org-ml/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (use-package org-ml
+    :after org)
+#+end_src
+
+****** org-roam                            :ARCHIVE:
+
+# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#   "emacs-org-roam"
+#   "emacs-emacsql-sqlite3"
+# #+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/org-roam/org-roam/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (use-package org-roam
+    :disabled t
+    :after org
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n i" . org-roam-node-insert)
+           ("C-c n S" . org-roam-db-sync))
+    :custom
+    (org-roam-directory org-directory)
+    (org-roam-db-location (file-name-concat user-emacs-directory "org-roam.db"))
+    (org-roam-database-connector 'sqlite3)
+    (org-roam-db-update-on-save nil)
+    (org-roam-db-extra-links-exclude-keys
+     '((node-property "ROAM_REFS")
+       (node-property "PARENT")
+       (keyword "transclude")))
+    :config
+    (setq org-roam-mode-sections
+          (list #'org-roam-backlinks-section
+                #'org-roam-reflinks-section
+                #'org-roam-unlinked-references-section)))
+#+end_src
+****** org-mime
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-mime"
+#+end_src
+
+':defer t' directive is added since org-mime functionalities are supposed to be called only from my/org-subtree-send-email.
+
+#+begin_src emacs-lisp
+  (use-package org-mime
+    :defer t)
+#+end_src
+
 ***** utility functions for org
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
@@ -4328,36 +4444,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
               (funcall function url title))
             (quit-window)))))))
 
-  (defun org-send-email (&optional arg)
-    "Send a html email extracted from current org entry.
-
-  Given a `\\[universal-argument]' prefix `ARG', send an ascii email instead."
-    (interactive "P")
-    (cond
-     ((equal arg '(4))
-      (call-interactively #'org-send-email-ascii))
-     (t
-      (let ((org-mime-use-property-inheritance t))
-        (call-interactively #'org-mime-org-subtree-htmlize)))))
-
-  (defun org-send-email-ascii ()
-    "Send a mail whose contents converted from current org entry.
-
-  Format of mail contents is plain text."
-    (interactive)
-    (let ((heading (org-get-heading t t t t))
-          (org-export-show-temporary-export-buffer nil)
-          (export-buf-name "*Org ASCII Export*")
-          (org-export-with-toc nil)
-          (org-export-with-author nil))
-      (org-ascii-export-as-ascii nil t t t)
-      (mail-send-string (or (org-entry-get (point) "MAIL_TO" t)
-                            (read-string "MAIL_TO: "))
-                        heading
-                        (with-current-buffer export-buf-name
-                          (buffer-string)))
-      (kill-buffer export-buf-name)))
-
   (defun org-display-iso-week-at-point ()
     "Display ISO 8601 week number correspoinds to time stamp at point."
     (interactive)
@@ -4384,131 +4470,52 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
       (org-add-log-setup 'state new-heading old-heading 'state)))
 #+end_src
 
+****** sending org subtree contents via email
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org-keys
+    (add-to-list 'org-speed-commands
+                 '("M" . my/org-subtree-send-email)
+                 t))
+
+  (defun my/org-subtree-send-email (&optional arg)
+    "Send a html email extracted from current org entry.
+
+  Given a `\\[universal-argument]' prefix `ARG', send an ascii email instead."
+    (interactive "P")
+    (cond
+     ((equal arg '(4))
+      (call-interactively #'my/org-subtree-send-email-ascii))
+     (t
+      (let ((org-mime-use-property-inheritance t))
+        (and (require 'org-mime nil t)
+             (call-interactively #'org-mime-org-subtree-htmlize))))))
+
+  (defun my/org-subtree-send-email-ascii ()
+    "Send a mail whose contents converted from current org entry.
+
+  Format of mail contents is plain text."
+    (interactive)
+    (let ((heading (org-get-heading t t t t))
+          (org-export-show-temporary-export-buffer nil)
+          (export-buf-name "*Org ASCII Export*")
+          (org-export-with-toc nil)
+          (org-export-with-author nil))
+      (org-ascii-export-as-ascii nil t t t)
+      (mail-send-string (or (org-entry-get (point) "MAIL_TO" t)
+                            (read-string "MAIL_TO: "))
+                        heading
+                        (with-current-buffer export-buf-name
+                          (buffer-string)))
+      (kill-buffer export-buf-name)))
+#+end_src
+
 **** Old Org-mode
 :PROPERTIES:
 :header-args+: :tangle no
 :END:
 
 ***** external packages for org
-****** org-contacts
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-contacts"
-#+end_src
-
-#+begin_src emacs-lisp
-  (with-eval-after-load 'org
-    (require 'org-contacts)
-    (customize-set-variable 'org-contacts-files
-                            `(,(file-name-concat org-directory "lists" "contacts.org.gpg"))))
-#+end_src
-****** org-ql
-
-[[https://github.com/alphapapa/org-ql][Org QL]] enables me to issue queries to search org entries with either SQL-like format or plain search strings.
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-ql"
-#+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/alphapapa/org-ql/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package org-ql
-    :after org
-    :bind (("C-o q q" . org-ql-search)
-           ("C-o q v" . org-ql-view))
-    :custom
-    (org-ql-search-directories-files-recursive t)
-    :config
-    (require 'org-ql-search)
-    (org-ql-defpred (tags-expanded expanded-tags tags-x xtags) (&rest tags)
-      "Return non-nil if current heading has one or more of TAGS.
-  If TAGS contains a group tag, all tags in the group is used to match.
-  Both inherited and local tags is tested."
-      :normalizers ((`(,predicate-names . ,tags)
-                     `(tags-expanded ,@tags)))
-      :body (apply #'org-ql--predicate-tags
-                   (seq-uniq (--mapcat (org-tags-expand it t)
-                                       tags))))
-    (org-ql-defpred (category-inherited) (&rest categories)
-      "Return non-nil if current heading has CATEGORY.
-  Ancestors are looked up If current heading has no CATEGORY."
-      :body (when-let ((category (or (org-get-category (point))
-                                     (org-entry-get (point) "CATEGORY" t))))
-              (cl-typecase categories
-                (null t)
-                (otherwise (member category categories)))))
-    (with-eval-after-load 'org-expiry
-      (org-ql-defpred expired ()
-        "Return non-nil if the entry is expired."
-        :body (org-expiry-expired-p))))
-#+end_src
-
-****** org-ml                              :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2022-12-23 Fri 20:02]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/ndwarshuis/org-ml/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-  (use-package org-ml
-    :after org)
-#+end_src
-
-****** org-roam
-org-roam v2
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-roam"
-  "emacs-emacsql-sqlite3"
-#+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/org-roam/org-roam/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package org-roam
-    :disabled t
-    :after org
-    :bind (("C-c n l" . org-roam-buffer-toggle)
-           ("C-c n f" . org-roam-node-find)
-           ("C-c n i" . org-roam-node-insert)
-           ("C-c n S" . org-roam-db-sync))
-    :custom
-    (org-roam-directory org-directory)
-    (org-roam-db-location (file-name-concat user-emacs-directory "org-roam.db"))
-    (org-roam-database-connector 'sqlite3)
-    (org-roam-db-update-on-save nil)
-    (org-roam-db-extra-links-exclude-keys
-     '((node-property "ROAM_REFS")
-       (node-property "PARENT")
-       (keyword "transclude")))
-    :config
-    (setq org-roam-mode-sections
-          (list #'org-roam-backlinks-section
-                #'org-roam-reflinks-section
-                #'org-roam-unlinked-references-section)))
-#+end_src
-****** org-mime
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-mime"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package org-mime
-    :after org
-    :defer 5
-    :config
-    (push '("Send An Email") org-speed-commands))
-#+end_src
-
 ****** org-web-tools
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
@@ -8820,7 +8827,100 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
                              :follow #'my/lfile-follow-link--sys))
 #+end_src
 
-**** org workflows
+**** New org workflows
+:PROPERTIES:
+:header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
+:END:
+***** manage subordinate tasks
+:PROPERTIES:
+:CREATED:  [2022-12-12 Mon 09:14]
+:END:
+
+- subordinate task lifecycle
+  #+HEADER: :file ./subordinate_task_lifecycle.png
+  #+begin_src dot :tangle no
+    digraph{
+            "web browsing" [shape = hexagon];
+            "web browsing" -> task [label = "read later"];
+            elfeed [shape = hexagon];
+            elfeed -> task [label = "watch later"];
+            "web browsing" -> someday [label = "read someday"];
+            task -> someday [label = "expired"];
+            someday -> task [label = "review (active)"];
+            task -> pending [label = "abandoned"];
+            subgraph cluster_0 {
+                    someday -> someday [label = "review (inactive)"];
+                    pending;
+                    label = "suspended.org";
+            }
+    }
+  #+end_src
+
+****** review tasks (reevaluate)
+:PROPERTIES:
+:CREATED:  [2022-12-12 Mon 09:18]
+:END:
+
+#+begin_src emacs-lisp
+  (defun my/org-subordinate-task-review (resume-p)
+    "Start or resume (if RESUME-P is non-nil) a session for reviewing tasks."
+    (interactive "P")
+    (progn
+      (org-id-goto "58da20ee-97a9-4463-96b8-6ebb1084b9b7")
+      (let ((org-drill-scope 'tree)
+            (org-drill-question-tag "review")
+            (org-drill-maximum-items-per-session 25)
+            (org-drill-hide-item-headings-p nil)
+            (org-startup-indented nil))
+        (and (require 'cl nil t)
+             (org-drill nil "TODO=\"SD\"" resume-p)))))
+#+end_src
+
+****** list suspended tasks
+:PROPERTIES:
+:CREATED:  [2022-09-15 Thu 22:06]
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org-ql-view
+    (push `("Someday tasks"
+            :buffers-files
+            ,(append
+              (org-agenda-files)
+              (list (file-name-concat org-directory "archive" "suspended.org")))
+            :query (todo ,my/org-todo-keyword--someday)
+            :super-groups ((:auto-property "ARCHIVE_OLPATH"))
+            :sort (priority date))
+          org-ql-views)
+    (push `("Review tasks"
+            :buffers-files
+            ,(append
+              (org-agenda-files)
+              (list (file-name-concat org-directory "archive" "suspended.org")))
+            :query (todo ,my/org-todo-keyword--someday)
+            :sort (scheduled))
+          org-ql-views)
+    (push `("Pending tasks"
+            :buffers-files
+            ,(append
+              (org-agenda-files)
+              (list (file-name-concat org-directory "archive" "suspended.org")))
+            :query (todo ,my/org-done-keyword--pending)
+            :super-groups ((:auto-property "ARCHIVE_OLPATH"))
+            :sort (scheduled priority date))
+          org-ql-views)
+    (push `("Tasks on Web/Book"
+            :buffers-files org-agenda-files
+            :query (and (or (tags "web")
+                            (tags "book"))
+                        (not (done)))
+            :super-groups ((:auto-tags))
+            :sort (priority date))
+          org-ql-views))
+#+end_src
+
+
+**** org workflows                                                  :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-01-20 Fri 10:59]
 :END:
@@ -8941,93 +9041,6 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
      ((stringp str)
       (replace-regexp-in-string "^\\(*+ \\)" ",\\1" str))
      (t "")))
-#+end_src
-
-***** manage subordinate tasks
-:PROPERTIES:
-:CREATED:  [2022-12-12 Mon 09:14]
-:END:
-
-- subordinate task lifecycle
-  #+HEADER: :file ./subordinate_task_lifecycle.png
-  #+begin_src dot :tangle no
-    digraph{
-            "web browsing" [shape = hexagon];
-            "web browsing" -> task [label = "read later"];
-            elfeed [shape = hexagon];
-            elfeed -> task [label = "watch later"];
-            "web browsing" -> someday [label = "read someday"];
-            task -> someday [label = "expired"];
-            someday -> task [label = "review (active)"];
-            task -> pending [label = "abandoned"];
-            subgraph cluster_0 {
-                    someday -> someday [label = "review (inactive)"];
-                    pending;
-                    label = "suspended.org";
-            }
-    }
-  #+end_src
-
-****** review tasks (reevaluate)
-:PROPERTIES:
-:CREATED:  [2022-12-12 Mon 09:18]
-:END:
-
-#+begin_src emacs-lisp
-  (defun my/review-tasks (resume-p)
-    "Start or resume (if RESUME-P is non-nil) a session for reviewing tasks."
-    (interactive "P")
-    (progn
-      (org-id-goto "58da20ee-97a9-4463-96b8-6ebb1084b9b7")
-      (let ((org-drill-scope 'tree)
-            (org-drill-question-tag "review")
-            (org-drill-maximum-items-per-session 25)
-            (org-drill-hide-item-headings-p nil)
-            (org-startup-indented nil))
-        (org-drill nil "TODO=\"SD\"" resume-p))))
-#+end_src
-
-****** list suspended tasks
-:PROPERTIES:
-:CREATED:  [2022-09-15 Thu 22:06]
-:END:
-
-#+begin_src emacs-lisp
-  (with-eval-after-load 'org-ql-view
-    (push `("Someday tasks"
-            :buffers-files
-            ,(append
-              (org-agenda-files)
-              (list (file-name-concat org-directory "archive" "suspended.org")))
-            :query (todo ,my/org-todo-keyword--someday)
-            :super-groups ((:auto-property "ARCHIVE_OLPATH"))
-            :sort (priority date))
-          org-ql-views)
-    (push `("Review tasks"
-            :buffers-files
-            ,(append
-              (org-agenda-files)
-              (list (file-name-concat org-directory "archive" "suspended.org")))
-            :query (todo ,my/org-todo-keyword--someday)
-            :sort (scheduled))
-          org-ql-views)
-    (push `("Pending tasks"
-            :buffers-files
-            ,(append
-              (org-agenda-files)
-              (list (file-name-concat org-directory "archive" "suspended.org")))
-            :query (todo ,my/org-done-keyword--pending)
-            :super-groups ((:auto-property "ARCHIVE_OLPATH"))
-            :sort (scheduled priority date))
-          org-ql-views)
-    (push `("Tasks on Web/Book"
-            :buffers-files org-agenda-files
-            :query (and (or (tags "web")
-                            (tags "book"))
-                        (not (done)))
-            :super-groups ((:auto-tags))
-            :sort (priority date))
-          org-ql-views))
 #+end_src
 
 **** additional emacs lisp code
