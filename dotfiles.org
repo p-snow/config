@@ -1027,12 +1027,6 @@ init.el devote itself to call for remaining config files.
 
 #+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/init.el")
   (require 'user-init)
-
-  ;; TODO: delete sexps below
-  (dolist (file (directory-files "~/.emacs.d/lisp" t "\.el$"))
-    (funcall #'load-file file))
-  (dolist (file (directory-files "~/.emacs.d/site-lisp" t "\.el$"))
-    (funcall #'load-file file))
 #+end_src
 
 ***** load user config files
@@ -3168,7 +3162,8 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
 
 **** Org-mode
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/lisp/my-org.el")
+:CREATED:  [2023-01-24 Tue 16:02]
+:header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
 :END:
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
@@ -3179,40 +3174,83 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
   ("https://updates.orgmode.org/feed/releases" soft_update)
 #+end_src
 
-***** basic preference for org core features
-
 Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e6-6f0b62518b20][this section]], all entries obey customize group hierarchy for Org mode.
 
 #+begin_src emacs-lisp
   (use-package org
-    :defer t
-    :mode (("\\.org$" . org-mode))
-    :interpreter (("org" . org-mode))
+    :mode ("\\.org$" . org-mode)
     :bind (("C-o C-s" . org-save-all-org-buffers)
-           ("C-o @" . org-mark-subtree)
            ("C-o i" . org-info-find-node)
            ("C-o &" . org-mark-ring-goto))
-    :config
-    (add-hook 'org-log-buffer-setup-hook
-              (lambda ()
-                (setq skk-dcomp-activate 'eolp)
-                (setq skk-dcomp-multiple-activate nil))))
+    ;; :config
+    ;; (add-hook 'org-log-buffer-setup-hook
+    ;;           (lambda ()
+    ;;             (setq skk-dcomp-activate 'eolp)
+    ;;             (setq skk-dcomp-multiple-activate nil)))
+    )
 
-  (defvar org-warning-keyword-0 "UG" "TODO keyword acronym standing for 'UrGent'")
-  (defvar org-todo-keyword-0 "TD" "TODO keyword acronym standing for 'To Do'")
-  (defvar org-todo-keyword-1 "GO" "TODO keyword acronym standing for 'Get On'")
-  (defvar org-todo-keyword-2 "IP" "TODO keyword acronym standing for 'In Progressn'")
-  (defvar org-todo-keyword-4 "SD" "TODO keyword acronym standing for 'SomeDay'")
-  (defvar org-done-keyword-0 "DN" "TODO keyword acronym standing for 'DoNe'")
-  (defvar org-done-keyword-1 "CX" "TODO keyword acronym standing for 'Cancel'")
-  (defvar org-done-keyword-2 "PD" "TODO keyword acronym standing for 'PenDing'")
+  (defvar my/org-todo-keyword--urgent "UG"
+    "TODO keyword acronym standing for 'UrGent'")
+  (put 'my/org-todo-keyword--urgent 'char ?u)
+  (defvar my/org-todo-keyword--todo "TD"
+    "TODO keyword acronym standing for 'ToDo'")
+  (put 'my/org-todo-keyword--todo 'char ?t)
+  (defvar my/org-todo-keyword--next "NX"
+    "TODO keyword acronym standing for 'NeXt")
+  (put 'my/org-todo-keyword--next 'char ?n)
+  (defvar my/org-todo-keyword--in-action "IA"
+    "TODO keyword acronym standing for 'In Action")
+  (put 'my/org-todo-keyword--in-action 'char ?i)
+  (defvar my/org-todo-keyword--someday "SD"
+    "TODO keyword acronym standing for 'SomeDay'")
+  (put 'my/org-todo-keyword--someday 'char ?s)
+  (defvar my/org-done-keyword--done "DN"
+    "DONE keyword acronym standing for 'DoNe'")
+  (put 'my/org-done-keyword--done 'char ?d)
+  (defvar my/org-done-keyword--cancel "CX"
+    "DONE keyword acronym standing for 'Cancel'")
+  (put 'my/org-done-keyword--cancel 'char ?x)
+  (defvar my/org-done-keyword--pending "PD"
+    "DONE keyword acronym standing for 'PenDing'")
+  (put 'my/org-done-keyword--pending 'char ?p)
+
+  (defvar my/org-project-tag "project" "A tag for projects")
 #+end_src
 
+***** org mode keymap
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org
+    (let ((map org-mode-map))
+      (define-key map (kbd "C-j") #'org-return)
+      (define-key map (kbd "C-M-j") #'org-return-indent)
+      (define-key map (kbd "M-j") #'org-meta-return)
+      (define-key map (kbd "C-S-p") #'org-previous-item)
+      (define-key map (kbd "C-S-n") #'org-next-item)
+      (define-key map (kbd "C-S-u") #'org-up-element)
+      (define-key map (kbd "C-$") #'org-down-element)
+      (define-key map (kbd "C-<") #'org-previous-link)
+      (define-key map (kbd "C->") #'org-next-link)
+      (define-key map (kbd "C-c @") #'org-mark-element)
+      (define-key map (kbd "C-c C-SPC") #'org-mark-subtree)
+      (define-key map (kbd "C-c D v") #'my/org-download-video-link-at-point)
+      (define-key map (kbd "C-c D a") #'my/org-download-audio-link-at-point)
+      (define-key map (kbd "C-c D =") #'my/org-show-media-duration-at-point)
+      (define-key map (kbd "C-c !") #'org-readable)
+      (define-key map (kbd "C-c C-a") nil)
+      (define-key map (kbd "C-,") nil)
+      (define-key map (kbd "M-h") nil)))
+#+end_src
+
+***** org core feature setup
+:PROPERTIES:
+:CREATED:  [2023-01-24 Tue 16:14]
+:END:
 ****** Org Agenda
 
 #+begin_src emacs-lisp
   (use-package org-agenda
-    :after (org org-ql)
+    :after org
     :bind (("C-o a" . org-agenda)
            :map org-agenda-mode-map
            ("C-j" . org-agenda-switch-to)
@@ -3226,7 +3264,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-agenda-skip-deadline-if-done t)
     (org-agenda-include-diary t)
     (org-stuck-projects `(,(concat "+" my/org-project-tag)
-                          (,org-todo-keyword-0 ,org-todo-keyword-1 ,org-todo-keyword-2)
+                          (,my/org-todo-keyword--todo ,my/org-todo-keyword--next ,my/org-todo-keyword--in-action)
                           nil ""))
     ;; next 3 custom settings contribute to build agenda view fast
     (org-agenda-inhibit-startup t)
@@ -3251,9 +3289,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
             (and (save-excursion
                    (and (member "web" (org-get-tags))
                         (not (member (org-get-todo-state)
-                                     `(,org-todo-keyword-0
-                                       ,org-todo-keyword-1
-                                       ,org-todo-keyword-2)))))
+                                     `(,my/org-todo-keyword--todo
+                                       ,my/org-todo-keyword--next
+                                       ,my/org-todo-keyword--in-action)))))
                  (progn (outline-next-heading) (point)))))))
        ("l" "Log entries in a week"
         agenda ""
@@ -3284,8 +3322,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
        ;; invoking `org-clock-sum-all' is required before showing effort table
        ("e" . "Effort table")
        ("ei" "today"
-        ((org-ql-search-block `(or (todo ,org-warning-keyword-0)
-                                   (todo ,org-todo-keyword-2)
+        ((org-ql-search-block `(or (todo ,my/org-todo-keyword--urgent)
+                                   (todo ,my/org-todo-keyword--in-action)
                                    (and (clocked :on today)
                                         (or (todo) (done))
                                         (not (habit))
@@ -3296,18 +3334,18 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
          (org-agenda-view-columns-initially t)
          (org-agenda-sorting-strategy '(todo-state-up priority-down deadline-up))))
        ("eg" "this week"
-        ((org-ql-search-block `(or (todo ,org-warning-keyword-0)
-                                   (todo ,org-todo-keyword-1)
-                                   (todo ,org-todo-keyword-2))
+        ((org-ql-search-block `(or (todo ,my/org-todo-keyword--urgent)
+                                   (todo ,my/org-todo-keyword--next)
+                                   (todo ,my/org-todo-keyword--in-action))
                               ((org-ql-block-header "This Week's task"))))
         ((org-agenda-overriding-header "This Week's Task")
          (org-overriding-columns-format "%26ITEM(Task) %Effort(Effort){:} %CLOCKSUM_T(Today){:} %CLOCKSUM(Total)")
          (org-agenda-view-columns-initially t)
          (org-agenda-sorting-strategy '(todo-state-up priority-down deadline-up))))
        ("ed" "done task"
-        ((org-ql-search-block `(or (todo ,org-done-keyword-0)
-                                   (todo ,org-done-keyword-1)
-                                   (todo ,org-done-keyword-2))
+        ((org-ql-search-block `(or (todo ,my/org-done-keyword--done)
+                                   (todo ,my/org-done-keyword--cancel)
+                                   (todo ,my/org-done-keyword--pending))
                               ((org-ql-block-header "Done task"))))
         ((org-agenda-overriding-header "Done Task")
          (org-overriding-columns-format "%26ITEM(Task) %Effort(Effort){:} %CLOCKSUM(Total){:}")
@@ -3319,44 +3357,44 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
          (org-ql-search-block `(heading ,(format-time-string "%Y-%m-%d %A"))
                               ((org-agenda-files `(,(file-name-concat org-directory "archive" (format-time-string "archive_%Y.org"))))
                                (org-ql-block-header "Today in datetree archive")))
-         (org-ql-search-block `(or (todo ,org-warning-keyword-0)
-                                   (todo ,org-todo-keyword-2))
+         (org-ql-search-block `(or (todo ,my/org-todo-keyword--urgent)
+                                   (todo ,my/org-todo-keyword--in-action))
                               ((org-ql-block-header "Today's task")))
          (org-ql-search-block `(and (planning :on today)
-                                    (not (todo ,org-todo-keyword-2
-                                               ,org-done-keyword-0
-                                               ,org-done-keyword-1
-                                               ,org-done-keyword-2))
+                                    (not (todo ,my/org-todo-keyword--in-action
+                                               ,my/org-done-keyword--done
+                                               ,my/org-done-keyword--cancel
+                                               ,my/org-done-keyword--pending))
                                     (not (tags "web"))
                                     (not (habit)))
                               ((org-ql-block-header "Scheduled/Deadlined on today")))
          (org-ql-search-block `(and (habit)
-                                    (todo ,org-todo-keyword-0)
+                                    (todo ,my/org-todo-keyword--todo)
                                     (scheduled :to today)
                                     (not (tags "bad_habit"))
                                     (not (tags-inherited "ARCHIVE")))
                               ((org-ql-block-header "Habits to take")))
          (org-ql-search-block `(and (ts-active :on today)
-                                    (not (or (todo ,org-todo-keyword-2)
+                                    (not (or (todo ,my/org-todo-keyword--in-action)
                                              (habit) (done))))
                               ((org-ql-block-header "Today's common event")))
          (org-ql-search-block '(and (done)
                                     (closed :on today))
                               ((org-ql-block-header "Completed tasks on today")))))
-       ("g" "This Week's agenda"
+       ("n" "This Week's agenda"
         ((org-ql-search-block `(heading ,(format-time-string "%G-W%V"))
                               ((org-agenda-files `(,(file-name-concat org-directory "archive" (format-time-string "archive_%Y.org"))))
                                (org-ql-block-header "This week in datetree archive")))
-         (org-ql-search-block `(or (todo ,org-todo-keyword-1))
+         (org-ql-search-block `(or (todo ,my/org-todo-keyword--next))
                               ((org-ql-block-header "This week's tasks")))
-         (org-ql-search-block `(or (todo ,org-warning-keyword-0)
-                                   (todo ,org-todo-keyword-2))
+         (org-ql-search-block `(or (todo ,my/org-todo-keyword--urgent)
+                                   (todo ,my/org-todo-keyword--in-action))
                               ((org-ql-block-header "Today's tasks")))
          (org-ql-search-block `(and (planning :from 0 :to 6)
-                                    (not (todo ,org-todo-keyword-2
-                                               ,org-done-keyword-0
-                                               ,org-done-keyword-1
-                                               ,org-done-keyword-2))
+                                    (not (todo ,my/org-todo-keyword--in-action
+                                               ,my/org-done-keyword--done
+                                               ,my/org-done-keyword--cancel
+                                               ,my/org-done-keyword--pending))
                                     (not (tags "web"))
                                     (not (habit)))
                               ((org-ql-block-header "Scheduled/Deadlined this week")))
@@ -3364,20 +3402,20 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                          (not (deadline))
                                          (not (scheduled))
                                          (not (closed)))
-                                    (not (or (todo ,org-todo-keyword-1
-                                                   ,org-todo-keyword-2)
+                                    (not (or (todo ,my/org-todo-keyword--next
+                                                   ,my/org-todo-keyword--in-action)
                                              (done))))
                               ((org-ql-block-header "This week's common event"))))
         ((org-agenda-sorting-strategy
           '(todo-state-up priority-down deadline-up))))
        ("t" "All tasks"
-        ((org-ql-search-block `(todo ,org-warning-keyword-0)
+        ((org-ql-search-block `(todo ,my/org-todo-keyword--urgent)
                               ((org-ql-block-header "Urgent task")))
-         (org-ql-search-block `(todo ,org-todo-keyword-2)
+         (org-ql-search-block `(todo ,my/org-todo-keyword--in-action)
                               ((org-ql-block-header "Today's task")))
-         (org-ql-search-block `(todo ,org-todo-keyword-1)
+         (org-ql-search-block `(todo ,my/org-todo-keyword--next)
                               ((org-ql-block-header "This week's task")))
-         (org-ql-search-block `(and (todo ,org-todo-keyword-0)
+         (org-ql-search-block `(and (todo ,my/org-todo-keyword--todo)
                                     (not (habit)))
                               ((org-ql-block-header "Remaining task")))))
        ("d" "Done tasks"
@@ -3467,8 +3505,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :after org
     :bind ("C-o c" . org-capture)
     :hook
-    (org-capture-mode . (lambda ()
-                          (delete-other-windows)))
+    (org-capture-mode . delete-other-windows)
     :custom
     (org-directory (expand-file-name "~/org"))
     (org-reverse-note-order nil)
@@ -3480,7 +3517,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
        ("t" "Task"
         entry (id "58e12e3e-da50-4089-9d22-565986637121")
         ,(format "* %s %%?\n"
-                 org-todo-keyword-0))
+                 my/org-todo-keyword--todo))
        ("p" "Project"
         entry (id "58e12e3e-da50-4089-9d22-565986637121")
         "* %? [/] :project:\n- [ ] insert ID property if necessary"
@@ -3496,6 +3533,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (customize-set-variable 'org-startup-folded t)
   (customize-set-variable 'org-startup-truncated t)
   (customize-set-variable 'org-startup-with-inline-images t)
+
   ;; allow _{}/^{} format for sub/super script
   (customize-set-variable 'org-use-sub-superscripts '{})
 #+end_src
@@ -3503,37 +3541,46 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org TODO
 
 #+begin_src emacs-lisp
+  (customize-set-variable 'org-enforce-todo-dependencies t)
+  (customize-set-variable
+   'org-todo-keywords
+   `((sequence ,(format "%s(%c)" my/org-todo-keyword--todo
+                        (get 'my/org-todo-keyword--todo 'char))
+               ,(format "%s(%c)" my/org-todo-keyword--urgent
+                        (get 'my/org-todo-keyword--urgent 'char))
+               ,(format "%s(%c)" my/org-todo-keyword--next
+                        (get 'my/org-todo-keyword--next 'char))
+               ,(format "%s(%c)" my/org-todo-keyword--in-action
+                        (get 'my/org-todo-keyword--in-action 'char))
+               ,(format "%s(%c!/!)" my/org-todo-keyword--someday
+                        (get 'my/org-todo-keyword--someday 'char))
+               "|"
+               ,(format "%s(%c!/@)" my/org-done-keyword--done
+                        (get 'my/org-done-keyword--done 'char))
+               ,(format "%s(%c!/@)" my/org-done-keyword--cancel
+                        (get 'my/org-done-keyword--cancel 'char))
+               ,(format "%s(%c!/@)" my/org-done-keyword--pending
+                        (get 'my/org-done-keyword--pending 'char)))))
+  (customize-set-variable
+   'org-todo-keyword-faces
+   `((,my/org-todo-keyword--urgent . "red1")
+     (,my/org-todo-keyword--todo    . "green1")
+     (,my/org-todo-keyword--next    . "DeepPink1")
+     (,my/org-todo-keyword--in-action    . "DodgerBlue1")
+     (,my/org-todo-keyword--someday    . "SpringGreen")
+     (,my/org-done-keyword--done    . "gray30")
+     (,my/org-done-keyword--cancel    . "dark gray")
+     (,my/org-done-keyword--pending    . "sea green")))
+  (customize-set-variable 'org-log-into-drawer t)
+  (customize-set-variable 'org-log-states-order-reversed t)
+  (customize-set-variable 'org-log-note-clock-out nil)
+  (customize-set-variable 'org-log-done 'time)
+  (customize-set-variable 'org-log-refile 'time)
+  (customize-set-variable 'org-log-reschedule 'time)
+  (customize-set-variable 'org-log-redeadline 'time)
+  (customize-set-variable 'org-closed-keep-when-no-todo nil)
+
   (with-eval-after-load 'org
-    (customize-set-variable 'org-enforce-todo-dependencies t)
-    (customize-set-variable
-     'org-todo-keywords
-     `((sequence ,(format "%s(t)" org-todo-keyword-0)
-                 ,(format "%s(u)" org-warning-keyword-0)
-                 ,(format "%s(g)" org-todo-keyword-1)
-                 ,(format "%s(i)" org-todo-keyword-2)
-                 ,(format "%s(s!/!)" org-todo-keyword-4)
-                 "|"
-                 ,(format "%s(d!/@)" org-done-keyword-0)
-                 ,(format "%s(x!/@)" org-done-keyword-1)
-                 ,(format "%s(p!/@)" org-done-keyword-2))))
-    (customize-set-variable
-     'org-todo-keyword-faces
-     `((,org-warning-keyword-0 . "red1")
-       (,org-todo-keyword-0    . "green1")
-       (,org-todo-keyword-1    . "DeepPink1")
-       (,org-todo-keyword-2    . "DodgerBlue1")
-       (,org-todo-keyword-4    . "SpringGreen")
-       (,org-done-keyword-0    . "gray30")
-       (,org-done-keyword-1    . "dark gray")
-       (,org-done-keyword-2    . "sea green")))
-    (customize-set-variable 'org-log-into-drawer t)
-    (customize-set-variable 'org-log-states-order-reversed t)
-    (customize-set-variable 'org-log-note-clock-out nil)
-    (customize-set-variable 'org-log-done 'time)
-    (customize-set-variable 'org-log-refile 'time)
-    (customize-set-variable 'org-log-reschedule 'time)
-    (customize-set-variable 'org-log-redeadline 'time)
-    (customize-set-variable 'org-closed-keep-when-no-todo nil)
     (add-hook 'org-after-todo-state-change-hook
               #'my/org-remove-priority-if-done)
     (add-hook 'org-after-todo-state-change-hook
@@ -3541,15 +3588,14 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (add-hook 'org-after-todo-state-change-hook
               #'my/org-close-project))
 
-  ;;;###autoload
   (defun my/org-remove-priority-if-done ()
     "Remove priority if todo state of the entry at point has changed to `org-done-keywords'."
     (when (and
            ;; the entry has one of org-done-keywords
            (string-match-p
-            (eval `(rx (or ,org-done-keyword-0
-                           ,org-done-keyword-1
-                           ,org-done-keyword-2)))
+            (eval `(rx (or ,my/org-done-keyword--done
+                           ,my/org-done-keyword--cancel
+                           ,my/org-done-keyword--pending)))
             org-state)
            ;; the entry has been set any priority
            (/= 21000 (save-excursion
@@ -3561,7 +3607,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
   (defun my/org-remove-done-if-nonrepeated-habit ()
     "Reset todo state of the entry at point if it is habit without repeats."
-    (when (and (string-match-p org-done-keyword-0
+    (when (and (string-match-p my/org-done-keyword--done
                                org-state)
                (org-is-habit-p)
                (not (org-get-scheduled-time (point))))
@@ -3572,48 +3618,109 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
   If the project entry has BLOCKER property, Ord EDNA prohibit the entry to close."
     (when (member org-state
-                  `(,org-done-keyword-0 ,org-done-keyword-1 ,org-done-keyword-2))
+                  `(,my/org-done-keyword--done ,my/org-done-keyword--cancel ,my/org-done-keyword--pending))
       (save-excursion
         (org-back-to-heading t)
         (org-speed-move-safe 'outline-up-heading)
         (and (member my/org-project-tag (org-get-tags))
-             (org-todo org-done-keyword-0)))))
+             (org-todo my/org-done-keyword--done)))))
 #+end_src
 
 ****** Org Structure
 
 #+begin_src emacs-lisp
+  (customize-set-variable 'org-startup-indented t)
+  (customize-set-variable 'org-bookmark-names-plist nil)
+  (customize-set-variable 'org-M-RET-may-split-line '((default . nil)))
+
   (use-package org-indent
-    :after org
-    :bind ("C-o TAB" . org-indent-mode)
+    :bind (:map org-mode-map
+                ("C-o TAB" . org-indent-mode))
     :hook (org-mode . org-indent-mode))
 
-  (with-eval-after-load 'org
-    (customize-set-variable 'org-startup-indented t)
-    (customize-set-variable 'org-bookmark-names-plist nil)
-    (customize-set-variable 'org-M-RET-may-split-line '((default . nil))))
+  ;; org speed command settings
+  (customize-set-variable 'org-use-speed-commands
+                          (lambda () (and (looking-at org-outline-regexp) (looking-back "^\**"))))
+  (customize-set-variable
+   'org-speed-commands
+   '(("Outline Navigation")
+     ("n" . (org-speed-move-safe 'org-next-visible-heading))
+     ("p" . (org-speed-move-safe 'org-previous-visible-heading))
+     ("f" . (org-speed-move-safe 'org-forward-heading-same-level))
+     ("b" . (org-speed-move-safe 'org-backward-heading-same-level))
+     ("F" . org-next-block)
+     ("B" . org-previous-block)
+     ("u" . (org-speed-move-safe 'outline-up-heading))
+     ("j" . org-goto)
+     ("g" . (org-refile t))
+     ("Outline Visibility")
+     ("c" . org-ctrl-c-tab)
+     ("C" . org-shifttab)
+     (" " . org-display-outline-path)
+     ("N" . my/toggle-narrow-dwim)
+     ("z" . org-toggle-narrow-to-subtree)
+     ("=" . org-columns)
+     ("/" . org-sparse-tree)
+     ("Outline Structure Editing")
+     ("U" . org-metaup)
+     ("D" . org-metadown)
+     ("r" . org-metaright)
+     ("l" . org-metaleft)
+     ("R" . org-shiftmetaright)
+     ("L" . org-shiftmetaleft)
+     ("i" . (progn (forward-char 1) (call-interactively 'org-insert-heading-respect-content)))
+     ("^" . org-sort)
+     ("w" . org-refile)
+     ("a" . org-archive-subtree-default-with-confirmation)
+     ("@" . org-mark-subtree)
+     ("#" . org-toggle-comment)
+     ("x" . org-expiry-process-entry)
+     ("Clock Commands")
+     ("I" . org-clock-in)
+     ("O" . (lambda ()
+              (interactive)
+              (let ((org-clock-out-remove-zero-time-clocks nil))
+                (org-clock-out nil t))))
+     ("X" . org-clock-cancel)
+     ("Meta Data Editing")
+     ("t" . org-todo)
+     ("," . (org-priority))
+     ("0" . (org-priority ?\ ))
+     (":" . org-set-tags-command)
+     ("P" . org-set-property)
+     ("e" . org-set-effort)
+     ("E" . org-inc-effort)
+     ("s" . org-schedule)
+     ("d" . org-deadline)
+     ("v" . org-property-copy-as-kill)
+     ("W" . (lambda (m) (interactive "sMinutes before warning: ") (org-entry-put (point) "APPT_WARNTIME" m)))
+     ("Org Capture")
+     ("Misc")
+     ("$" . org-archive-subtree)
+     ("!" . org-readable)
+     ("o" . org-open-at-point)
+     ("M" . org-send-email)
+     ("?" . org-speed-command-help)
+     ("<" . (org-agenda-set-restriction-lock 'subtree))
+     (">" . (org-agenda-remove-restriction-lock))))
 #+end_src
 
 ******* Org Edit Structure
 
 #+begin_src emacs-lisp
-  (use-package org
-    :custom
-    (org-edit-src-auto-save-idle-delay 30)
-    (org-adapt-indentation nil)
-    (org-special-ctrl-a/e t)
-    (org-catch-invisible-edits 'smart)
-    :config
+  (customize-set-variable 'org-special-ctrl-a/e t)
+  (customize-set-variable 'org-src-window-setup 'current-window)
+  (customize-set-variable 'org-edit-src-auto-save-idle-delay 30)
+
+  (with-eval-after-load 'org
     (add-to-list 'org-structure-template-alist (cons "sh" "src shell"))
     (add-to-list 'org-structure-template-alist (cons "tx" "src text"))
     (add-to-list 'org-structure-template-alist (cons "el" "src emacs-lisp"))
     (add-to-list 'org-structure-template-alist (cons "py" "src python")))
 
-  (use-package org-src
-    :after org
-    :custom
-    (org-src-window-setup 'current-window)
-    :config
+  (with-eval-after-load 'org-src
+    (add-to-list 'org-src-lang-modes
+                 '("dot" . graphviz-dot))
     (advice-add #'org-edit-src-save
                 :before
                 (lambda ()
@@ -3624,45 +3731,41 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ******* Org Plain lists
 
 #+begin_src emacs-lisp
-  (use-package org-list
-    :after org
-    :custom
-    (org-list-demote-modify-bullet '(("-" . "+") ("+" . "-") ("*" . "-")
-                                     ("1." . "1)") ("1)" . "1.") ("*" . "1.")))
-    (org-cycle-include-plain-lists 'integrate)
-    (org-list-use-circular-motion t)
-    (org-list-allow-alphabetical t))
+  (customize-set-variable 'org-list-demote-modify-bullet
+                          '(("-" . "+") ("+" . "-") ("*" . "-")
+                            ("1." . "1)") ("1)" . "1.") ("*" . "1.")))
+  (customize-set-variable 'org-cycle-include-plain-lists 'integrate)
+  (customize-set-variable 'org-list-use-circular-motion t)
+  (customize-set-variable 'org-list-allow-alphabetical t)
 #+end_src
 
 ******* Org Archive
 
 #+begin_src emacs-lisp
-  (with-eval-after-load 'org
-    (require 'org-archive)
-    (customize-set-variable 'org-archive-default-command 'org-archive-set-tag)
-    (customize-set-variable 'org-cycle-open-archived-trees t))
+  (customize-set-variable 'org-archive-default-command 'org-toggle-archive-tag)
+  (customize-set-variable 'org-cycle-open-archived-trees t)
 
-  (advice-add #'org-archive-subtree :around
-              #'my/org-archive-subtree--iso-datetree)
+  (with-eval-after-load 'org-archive
+    (advice-add #'org-archive-subtree :around
+                #'my/org-archive-subtree--iso-datetree))
 
-  ;;;###autoload
   (defun my/org-archive-subtree--iso-datetree (oldfun &rest r)
     "Move the current subtree to the archive.
 
   If archiving location is datetree, it supposed to be iso week tree."
     (interactive)
     (when (member (org-get-todo-state)
-                  `(,org-warning-keyword-0 ,org-todo-keyword-0 ,org-todo-keyword-1 ,org-todo-keyword-2))
-      (org-todo org-done-keyword-1))
+                  `(,my/org-todo-keyword--urgent ,my/org-todo-keyword--todo ,my/org-todo-keyword--next ,my/org-todo-keyword--in-action))
+      (org-todo my/org-done-keyword--cancel))
     (when (string= (org-get-todo-state)
-                   org-todo-keyword-4)
+                   my/org-todo-keyword--someday)
       (org-toggle-tag "review" 'on))
     (let* ((todo-state (org-get-todo-state))
            (closed-time (org-entry-get nil "CLOSED" t))
            (org-archive-location
             (cond
              ((member todo-state
-                      `(nil ,org-done-keyword-0 ,org-done-keyword-1))
+                      `(nil ,my/org-done-keyword--done ,my/org-done-keyword--cancel))
               (format "%s::datetree/"
                       (file-name-concat org-directory "archive"
                                         (format "archive_%s.org"
@@ -3672,7 +3775,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                                           (substring closed-time 1 -1)))
                                                   (format-time-string "%Y"))))))
              ((member todo-state
-                      `(,org-todo-keyword-4 ,org-done-keyword-2))
+                      `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
               (format "%s::* suspended tasks"
                       (file-name-concat org-directory "archive" "suspended.org"))))))
       (when (stringp org-archive-location)
@@ -3730,18 +3833,19 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-inlinetask
-    :after org
+    :commands (org-inlinetask-insert-task
+               org-inlinetask-promote
+               org-inlinetask-demote)
     :custom
-    (org-inlinetask-default-state org-todo-keyword-0)
+    (org-inlinetask-default-state my/org-todo-keyword--todo)
     (org-inlinetask-min-level 10))
 #+end_src
+
 ****** Org Tags
 
 #+begin_src emacs-lisp
   (customize-set-variable 'org-use-tag-inheritance "ARCHIVE")
   (customize-set-variable 'org-tags-column -57)
-
-  (defvar my/org-project-tag "project" "A tag for projects")
 #+end_src
 
 ****** Org Properties
@@ -3758,19 +3862,18 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org Refile
 
 #+begin_src emacs-lisp
-  (use-package org-refile
-    :after org
-    :hook (org-after-refile-insert . my/org-archive-suspended-task)
-    :custom
-    (org-refile-targets
-     `((org-agenda-files :tag . ,my/org-project-tag)
-       (,(directory-files-recursively org-directory "\\.org$") :tag . "refile"))))
+  (with-eval-after-load 'org-refile
+    (customize-set-variable 'org-refile-targets
+                            `((org-agenda-files :tag . ,my/org-project-tag)
+                              (,(directory-files-recursively org-directory "\\.org$") :tag . "refile")))
+    (add-hook 'org-after-refile-insert-hook
+              #'my/org-archive-suspended-task))
 
   (defun my/org-archive-suspended-task ()
     "Archive this entry to the file for suspended tasks if the TODO state fits the bill."
     (interactive)
     (when (member (org-entry-get nil "TODO")
-                  `(,org-todo-keyword-4 ,org-done-keyword-2))
+                  `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
       (org-archive-subtree)))
 #+end_src
 ****** Org Time
@@ -3790,7 +3893,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-habit
     :after org
-    :defer t
     :custom
     (org-habit-graph-column 32)
     (org-habit-preceding-days 14)
@@ -3803,10 +3905,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-clock
     :after org
-    :bind (("C-o j" . org-clock-goto)
-           ("C-o I" . org-clock-in)
-           ("C-o O" . org-clock-out)
-           ("C-o X" . org-clock-cancel))
     :custom
     (org-clock-into-drawer "CLOCK")
     (org-clock-out-when-done t)
@@ -3818,19 +3916,21 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-clock-ask-before-exiting nil)
     (org-clock-out-remove-zero-time-clocks t)
     :config
-    (org-clock-persistence-insinuate))
+    (org-clock-persistence-insinuate)
+    (bind-keys ("C-o j" . org-clock-goto)
+               ("C-o I" . org-clock-in)
+               ("C-o O" . org-clock-out)
+               ("C-o X" . org-clock-cancel)))
 #+end_src
 
 ****** Org Appearance
 
 #+begin_src emacs-lisp
-  (use-package org
-    :custom
-    (org-hide-leading-stars t)
-    (org-hide-emphasis-markers t)
-    (org-pretty-entities t)
-    (org-image-actual-width 100)
-    (org-display-remote-inline-images 'cache))
+  (customize-set-variable 'org-hide-leading-stars t)
+  (customize-set-variable 'org-hide-emphasis-markers t)
+  (customize-set-variable 'org-pretty-entities t)
+  (customize-set-variable 'org-image-actual-width 100)
+  (customize-set-variable 'org-display-remote-inline-images 'cache)
 #+end_src
 
 ****** Babel
@@ -3840,67 +3940,58 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package ob-core
-    :after org
-    :custom
-    (org-confirm-babel-evaluate nil)
-    (org-babel-load-languages
-     '((C        . t)
-       (java     . t)
-       (R        . t)
-       (shell    . t)
-       (ruby     . t)
-       (python   . t)
-       (scheme   . t)
-       (org      . t)
-       (lua      . t)
-       (ledger   . t)
-       (gnuplot  . t)
-       (dot      . t)
-       (plantuml . t)
-       (lilypond . t)))
-    (org-babel-python-command (executable-find "python3"))
-    (org-babel-ruby-command (executable-find "ruby"))
-    :config
-    (add-to-list 'org-src-lang-modes
-                 '("dot" . graphviz-dot))
-    (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
-    (cond
-     ((string= system-type "gnu/linux")
-      (customize-set-variable `org-plantuml-jar-path (expand-file-name "plantuml.jar" "~/.guix-profile/share/java")))
-     ((string= system-type "darwin")
-      (customize-set-variable 'org-plantuml-jar-path "/usr/local/Cellar/plantuml/8041/plantuml.8041.jar"))))
+  (customize-set-variable 'org-confirm-babel-evaluate nil)
+  (customize-set-variable 'org-babel-load-languages
+                          '((emacs-lisp . t)
+                            (C          . t)
+                            (java       . t)
+                            (R          . t)
+                            (shell      . t)
+                            (ruby       . t)
+                            (python     . t)
+                            (scheme     . t)
+                            (org        . t)
+                            (lua        . t)
+                            (ledger     . t)
+                            (gnuplot    . t)
+                            (dot        . t)
+                            (plantuml   . t)
+                            (lilypond   . t)))
+  (customize-set-variable 'org-babel-python-command (executable-find "python3"))
+  (customize-set-variable 'org-babel-ruby-command (executable-find "ruby"))
+  (cond
+   ((string= system-type "gnu/linux")
+    (customize-set-variable `org-plantuml-jar-path (expand-file-name "plantuml.jar" "~/.guix-profile/share/java")))
+   ((string= system-type "darwin")
+    (customize-set-variable 'org-plantuml-jar-path "/usr/local/Cellar/plantuml/8041/plantuml.8041.jar")))
+
+  (with-eval-after-load 'ob-core
+    (add-hook 'org-babel-after-execute-hook 'org-display-inline-images))
 #+end_src
 
 ****** Org ID
 
 #+begin_src emacs-lisp
-  (use-package org-id
-    :after org
-    :custom
-    (org-id-locations-file
-     (expand-file-name ".org-id-locations" org-directory))
-    (org-id-track-globally t)
-    (org-id-link-to-org-use-id 'create-if-interactive))
+  (customize-set-variable 'org-id-track-globally t)
+  (customize-set-variable 'org-id-link-to-org-use-id 'create-if-interactive)
+  (with-eval-after-load 'org
+    (customize-set-variable 'org-id-locations-file
+                            (expand-file-name ".org-id-locations" org-directory)))
 #+end_src
 
 ****** Org Crypt
 
 #+begin_src emacs-lisp
-  (use-package org-crypt
-    :after org
-    :custom
-    (org-crypt-key user-mail-address)
-    (org-tags-exclude-from-inheritance '("crypt"))
-    :config
+  (customize-set-variable 'org-crypt-key user-mail-address)
+  (customize-set-variable 'org-tags-exclude-from-inheritance '("crypt"))
+
+  (with-eval-after-load 'org-crypt
     (org-crypt-use-before-save-magic))
 #+end_src
 
 ****** Org Attach
 
 #+begin_src emacs-lisp
-  (require 'org-attach)
-
   (customize-set-variable 'org-attach-preferred-new-method nil)
 #+end_src
 
@@ -3908,9 +3999,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package ol
-    :after org
     :bind ("C-o s" . org-store-link)
-    :defer 3
     :config
     (org-link-set-parameters "src" :follow #'org-babel-ref-resolve)
     (org-link-set-parameters
@@ -3925,10 +4014,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ******* Org Follow Link
 
 #+begin_src emacs-lisp
-  (use-package ol
-    :custom
-    (org-link-elisp-confirm-function nil)
-    :config
+  (customize-set-variable 'org-link-elisp-confirm-function nil)
+  (with-eval-after-load 'ol
     (setf (alist-get 'file org-link-frame-setup) 'find-file))
 #+end_src
 
@@ -3938,8 +4025,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package ox
-    :defer t
-    :after org
+    :commands org-export-dispatch
     :custom
     (org-export-with-smart-quotes t)
     (org-export-with-emphasize t)
@@ -3981,8 +4067,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package ox-html
-    :defer t
-    :after ox
+    :commands (org-html-export-as-html
+               org-html-export-to-html)
     :custom
     (org-html-preamble t)
     (org-html-postamble 'auto)
@@ -3995,8 +4081,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package ox-latex
-    :defer t
-    :after ox
+    :commands (org-latex-export-as-latex
+               org-latex-export-to-latex
+               org-latex-export-to-pdf)
     :custom
     (org-latex-pdf-process '("platex %f"
                              "platex %f"
@@ -4022,7 +4109,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))))
 #+end_src
 
-****** Org Plot
+****** Org Plot                            :ARCHIVE:
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "gnuplot"
@@ -4030,12 +4117,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   "emacs-mkmcc-gnuplot-mode"
 #+end_src
 
-#+begin_src emacs-lisp
-  (use-package org-plot
-    :after org)
-#+end_src
-
-***** external packages for org
+***** org external packages
+:PROPERTIES:
+:CREATED:  [2023-01-24 Tue 16:07]
+:END:
 ****** org-edna
 :PROPERTIES:
 :CREATED:  [2022-10-24 Mon 15:28]
@@ -4048,23 +4133,12 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+end_src
 
 #+begin_src emacs-lisp
-  (with-eval-after-load 'org
-    (require 'org-edna)
-    (org-edna-mode 1))
+  (use-package org-edna
+    :after org
+    :custom
+    (org-edna-mode t))
 #+end_src
 
-****** org-contacts
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-contacts"
-#+end_src
-
-#+begin_src emacs-lisp
-  (with-eval-after-load 'org
-    (require 'org-contacts)
-    (customize-set-variable 'org-contacts-files
-                            `(,(file-name-concat org-directory "lists" "contacts.org.gpg"))))
-#+end_src
 ****** org-drill
 
 [[https://gitlab.com/phillord/org-drill][org-drill]] helps me to learn english words and phrases. [[https://youtu.be/SGzdFtN_NqE][This video]] introduces how I use org-drill.
@@ -4079,226 +4153,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-drill
-    :after org
-    :defer 5
+    :commands org-drill
     :custom
     (org-drill-spaced-repetition-algorithm 'sm5))
-#+end_src
-
-****** org-ql
-
-[[https://github.com/alphapapa/org-ql][Org QL]] enables me to issue queries to search org entries with either SQL-like format or plain search strings.
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-ql"
-#+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/alphapapa/org-ql/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package org-ql
-    :after org
-    :bind (("C-o q q" . org-ql-search)
-           ("C-o q v" . org-ql-view))
-    :custom
-    (org-ql-search-directories-files-recursive t)
-    :config
-    (require 'org-ql-search)
-    (org-ql-defpred (tags-expanded expanded-tags tags-x xtags) (&rest tags)
-      "Return non-nil if current heading has one or more of TAGS.
-  If TAGS contains a group tag, all tags in the group is used to match.
-  Both inherited and local tags is tested."
-      :normalizers ((`(,predicate-names . ,tags)
-                     `(tags-expanded ,@tags)))
-      :body (apply #'org-ql--predicate-tags
-                   (seq-uniq (--mapcat (org-tags-expand it t)
-                                       tags))))
-    (org-ql-defpred (category-inherited) (&rest categories)
-      "Return non-nil if current heading has CATEGORY.
-  Ancestors are looked up If current heading has no CATEGORY."
-      :body (when-let ((category (or (org-get-category (point))
-                                     (org-entry-get (point) "CATEGORY" t))))
-              (cl-typecase categories
-                (null t)
-                (otherwise (member category categories)))))
-    (with-eval-after-load 'org-expiry
-      (org-ql-defpred expired ()
-        "Return non-nil if the entry is expired."
-        :body (org-expiry-expired-p))))
-#+end_src
-
-****** org-ml                              :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2022-12-23 Fri 20:02]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/ndwarshuis/org-ml/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-  (use-package org-ml
-    :after org)
-#+end_src
-
-****** org-roam
-org-roam v2
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-roam"
-  "emacs-emacsql-sqlite3"
-#+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/org-roam/org-roam/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package org-roam
-    :disabled t
-    :after org
-    :bind (("C-c n l" . org-roam-buffer-toggle)
-           ("C-c n f" . org-roam-node-find)
-           ("C-c n i" . org-roam-node-insert)
-           ("C-c n S" . org-roam-db-sync))
-    :custom
-    (org-roam-directory org-directory)
-    (org-roam-db-location (file-name-concat user-emacs-directory "org-roam.db"))
-    (org-roam-database-connector 'sqlite3)
-    (org-roam-db-update-on-save nil)
-    (org-roam-db-extra-links-exclude-keys
-     '((node-property "ROAM_REFS")
-       (node-property "PARENT")
-       (keyword "transclude")))
-    :config
-    (setq org-roam-mode-sections
-          (list #'org-roam-backlinks-section
-                #'org-roam-reflinks-section
-                #'org-roam-unlinked-references-section)))
-#+end_src
-****** org-mime
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-mime"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package org-mime
-    :after org
-    :defer 5
-    :config
-    (push '("Send An Email") org-speed-commands))
-#+end_src
-
-****** org-web-tools
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-web-tools"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package org-web-tools
-    :after org
-    :bind (("C-c C-;" . org-web-tools-insert-link-for-url)))
-#+end_src
-
-****** org-volume                          :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2022-12-23 Fri 21:59]
-:END:
-
-[[https://github.com/akirak/org-volume][org-volume]] can be used to insert book information in dynamic block.
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/akirak/org-volume/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-  (use-package org-volume
-    :straight (org-volume
-               :host github
-               :repo "akirak/org-volume"
-               :branch "master"))
-#+end_src
-
-****** org-clock-convenience
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/dfeich/org-clock-convenience/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package org-clock-convenience
-    :ensure t
-    :after (org)
-    :bind (:map org-agenda-mode-map
-                ("@"   . org-clock-convenience-fill-gap)
-                ("C-@" . org-clock-convenience-fill-gap-both)))
-#+end_src
-
-****** org-reveal
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-reveal"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package ox-reveal
-    :after ox)
-#+end_src
-
-****** org-expiry
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-contrib"
-#+end_src
-
-#+begin_src emacs-lisp
-  (require 'org-expiry)
-
-  (customize-set-variable 'org-expiry-inactive-timestamps t)
-  (customize-set-variable 'org-expiry-handler-function
-                          'org-expiry-archive-subtree)
-
-  (add-hook 'org-capture-prepare-finalize-hook
-            #'org-expiry-insert-created)
-
-  (org-expiry-insinuate)
-#+end_src
-
-****** ob-async
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-ob-async"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package ob-async
-    :after ob-core)
-#+end_src
-****** ob-lilypond
-
-#+begin_src emacs-lisp
-  (use-package ob-lilypond
-    :after (org lilypond-mode)
-    :custom
-    ;; (org-babel-lilypond-commands '("lilypond" "firefox" "fluidsynth -a alsa -m alsa_seq -l"))
-    (org-babel-lilypond-commands '("lilypond" "firefox" "xdg-open"))
-    (org-babel-lilypond-arrange-mode t))
-#+end_src
-
-****** ox-hugo
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-ox-hugo"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package ox-hugo
-    :defer t
-    :after ox)
 #+end_src
 
 ***** utility functions for org
@@ -4527,101 +4384,238 @@ org-roam v2
       (org-add-log-setup 'state new-heading old-heading 'state)))
 #+end_src
 
-***** keybindings for org
+**** Old Org-mode
+:PROPERTIES:
+:header-args+: :tangle no
+:END:
 
-speed commands and hydra-org.
+***** external packages for org
+****** org-contacts
 
-#+begin_src emacs-lisp
-  (use-package org-keys
-    :after org
-    :custom
-    (org-use-speed-commands
-     (lambda () (and (looking-at org-outline-regexp) (looking-back "^\**"))))
-    (org-speed-commands
-     '(("Outline Navigation")
-       ("n" . (org-speed-move-safe 'org-next-visible-heading))
-       ("p" . (org-speed-move-safe 'org-previous-visible-heading))
-       ("f" . (org-speed-move-safe 'org-forward-heading-same-level))
-       ("b" . (org-speed-move-safe 'org-backward-heading-same-level))
-       ("F" . org-next-block)
-       ("B" . org-previous-block)
-       ("u" . (org-speed-move-safe 'outline-up-heading))
-       ("j" . org-goto)
-       ("g" . (org-refile t))
-       ("Outline Visibility")
-       ("c" . org-ctrl-c-tab)
-       ("C" . org-shifttab)
-       (" " . org-display-outline-path)
-       ("N" . my/toggle-narrow-dwim)
-       ("z" . org-toggle-narrow-to-subtree)
-       ("=" . org-columns)
-       ("/" . org-sparse-tree)
-       ("Outline Structure Editing")
-       ("U" . org-metaup)
-       ("D" . org-metadown)
-       ("r" . org-metaright)
-       ("l" . org-metaleft)
-       ("R" . org-shiftmetaright)
-       ("L" . org-shiftmetaleft)
-       ("i" . (progn (forward-char 1) (call-interactively 'org-insert-heading-respect-content)))
-       ("^" . org-sort)
-       ("w" . org-refile)
-       ("a" . org-archive-subtree-default-with-confirmation)
-       ("@" . org-mark-subtree)
-       ("#" . org-toggle-comment)
-       ("x" . org-expiry-process-entry)
-       ("Clock Commands")
-       ("I" . org-clock-in)
-       ("O" . (lambda ()
-                (interactive)
-                (let ((org-clock-out-remove-zero-time-clocks nil))
-                  (org-clock-out nil t))))
-       ("X" . org-clock-cancel)
-       ("Meta Data Editing")
-       ("t" . org-todo)
-       ("," . (org-priority))
-       ("0" . (org-priority ?\ ))
-       (":" . org-set-tags-command)
-       ("P" . org-set-property)
-       ("e" . org-set-effort)
-       ("E" . org-inc-effort)
-       ("s" . org-schedule)
-       ("d" . org-deadline)
-       ("v" . org-property-copy-as-kill)
-       ("W" . (lambda (m) (interactive "sMinutes before warning: ") (org-entry-put (point) "APPT_WARNTIME" m)))
-       ("Org Capture")
-       ("Misc")
-       ("$" . org-archive-subtree)
-       ("!" . org-readable)
-       ("o" . org-open-at-point)
-       ("M" . org-send-email)
-       ("?" . org-speed-command-help)
-       ("<" . (org-agenda-set-restriction-lock 'subtree))
-       (">" . (org-agenda-remove-restriction-lock)))))
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-contacts"
 #+end_src
 
-****** org mode map
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org
+    (require 'org-contacts)
+    (customize-set-variable 'org-contacts-files
+                            `(,(file-name-concat org-directory "lists" "contacts.org.gpg"))))
+#+end_src
+****** org-ql
+
+[[https://github.com/alphapapa/org-ql][Org QL]] enables me to issue queries to search org entries with either SQL-like format or plain search strings.
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-ql"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/alphapapa/org-ql/releases.atom" soft_update)
+#+end_src
 
 #+begin_src emacs-lisp
-  (let ((map org-mode-map))
-    (define-key map (kbd "C-j") #'org-return)
-    (define-key map (kbd "C-M-j") #'org-return-indent)
-    (define-key map (kbd "M-j") #'org-meta-return)
-    (define-key map (kbd "C-S-p") #'org-previous-item)
-    (define-key map (kbd "C-S-n") #'org-next-item)
-    (define-key map (kbd "C-S-u") #'org-up-element)
-    (define-key map (kbd "C-$") #'org-down-element)
-    (define-key map (kbd "C-<") #'org-previous-link)
-    (define-key map (kbd "C->") #'org-next-link)
-    (define-key map (kbd "C-c @") #'org-mark-element)
-    (define-key map (kbd "C-c C-SPC") #'org-mark-subtree)
-    (define-key map (kbd "C-c D v") #'my/org-download-video-link-at-point)
-    (define-key map (kbd "C-c D a") #'my/org-download-audio-link-at-point)
-    (define-key map (kbd "C-c D =") #'my/org-show-media-duration-at-point)
-    (define-key map (kbd "C-c !") #'org-readable)
-    (define-key map (kbd "C-c C-a") nil)
-    (define-key map (kbd "C-,") nil)
-    (define-key map (kbd "M-h") nil))
+  (use-package org-ql
+    :after org
+    :bind (("C-o q q" . org-ql-search)
+           ("C-o q v" . org-ql-view))
+    :custom
+    (org-ql-search-directories-files-recursive t)
+    :config
+    (require 'org-ql-search)
+    (org-ql-defpred (tags-expanded expanded-tags tags-x xtags) (&rest tags)
+      "Return non-nil if current heading has one or more of TAGS.
+  If TAGS contains a group tag, all tags in the group is used to match.
+  Both inherited and local tags is tested."
+      :normalizers ((`(,predicate-names . ,tags)
+                     `(tags-expanded ,@tags)))
+      :body (apply #'org-ql--predicate-tags
+                   (seq-uniq (--mapcat (org-tags-expand it t)
+                                       tags))))
+    (org-ql-defpred (category-inherited) (&rest categories)
+      "Return non-nil if current heading has CATEGORY.
+  Ancestors are looked up If current heading has no CATEGORY."
+      :body (when-let ((category (or (org-get-category (point))
+                                     (org-entry-get (point) "CATEGORY" t))))
+              (cl-typecase categories
+                (null t)
+                (otherwise (member category categories)))))
+    (with-eval-after-load 'org-expiry
+      (org-ql-defpred expired ()
+        "Return non-nil if the entry is expired."
+        :body (org-expiry-expired-p))))
+#+end_src
+
+****** org-ml                              :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-12-23 Fri 20:02]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/ndwarshuis/org-ml/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (use-package org-ml
+    :after org)
+#+end_src
+
+****** org-roam
+org-roam v2
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-roam"
+  "emacs-emacsql-sqlite3"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/org-roam/org-roam/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package org-roam
+    :disabled t
+    :after org
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n i" . org-roam-node-insert)
+           ("C-c n S" . org-roam-db-sync))
+    :custom
+    (org-roam-directory org-directory)
+    (org-roam-db-location (file-name-concat user-emacs-directory "org-roam.db"))
+    (org-roam-database-connector 'sqlite3)
+    (org-roam-db-update-on-save nil)
+    (org-roam-db-extra-links-exclude-keys
+     '((node-property "ROAM_REFS")
+       (node-property "PARENT")
+       (keyword "transclude")))
+    :config
+    (setq org-roam-mode-sections
+          (list #'org-roam-backlinks-section
+                #'org-roam-reflinks-section
+                #'org-roam-unlinked-references-section)))
+#+end_src
+****** org-mime
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-mime"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package org-mime
+    :after org
+    :defer 5
+    :config
+    (push '("Send An Email") org-speed-commands))
+#+end_src
+
+****** org-web-tools
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-web-tools"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package org-web-tools
+    :after org
+    :bind (("C-c C-;" . org-web-tools-insert-link-for-url)))
+#+end_src
+
+****** org-volume                          :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-12-23 Fri 21:59]
+:END:
+
+[[https://github.com/akirak/org-volume][org-volume]] can be used to insert book information in dynamic block.
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/akirak/org-volume/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (use-package org-volume
+    :straight (org-volume
+               :host github
+               :repo "akirak/org-volume"
+               :branch "master"))
+#+end_src
+
+****** org-clock-convenience
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/dfeich/org-clock-convenience/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package org-clock-convenience
+    :ensure t
+    :after (org)
+    :bind (:map org-agenda-mode-map
+                ("@"   . org-clock-convenience-fill-gap)
+                ("C-@" . org-clock-convenience-fill-gap-both)))
+#+end_src
+
+****** org-reveal
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-reveal"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package ox-reveal
+    :after ox)
+#+end_src
+
+****** org-expiry
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-contrib"
+#+end_src
+
+#+begin_src emacs-lisp
+  (require 'org-expiry)
+
+  (customize-set-variable 'org-expiry-inactive-timestamps t)
+  (customize-set-variable 'org-expiry-handler-function
+                          'org-expiry-archive-subtree)
+
+  (add-hook 'org-capture-prepare-finalize-hook
+            #'org-expiry-insert-created)
+
+  (org-expiry-insinuate)
+#+end_src
+
+****** ob-async
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-ob-async"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package ob-async
+    :after ob-core)
+#+end_src
+****** ob-lilypond
+
+#+begin_src emacs-lisp
+  (use-package ob-lilypond
+    :after (org lilypond-mode)
+    :custom
+    ;; (org-babel-lilypond-commands '("lilypond" "firefox" "fluidsynth -a alsa -m alsa_seq -l"))
+    (org-babel-lilypond-commands '("lilypond" "firefox" "xdg-open"))
+    (org-babel-lilypond-arrange-mode t))
+#+end_src
+
+****** ox-hugo
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-ox-hugo"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package ox-hugo
+    :defer t
+    :after ox)
 #+end_src
 
 **** Completion framework
@@ -4656,46 +4650,45 @@ speed commands and hydra-org.
 
 #+begin_src emacs-lisp :noweb tangle
   (use-package consult
-    :after vertico
-    :bind
-    (:map global-map
-          ("C-;" . consult-buffer)
-          ("C-c m" . consult-mode-command)
-          ("C-c r" . consult-recent-file)
-          ("C-c g" . consult-outline)
-          ("C-x M-:" . consult-complex-command)
-          ("M-y" . consult-yank-pop)
-          ("C-M-y" . consult-yank-from-kill-ring)
-          ("M-g M-g" . consult-goto-line)
-          ("M-g m" . consult-mark)
-          ("M-g M" . consult-global-mark)
-          ("M-g i" . consult-imenu)
-          ("M-g I" . consult-imenu-multi)
-          ("M-s e" . consult-isearch)
-          ("M-s \\" . consult-locate)
-          ("M-s g" . consult-grep)
-          ("M-s G" . consult-git-grep)
-          ("M-s r" . consult-ripgrep)
-          ("M-s l" . consult-line)
-          ("M-s L" . consult-line-multi)
-          ("M-s m" . consult-multi-occur)
-          ("M-s k" . consult-keep-lines)
-          ("M-s u" . consult-focus-lines)
-          ("C-o g" . consult-org-agenda)
-          :map isearch-mode-map
-          ("M-n" . consult-isearch)
-          ("M-l" . consult-line)
-          ("M-L" . consult-line-multi)
-          :map minibuffer-local-map
-          ("C-M-n" . consult-history)
-          :map help-map
-          ("a" . consult-apropos)
-          :map org-mode-map
-          ("C-c h" . consult-org-heading))
+    :bind (("C-;" . consult-buffer)
+           ("C-c m" . consult-mode-command)
+           ("C-c r" . consult-recent-file)
+           ("C-c g" . consult-outline)
+           ("C-x M-:" . consult-complex-command)
+           ("M-y" . consult-yank-pop)
+           ("C-M-y" . consult-yank-from-kill-ring)
+           ("M-g M-g" . consult-goto-line)
+           ("M-g m" . consult-mark)
+           ("M-g M" . consult-global-mark)
+           ("M-g i" . consult-imenu)
+           ("M-g I" . consult-imenu-multi)
+           ("M-s e" . consult-isearch)
+           ("M-s \\" . consult-locate)
+           ("M-s g" . consult-grep)
+           ("M-s G" . consult-git-grep)
+           ("M-s r" . consult-ripgrep)
+           ("M-s l" . consult-line)
+           ("M-s L" . consult-line-multi)
+           ("M-s m" . consult-multi-occur)
+           ("M-s k" . consult-keep-lines)
+           ("M-s u" . consult-focus-lines)
+           ("C-o g" . consult-org-agenda)
+           :map isearch-mode-map
+           ("M-n" . consult-isearch)
+           ("M-l" . consult-line)
+           ("M-L" . consult-line-multi)
+           :map minibuffer-local-map
+           ("C-M-n" . consult-history)
+           :map help-map
+           ("a" . consult-apropos))
     :custom
     (consult-line-start-from-top t)
     (consult-project-root-function #'project-root-function)
-    (consult-locate-args "plocate -d <<plocate-db()>> --ignore-case --existing --regexp"))
+    (consult-locate-args "plocate -d <<plocate-db()>> --ignore-case --existing --regexp")
+    :config
+    (with-eval-after-load 'org
+      (bind-keys :map org-mode-map
+                 ("C-c h" . consult-org-heading))))
 
   (defun project-root-function ()
     (when-let (project (project-current))
@@ -6157,17 +6150,8 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
     :diminish undo-tree-mode
     :init
     (defvar undo-tree-excludes '("/gnu/store"))
-    :hook
-    ((text-mode prog-mode) .
-     (lambda ()
-       (when-let ((file-visited (or buffer-file-name
-                                    org-src-source-file-name)))
-         (unless (seq-some (lambda (exclude)
-                             (string-match-p exclude
-                                             file-visited))
-                           undo-tree-excludes)
-           (undo-tree-mode 1)))))
     :custom
+    (global-undo-tree-mode t)
     (undo-tree-enable-undo-in-region t)
     (undo-tree-auto-save-history nil)
     (undo-tree-limit 320000)
@@ -7893,7 +7877,8 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 
 ***** org-relate
 
-#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/org-relate.el")
+# #+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/org-relate.el")
+#+begin_src emacs-lisp :tangle no
   (require 'thingatpt)
   (require 'org-ql-search)
 
@@ -9014,7 +8999,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             ,(append
               (org-agenda-files)
               (list (file-name-concat org-directory "archive" "suspended.org")))
-            :query (todo ,org-todo-keyword-4)
+            :query (todo ,my/org-todo-keyword--someday)
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
             :sort (priority date))
           org-ql-views)
@@ -9023,7 +9008,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             ,(append
               (org-agenda-files)
               (list (file-name-concat org-directory "archive" "suspended.org")))
-            :query (todo ,org-todo-keyword-4)
+            :query (todo ,my/org-todo-keyword--someday)
             :sort (scheduled))
           org-ql-views)
     (push `("Pending tasks"
@@ -9031,7 +9016,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             ,(append
               (org-agenda-files)
               (list (file-name-concat org-directory "archive" "suspended.org")))
-            :query (todo ,org-done-keyword-2)
+            :query (todo ,my/org-done-keyword--pending)
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
             :sort (scheduled priority date))
           org-ql-views)
@@ -9092,7 +9077,7 @@ This section mainly for elisp code associated with some other programs.
 :CREATED:  [2023-01-06 Fri 13:43]
 :END:
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-config.el" my/user-config-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
   (use-package org-web-track
     :bind (("C-o w u" . org-web-track-update)
            ("C-o w v" . org-web-track-view)
@@ -9243,16 +9228,18 @@ My workflow for acquiring English words is:
 2. Review my English word list with my/org-english-drill everyday
    - Org-drill ask questions to level up my vocabulary
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-config.el" my/user-config-dir)
-  (use-package org-english
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
+  (use-package org-drill-english
     :bind (("C-o e e" . my/org-english-capture)
            ("C-o e d" . my/org-english-drill)
            ("C-o e D" . my/org-english-drill-resume)
            ("C-o e c" . my/cloze-deletion-replace)))
 #+end_src
 
-#+begin_src emacs-lisp  :tangle (expand-file-name "org-english.el" my/user-package-dir)
+#+begin_src emacs-lisp  :tangle (expand-file-name "org-drill-english.el" my/user-package-dir)
   (require 'define-word)
+  (require 'org)
+  (require 'cl)
 
   (defvar my/org-english-file (file-name-concat org-directory "lists" "english.org")
     "A file where all english words to learn locate.")
@@ -9426,6 +9413,7 @@ My workflow for acquiring English words is:
        (org-indent-mode 1)
        (visual-line-mode -1)))
 
+  ;;;###autoload
   (defun my/org-english-drill ()
     "Invoke Org-Drill for English word review."
     (interactive)
@@ -9496,7 +9484,7 @@ My workflow for acquiring English words is:
               (a-level t)
               (b-level nil)))))
 
-  (provide 'my/org-english)
+  (provide 'org-drill-english)
 #+end_src
 
 Call [[elisp:(call-interactively #'ert)][ERT]] with test-org-english-pron to test this code.
