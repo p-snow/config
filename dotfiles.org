@@ -4278,6 +4278,108 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :bind ("C-c C-;" . org-web-tools-insert-link-for-url))
 #+end_src
 
+****** org-volume                          :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-12-23 Fri 21:59]
+:END:
+
+[[https://github.com/akirak/org-volume][org-volume]] can be used to insert book information in dynamic block.
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/akirak/org-volume/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (use-package org-volume
+    :straight (org-volume
+               :host github
+               :repo "akirak/org-volume"
+               :branch "master"))
+#+end_src
+
+****** org-clock-convenience
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/dfeich/org-clock-convenience/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package org-clock-convenience
+    :ensure t
+    :after org
+    :config
+    (bind-keys :map org-agenda-mode-map
+               ("@"   . org-clock-convenience-fill-gap)
+               ("C-@" . org-clock-convenience-fill-gap-both)))
+#+end_src
+
+****** org-reveal
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-reveal"
+#+end_src
+
+****** org-expiry
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-contrib"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package org-expiry
+    :after org
+    :custom
+    (org-expiry-inactive-timestamps t)
+    (org-expiry-handler-function 'org-expiry-archive-subtree)
+    :config
+    (with-eval-after-load 'org-capture
+      (add-hook 'org-capture-prepare-finalize-hook
+                #'org-expiry-insert-created))
+    (org-expiry-insinuate))
+#+end_src
+
+****** ob-async                            :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-01-26 Thu 18:31]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-ob-async"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package ob-async
+    :after ob-core)
+#+end_src
+
+****** ob-lilypond                         :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-01-26 Thu 18:31]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package ob-lilypond
+    :after ob-core
+    :custom
+    ;; (org-babel-lilypond-commands '("lilypond" "firefox" "fluidsynth -a alsa -m alsa_seq -l"))
+    (org-babel-lilypond-commands '("lilypond" "firefox" "xdg-open"))
+    (org-babel-lilypond-arrange-mode t))
+#+end_src
+
+****** ox-hugo                             :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-01-26 Thu 18:33]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-ox-hugo"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package ox-hugo
+    :after ox)
+#+end_src
+
 ***** utility functions for org
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
@@ -4474,109 +4576,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
       (org-add-log-setup 'state new-heading old-heading 'state)))
 #+end_src
 
-
-**** Old Org-mode
-:PROPERTIES:
-:header-args+: :tangle no
-:END:
-
-***** external packages for org
-****** org-volume                          :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2022-12-23 Fri 21:59]
-:END:
-
-[[https://github.com/akirak/org-volume][org-volume]] can be used to insert book information in dynamic block.
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/akirak/org-volume/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-  (use-package org-volume
-    :straight (org-volume
-               :host github
-               :repo "akirak/org-volume"
-               :branch "master"))
-#+end_src
-
-****** org-clock-convenience
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/dfeich/org-clock-convenience/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package org-clock-convenience
-    :ensure t
-    :after (org)
-    :bind (:map org-agenda-mode-map
-                ("@"   . org-clock-convenience-fill-gap)
-                ("C-@" . org-clock-convenience-fill-gap-both)))
-#+end_src
-
-****** org-reveal
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-reveal"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package ox-reveal
-    :after ox)
-#+end_src
-
-****** org-expiry
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-org-contrib"
-#+end_src
-
-#+begin_src emacs-lisp
-  (require 'org-expiry)
-
-  (customize-set-variable 'org-expiry-inactive-timestamps t)
-  (customize-set-variable 'org-expiry-handler-function
-                          'org-expiry-archive-subtree)
-
-  (add-hook 'org-capture-prepare-finalize-hook
-            #'org-expiry-insert-created)
-
-  (org-expiry-insinuate)
-#+end_src
-
-****** ob-async
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-ob-async"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package ob-async
-    :after ob-core)
-#+end_src
-****** ob-lilypond
-
-#+begin_src emacs-lisp
-  (use-package ob-lilypond
-    :after (org lilypond-mode)
-    :custom
-    ;; (org-babel-lilypond-commands '("lilypond" "firefox" "fluidsynth -a alsa -m alsa_seq -l"))
-    (org-babel-lilypond-commands '("lilypond" "firefox" "xdg-open"))
-    (org-babel-lilypond-arrange-mode t))
-#+end_src
-
-****** ox-hugo
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-ox-hugo"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package ox-hugo
-    :defer t
-    :after ox)
-#+end_src
 
 **** Completion framework
 
