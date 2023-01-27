@@ -6442,7 +6442,6 @@ Major mode for manupulating password store file.
 ***** alert
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "mpg321"
   "emacs-alert"
 #+end_src
 
@@ -6459,12 +6458,6 @@ Major mode for manupulating password store file.
     (alert-add-rule :status '(buried)
                     :mode   'org-mode
                     :style  'libnotify))
-#+end_src
-
-#+begin_src shell :tangle (expand-file-name ".local/bin/volget") :tangle-mode (identity #o755)
-  #!/usr/bin/env bash
-
-  pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(($SINK + 1 )) | tail -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,'
 #+end_src
 
 ***** ts
@@ -8455,6 +8448,108 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
 :END:
+***** set timer when clock in for a task
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org-clock
+    (add-hook 'org-clock-in-prepare-hook
+              #'my/org-clock-in-set-timer))
+
+  (defun my/org-clock-in-set-timer ()
+    "Start count down timer for a clocked in entry.
+
+  If the entry has ATTENTION_SPAN property, use it for `org-timer-default-timer'.
+  Otherwise count down time is Effort property value.
+  In neither case, count down time is 25 min which is suggested in the Pomodoro-technique."
+    (let ((todo (org-get-todo-state))
+          (attention-span (org-entry-get (point) "ATTENTION_SPAN" 'selective))
+          (effort (org-entry-get (point) "Effort" 'selective)))
+      (when org-clock-clocking-in
+        (org-clock-out))
+      (cond
+       ((stringp attention-span)
+        (let ((org-timer-default-timer attention-span))
+          (org-timer-set-timer '(64))))
+       ((and (stringp effort)
+             (ts< (ts-parse effort) (ts-parse "01:40")))
+        (org-timer-set-timer '(16)))
+       (todo
+        (let ((org-timer-default-timer "25"))
+          (org-timer-set-timer '(64)))))))
+#+end_src
+
+***** notify completion of timer for a task
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "mpg321"
+#+end_src
+
+#+begin_src shell :tangle (expand-file-name ".local/bin/volget") :tangle-mode (identity #o755)
+  #!/usr/bin/env bash
+
+  pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(($SINK + 1 )) | tail -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,'
+#+end_src
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org-timer
+    (add-hook 'org-timer-done-hook
+              'my/org-task-timer-finish))
+
+  (defun my/org-task-timer-finish ()
+    "Notify task timer by appropriate means."
+    (when (and (org-clocking-p)
+               org-clock-marker)
+      (let ((alert (org-entry-get org-clock-marker
+                                  "ALERT")))
+        (and (stringp alert)
+             (string= alert "alarm")
+             (alert "Timer Done!" :style 'alarm))
+        (alert "Timer Done!" :style 'fringe :mode 'org-mode :buffer (org-clocking-buffer) :severity 'trivial))))
+
+  (defvar alarm-sound (expand-file-name "~/data/media/music/levelup.mp3"))
+
+  (with-eval-after-load 'alert
+    (alert-define-style 'alarm
+                        :title "alarm"
+                        :notifier
+                        (lambda (info)
+                          (let ((system-volume (string-trim (shell-command-to-string "volget"))))
+                            (when (not (string= system-volume "0"))
+                              (start-process-shell-command "system-alarm" nil
+                                                           (mapconcat #'shell-quote-argument
+                                                                      (list "mpg321" alarm-sound)
+                                                                      " ")))))))
+#+end_src
+
+***** jot down
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 15:32]
+:END:
+
+Memo file (memo.org) is useful for jotting down fragmented pieces of text, code and more.
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org
+    (defvar my/org-capture-scrap-file
+      (file-name-concat org-directory "sandbox/scrap.org")
+      "File for jotting down with `org-capture'.")
+    (with-eval-after-load 'org-capture
+      (add-to-list 'org-capture-templates
+                   `("j" "Jot down"
+                     entry (file ,my/org-capture-scrap-file)
+                     "* %U\n#+begin_src %^{Lnaguage|text}\n%(my/org-capture-filter-scrap \"%i\")\n#+end_src"
+                     :jump-to-captured t
+                     :immediate-finish t)
+                   t)))
+
+  (defun my/org-capture-filter-scrap (&optional str)
+    "Replace semantic representation in `org-mode' with plain string in STR."
+    (cond
+     ((stringp str)
+      (replace-regexp-in-string "^\\(*+ \\)" ",\\1" str))
+     (t "")))
+#+end_src
+
 ***** reset org element contextually
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 14:23]
@@ -8533,7 +8628,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
         (org-babel-lob-ingest org-file))))
 #+end_src
 
-***** read org subtree in browser
+***** browse org subtree
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 11:11]
 :END:
@@ -8553,9 +8648,11 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
                       user-emacs-directory)
     "A directory where generated html files are located in `my/org-subtree-view-in-browser'.")
 
-  (defun my/org-subtree-view-in-browser ()
-    "View current org subtree in default browser."
-    (interactive)
+  (defun my/org-subtree-view-in-browser (&optional arg)
+    "View current org subtree in default browser.
+
+  With `C-u' prefix ARG, try to browse in Emacs."
+    (interactive "P")
     (let* ((heading (org-get-heading t t t t))
            (org-export-show-temporary-export-buffer nil)
            (export-buf-name "*Org HTML Export*")
@@ -8564,7 +8661,11 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
            (id (org-id-get))
            (uuid (downcase (if id id (org-id-uuid))))
            (html-file (format "%s/%s.html" my/org-subtree-view-directory uuid))
-           (browse-url-browser-function 'eww-browse-url))
+           (browse-url-browser-function
+            (cond
+             ((equal arg '(16)) 'browse-url-xdg-open)
+             ((equal arg '(4)) 'browse-url-emacs)
+             (t 'eww-browse-url))))
       (org-html-export-as-html nil t nil)
       (with-current-buffer export-buf-name
         (write-file html-file))
@@ -8880,110 +8981,6 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
     (when-let ((ts-bound (org-in-regexp (org-re-timestamp 'all)))
                (ts (buffer-substring (car ts-bound) (cdr ts-bound))))
       (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil)))))
-#+end_src
-
-**** org workflows                                                  :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-01-20 Fri 10:59]
-:END:
-
-***** notification count down timer finished
-
-#+begin_src emacs-lisp
-  (require 'org-timer)
-
-  (defun my/notify-timer-completed ()
-    "docstring"
-    (when (and (org-clocking-p)
-               org-clock-marker)
-      (let ((alert (org-entry-get org-clock-marker
-                                  "ALERT")))
-        (if (and (stringp alert)
-                 (string= alert "alarm"))
-            (alert "Timer Done!" :style 'alarm)
-          (alert "Timer Done!" :style 'fringe :mode 'org-mode :buffer (org-clocking-buffer) :severity 'trivial)))))
-
-  (add-hook 'org-timer-done-hook
-            'my/notify-timer-completed)
-
-  (require 'alert)
-
-  (defvar alarm-sound (expand-file-name "~/data/media/music/levelup.mp3"))
-  (alert-define-style 'alarm
-                      :title "alarm"
-                      :notifier
-                      (lambda (info)
-                        (let ((message (plist-get info :message))
-                              (severity (plist-get info :severity))
-                              (title (plist-get info :title))
-                              (icon (plist-get info :icon))
-                              (category (plist-get info :category))
-                              (buffer (plist-get info :buffer))
-                              (mode (plist-get info :mode))
-                              (data (plist-get info :data))
-                              (style (plist-get info :style))
-                              (persistent (plist-get info :persistent))
-                              (id (plist-get info :id))
-                              (system-volume (string-trim (shell-command-to-string "volget"))))
-                          (if (string= system-volume "0")
-                              (alert message :severity severity :title title :icon icon :category category :buffer buffer :mode mode :data data :style 'fringe :persistent persistent :id id)
-                            (start-process-shell-command "system-alarm" nil
-                                                         (mapconcat #'shell-quote-argument
-                                                                    (list "mpg321" alarm-sound)
-                                                                    " "))))))
-#+end_src
-
-***** clock in/out trigger invocation
-
-#+begin_src emacs-lisp
-  (with-eval-after-load 'org
-    (require 'org-clock)
-    (add-hook 'org-clock-in-prepare-hook #'my/org-clock-in-set-timer))
-
-  (defun my/org-clock-in-set-timer ()
-    "Start count down timer for a clocked in entry.
-
-  If the entry has ATTENTION_SPAN property, use it for `org-timer-default-timer'.
-  Otherwise count down time is Effort property value.
-  In neither case, count down time is 25 min which is suggested in the Pomodoro-technique."
-    (let ((todo (org-get-todo-state))
-          (attention-span (org-entry-get (point) "ATTENTION_SPAN" 'selective))
-          (effort (org-entry-get (point) "Effort" 'selective)))
-      (when org-clock-clocking-in
-        (org-clock-out))
-      (cond
-       ((stringp attention-span)
-        (let ((org-timer-default-timer attention-span))
-          (org-timer-set-timer '(64))))
-       ((and (stringp effort)
-             (ts< (ts-parse effort) (ts-parse "01:40")))
-        (org-timer-set-timer '(16)))
-       (todo
-        (let ((org-timer-default-timer "25"))
-          (org-timer-set-timer '(64)))))))
-#+end_src
-
-***** jotting down (memo)
-
-Memo file (memo.org) is useful for jotting down fragmented pieces of text, code and more.
-
-#+begin_src emacs-lisp
-  (require 'org-capture)
-
-  (add-to-list 'org-capture-templates
-               '("m" "Memo"
-                 entry (file "~/org/sandbox/memo.org")
-                 "* %U\n#+begin_src %^{Lnaguage|text}\n%(my-org-capture-filter-memo \"%i\")\n#+end_src"
-                 :jump-to-captured t
-                 :immediate-finish t)
-               t)
-
-  (defun my-org-capture-filter-memo (&optional str)
-    "Replace semantic representation in `org-mode' with plain string in STR."
-    (cond
-     ((stringp str)
-      (replace-regexp-in-string "^\\(*+ \\)" ",\\1" str))
-     (t "")))
 #+end_src
 
 **** auxiliary emacs lisp code
