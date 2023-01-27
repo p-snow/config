@@ -3232,9 +3232,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
       (define-key map (kbd "C->") #'org-next-link)
       (define-key map (kbd "C-c @") #'org-mark-element)
       (define-key map (kbd "C-c C-SPC") #'org-mark-subtree)
-      (define-key map (kbd "C-c D v") #'my/org-download-video-link-at-point)
-      (define-key map (kbd "C-c D a") #'my/org-download-audio-link-at-point)
-      (define-key map (kbd "C-c D =") #'my/org-show-media-duration-at-point)
       (define-key map (kbd "C-c !") #'org-readable)
       (define-key map (kbd "C-c C-a") nil)
       (define-key map (kbd "C-,") nil)
@@ -3691,8 +3688,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
      ("E" . org-inc-effort)
      ("s" . org-schedule)
      ("d" . org-deadline)
-     ("v" . org-property-copy-as-kill)
-     ("W" . (lambda (m) (interactive "sMinutes before warning: ") (org-entry-put (point) "APPT_WARNTIME" m)))
      ("Org Capture")
      ("Misc")
      ("$" . org-archive-subtree)
@@ -4379,203 +4374,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (use-package ox-hugo
     :after ox)
 #+end_src
-
-***** utility functions for org
-
-#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-  d <<share-dir()>>/emacs/org-readable 0755 - - 3d
-#+end_src
-
-#+begin_src emacs-lisp
-  (defun my/org-babel-lob-ingest-batch ()
-    (interactive)
-    (mapc (lambda (dir)
-            (dolist (f (directory-files (expand-file-name dir org-directory) "\.org$"))
-              (org-babel-lob-ingest f)))
-          '("agenda" "lists" "wiki" "notes")))
-  (bind-keys ("C-o b i" . my/org-babel-lob-ingest-batch))
-
-  (defvar org-readable-directory
-    (expand-file-name "org-readable"
-                      user-emacs-directory)
-    "A directory where generated html files are located in org-readable.")
-
-  (defun org-readable ()
-    "Show current org subtree in EWW."
-    (interactive)
-    (let* ((heading (org-get-heading t t t t))
-           (org-export-show-temporary-export-buffer nil)
-           (export-buf-name "*Org HTML Export*")
-           (org-export-with-broken-links 'mark)
-           (org-export-babel-evaluate nil)
-           (id (org-id-get))
-           (uuid (downcase (if id id (org-id-uuid))))
-           (org-readable-file (format "%s/%s.html" org-readable-directory uuid)))
-      (org-html-export-as-html nil t nil)
-      (with-current-buffer export-buf-name
-        (write-file org-readable-file)
-        (eww-open-file org-readable-file))))
-
-  (defun org-property-copy-as-kill ()
-    "Prompt user to select property to append to the kill ring.
-
-  If property's value matches $(...) format, ... is interpreted as shell command and execute it."
-    (interactive)
-    (let* ((properties (org-entry-properties))
-           (prop-key-to-copy
-            (completing-read "Property name: "
-                             (mapcar #'(lambda (var) (car var)) properties))))
-      (when (stringp prop-key-to-copy)
-        (let* ((prop-value (cdr (assoc prop-key-to-copy properties)))
-               (str-to-copy
-                (cond
-                 ((string-match "$(\\(.+\\))" prop-value)
-                  (shell-command-to-string (match-string 1 prop-value)))
-                 (t prop-value))))
-          (kill-new str-to-copy)))))
-
-  (defun my/org-reset-dwim ()
-    "Exert reset procedure depending on org context at point."
-    (interactive)
-    (cond
-     ((org-at-table-p) (org-table-blank-field))
-     ((org-in-subtree-not-table-p)
-      (org-save-outline-visibility t
-        (org-reset-checkbox-state-subtree)))))
-  (bind-keys ("C-o SPC" . my/org-reset-dwim))
-
-  (defun my/org-clock-remove-old-clock-entries (n &optional min)
-    "Remove clock entries whose end is older than N weeks in current subtree.
-  Skip over dangling clock entries."
-    (interactive "nnumber of weeks: ")
-    (org-save-outline-visibility t
-      (save-excursion
-        (org-back-to-heading t)
-        (org-show-all)
-        (let ((drawer (re-search-forward org-clock-drawer-start-re (save-excursion (org-end-of-subtree)) t))
-              (case-fold-search t))
-          (when drawer
-            (let* ((min-applied min)
-                   (re org-clock-line-re)
-                   (end (save-excursion (re-search-forward org-clock-drawer-end-re (save-excursion (org-end-of-subtree)) nil)))
-                   (end-mkr (set-marker (mark-marker) end)))
-              (while (re-search-forward re (marker-position end-mkr) t)
-                (skip-chars-forward " \t\r")
-                (looking-at org-tr-regexp-both)
-                (unless (and (numberp min-applied)
-                             (natnump (setq min-applied (1- min-applied))))
-                  (when (>= (/ (time-to-number-of-days (org-time-since (match-string-no-properties 2))) 7)
-                            (float n))
-                    (kill-whole-line)))))))
-        (org-clock-remove-empty-clock-drawer))))
-
-  (defun my/org-remove-old-state-change-entries (n)
-    "Remove state change entries whose inactive timestamp is older than N weeks in current subtree.
-
-  This command remove all lines that have an old inactive timestamp regardless
-   whether it is a state change log or not."
-    (interactive "nnumber of weeks: ")
-    (org-save-outline-visibility t
-      (save-excursion
-        (org-back-to-heading t)
-        (org-show-all)
-        (let* ((drawer-end (save-excursion (re-search-forward org-logbook-drawer-re (save-excursion (org-end-of-subtree)) t)))
-               (case-fold-search t)
-               (re org-ts-regexp-inactive)
-               (end-mkr (set-marker (mark-marker) drawer-end)))
-          (goto-char (match-beginning 0))
-          (while (re-search-forward re (marker-position end-mkr) t)
-            (when (>= (/ (time-to-number-of-days (org-time-since (match-string-no-properties 0))) 7)
-                      (float n))
-              (kill-whole-line))))
-        (org-clock-remove-empty-clock-drawer))))
-
-  (defun my/org-download-video-link-at-point ()
-    "Download video file described in org link at point.
-
-  With `C-u' prefix find `my/download-video-dir' instead."
-    (interactive)
-    (cl-multiple-value-bind (url title)
-        (ignore-errors
-          (org-link-at-point-map
-           (lambda (link desc)
-             (cl-values link desc))))
-      (if (and (not current-prefix-arg)
-               url)
-          (my/download-video url title)
-        (call-interactively #'my/download-video))))
-
-  (defun my/org-download-audio-link-at-point ()
-    "Download audio file described in org link at point.
-
-  With `C-u' prefix find `my/download-audio-dir' instead."
-    (interactive)
-    (cl-multiple-value-bind (url title)
-        (ignore-errors
-          (org-link-at-point-map
-           (lambda (link desc)
-             (cl-values link desc))))
-      (if (and (not current-prefix-arg)
-               url)
-          (my/download-audio url title)
-        (call-interactively #'my/download-audio))))
-
-  (defun my/org-show-media-duration-at-point ()
-    "Show duration of media at point."
-    (interactive)
-    (org-link-at-point-map (lambda (url title)
-                             (show-media-duration url))))
-
-  (defun org-link-at-point-map (function)
-    "Call `FUNCTION' with url and title obtained from org-link at point."
-    (let* ((context (org-element-lineage
-                     (org-element-context)
-                     '(link)
-                     t))
-           (type (org-element-property :type context))
-           (path (org-element-property :path context))
-           (desc (when-let ((begin (org-element-property :contents-begin context))
-                            (end (org-element-property :contents-end context)))
-                   (buffer-substring begin end))))
-      (cond
-       ((string-match-p "https?" type)
-        (funcall function (org-link-unescape (concat type ":" path)) desc))
-       ((string-match-p "elfeed" type)
-        (save-excursion
-          (org-open-at-point)
-          (when (eq major-mode 'elfeed-show-mode)
-            (when-let ((url (or (caar (elfeed-entry-enclosures elfeed-show-entry))
-                                (elfeed-entry-link elfeed-show-entry)))
-                       (title (elfeed-entry-title elfeed-show-entry)))
-              (funcall function url title))
-            (quit-window)))))))
-
-  (defun org-display-iso-week-at-point ()
-    "Display ISO 8601 week number correspoinds to time stamp at point."
-    (interactive)
-    (let ((ts (org-timestamp-at-point)))
-      (when ts
-        (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil))))))
-
-  (defun org-timestamp-at-point ()
-    "Return time stamp string at point."
-    (let ((ts-bound (org-in-regexp (org-re-timestamp 'all))))
-      (when ts-bound
-        (buffer-substring (car ts-bound) (cdr ts-bound)))))
-
-  (defun my/org-alter-heading ()
-    "Interpolate an org heading of the entry at point."
-    (interactive)
-    (let* ((old-heading (org-get-heading t t t t))
-           (new-heading (read-string "Heading: " old-heading)))
-      (save-excursion
-        (org-back-to-heading t)
-        (replace-string old-heading new-heading nil
-                        (line-beginning-position) (line-end-position))
-        (org-align-tags))
-      (org-add-log-setup 'state new-heading old-heading 'state)))
-#+end_src
-
 
 **** Completion framework
 
@@ -6813,6 +6611,37 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
                         string)))
 #+end_src
 
+***** org link at point map
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 14:58]
+:END:
+
+#+begin_src emacs-lisp
+  (defun org-link-at-point-map (function)
+    "Call `FUNCTION' with url and title obtained from org-link at point."
+    (let* ((context (org-element-lineage
+                     (org-element-context)
+                     '(link)
+                     t))
+           (type (org-element-property :type context))
+           (path (org-element-property :path context))
+           (desc (when-let ((begin (org-element-property :contents-begin context))
+                            (end (org-element-property :contents-end context)))
+                   (buffer-substring begin end))))
+      (cond
+       ((string-match-p "https?" type)
+        (funcall function (org-link-unescape (concat type ":" path)) desc))
+       ((string-match-p "elfeed" type)
+        (save-excursion
+          (org-open-at-point)
+          (when (eq major-mode 'elfeed-show-mode)
+            (when-let ((url (or (caar (elfeed-entry-enclosures elfeed-show-entry))
+                                (elfeed-entry-link elfeed-show-entry)))
+                       (title (elfeed-entry-title elfeed-show-entry)))
+              (funcall function url title))
+            (quit-window)))))))
+#+end_src
+
 **** handy features
 :PROPERTIES:
 :CREATED:  [2023-01-20 Fri 10:59]
@@ -8626,6 +8455,196 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
 :END:
+***** reset org element contextually
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 14:23]
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org
+    (bind-keys :map org-mode-map
+               ("C-c SPC" . my/org-reset-dwim)))
+
+  (defun my/org-reset-dwim ()
+    "Exert reset procedure depending on org element at point."
+    (interactive)
+    (cond
+     ((org-at-table-p) (org-table-blank-field))
+     ((org-in-subtree-not-table-p)
+      (org-save-outline-visibility t
+        (org-reset-checkbox-state-subtree)))))
+#+end_src
+
+***** copy arbitrary org property to kill ring
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 13:52]
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org
+    (bind-keys :map org-mode-map
+               ("C-c W" . my/org-entry-kill)))
+
+  (with-eval-after-load 'org-keys
+    (add-to-list 'org-speed-commands
+                 '("W" . my/org-entry-kill)
+                 t))
+
+  (defun my/org-entry-kill ()
+    "Prompt user to select property to append to the kill ring.
+
+  If property's value matches $(...) format, ... is interpreted as shell command and execute it."
+    (interactive)
+    (let* ((properties (org-entry-properties))
+           (prop-key-to-copy
+            (completing-read "Property name: "
+                             (mapcar #'(lambda (var) (car var)) properties))))
+      (when (stringp prop-key-to-copy)
+        (let* ((prop-value (cdr (assoc prop-key-to-copy properties)))
+               (str-to-copy
+                (cond
+                 ((string-match "$(\\(.+\\))" prop-value)
+                  (shell-command-to-string (match-string 1 prop-value)))
+                 (t prop-value))))
+          (kill-new str-to-copy)))))
+#+end_src
+
+***** lob ingest all named source blocks
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 12:10]
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org
+    (bind-keys ("C-o b i" . my/org-babel-lob-ingest-all))
+
+    (defvar my/org-babel-lob-ingest-files
+      (seq-reduce (lambda (org-files dir)
+                    (append org-files
+                            (directory-files (expand-file-name dir org-directory) "\.org$")))
+                  '("agenda" "lists" "wiki" "notes")
+                  nil)
+      "A list of org files which is used in `my/org-babel-lob-ingest-all'.")
+
+    (defun my/org-babel-lob-ingest-all ()
+      "Add all named soruce blocks in cpecified files."
+      (interactive)
+      (dolist (org-file my/org-babel-lob-ingest-files)
+        (org-babel-lob-ingest org-file))))
+#+end_src
+
+***** read org subtree in browser
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 11:11]
+:END:
+
+# #+header: :var
+#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+  d <<share-dir()>>/emacs/org-subtree-view 0755 - - 3d
+#+end_src
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org
+    (bind-keys :map org-mode-map
+               ("C-c C-!" . my/org-subtree-view-in-browser)))
+
+  (defvar my/org-subtree-view-directory
+    (expand-file-name "org-subtree-view"
+                      user-emacs-directory)
+    "A directory where generated html files are located in `my/org-subtree-view-in-browser'.")
+
+  (defun my/org-subtree-view-in-browser ()
+    "View current org subtree in default browser."
+    (interactive)
+    (let* ((heading (org-get-heading t t t t))
+           (org-export-show-temporary-export-buffer nil)
+           (export-buf-name "*Org HTML Export*")
+           (org-export-with-broken-links 'mark)
+           (org-export-babel-evaluate nil)
+           (id (org-id-get))
+           (uuid (downcase (if id id (org-id-uuid))))
+           (html-file (format "%s/%s.html" my/org-subtree-view-directory uuid))
+           (browse-url-browser-function 'eww-browse-url))
+      (org-html-export-as-html nil t nil)
+      (with-current-buffer export-buf-name
+        (write-file html-file))
+      (browse-url-of-file html-file)))
+#+end_src
+
+***** alter org heading
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 10:55]
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org
+    (bind-keys :map org-mode-map
+               ("C-c C-% h" . my/org-replace-heading)))
+
+  (defun my/org-replace-heading ()
+    "Replace a heading string of the org entry at point.
+
+  Replacement info with new and old heading will be described in logbook."
+    (interactive)
+    (let* ((old-heading (org-get-heading t t t t))
+           (new-heading (read-string "Heading: " old-heading)))
+      (save-excursion
+        (org-back-to-heading t)
+        (replace-string old-heading new-heading nil
+                        (line-beginning-position) (line-end-position))
+        (org-align-tags))
+      (org-add-log-setup 'state new-heading old-heading 'state)))
+#+end_src
+
+***** download media files in org
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 10:43]
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org
+    (bind-keys :map org-mode-map
+               ("C-c D v" . my/org-download-video-link-at-point)
+               ("C-c D a" . my/org-download-audio-link-at-point)
+               ("C-c D =" . my/org-show-media-duration-at-point)))
+
+  (defun my/org-download-video-link-at-point ()
+    "Download video file described in org link at point.
+
+  With `C-u' prefix find `my/download-video-dir' instead."
+    (interactive)
+    (cl-multiple-value-bind (url title)
+        (ignore-errors
+          (org-link-at-point-map
+           (lambda (link desc)
+             (cl-values link desc))))
+      (if (and (not current-prefix-arg)
+               url)
+          (my/download-video url title)
+        (call-interactively #'my/download-video))))
+
+  (defun my/org-download-audio-link-at-point ()
+    "Download audio file described in org link at point.
+
+  With `C-u' prefix find `my/download-audio-dir' instead."
+    (interactive)
+    (cl-multiple-value-bind (url title)
+        (ignore-errors
+          (org-link-at-point-map
+           (lambda (link desc)
+             (cl-values link desc))))
+      (if (and (not current-prefix-arg)
+               url)
+          (my/download-audio url title)
+        (call-interactively #'my/download-audio))))
+
+  (defun my/org-show-media-duration-at-point ()
+    "Show duration of media at point."
+    (interactive)
+    (org-link-at-point-map (lambda (url title)
+                             (show-media-duration url))))
+#+end_src
+
 ***** manage subordinate tasks
 :PROPERTIES:
 :CREATED:  [2022-12-12 Mon 09:14]
@@ -8729,7 +8748,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
       (org-archive-subtree)))
 #+end_src
 
-***** sending org subtree contents via email
+***** send org subtree via email
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'org-keys
@@ -8768,7 +8787,63 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
                           (buffer-string)))
       (kill-buffer export-buf-name)))
 #+end_src
-***** pad void time in org clock
+***** tidy up org entry by removing old blobs
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 14:51]
+:END:
+
+#+begin_src emacs-lisp
+  (defun my/org-clock-remove-old-clock-entries (n &optional min)
+    "Remove clock entries whose end is older than N weeks in current subtree.
+  Skip over dangling clock entries."
+    (interactive "nnumber of weeks: ")
+    (org-save-outline-visibility t
+      (save-excursion
+        (org-back-to-heading t)
+        (org-show-all)
+        (let ((drawer (re-search-forward org-clock-drawer-start-re (save-excursion (org-end-of-subtree)) t))
+              (case-fold-search t))
+          (when drawer
+            (let* ((min-applied min)
+                   (re org-clock-line-re)
+                   (end (save-excursion (re-search-forward org-clock-drawer-end-re (save-excursion (org-end-of-subtree)) nil)))
+                   (end-mkr (set-marker (mark-marker) end)))
+              (while (re-search-forward re (marker-position end-mkr) t)
+                (skip-chars-forward " \t\r")
+                (looking-at org-tr-regexp-both)
+                (unless (and (numberp min-applied)
+                             (natnump (setq min-applied (1- min-applied))))
+                  (when (>= (/ (time-to-number-of-days (org-time-since (match-string-no-properties 2))) 7)
+                            (float n))
+                    (kill-whole-line)))))))
+        (org-clock-remove-empty-clock-drawer))))
+
+  (defun my/org-remove-old-state-change-entries (n)
+    "Remove state change entries whose inactive timestamp is older than N weeks in current subtree.
+
+  This command remove all lines that have an old inactive timestamp regardless
+   whether it is a state change log or not."
+    (interactive "nnumber of weeks: ")
+    (org-save-outline-visibility t
+      (save-excursion
+        (org-back-to-heading t)
+        (org-show-all)
+        (let* ((drawer-end (save-excursion (re-search-forward org-logbook-drawer-re (save-excursion (org-end-of-subtree)) t)))
+               (case-fold-search t)
+               (re org-ts-regexp-inactive)
+               (end-mkr (set-marker (mark-marker) drawer-end)))
+          (goto-char (match-beginning 0))
+          (while (re-search-forward re (marker-position end-mkr) t)
+            (when (>= (/ (time-to-number-of-days (org-time-since (match-string-no-properties 0))) 7)
+                      (float n))
+              (kill-whole-line))))
+        (org-clock-remove-empty-clock-drawer))))
+#+end_src
+
+***** pad void time in org clock            :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 07:36]
+:END:
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'org-clock
@@ -8791,6 +8866,20 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
                                  break-entry-id)))
           (org-id-goto break-entry-id)
           (org-clock-in)))))
+#+end_src
+
+***** show week number from the timestamp at point
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 15:01]
+:END:
+
+#+begin_src emacs-lisp
+  (defun my/org-iso-week-at-point ()
+    "Display ISO 8601 week number correspoinds to time stamp at point."
+    (interactive)
+    (when-let ((ts-bound (org-in-regexp (org-re-timestamp 'all)))
+               (ts (buffer-substring (car ts-bound) (cdr ts-bound))))
+      (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil)))))
 #+end_src
 
 **** org workflows                                                  :ARCHIVE:
@@ -8897,7 +8986,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
      (t "")))
 #+end_src
 
-**** additional emacs lisp code
+**** auxiliary emacs lisp code
 :PROPERTIES:
 :CREATED:  [2023-01-20 Fri 10:59]
 :END:
