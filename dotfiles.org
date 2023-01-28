@@ -6508,7 +6508,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 
 *** further extension
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "my-extension.el" my/user-config-dir)
+:header-args+: :tangle (expand-file-name "my-ext-config.el" my/user-config-dir)
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
@@ -6638,7 +6638,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
             (quit-window)))))))
 #+end_src
 
-**** handy features
+**** nifty tweaks
 :PROPERTIES:
 :CREATED:  [2023-01-20 Fri 10:59]
 :END:
@@ -7270,1053 +7270,6 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
   (put 'jaword-kill 'repeat-map 'my/delete-repeat-map)
 #+end_src
 
-**** original features                                              :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-01-20 Fri 10:59]
-:END:
-***** org-archive-datetree                  :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2022-08-10 Wed 14:51]
-:END:
-
-#+begin_src emacs-lisp :tangle no
-  (require 'org)
-  (require 'org-agenda)
-
-  (defcustom my/org-archive-before-archive-hook nil
-    "Hook that is run right before a archive process begins."
-    :group 'org-archive-datetree
-    :type 'hook)
-
-  (defun my/org-archive-file (&optional year)
-    "Return a path of archive file.
-
-  If optional argument `YEAR' is passed that year's file is returned instead of current year's."
-    (let* ((record-year (or year (ts-year (ts-now))))
-           (record-file-cand (format "%s/archive/archive_%s.org" org-directory record-year))
-           (record-file
-            (if (file-exists-p record-file-cand)
-                record-file-cand
-              (expand-file-name "archive/archive_0000.org" org-directory))))
-      (if (or (file-exists-p record-file)
-              (file-symlink-p record-file))
-          record-file
-        nil)))
-
-  (defvar my/org-archive-file (my/org-archive-file))
-
-  (defun my/org-archive-files ()
-    "Return list of archive files."
-    (append (directory-files (expand-file-name "archive" org-directory) t "archive_[[:digit:]]\\{4\\}\\.org" nil)
-            org-agenda-files))
-
-  (defvar my/org-archive-files (my/org-archive-files))
-
-  (defun my/org-archive-find-date (date)
-    "Find and visit the location of DATE in archivee file.
-
-  DATE must be a string representing the date to find and parsable with `format-time-string'.
-
-  If called interactively, it prompt the user to select the date to find."
-    (interactive
-     (cond
-      ((eq major-mode 'calendar-mode)
-       (list (calendar-date-string (calendar-cursor-to-date))))
-      ((eq major-mode 'org-agenda-mode)
-       (let* ((day (or (get-text-property (min (1- (point-max)) (point)) 'day)
-                       (user-error "Don't know which date to open in calendar")))
-              (date (calendar-gregorian-from-absolute day)))
-         (list (calendar-date-string date))))
-      (t (let ((date-select (org-read-date)))
-           (list date-select)))))
-    (let* ((d (parse-time-string date))
-           (day (decoded-time-day d))
-           (month (decoded-time-month d))
-           (year (decoded-time-year d)))
-      (find-file (my/org-archive-file year))
-      (org-datetree-find-iso-week-create `(,month ,day ,year))))
-
-  (defun my/org-archive-subtree ()
-    "Refile current subtree to archive file using latest timestamp."
-    (interactive)
-    (let* ((ts (car (sort (org-timestamps-in-entry) #'ts>)))
-           (year (ts-year (or ts (ts-now))))
-           (save-file (my/org-archive-file year))
-           (tags (org-get-local-tags))
-           (todo (org-get-todo-state)))
-      (when-let* ((pos (with-current-buffer (find-file-noselect save-file)
-                         (save-excursion
-                           (if (and (member "web" tags)
-                                    (not (member todo '("DN" "PD"))))
-                               (org-find-exact-headline-in-buffer "untouched items")
-                             (org-datetree-find-iso-week-create `(,(ts-month ts)
-                                                                  ,(ts-day ts)
-                                                                  ,(ts-year ts)))
-                             (point))))))
-        (run-hooks 'my/org-archive-before-archive-hook)
-        (org-refile nil nil (list nil save-file nil pos)))
-      (org-save-all-org-buffers)
-      (setq this-command 'my/org-archive-subtree)))
-
-  (defun my/org-agenda-archive-subtree ()
-    "Refile the entry or subtree belonging to the current agenda entry."
-    (interactive)
-    (org-agenda-archive-with 'my/org-archive-subtree))
-
-  (defun my/org-ql-view-archive-subtree ()
-    "Refile the entry or subtree belonging to the current agenda entry."
-    (interactive)
-    (org-agenda-archive-with 'my/org-archive-subtree)
-    (org-ql-view-refresh))
-
-  (defun my/org-archive-search (query)
-    "Search org entries matched QUERY in archive files using `org-ql-search'."
-    (interactive (list (read-string "Query: ")))
-    (let ((files (my/org-archive-files)))
-      (org-ql-search files query)))
-
-  (bind-keys :map org-agenda-mode-map
-             ("$" . my/org-agenda-archive-subtree)
-             ("C" . my/org-archive-find-date)
-             :map org-ql-view-map
-             ("$" . my/org-ql-view-archive-subtree)
-             :map calendar-mode-map
-             ("C" . my/org-archive-find-date))
-
-  (push '("Archive entries" . my/org-archive-search)
-        org-ql-views)
-
-  ;; TODO: This function can be rewritten with org-ml
-  ;;;###autoload
-  (defun org-timestamps-in-entry ()
-    "Return timestamp objects for all Org timestamps in entry."
-    (interactive (list current-prefix-arg))
-    (save-excursion
-      (goto-char (org-entry-beginning-position))
-      (org-show-entry)
-      (org-narrow-to-element)
-      (let* ((parsetree (org-element-parse-buffer))
-             (ts-list nil))
-        (org-element-map parsetree '(planning clock timestamp)
-          (lambda (elm)
-            (cl-case (org-element-type elm)
-              ('planning
-               (add-to-list 'ts-list (ts-parse-org-element (or (org-element-property :closed elm)
-                                                               (org-element-property :scheduled elm)
-                                                               (org-element-property :deadline elm)))
-                            t))
-              ('clock
-               (add-to-list 'ts-list (ts-parse-org-element (org-element-property :value elm)) t))
-              ('timestamp
-               (add-to-list 'ts-list (ts-parse-org-element elm) t)))))
-        (widen)
-        ts-list)))
-
-  (provide 'my/org-archive-datetree)
-#+end_src
-
-***** org-capture-derived                   :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-01-08 Sun 18:03]
-:END:
-
-#+begin_src emacs-lisp :tangle no
-  (require 'thingatpt)
-  (require 'whitespace)
-
-  (with-eval-after-load 'org-capture
-    (mapc (lambda (template)
-            (add-to-list 'org-capture-templates
-                         template))
-          '(("x" "actionable entry for manual input"
-             entry
-             (function org-capture-derived-target-function)
-             "* %(org-capture-derived-insert-todo)%? %(org-set-tags org-capture-derived-tags)\n%(org-capture-derived-insert-deadline)")
-            ("X" "Actionable entry for automated input"
-             entry
-             (function org-capture-derived-target-function)
-             "* %(org-capture-derived-insert-todo)%a %(org-set-tags org-capture-derived-tags)\n%(org-capture-derived-insert-deadline)"
-             :immediate-finish t))))
-
-  (defvar org-capture-derived-todo nil
-    "Todo state to be set to an org entry which org-capture-derived creates.
-
-  User should set this value locally, otherwise unexpected results occur.")
-  (defvar org-capture-derived-tags nil
-    "Tags represented with colon(:) to be set to an org entry which org-capture-derived creates.
-
-  User should set this value locally, otherwise unexpected results occur.")
-  (defvar org-capture-derived-target nil "docstring")
-  (defvar org-capture-derived-deadline-in-day nil "docstring")
-
-  (defun org-capture-derived-target-function ()
-    ""
-    (cond
-     ((listp org-capture-derived-target)
-      (set-buffer (org-capture-target-buffer (nth 1 org-capture-derived-target)))
-      (org-capture-put-target-region-and-position)
-      (widen)
-      (goto-char (nth 3 org-capture-derived-target)))
-     ((and (stringp org-capture-derived-target)
-           (string-match-p thing-at-point-uuid-regexp org-capture-derived-target))
-      (org-id-goto org-capture-derived-target))))
-
-  (defun org-capture-derived (&optional arg)
-    "C-u user is asked for all arguments
-  C-u C-u create manually"
-    (interactive "P")
-    ;; insert ID property unless existing
-    (cond
-     ((and (eq major-mode 'org-mode)
-           (not (equal arg '(16))))
-      (org-id-get nil t)))
-    (let* ((todo-in-org
-            (when (derived-mode-p 'org-mode)
-              (org-entry-get (point) "DERIVED_TODO" t)))
-           (org-capture-derived-todo
-            (or todo-in-org
-                org-capture-derived-todo))
-           (tags-in-org
-            (when (derived-mode-p 'org-mode)
-              (org-entry-get (point) "DERIVED_TAGS" t)))
-           (org-capture-derived-tags
-            (or (when (not (equal arg '(4)))
-                  (or tags-in-org
-                      org-capture-derived-tags))
-                (read-string "Tags: " tags-in-org)))
-           (target-in-org
-            (when (derived-mode-p 'org-mode)
-              (org-entry-get (point) "DERIVED_TARGET" t)))
-           (org-capture-derived-target
-            (or (when (not (equal arg '(4)))
-                  (or target-in-org
-                      org-capture-derived-target))
-                (org-refile-get-location)))
-           (deadline-str-in-org
-            (when (derived-mode-p 'org-mode)
-              (org-entry-get (point) "DERIVED_DEADLINE_IN_DAY" t)))
-           (deadline-num-in-org
-            (if (stringp deadline-str-in-org) (string-to-number deadline-str-in-org) nil))
-           (org-capture-derived-deadline-in-day
-            (if (equal arg '(4))
-                (read-number "Deadline in day: "
-                             deadline-num-in-org)
-              (or deadline-num-in-org
-                  org-capture-derived-deadline-in-day))))
-      (if (equal arg '(16))
-          (org-capture nil "x")
-        (org-capture nil "X"))))
-
-  (defun org-capture-derived-insert-todo ()
-    ""
-    (if (stringp org-capture-derived-todo)
-        (if (string-match-p whitespace-trailing-regexp
-                            org-capture-derived-todo)
-            org-capture-derived-todo
-          (format "%s " org-capture-derived-todo))
-      ""))
-
-  (defun org-capture-derived-insert-deadline ()
-    ""
-    (if (numberp org-capture-derived-deadline-in-day)
-        (let ((week-ahead (encode-time
-                           (seq-map-indexed (lambda (element index)
-                                              (if (= index 3)
-                                                  (+ element org-capture-derived-deadline-in-day)
-                                                element))
-                                            (decode-time (current-time))))))
-          (format-time-string "DEADLINE: <%Y-%m-%d %a>" week-ahead))
-      ""))
-#+end_src
-
-***** clocktable-by-tag with org-clock
-
-Provide a function to Build a clock table summing up time by tag.
-
-#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/clocktable-by-tag.el")
-  (require 'org-table)
-  (require 'org-clock)
-
-  (defun clocktable-by-tag/shift-cell (n)
-    (let ((str ""))
-      (dotimes (i n)
-        (setq str (concat str "| ")))
-      str))
-
-  (defun clocktable-by-tag/insert-tag (params)
-    (let ((match (plist-get params :match)))
-      (insert "|--\n")
-      (insert (format "| %s | *Tag time* |\n" match))
-      (let ((total 0))
-        (mapcar
-         (lambda (file)
-           (let ((clock-data (with-current-buffer (find-file-noselect file)
-                               (org-clock-get-table-data (buffer-name) params))))
-             (when (> (nth 1 clock-data) 0)
-               (setq total (+ total (nth 1 clock-data)))
-               (insert (format "| | File *%s* | %.2f |\n"
-                               (file-name-nondirectory file)
-                               (/ (nth 1 clock-data) 60.0)))
-               (dolist (entry (nth 2 clock-data))
-                 (insert (format "| | . %s%s | %s %.2f |\n"
-                                 (org-clocktable-indent-string (nth 0 entry))
-                                 (replace-regexp-in-string "|" "\\vert\{\}" (nth 1 entry) nil t)
-                                 (clocktable-by-tag/shift-cell (nth 0 entry))
-                                 (/ (nth 4 entry) 60.0)))))))
-         (org-agenda-files))
-        (if (= total 0)
-            (save-excursion
-              (re-search-backward "*Tag time*")
-              (forward-line -1)
-              (dotimes (i 2)
-                (org-table-kill-row)))
-          (save-excursion
-            (re-search-backward "*Tag time*")
-            (org-table-next-field)
-            (org-table-blank-field)
-            (insert (format "*%.2f*" (/ total 60.0))))))
-      (org-table-align)))
-
-  (defun org-dblock-write:clocktable-by-tag (params)
-    (funcall indent-line-function)
-    (insert "| Tag | Headline | Time (h) |\n")
-    (insert "|     |          | <r>  |\n")
-    (let ((matches
-           (org-global-tags-completion-table)))
-      (mapcar (lambda (match)
-                (let ((match-str (car match))
-                      (case-fold-search nil))
-                  (when (string-match-p "^AC_" match-str)
-                    (setq params (plist-put params :match match-str))
-                    (clocktable-by-tag/insert-tag params))))
-              matches)))
-
-  (provide 'clocktable-by-tag)
-#+end_src
-
-***** narrow-dwim
-
-#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/narrow-dwim.el")
-  (bind-key* "C-x n" 'my/toggle-narrow-dwim)
-
-  (defun my/toggle-narrow-dwim (arg)
-    "If the buffer is narrowed, it widens. Otherwise, it narrows intelligently.
-  Intelligently means: region, org-src-block, org-subtree, or defun,
-  whichever applies first.
-  Narrowing to org-src-block actually calls `org-edit-src-code'.
-
-  With prefix ARG, don't widen, just narrow even if buffer is already narrowed."
-    (interactive "P")
-    (declare (interactive-only))
-    (cond ((and (buffer-narrowed-p) (not arg))
-           (when (org-buffer-narrowed-p)
-             (when org-startup-indented
-               (org-indent-mode 1))
-             (visual-line-mode -1)
-             (adaptive-wrap-prefix-mode -1))
-           (widen)
-           (setq-local truncate-lines t))
-          ((region-active-p)
-           (narrow-to-region (region-beginning) (region-end)))
-          ((and (boundp 'org-src-mode) org-src-mode (not arg))
-           (org-edit-src-exit))
-          ((condition-case err
-               (org-edit-src-code)
-             (user-error nil)))
-          ((derived-mode-p 'org-mode)
-           (cond ((org-at-block-p)
-                  (org-narrow-to-block))
-                 ((org-at-heading-p)
-                  (org-narrow-to-subtree)
-                  (adaptive-wrap-prefix-mode))
-                 (t (org-narrow-to-element)))
-           (org-indent-mode -1)
-           (visual-line-mode 1))
-          ((eq major-mode 'dired-mode)
-           (dired-subtree-narrow))
-          (t (narrow-to-defun))))
-
-  ;; (add-hook 'post-command-hook 'highlight-narrowed-buffer)
-  ;; (defun highlight-narrowed-buffer ()
-  ;;   "Highlight narrowed buffer.
-
-  ;; Narrowed buffer have a fringe with highlighting color.
-  ;; Plus text size in the buffer becomes a little bit larger."
-  ;;   (unless (or (member last-command
-  ;;                       '(text-scale-adjust))
-  ;;               (eq major-mode 'Info-mode)
-  ;;               (string-match-p (rx (seq line-start "CAPTURE-" (one-or-more ascii) line-end))
-  ;;                               (buffer-name)))
-  ;;     (let ((hl-fringe-color "purple2")
-  ;;           (hl-text-scale (sqrt 2)))
-  ;;       (set-face-attribute
-  ;;        'fringe nil :background (if (buffer-narrowed-p)
-  ;;                                    (progn
-  ;;                                      (text-scale-set hl-text-scale)
-  ;;                                      hl-fringe-color)
-  ;;                                  (progn
-  ;;                                    (when (= text-scale-mode-amount hl-text-scale)
-  ;;                                      (text-scale-set 0))
-  ;;                                    nil))))))
-#+end_src
-***** weather
-
-#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/weather.el")
-  ;; 気象庁配信の天気情報を加工して表示
-
-  (require 'request)
-  (require 'cl-lib)
-
-  (defvar weather-areas
-    '(((url . "http://www.drk7.jp/weather/xml/14.xml")
-       (pref . "神奈川県")
-       (area . "西部"))
-      ((url . "http://www.drk7.jp/weather/xml/22.xml")
-       (pref . "静岡県")
-       (area . "中部"))))
-
-  (defun weather-area-show (weather-area-alist weather-buffer)
-    (lexical-let ((url (assoc-default 'url weather-area-alist))
-                  (pref (assoc-default 'pref weather-area-alist))
-                  (area (assoc-default 'area weather-area-alist))
-                  (buffer weather-buffer))
-      (request
-        url
-        :parser
-        (lambda ()
-          (let ((xml-string (string-as-multibyte (string-as-unibyte (buffer-string)))))
-            (with-temp-buffer
-              (erase-buffer)
-              (insert xml-string)
-              (libxml-parse-xml-region (point-min) (point-max)))))
-        :success
-        (cl-function
-         (lambda (&key data &allow-other-keys)
-           (when data
-             (with-current-buffer buffer
-               (insert (format "%s %s\n" pref area))
-               (mapcar
-                (lambda (info-node)
-                  (insert
-                   (format "%s %s %s %s\n"
-                           (dom-attr info-node 'date)
-                           (apply (lambda (max-temp-node min-temp-node)
-                                    (format "%2d/%2d℃"
-                                            (string-to-number (dom-text min-temp-node))
-                                            (string-to-number (dom-text max-temp-node))))
-                                  (dom-by-tag (dom-child-by-tag info-node 'temperature) 'range))
-                           (apply (lambda (node-1 node-2 node-3 node-4)
-                                    (format "%2d-%2d-%2d-%2d％"
-                                            (string-to-number (dom-text node-1))
-                                            (string-to-number (dom-text node-2))
-                                            (string-to-number (dom-text node-3))
-                                            (string-to-number (dom-text node-4))))
-                                  (dom-by-tag (dom-child-by-tag info-node 'rainfallchance) 'period))
-                           (dom-text (dom-child-by-tag info-node 'weather)))))
-                (dom-by-tag (dom-by-id data area) 'info))
-               (insert "\n"))))))))
-
-  (defun weather ()
-    (interactive)
-    (let ((buffer (get-buffer-create "weather")))
-      (mapcar (lambda (weather-area)
-                (weather-area-show weather-area buffer))
-              weather-areas)
-      (switch-to-buffer buffer)))
-
-  (provide 'weather)
-#+end_src
-***** view-file (deprecated)                :ARCHIVE:
-
-#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/view-file.el")
-  (defcustom my/view-file--temp-dir "~/tmp/view-file"
-    "Directory in which we will work for uncompresssing, decrypting and htmlize.")
-  (defvar my/view-file--open-file nil
-    "Target file which we will actually open.
-  User should not change this value.")
-  (defvar my/view-file--remove-files nil
-    "List of files which we will remove afterward.
-  User should not change this value.")
-
-  ;; TODO: support line/search args to jump to the desired position
-  (defun my/view-file (file &optional system)
-    "Open FILE in my preferable way.
-
-  if SYSTEM is non-nii open FILE using preferable application in system."
-    (setq my/view-file--open-file (expand-file-name file))
-    (make-directory my/view-file--temp-dir t)
-
-    ;; decrypt file if it is encrypted
-    (when-let* ((match (string-match "\\(.+\\)\.gpg$" my/view-file--open-file))
-                (decrypt-file (expand-file-name (file-name-base my/view-file--open-file)
-                                                (expand-file-name my/view-file--temp-dir)))
-                (context (epg-make-context epa-protocol)))
-      (epg-context-set-passphrase-callback context
-                                           #'epa-passphrase-callback-function)
-      (epg-decrypt-file context my/view-file--open-file decrypt-file)
-      (setq my/view-file--open-file decrypt-file)
-      (add-to-list 'my/view-file--remove-files decrypt-file))
-
-    ;; uncompress file if it is tarball
-    (let* (uncompress-file
-           (uncompress-command
-            (cond
-             ((string-match "\\(.+\\)\\.t\\(ar\\.\\)?gz$" my/view-file--open-file)
-              (setq uncompress-file (expand-file-name (file-name-base (match-string 1 my/view-file--open-file))
-                                                      my/view-file--temp-dir))
-              (format "gzip -dc %s | tar -xf - -C %s"
-                      (shell-quote-argument my/view-file--open-file)
-                      (shell-quote-argument uncompress-file)))
-             ((string-match "\\(.+\\)\\.t\\(ar\\.\\)?zst$" my/view-file--open-file)
-              (setq uncompress-file (expand-file-name (file-name-base (match-string 1 my/view-file--open-file))
-                                                      my/view-file--temp-dir))
-              (format "unzstd -c %s | tar -xf - -C %s"
-                      (shell-quote-argument my/view-file--open-file)
-                      (shell-quote-argument uncompress-file)))
-             ((string-match "\\(.+\\)\\.zip$" my/view-file--open-file)
-              (setq uncompress-file (expand-file-name (file-name-base (match-string 1 my/view-file--open-file))
-                                                      my/view-file--temp-dir))
-              (format "unzip -o -d %s %s"
-                      (shell-quote-argument uncompress-file)
-                      (shell-quote-argument my/view-file--open-file))))))
-      (when (and (stringp uncompress-file)
-                 (stringp uncompress-command))
-        (make-directory uncompress-file t)
-        (call-process-shell-command
-         uncompress-command)
-        (add-to-list 'my/view-file--remove-files uncompress-file)
-        (setq my/view-file--open-file uncompress-file)))
-
-    ;; convert pdf/epub to html
-    (let* ((dirname-html
-            (expand-file-name (file-relative-name my/view-file--open-file "/")
-                              (expand-file-name my/view-file--temp-dir)))
-           (filename-html
-            (concat (file-name-as-directory dirname-html)
-                    "index.html"))
-           (command
-            (cond
-             ((= (call-process-shell-command (format "filetype-cli check --type pdf %s" (shell-quote-argument my/view-file--open-file))) 0)
-              (format "cat %s 2>/dev/null | pdftohtml -p -s -noframes -nomerge -nodrm - %s"
-                      (shell-quote-argument my/view-file--open-file)
-                      (shell-quote-argument filename-html)))
-             ((= (call-process-shell-command (format "filetype-cli check --type epub %s" (shell-quote-argument my/view-file--open-file))) 0)
-              (format "cat %s 2>/dev/null | pandoc --from=epub --to=html --extract-media=%s - | strip_ruby > %s"
-                      (shell-quote-argument my/view-file--open-file)
-                      (shell-quote-argument dirname-html)
-                      (shell-quote-argument filename-html))))))
-      (when (and (null system)
-                 (stringp command))
-        (unless (file-exists-p filename-html)
-          (make-directory dirname-html t)
-          (call-process-shell-command command)
-          ;; reuse html only if pdf/epub file is not ecrypted
-          (when (member my/view-file--open-file my/view-file--remove-files)
-            (add-to-list 'my/view-file--remove-files dirname-html)))
-        (setq my/view-file--open-file filename-html)))
-
-    ;; open file
-    (cond
-     ((or system
-          (string-match-p "\\.midi?$" my/view-file--open-file)
-          (= (call-process-shell-command (format "filetype-cli check --type pdf %s" (shell-quote-argument my/view-file--open-file))) 0)
-          (= (call-process-shell-command (format "filetype-cli check --type epub %s" (shell-quote-argument my/view-file--open-file))) 0))
-      (let ((process-connection-type nil))
-        (call-process-shell-command (format "xdg-open %s" (shell-quote-argument my/view-file--open-file)))
-        (sleep-for 3)
-        (funcall 'my/view-file--finalize-function)))
-     ((or (= (call-process-shell-command (format "filetype-cli check --type playable %s" (shell-quote-argument my/view-file--open-file))) 0)
-          (seq-some (lambda (suffix)
-                      (string-suffix-p suffix my/view-file--open-file t))
-                    '(".m3u" ".mts" ".m2ts")))
-      (when-let ((mpv-proc (start-process-shell-command
-                            "mpv" nil
-                            (format "nohup mpv --force-window %s >/dev/null 2>&1" (shell-quote-argument my/view-file--open-file)))))
-        (set-process-sentinel
-         mpv-proc
-         (lambda (process desc)
-           (when (eq (process-status process) 'exit)
-             (funcall 'my/view-file--finalize-function))))))
-     ((= (call-process-shell-command
-          (format "filetype-cli check --type html %s"
-                  (shell-quote-argument my/view-file--open-file))) 0)
-      (add-hook 'eww-after-render-hook 'my/view-file--eww-finalize-function)
-      (eww-open-file my/view-file--open-file))
-     ((file-directory-p my/view-file--open-file)
-      (dired my/view-file--open-file)
-      (funcall 'my/view-file--finalize-function))
-     (t
-      (find-file my/view-file--open-file)
-      (funcall 'my/view-file--finalize-function))))
-
-  (defun my/view-file--finalize-function ()
-    "Remove files and initialize variables."
-    (mapc (lambda (file)
-            (when (stringp file)
-              (cond
-               ((file-directory-p file)
-                (delete-directory file t nil))
-               ((file-exists-p file)
-                (let ((delete-by-moving-to-trash t))
-                  (delete-file file))))))
-          my/view-file--remove-files)
-    (setq my/view-file--open-file nil
-          my/view-file--remove-files nil))
-
-  (defun my/view-file--eww-finalize-function ()
-    "Finalize function for `EWW'."
-    (remove-hook 'eww-after-render-hook 'my/view-file--eww-finalize-function)
-    (funcall 'my/view-file--finalize-function))
-
-  (defun my/view-file-filter-org-link-store-props (&rest plist-orig)
-    "Filter PLIST-ORIG to original file name if value of `eww-current-url'
-   is in `my/view-file--temp-dir'."
-    (let ((plist-filtered (car plist-orig)))
-      (if (plist-member plist-filtered :link)
-          (plist-put plist-filtered
-                     :link
-                     (replace-regexp-in-string (format "%s\\(.*\\)/index.html"
-                                                       (expand-file-name my/view-file--temp-dir))
-                                               (format "%s\\1"
-                                                       (expand-file-name "~"))
-                                               (plist-get plist-filtered
-                                                          :link))))
-      (car plist-orig)))
-
-  (advice-add #'org-link-store-props :filter-args
-              #'my/view-file-filter-org-link-store-props)
-
-  (provide 'my/view-file)
-#+end_src
-
-***** open-file
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/site-lisp/open-file.el")
-:END:
-
-This set of code (open-file) offers file opener functionality in my liking. With open-file, PDF and EPUB, which is either local or on the web, is viewed in EWW (text browser in Emacs) after the process of converted into html. Video and audio is played in MPV media player. Open-file is available in elisp commands for opening files (e.g. org-open-at-point for org links, browse-url and dired-open-file). With any command above, invoking with single prefix (C-u) inflict to open file in Emacs, and invoking with double prefix (C-u C-u) inflict to open files in default application.
-
-#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-  d <<share-dir()>>/emacs/open-file 0755 - - 14d
-#+end_src
-
-#+begin_src emacs-lisp
-  ;; general functions
-
-  (defvar my/open-file-dir
-    (expand-file-name "open-file"
-                      user-emacs-directory)
-    "Directory where html file is converted into.")
-
-  (defvar my/open-file-media-player "mpv"
-    "Media player used to play media file in open-file.")
-
-  (defvar my/open-file-media-extensions
-    '("mpg" "mpeg" "mp3" "mp4" "m4v" "m4a"
-      "avi" "wmv" "wav" "mov" "flv" "mkv" "webm"
-      "ogv" "oga" "ogx" "ogg" "spx" "opus"
-      "xbm" "pbm" "pgm" "ppm" "pnm" "png" "gif" "bmp" "tif" "jpeg" "jpg")
-    "Extensions files which can play with media player must have.")
-
-  (defvar my/open-file-compressed-media-extensions
-    '("tar.gz" "tgz" "tar.xz" "txz" "zip" "7z")
-    "Extensions compressed files which can play with media player must have.")
-
-  (defvar my/open-file-yt-regexp
-    (rx (? (or "https://" "http://" "//"))
-        (? "www")
-        (or "youtube.com" "youtu.be"))
-    "Regexp for youtube url.")
-
-  (defmacro my/open-file-as-html (file convert-cmd)
-    `(let* ((cap-command (if (string-match-p url-handler-regexp ,file)
-                             "curl"
-                           (if (string-suffix-p ".gpg" ,file)
-                               "gpg -d"
-                             "cat")))
-            (dir-name
-             (seq-reduce (lambda (str rep)
-                           (string-replace (car rep) (cdr rep) str))
-                         '(("/" . "!")
-                           ("~" . "`")
-                           (" " . "_"))
-                         ,file))
-            (dirname-html
-             (expand-file-name
-              (file-name-sans-extension dir-name)
-              my/open-file-dir))
-            (filename-html
-             (concat (file-name-as-directory dirname-html)
-                     "index.html"))
-            (command ,convert-cmd))
-       (unless (file-exists-p filename-html)
-         (make-directory dirname-html t)
-         (call-process-shell-command command))
-       (browse-url filename-html)))
-
-  (defun my/open-pdf-as-html (pdf)
-    "Open PDF in `eww' after the process of convertion into html."
-    (my/open-file-as-html
-     pdf
-     (format "%1$s %2$s 2>/dev/null | pdftohtml -p -s -noframes -nomerge -nodrm - %3$s"
-             cap-command
-             (shell-quote-argument pdf)
-             (shell-quote-argument filename-html))))
-
-  (defun my/open-epub-as-html (epub)
-    "Open EPUB in `eww' after the process of convertion into html."
-    (my/open-file-as-html
-     epub
-     (format "%1$s %2$s 2>/dev/null | pandoc --from=epub --to=html --extract-media=%3$s - | strip_ruby > %4$s"
-             cap-command
-             (shell-quote-argument epub)
-             (shell-quote-argument dirname-html)
-             (shell-quote-argument filename-html))))
-
-  (defun my/open-media (media &optional start-time)
-    "Open MEDIA in `my/open-file-media-player' at the point of START-TIME."
-    (let ((ask-file (when (or (file-directory-p media)
-                              (string-match-p (eval `(rx (or ,@my/open-file-compressed-media-extensions)))
-                                              media))
-                      (file-name-nondirectory media))))
-      (when (or (not ask-file)
-                (and ask-file
-                     (y-or-n-p (format "Play %s?: " ask-file))))
-        (start-process-shell-command
-         my/open-file-media-player nil
-         (let ((cap-cmd (and (string-suffix-p ".gpg" media)
-                             (format "gpg -d %s | " media))))
-           (mapconcat #'identity
-                      (list (or cap-cmd "")
-                            "nohup" my/open-file-media-player
-                            "--force-window"
-                            (or (and start-time
-                                     (format "--start=%s" start-time))
-                                "")
-                            (if cap-cmd
-                                "-"
-                              (shell-quote-argument media))
-                            "2>&1" ">/dev/null")
-                      " "))))))
-
-  ;; ==============================================
-  ;; browse-url handling
-
-  (with-eval-after-load 'browse-url
-    (let ((search-suffix "\\(?:::.*\\)?"))
-      (customize-set-variable
-       'browse-url-handlers
-       `(((lambda (url)
-            (equal current-prefix-arg '(16)))
-          . my/browse-url-external)
-         ((lambda (url)
-            (equal current-prefix-arg '(4)))
-          . my/browse-url-emacs)
-         (,(format "\\.html%s\\'" search-suffix)
-          . my/browse-url-html)
-         (,(format "\\.pdf\\(\\.gpg\\)?%s\\'" search-suffix)
-          . my/browse-url-pdf)
-         (,(format "\\.epub%s\\'" search-suffix)
-          . my/browse-url-epub)
-         (,(eval `(concat (rx "." (or ,@my/open-file-media-extensions
-                                      ,@my/open-file-compressed-media-extensions)
-                              (opt ".gpg"))
-                          search-suffix))
-          . my/browse-url-media)
-         (,(concat my/open-file-yt-regexp search-suffix)
-          . my/browse-url-media)))
-      (customize-set-variable
-       'browse-url-browser-function 'eww-browse-url)))
-
-  (defun my/browse-url-html (url &optional same-window)
-    "A handler for `browse-url' responsible for html at URL."
-    (cond
-     ((file-exists-p url)
-      (eww-open-file url))
-     ((string-match-p url-handler-regexp url)
-      (browse-web url))
-     (t
-      (eww url))))
-
-  (defun my/browse-url-pdf (url &optional same-window)
-    "A handler for `browse-url' responsible for a pdf file at URL."
-    (let* ((query-list (my/browse-url-break-down url))
-           (search-str (cadr query-list)))
-      (my/open-pdf-as-html (car query-list))
-      (and (stringp search-str)
-           (org-link-search search-str))))
-
-  (defun my/browse-url-epub (url &optional same-window)
-    "A handler for `browse-url' responsible for an epub file at URL."
-    (let* ((query-list (my/browse-url-break-down url))
-           (search-str (cadr query-list)))
-      (my/open-epub-as-html (car query-list))
-      (and (stringp search-str)
-           (org-link-search search-str))))
-
-  (defun my/browse-url-media (url &optional same-window)
-    "A handler for `browse-url' responsible for a media file at URL."
-    (let* ((query-list (my/browse-url-break-down url))
-           (search-str (cadr query-list)))
-      (my/open-media (car query-list) search-str)))
-
-  (defun my/browse-url-emacs (url &optional same-window)
-    "A handler for `browse-url' invoked with `C-u' responsible for a file at URL."
-    (browse-url-emacs (car (my/browse-url-break-down url))
-                      same-window))
-
-  (defun my/browse-url-external (url &optional same-window)
-    "A handler for `browse-url' invoked with `C-u C-u' responsible for a file at URL."
-    (browse-url-xdg-open (car (my/browse-url-break-down url))
-                         same-window))
-
-  (defun my/browse-url-break-down (query)
-    (let* ((search-opt-regexp "::\\(.*\\)\\'")
-           (matcher nil)
-           (url-or-file
-            (cond ((string-match-p url-handler-regexp query)
-                   (setq matcher (format "\\(%s.*\\)%s"
-                                         url-handler-regexp
-                                         search-opt-regexp))
-                   query)
-                  (t
-                   (setq matcher (format "\\(.*\\)%s"
-                                         search-opt-regexp))
-                   (expand-file-name
-                    (and (not (string-match-p "^file://" query))
-                         (replace-regexp-in-string "^\\(?:/\\)?file:" "" query)))))))
-      (if (string-match matcher url-or-file)
-          `(,(match-string 1 url-or-file) ,(match-string 2 url-or-file))
-        `(,url-or-file nil))))
-
-  ;; ==============================================
-  ;; org-open handling
-
-  (with-eval-after-load 'org
-    (customize-set-variable
-     `org-file-apps
-     `(("\\.html\\'" . my/org-open-html)
-       ("\\.pdf\\(\\.gpg\\)?\\'" . my/org-open-pdf)
-       ("\\.epub\\'" . my/org-open-epub)
-       (,(eval `(rx "." (or ,@my/open-file-media-extensions
-                            ,@my/open-file-compressed-media-extensions)
-                    (opt ".gpg") string-end))
-        . my/org-open-media)
-       (auto-mode . emacs)
-       (directory . my/org-open-media)
-       (system . browse-url-default-browser))))
-
-  (defun my/org-open-html (file-path link-string)
-    "Open a html file at FILE-PATH via org-open command."
-    (browse-url file-path)
-    (when-let ((search (my/org-link-search link-string)))
-      (org-link-search search)))
-
-  (defun my/org-open-pdf (file-path link-string)
-    "Open a pdf file at FILE-PATH via org-open command."
-    (my/open-pdf-as-html file-path)
-    (when-let ((search (my/org-link-search link-string)))
-      (org-link-search search)))
-
-  (defun my/org-open-epub (file-path link-string)
-    "Open an epub file at FILE-PATH via org-open command."
-    (my/open-epub-as-html file-path)
-    (when-let ((search (my/org-link-search link-string)))
-      (org-link-search search)))
-
-  (defun my/org-open-media (file-path link-string)
-    "Open a media file at FILE-PATH via org-open command."
-    (my/open-media file-path
-                   (my/org-link-search link-string)))
-
-  (defun my/org-link-search (link-string)
-    (and (stringp link-string)
-         (string-match "::\\(.*\\)\\'" link-string)
-         (match-string 1 link-string)))
-
-  (defun my/org-execute-file-search-line-number (s)
-    "A search function responsible for line number inside of S."
-    (and (string-match "^l=\\([-+[:digit:]]+\\)\\'" s)
-         (goto-line (string-to-number (match-string 1 s)))))
-
-  (add-hook 'org-execute-file-search-functions
-            'my/org-execute-file-search-line-number)
-
-  ;; ==============================================
-  ;; dired-open handling
-
-  (with-eval-after-load 'dired-open
-    (customize-set-variable
-     'dired-open-functions
-     '(dired-open-call-function-by-extension
-       dired-open-guess-shell-alist
-       dired-open-by-extension
-       dired-open-subdir))
-    (customize-set-variable
-     'dired-open-extensions-elisp
-     `(("pdf" . my/open-pdf-as-html)
-       ("pdf.gpg" . my/open-pdf-as-html)
-       ("epub" . my/open-epub-as-html)
-       ("jpg.gpg" . my/open-media)
-       ,@(mapcar (lambda (ext)
-                   (cons ext 'my/open-media))
-                 my/open-file-media-extensions)))
-    (customize-set-variable
-     'dired-open-find-file-function 'my/dired-find-file))
-
-  (defun my/dired-find-file ()
-    "A function for `dired-open-find-file-function' dealing with
-  a `dired-open-file' call with `C-u' or `C-u C-u'."
-    (let ((file-for-visit (dired-get-file-for-visit)))
-      (cond
-       ((equal current-prefix-arg '(16))
-        (browse-url-default-browser file-for-visit))
-       ((equal current-prefix-arg '(4))
-        (dired--find-possibly-alternative-file file-for-visit))
-       ((or (file-directory-p file-for-visit)
-            (string-match-p (eval `(rx (or ,@my/open-file-compressed-media-extensions)))
-                            file-for-visit))
-        (my/open-media file-for-visit)))))
-#+end_src
-
-***** lfile (org-link type for files on the machine)
-
-lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lfile/][Kerl Voit's implementation]].
-
-#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name ".emacs.d/site-lisp/lfile.el")
-  (defcustom my/lfile-root "~/" "docstring")
-
-  (defmacro my/expand-lfile (file body exclude-search)
-    "Evaluate BODY with resolving a path from FILE.
-
-  In BODY, caller could refer a resolved file path as `file-resolved'.
-  If exclude-search is non-nil, search specifier after \"::\" will be removed in `file-resolved'."
-    `(let* ((paths (my/lfile--locate ,file ,exclude-search))
-            (file-resolved (car paths)))
-       (cond
-        ((= 0 (length paths))
-         (message "Sorry, no results found for query: %s" file))
-        ((<= 1 (length paths))
-         ,body))))
-
-  (defun my/lfile-follow-link (file _)
-    "Open FILE given in lfile org link type."
-    (my/expand-lfile file
-                     (org-link-open-as-file file-resolved current-prefix-arg)
-                     nil))
-
-  (defun my/lfile-follow-link--emacs (file _)
-    "Open FILE in Emacs given in lfile+emacs org link type."
-    (my/expand-lfile file
-                     (org-open-file file-resolved t)
-                     t))
-
-  (defun my/lfile-follow-link--sys (file _)
-    "Open FILE out of Emacs given in lfile+sys org link type."
-    (my/expand-lfile file
-                     (org-open-file file-resolved 'system)
-                     t))
-
-  (defun my/lfile-store-link ()
-    "Store a link to the file.
-
-  Prefix argument does matter in this function call.
-  If `C-u' prefix is given, file link is stored instead of lfile link."
-    (when (and (derived-mode-p 'dired-mode)
-               (string-match-p
-                (format "^%s" (expand-file-name my/lfile-root))
-                (dired-current-directory nil)))
-      (let ((path (dired-get-filename nil t)))
-        (if (equal current-prefix-arg '(4))
-            (org-link-store-props
-             :type "file"
-             :link (concat "file:" (abbreviate-file-name
-                                    (expand-file-name path))))
-          (org-link-store-props
-           :type "lfile"
-           :link (concat "lfile:" (file-name-nondirectory path)))))))
-
-  (defun my/lfile-completing-read (&optional arg)
-    "Create a lfile link using completion."
-    (let* ((paths (my/lfile--locate nil))
-           (files (mapcar #'file-name-nondirectory paths))
-           (file (completing-read "Local file: " files nil 'confirm)))
-      (concat "lfile:" file)))
-
-  (defun my/lfile-export (link description format)
-    "Return an exported string from lfile link for format FORMAT.
-  A link consists of LINK and DESCRIPTION."
-    (when-let* ((paths (my/lfile--locate link))
-                (path (org-export-file-uri (expand-file-name (car paths))))
-                (desc (or description link)))
-      (when (stringp path)
-        (cond
-         ((eq format 'html) (format "<a href=\"%s\">%s</a>" path desc))
-         ((eq format 'latex) (format "\\href{%s}{%s}" path desc))
-         ((eq format 'ascii) (format "%s (%s)" desc path))
-         (t path)))))
-
-  (defun my/lfile-from-file-link ()
-    "Replace file link type with lfile link type only if hte path in my/lfile-root."
-    (interactive)
-    (let* ((context (org-element-lineage
-                     (org-element-context)
-                     '(link desc)
-                     t))
-           (type (org-element-property :type context))
-           (path (org-element-property :path context))
-           (app (org-element-property :application context))
-           (search-option (org-element-property :search-option context))
-           (desc-begin (org-element-property :contents-begin context))
-           (desc-end (org-element-property :contents-end context))
-           (desc (and (and (integerp desc-begin) (integerp desc-begin))
-                      (substring-no-properties (buffer-substring desc-begin desc-end)))))
-      (when (and (string= type "file")
-                 (string-match-p
-                  (format "^%s" (expand-file-name my/lfile-root))
-                  (expand-file-name path)))
-        (delete-region (org-element-property :begin context)
-                       (org-element-property :end context))
-        (insert (org-link-make-string (concat "lfile" (and app (concat "+" app)) ":"
-                                              (file-name-nondirectory path)
-                                              (and search-option (concat "::" search-option)))
-                                      desc)))))
-
-  (defun my/lfile--locate (pattern &optional exclude-search)
-    "Determine an absolute path from given FILE name using `locate' program."
-    (if pattern
-        (save-match-data
-          (let ((match-idx (string-match "\\(.+\\)\\(::.+\\)\\'"
-                                         pattern))
-                (data (match-data)))
-            (mapcar (lambda (resolved-path)
-                      (set-match-data data)
-                      (concat resolved-path
-                              (when (and match-idx
-                                         (not exclude-search))
-                                (match-string 2 pattern))))
-                    (split-string
-                     (shell-command-to-string
-                      (format "plocate -d <<plocate-db()>> -ie \"%s\""
-                              (shell-quote-argument
-                               (or (and match-idx
-                                        (match-string 1 pattern))
-                                   pattern))))
-                     "\n" t))))
-      ""))
-
-  (with-eval-after-load 'org
-    (org-link-set-parameters "lfile"
-                             :follow #'my/lfile-follow-link
-                             :store #'my/lfile-store-link
-                             :complete #'my/lfile-completing-read
-                             :export #'my/lfile-export)
-    (org-link-set-parameters "lfile+emacs"
-                             :follow #'my/lfile-follow-link--emacs)
-    (org-link-set-parameters "lfile+sys"
-                             :follow #'my/lfile-follow-link--sys))
-#+end_src
-
 **** additional org tweaks
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
@@ -8867,10 +7820,940 @@ This section mainly for elisp code associated with some other programs.
   <<additional-elisp>>
 #+end_src
 
+**** obsolete features                       :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-01-20 Fri 10:59]
+:END:
+***** org-archive-datetree                  :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-08-10 Wed 14:51]
+:END:
+
+#+begin_src emacs-lisp :tangle no
+  (require 'org)
+  (require 'org-agenda)
+
+  (defcustom my/org-archive-before-archive-hook nil
+    "Hook that is run right before a archive process begins."
+    :group 'org-archive-datetree
+    :type 'hook)
+
+  (defun my/org-archive-file (&optional year)
+    "Return a path of archive file.
+
+  If optional argument `YEAR' is passed that year's file is returned instead of current year's."
+    (let* ((record-year (or year (ts-year (ts-now))))
+           (record-file-cand (format "%s/archive/archive_%s.org" org-directory record-year))
+           (record-file
+            (if (file-exists-p record-file-cand)
+                record-file-cand
+              (expand-file-name "archive/archive_0000.org" org-directory))))
+      (if (or (file-exists-p record-file)
+              (file-symlink-p record-file))
+          record-file
+        nil)))
+
+  (defvar my/org-archive-file (my/org-archive-file))
+
+  (defun my/org-archive-files ()
+    "Return list of archive files."
+    (append (directory-files (expand-file-name "archive" org-directory) t "archive_[[:digit:]]\\{4\\}\\.org" nil)
+            org-agenda-files))
+
+  (defvar my/org-archive-files (my/org-archive-files))
+
+  (defun my/org-archive-find-date (date)
+    "Find and visit the location of DATE in archivee file.
+
+  DATE must be a string representing the date to find and parsable with `format-time-string'.
+
+  If called interactively, it prompt the user to select the date to find."
+    (interactive
+     (cond
+      ((eq major-mode 'calendar-mode)
+       (list (calendar-date-string (calendar-cursor-to-date))))
+      ((eq major-mode 'org-agenda-mode)
+       (let* ((day (or (get-text-property (min (1- (point-max)) (point)) 'day)
+                       (user-error "Don't know which date to open in calendar")))
+              (date (calendar-gregorian-from-absolute day)))
+         (list (calendar-date-string date))))
+      (t (let ((date-select (org-read-date)))
+           (list date-select)))))
+    (let* ((d (parse-time-string date))
+           (day (decoded-time-day d))
+           (month (decoded-time-month d))
+           (year (decoded-time-year d)))
+      (find-file (my/org-archive-file year))
+      (org-datetree-find-iso-week-create `(,month ,day ,year))))
+
+  (defun my/org-archive-subtree ()
+    "Refile current subtree to archive file using latest timestamp."
+    (interactive)
+    (let* ((ts (car (sort (org-timestamps-in-entry) #'ts>)))
+           (year (ts-year (or ts (ts-now))))
+           (save-file (my/org-archive-file year))
+           (tags (org-get-local-tags))
+           (todo (org-get-todo-state)))
+      (when-let* ((pos (with-current-buffer (find-file-noselect save-file)
+                         (save-excursion
+                           (if (and (member "web" tags)
+                                    (not (member todo '("DN" "PD"))))
+                               (org-find-exact-headline-in-buffer "untouched items")
+                             (org-datetree-find-iso-week-create `(,(ts-month ts)
+                                                                  ,(ts-day ts)
+                                                                  ,(ts-year ts)))
+                             (point))))))
+        (run-hooks 'my/org-archive-before-archive-hook)
+        (org-refile nil nil (list nil save-file nil pos)))
+      (org-save-all-org-buffers)
+      (setq this-command 'my/org-archive-subtree)))
+
+  (defun my/org-agenda-archive-subtree ()
+    "Refile the entry or subtree belonging to the current agenda entry."
+    (interactive)
+    (org-agenda-archive-with 'my/org-archive-subtree))
+
+  (defun my/org-ql-view-archive-subtree ()
+    "Refile the entry or subtree belonging to the current agenda entry."
+    (interactive)
+    (org-agenda-archive-with 'my/org-archive-subtree)
+    (org-ql-view-refresh))
+
+  (defun my/org-archive-search (query)
+    "Search org entries matched QUERY in archive files using `org-ql-search'."
+    (interactive (list (read-string "Query: ")))
+    (let ((files (my/org-archive-files)))
+      (org-ql-search files query)))
+
+  (bind-keys :map org-agenda-mode-map
+             ("$" . my/org-agenda-archive-subtree)
+             ("C" . my/org-archive-find-date)
+             :map org-ql-view-map
+             ("$" . my/org-ql-view-archive-subtree)
+             :map calendar-mode-map
+             ("C" . my/org-archive-find-date))
+
+  (push '("Archive entries" . my/org-archive-search)
+        org-ql-views)
+
+  ;; TODO: This function can be rewritten with org-ml
+  ;;;###autoload
+  (defun org-timestamps-in-entry ()
+    "Return timestamp objects for all Org timestamps in entry."
+    (interactive (list current-prefix-arg))
+    (save-excursion
+      (goto-char (org-entry-beginning-position))
+      (org-show-entry)
+      (org-narrow-to-element)
+      (let* ((parsetree (org-element-parse-buffer))
+             (ts-list nil))
+        (org-element-map parsetree '(planning clock timestamp)
+          (lambda (elm)
+            (cl-case (org-element-type elm)
+              ('planning
+               (add-to-list 'ts-list (ts-parse-org-element (or (org-element-property :closed elm)
+                                                               (org-element-property :scheduled elm)
+                                                               (org-element-property :deadline elm)))
+                            t))
+              ('clock
+               (add-to-list 'ts-list (ts-parse-org-element (org-element-property :value elm)) t))
+              ('timestamp
+               (add-to-list 'ts-list (ts-parse-org-element elm) t)))))
+        (widen)
+        ts-list)))
+
+  (provide 'my/org-archive-datetree)
+#+end_src
+
+***** org-capture-derived                   :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-01-08 Sun 18:03]
+:END:
+
+#+begin_src emacs-lisp :tangle no
+  (require 'thingatpt)
+  (require 'whitespace)
+
+  (with-eval-after-load 'org-capture
+    (mapc (lambda (template)
+            (add-to-list 'org-capture-templates
+                         template))
+          '(("x" "actionable entry for manual input"
+             entry
+             (function org-capture-derived-target-function)
+             "* %(org-capture-derived-insert-todo)%? %(org-set-tags org-capture-derived-tags)\n%(org-capture-derived-insert-deadline)")
+            ("X" "Actionable entry for automated input"
+             entry
+             (function org-capture-derived-target-function)
+             "* %(org-capture-derived-insert-todo)%a %(org-set-tags org-capture-derived-tags)\n%(org-capture-derived-insert-deadline)"
+             :immediate-finish t))))
+
+  (defvar org-capture-derived-todo nil
+    "Todo state to be set to an org entry which org-capture-derived creates.
+
+  User should set this value locally, otherwise unexpected results occur.")
+  (defvar org-capture-derived-tags nil
+    "Tags represented with colon(:) to be set to an org entry which org-capture-derived creates.
+
+  User should set this value locally, otherwise unexpected results occur.")
+  (defvar org-capture-derived-target nil "docstring")
+  (defvar org-capture-derived-deadline-in-day nil "docstring")
+
+  (defun org-capture-derived-target-function ()
+    ""
+    (cond
+     ((listp org-capture-derived-target)
+      (set-buffer (org-capture-target-buffer (nth 1 org-capture-derived-target)))
+      (org-capture-put-target-region-and-position)
+      (widen)
+      (goto-char (nth 3 org-capture-derived-target)))
+     ((and (stringp org-capture-derived-target)
+           (string-match-p thing-at-point-uuid-regexp org-capture-derived-target))
+      (org-id-goto org-capture-derived-target))))
+
+  (defun org-capture-derived (&optional arg)
+    "C-u user is asked for all arguments
+  C-u C-u create manually"
+    (interactive "P")
+    ;; insert ID property unless existing
+    (cond
+     ((and (eq major-mode 'org-mode)
+           (not (equal arg '(16))))
+      (org-id-get nil t)))
+    (let* ((todo-in-org
+            (when (derived-mode-p 'org-mode)
+              (org-entry-get (point) "DERIVED_TODO" t)))
+           (org-capture-derived-todo
+            (or todo-in-org
+                org-capture-derived-todo))
+           (tags-in-org
+            (when (derived-mode-p 'org-mode)
+              (org-entry-get (point) "DERIVED_TAGS" t)))
+           (org-capture-derived-tags
+            (or (when (not (equal arg '(4)))
+                  (or tags-in-org
+                      org-capture-derived-tags))
+                (read-string "Tags: " tags-in-org)))
+           (target-in-org
+            (when (derived-mode-p 'org-mode)
+              (org-entry-get (point) "DERIVED_TARGET" t)))
+           (org-capture-derived-target
+            (or (when (not (equal arg '(4)))
+                  (or target-in-org
+                      org-capture-derived-target))
+                (org-refile-get-location)))
+           (deadline-str-in-org
+            (when (derived-mode-p 'org-mode)
+              (org-entry-get (point) "DERIVED_DEADLINE_IN_DAY" t)))
+           (deadline-num-in-org
+            (if (stringp deadline-str-in-org) (string-to-number deadline-str-in-org) nil))
+           (org-capture-derived-deadline-in-day
+            (if (equal arg '(4))
+                (read-number "Deadline in day: "
+                             deadline-num-in-org)
+              (or deadline-num-in-org
+                  org-capture-derived-deadline-in-day))))
+      (if (equal arg '(16))
+          (org-capture nil "x")
+        (org-capture nil "X"))))
+
+  (defun org-capture-derived-insert-todo ()
+    ""
+    (if (stringp org-capture-derived-todo)
+        (if (string-match-p whitespace-trailing-regexp
+                            org-capture-derived-todo)
+            org-capture-derived-todo
+          (format "%s " org-capture-derived-todo))
+      ""))
+
+  (defun org-capture-derived-insert-deadline ()
+    ""
+    (if (numberp org-capture-derived-deadline-in-day)
+        (let ((week-ahead (encode-time
+                           (seq-map-indexed (lambda (element index)
+                                              (if (= index 3)
+                                                  (+ element org-capture-derived-deadline-in-day)
+                                                element))
+                                            (decode-time (current-time))))))
+          (format-time-string "DEADLINE: <%Y-%m-%d %a>" week-ahead))
+      ""))
+#+end_src
+
+***** narrow-dwim                           :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-01-28 Sat 14:45]
+:END:
+
+#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/narrow-dwim.el")
+  (bind-key* "C-x n" 'my/toggle-narrow-dwim)
+
+  (defun my/toggle-narrow-dwim (arg)
+    "If the buffer is narrowed, it widens. Otherwise, it narrows intelligently.
+  Intelligently means: region, org-src-block, org-subtree, or defun,
+  whichever applies first.
+  Narrowing to org-src-block actually calls `org-edit-src-code'.
+
+  With prefix ARG, don't widen, just narrow even if buffer is already narrowed."
+    (interactive "P")
+    (declare (interactive-only))
+    (cond ((and (buffer-narrowed-p) (not arg))
+           (when (org-buffer-narrowed-p)
+             (when org-startup-indented
+               (org-indent-mode 1))
+             (visual-line-mode -1)
+             (adaptive-wrap-prefix-mode -1))
+           (widen)
+           (setq-local truncate-lines t))
+          ((region-active-p)
+           (narrow-to-region (region-beginning) (region-end)))
+          ((and (boundp 'org-src-mode) org-src-mode (not arg))
+           (org-edit-src-exit))
+          ((condition-case err
+               (org-edit-src-code)
+             (user-error nil)))
+          ((derived-mode-p 'org-mode)
+           (cond ((org-at-block-p)
+                  (org-narrow-to-block))
+                 ((org-at-heading-p)
+                  (org-narrow-to-subtree)
+                  (adaptive-wrap-prefix-mode))
+                 (t (org-narrow-to-element)))
+           (org-indent-mode -1)
+           (visual-line-mode 1))
+          ((eq major-mode 'dired-mode)
+           (dired-subtree-narrow))
+          (t (narrow-to-defun))))
+
+  ;; (add-hook 'post-command-hook 'highlight-narrowed-buffer)
+  ;; (defun highlight-narrowed-buffer ()
+  ;;   "Highlight narrowed buffer.
+
+  ;; Narrowed buffer have a fringe with highlighting color.
+  ;; Plus text size in the buffer becomes a little bit larger."
+  ;;   (unless (or (member last-command
+  ;;                       '(text-scale-adjust))
+  ;;               (eq major-mode 'Info-mode)
+  ;;               (string-match-p (rx (seq line-start "CAPTURE-" (one-or-more ascii) line-end))
+  ;;                               (buffer-name)))
+  ;;     (let ((hl-fringe-color "purple2")
+  ;;           (hl-text-scale (sqrt 2)))
+  ;;       (set-face-attribute
+  ;;        'fringe nil :background (if (buffer-narrowed-p)
+  ;;                                    (progn
+  ;;                                      (text-scale-set hl-text-scale)
+  ;;                                      hl-fringe-color)
+  ;;                                  (progn
+  ;;                                    (when (= text-scale-mode-amount hl-text-scale)
+  ;;                                      (text-scale-set 0))
+  ;;                                    nil))))))
+#+end_src
+***** view-file (deprecated)                :ARCHIVE:
+
+#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/view-file.el")
+  (defcustom my/view-file--temp-dir "~/tmp/view-file"
+    "Directory in which we will work for uncompresssing, decrypting and htmlize.")
+  (defvar my/view-file--open-file nil
+    "Target file which we will actually open.
+  User should not change this value.")
+  (defvar my/view-file--remove-files nil
+    "List of files which we will remove afterward.
+  User should not change this value.")
+
+  ;; TODO: support line/search args to jump to the desired position
+  (defun my/view-file (file &optional system)
+    "Open FILE in my preferable way.
+
+  if SYSTEM is non-nii open FILE using preferable application in system."
+    (setq my/view-file--open-file (expand-file-name file))
+    (make-directory my/view-file--temp-dir t)
+
+    ;; decrypt file if it is encrypted
+    (when-let* ((match (string-match "\\(.+\\)\.gpg$" my/view-file--open-file))
+                (decrypt-file (expand-file-name (file-name-base my/view-file--open-file)
+                                                (expand-file-name my/view-file--temp-dir)))
+                (context (epg-make-context epa-protocol)))
+      (epg-context-set-passphrase-callback context
+                                           #'epa-passphrase-callback-function)
+      (epg-decrypt-file context my/view-file--open-file decrypt-file)
+      (setq my/view-file--open-file decrypt-file)
+      (add-to-list 'my/view-file--remove-files decrypt-file))
+
+    ;; uncompress file if it is tarball
+    (let* (uncompress-file
+           (uncompress-command
+            (cond
+             ((string-match "\\(.+\\)\\.t\\(ar\\.\\)?gz$" my/view-file--open-file)
+              (setq uncompress-file (expand-file-name (file-name-base (match-string 1 my/view-file--open-file))
+                                                      my/view-file--temp-dir))
+              (format "gzip -dc %s | tar -xf - -C %s"
+                      (shell-quote-argument my/view-file--open-file)
+                      (shell-quote-argument uncompress-file)))
+             ((string-match "\\(.+\\)\\.t\\(ar\\.\\)?zst$" my/view-file--open-file)
+              (setq uncompress-file (expand-file-name (file-name-base (match-string 1 my/view-file--open-file))
+                                                      my/view-file--temp-dir))
+              (format "unzstd -c %s | tar -xf - -C %s"
+                      (shell-quote-argument my/view-file--open-file)
+                      (shell-quote-argument uncompress-file)))
+             ((string-match "\\(.+\\)\\.zip$" my/view-file--open-file)
+              (setq uncompress-file (expand-file-name (file-name-base (match-string 1 my/view-file--open-file))
+                                                      my/view-file--temp-dir))
+              (format "unzip -o -d %s %s"
+                      (shell-quote-argument uncompress-file)
+                      (shell-quote-argument my/view-file--open-file))))))
+      (when (and (stringp uncompress-file)
+                 (stringp uncompress-command))
+        (make-directory uncompress-file t)
+        (call-process-shell-command
+         uncompress-command)
+        (add-to-list 'my/view-file--remove-files uncompress-file)
+        (setq my/view-file--open-file uncompress-file)))
+
+    ;; convert pdf/epub to html
+    (let* ((dirname-html
+            (expand-file-name (file-relative-name my/view-file--open-file "/")
+                              (expand-file-name my/view-file--temp-dir)))
+           (filename-html
+            (concat (file-name-as-directory dirname-html)
+                    "index.html"))
+           (command
+            (cond
+             ((= (call-process-shell-command (format "filetype-cli check --type pdf %s" (shell-quote-argument my/view-file--open-file))) 0)
+              (format "cat %s 2>/dev/null | pdftohtml -p -s -noframes -nomerge -nodrm - %s"
+                      (shell-quote-argument my/view-file--open-file)
+                      (shell-quote-argument filename-html)))
+             ((= (call-process-shell-command (format "filetype-cli check --type epub %s" (shell-quote-argument my/view-file--open-file))) 0)
+              (format "cat %s 2>/dev/null | pandoc --from=epub --to=html --extract-media=%s - | strip_ruby > %s"
+                      (shell-quote-argument my/view-file--open-file)
+                      (shell-quote-argument dirname-html)
+                      (shell-quote-argument filename-html))))))
+      (when (and (null system)
+                 (stringp command))
+        (unless (file-exists-p filename-html)
+          (make-directory dirname-html t)
+          (call-process-shell-command command)
+          ;; reuse html only if pdf/epub file is not ecrypted
+          (when (member my/view-file--open-file my/view-file--remove-files)
+            (add-to-list 'my/view-file--remove-files dirname-html)))
+        (setq my/view-file--open-file filename-html)))
+
+    ;; open file
+    (cond
+     ((or system
+          (string-match-p "\\.midi?$" my/view-file--open-file)
+          (= (call-process-shell-command (format "filetype-cli check --type pdf %s" (shell-quote-argument my/view-file--open-file))) 0)
+          (= (call-process-shell-command (format "filetype-cli check --type epub %s" (shell-quote-argument my/view-file--open-file))) 0))
+      (let ((process-connection-type nil))
+        (call-process-shell-command (format "xdg-open %s" (shell-quote-argument my/view-file--open-file)))
+        (sleep-for 3)
+        (funcall 'my/view-file--finalize-function)))
+     ((or (= (call-process-shell-command (format "filetype-cli check --type playable %s" (shell-quote-argument my/view-file--open-file))) 0)
+          (seq-some (lambda (suffix)
+                      (string-suffix-p suffix my/view-file--open-file t))
+                    '(".m3u" ".mts" ".m2ts")))
+      (when-let ((mpv-proc (start-process-shell-command
+                            "mpv" nil
+                            (format "nohup mpv --force-window %s >/dev/null 2>&1" (shell-quote-argument my/view-file--open-file)))))
+        (set-process-sentinel
+         mpv-proc
+         (lambda (process desc)
+           (when (eq (process-status process) 'exit)
+             (funcall 'my/view-file--finalize-function))))))
+     ((= (call-process-shell-command
+          (format "filetype-cli check --type html %s"
+                  (shell-quote-argument my/view-file--open-file))) 0)
+      (add-hook 'eww-after-render-hook 'my/view-file--eww-finalize-function)
+      (eww-open-file my/view-file--open-file))
+     ((file-directory-p my/view-file--open-file)
+      (dired my/view-file--open-file)
+      (funcall 'my/view-file--finalize-function))
+     (t
+      (find-file my/view-file--open-file)
+      (funcall 'my/view-file--finalize-function))))
+
+  (defun my/view-file--finalize-function ()
+    "Remove files and initialize variables."
+    (mapc (lambda (file)
+            (when (stringp file)
+              (cond
+               ((file-directory-p file)
+                (delete-directory file t nil))
+               ((file-exists-p file)
+                (let ((delete-by-moving-to-trash t))
+                  (delete-file file))))))
+          my/view-file--remove-files)
+    (setq my/view-file--open-file nil
+          my/view-file--remove-files nil))
+
+  (defun my/view-file--eww-finalize-function ()
+    "Finalize function for `EWW'."
+    (remove-hook 'eww-after-render-hook 'my/view-file--eww-finalize-function)
+    (funcall 'my/view-file--finalize-function))
+
+  (defun my/view-file-filter-org-link-store-props (&rest plist-orig)
+    "Filter PLIST-ORIG to original file name if value of `eww-current-url'
+   is in `my/view-file--temp-dir'."
+    (let ((plist-filtered (car plist-orig)))
+      (if (plist-member plist-filtered :link)
+          (plist-put plist-filtered
+                     :link
+                     (replace-regexp-in-string (format "%s\\(.*\\)/index.html"
+                                                       (expand-file-name my/view-file--temp-dir))
+                                               (format "%s\\1"
+                                                       (expand-file-name "~"))
+                                               (plist-get plist-filtered
+                                                          :link))))
+      (car plist-orig)))
+
+  (advice-add #'org-link-store-props :filter-args
+              #'my/view-file-filter-org-link-store-props)
+
+  (provide 'my/view-file)
+#+end_src
+
 *** my packages
 :PROPERTIES:
 :CREATED:  [2023-01-12 Thu 14:14]
 :END:
+**** lfile (org-link type for files on the machine)
+
+lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lfile/][Kerl Voit's implementation]].
+
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
+  (require 'lfile)
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "lfile.el" my/user-package-dir)
+  (defcustom my/lfile-root "~/" "docstring")
+
+  (defmacro my/expand-lfile (file body exclude-search)
+    "Evaluate BODY with resolving a path from FILE.
+
+  In BODY, caller could refer a resolved file path as `file-resolved'.
+  If exclude-search is non-nil, search specifier after \"::\" will be removed in `file-resolved'."
+    `(let* ((paths (my/lfile--locate ,file ,exclude-search))
+            (file-resolved (car paths)))
+       (cond
+        ((= 0 (length paths))
+         (message "Sorry, no results found for query: %s" file))
+        ((<= 1 (length paths))
+         ,body))))
+
+  (defun my/lfile-follow-link (file _)
+    "Open FILE given in lfile org link type."
+    (my/expand-lfile file
+                     (org-link-open-as-file file-resolved current-prefix-arg)
+                     nil))
+
+  (defun my/lfile-follow-link--emacs (file _)
+    "Open FILE in Emacs given in lfile+emacs org link type."
+    (my/expand-lfile file
+                     (org-open-file file-resolved t)
+                     t))
+
+  (defun my/lfile-follow-link--sys (file _)
+    "Open FILE out of Emacs given in lfile+sys org link type."
+    (my/expand-lfile file
+                     (org-open-file file-resolved 'system)
+                     t))
+
+  (defun my/lfile-store-link ()
+    "Store a link to the file.
+
+  Prefix argument does matter in this function call.
+  If `C-u' prefix is given, file link is stored instead of lfile link."
+    (when (and (derived-mode-p 'dired-mode)
+               (string-match-p
+                (format "^%s" (expand-file-name my/lfile-root))
+                (dired-current-directory nil)))
+      (let ((path (dired-get-filename nil t)))
+        (if (equal current-prefix-arg '(4))
+            (org-link-store-props
+             :type "file"
+             :link (concat "file:" (abbreviate-file-name
+                                    (expand-file-name path))))
+          (org-link-store-props
+           :type "lfile"
+           :link (concat "lfile:" (file-name-nondirectory path)))))))
+
+  (defun my/lfile-completing-read (&optional arg)
+    "Create a lfile link using completion."
+    (let* ((paths (my/lfile--locate nil))
+           (files (mapcar #'file-name-nondirectory paths))
+           (file (completing-read "Local file: " files nil 'confirm)))
+      (concat "lfile:" file)))
+
+  (defun my/lfile-export (link description format)
+    "Return an exported string from lfile link for format FORMAT.
+  A link consists of LINK and DESCRIPTION."
+    (when-let* ((paths (my/lfile--locate link))
+                (path (org-export-file-uri (expand-file-name (car paths))))
+                (desc (or description link)))
+      (when (stringp path)
+        (cond
+         ((eq format 'html) (format "<a href=\"%s\">%s</a>" path desc))
+         ((eq format 'latex) (format "\\href{%s}{%s}" path desc))
+         ((eq format 'ascii) (format "%s (%s)" desc path))
+         (t path)))))
+
+  (defun my/lfile-from-file-link ()
+    "Replace file link type with lfile link type only if hte path in my/lfile-root."
+    (interactive)
+    (let* ((context (org-element-lineage
+                     (org-element-context)
+                     '(link desc)
+                     t))
+           (type (org-element-property :type context))
+           (path (org-element-property :path context))
+           (app (org-element-property :application context))
+           (search-option (org-element-property :search-option context))
+           (desc-begin (org-element-property :contents-begin context))
+           (desc-end (org-element-property :contents-end context))
+           (desc (and (and (integerp desc-begin) (integerp desc-begin))
+                      (substring-no-properties (buffer-substring desc-begin desc-end)))))
+      (when (and (string= type "file")
+                 (string-match-p
+                  (format "^%s" (expand-file-name my/lfile-root))
+                  (expand-file-name path)))
+        (delete-region (org-element-property :begin context)
+                       (org-element-property :end context))
+        (insert (org-link-make-string (concat "lfile" (and app (concat "+" app)) ":"
+                                              (file-name-nondirectory path)
+                                              (and search-option (concat "::" search-option)))
+                                      desc)))))
+
+  (defun my/lfile--locate (pattern &optional exclude-search)
+    "Determine an absolute path from given FILE name using `locate' program."
+    (if pattern
+        (save-match-data
+          (let ((match-idx (string-match "\\(.+\\)\\(::.+\\)\\'"
+                                         pattern))
+                (data (match-data)))
+            (mapcar (lambda (resolved-path)
+                      (set-match-data data)
+                      (concat resolved-path
+                              (when (and match-idx
+                                         (not exclude-search))
+                                (match-string 2 pattern))))
+                    (split-string
+                     (shell-command-to-string
+                      (format "plocate -d <<plocate-db()>> -ie \"%s\""
+                              (shell-quote-argument
+                               (or (and match-idx
+                                        (match-string 1 pattern))
+                                   pattern))))
+                     "\n" t))))
+      ""))
+
+  (with-eval-after-load 'org
+    (org-link-set-parameters "lfile"
+                             :follow #'my/lfile-follow-link
+                             :store #'my/lfile-store-link
+                             :complete #'my/lfile-completing-read
+                             :export #'my/lfile-export)
+    (org-link-set-parameters "lfile+emacs"
+                             :follow #'my/lfile-follow-link--emacs)
+    (org-link-set-parameters "lfile+sys"
+                             :follow #'my/lfile-follow-link--sys))
+
+  (provide 'lfile)
+#+end_src
+
+**** open-file
+:PROPERTIES:
+:CREATED:  [2023-01-28 Sat 13:58]
+:END:
+
+This set of code (open-file) offers file opener functionality in my liking. With open-file, PDF and EPUB, which is either local or on the web, is viewed in EWW (text browser in Emacs) after the process of converted into html. Video and audio is played in MPV media player. Open-file is available in elisp commands for opening files (e.g. org-open-at-point for org links, browse-url and dired-open-file). With any command above, invoking with single prefix (C-u) inflict to open file in Emacs, and invoking with double prefix (C-u C-u) inflict to open files in default application.
+
+#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+  d <<share-dir()>>/emacs/open-file 0755 - - 14d
+#+end_src
+
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
+  (require 'open-file)
+#+end_src
+
+#+begin_src emacs-lisp :tangle (expand-file-name "open-file.el" my/user-package-dir)
+  ;; general functions
+
+  (defvar my/open-file-dir
+    (expand-file-name "open-file"
+                      user-emacs-directory)
+    "Directory where html file is converted into.")
+
+  (defvar my/open-file-media-player "mpv"
+    "Media player used to play media file in open-file.")
+
+  (defvar my/open-file-media-extensions
+    '("mpg" "mpeg" "mp3" "mp4" "m4v" "m4a"
+      "avi" "wmv" "wav" "mov" "flv" "mkv" "webm"
+      "ogv" "oga" "ogx" "ogg" "spx" "opus"
+      "xbm" "pbm" "pgm" "ppm" "pnm" "png" "gif" "bmp" "tif" "jpeg" "jpg")
+    "Extensions files which can play with media player must have.")
+
+  (defvar my/open-file-compressed-media-extensions
+    '("tar.gz" "tgz" "tar.xz" "txz" "zip" "7z")
+    "Extensions compressed files which can play with media player must have.")
+
+  (defvar my/open-file-yt-regexp
+    (rx (? (or "https://" "http://" "//"))
+        (? "www")
+        (or "youtube.com" "youtu.be"))
+    "Regexp for youtube url.")
+
+  (defmacro my/open-file-as-html (file convert-cmd)
+    `(let* ((cap-command (if (string-match-p url-handler-regexp ,file)
+                             "curl"
+                           (if (string-suffix-p ".gpg" ,file)
+                               "gpg -d"
+                             "cat")))
+            (dir-name
+             (seq-reduce (lambda (str rep)
+                           (string-replace (car rep) (cdr rep) str))
+                         '(("/" . "!")
+                           ("~" . "`")
+                           (" " . "_"))
+                         ,file))
+            (dirname-html
+             (expand-file-name
+              (file-name-sans-extension dir-name)
+              my/open-file-dir))
+            (filename-html
+             (concat (file-name-as-directory dirname-html)
+                     "index.html"))
+            (command ,convert-cmd))
+       (unless (file-exists-p filename-html)
+         (make-directory dirname-html t)
+         (call-process-shell-command command))
+       (browse-url filename-html)))
+
+  (defun my/open-pdf-as-html (pdf)
+    "Open PDF in `eww' after the process of convertion into html."
+    (my/open-file-as-html
+     pdf
+     (format "%1$s %2$s 2>/dev/null | pdftohtml -p -s -noframes -nomerge -nodrm - %3$s"
+             cap-command
+             (shell-quote-argument pdf)
+             (shell-quote-argument filename-html))))
+
+  (defun my/open-epub-as-html (epub)
+    "Open EPUB in `eww' after the process of convertion into html."
+    (my/open-file-as-html
+     epub
+     (format "%1$s %2$s 2>/dev/null | pandoc --from=epub --to=html --extract-media=%3$s - | strip_ruby > %4$s"
+             cap-command
+             (shell-quote-argument epub)
+             (shell-quote-argument dirname-html)
+             (shell-quote-argument filename-html))))
+
+  (defun my/open-media (media &optional start-time)
+    "Open MEDIA in `my/open-file-media-player' at the point of START-TIME."
+    (let ((ask-file (when (or (file-directory-p media)
+                              (string-match-p (eval `(rx (or ,@my/open-file-compressed-media-extensions)))
+                                              media))
+                      (file-name-nondirectory media))))
+      (when (or (not ask-file)
+                (and ask-file
+                     (y-or-n-p (format "Play %s?: " ask-file))))
+        (start-process-shell-command
+         my/open-file-media-player nil
+         (let ((cap-cmd (and (string-suffix-p ".gpg" media)
+                             (format "gpg -d %s | " media))))
+           (mapconcat #'identity
+                      (list (or cap-cmd "")
+                            "nohup" my/open-file-media-player
+                            "--force-window"
+                            (or (and start-time
+                                     (format "--start=%s" start-time))
+                                "")
+                            (if cap-cmd
+                                "-"
+                              (shell-quote-argument media))
+                            "2>&1" ">/dev/null")
+                      " "))))))
+
+  ;; ==============================================
+  ;; browse-url handling
+
+  (with-eval-after-load 'browse-url
+    (let ((search-suffix "\\(?:::.*\\)?"))
+      (customize-set-variable
+       'browse-url-handlers
+       `(((lambda (url)
+            (equal current-prefix-arg '(16)))
+          . my/browse-url-external)
+         ((lambda (url)
+            (equal current-prefix-arg '(4)))
+          . my/browse-url-emacs)
+         (,(format "\\.html%s\\'" search-suffix)
+          . my/browse-url-html)
+         (,(format "\\.pdf\\(\\.gpg\\)?%s\\'" search-suffix)
+          . my/browse-url-pdf)
+         (,(format "\\.epub%s\\'" search-suffix)
+          . my/browse-url-epub)
+         (,(eval `(concat (rx "." (or ,@my/open-file-media-extensions
+                                      ,@my/open-file-compressed-media-extensions)
+                              (opt ".gpg"))
+                          search-suffix))
+          . my/browse-url-media)
+         (,(concat my/open-file-yt-regexp search-suffix)
+          . my/browse-url-media)))
+      (customize-set-variable
+       'browse-url-browser-function 'eww-browse-url)))
+
+  (defun my/browse-url-html (url &optional same-window)
+    "A handler for `browse-url' responsible for html at URL."
+    (cond
+     ((file-exists-p url)
+      (eww-open-file url))
+     ((string-match-p url-handler-regexp url)
+      (browse-web url))
+     (t
+      (eww url))))
+
+  (defun my/browse-url-pdf (url &optional same-window)
+    "A handler for `browse-url' responsible for a pdf file at URL."
+    (let* ((query-list (my/browse-url-break-down url))
+           (search-str (cadr query-list)))
+      (my/open-pdf-as-html (car query-list))
+      (and (stringp search-str)
+           (org-link-search search-str))))
+
+  (defun my/browse-url-epub (url &optional same-window)
+    "A handler for `browse-url' responsible for an epub file at URL."
+    (let* ((query-list (my/browse-url-break-down url))
+           (search-str (cadr query-list)))
+      (my/open-epub-as-html (car query-list))
+      (and (stringp search-str)
+           (org-link-search search-str))))
+
+  (defun my/browse-url-media (url &optional same-window)
+    "A handler for `browse-url' responsible for a media file at URL."
+    (let* ((query-list (my/browse-url-break-down url))
+           (search-str (cadr query-list)))
+      (my/open-media (car query-list) search-str)))
+
+  (defun my/browse-url-emacs (url &optional same-window)
+    "A handler for `browse-url' invoked with `C-u' responsible for a file at URL."
+    (browse-url-emacs (car (my/browse-url-break-down url))
+                      same-window))
+
+  (defun my/browse-url-external (url &optional same-window)
+    "A handler for `browse-url' invoked with `C-u C-u' responsible for a file at URL."
+    (browse-url-xdg-open (car (my/browse-url-break-down url))
+                         same-window))
+
+  (defun my/browse-url-break-down (query)
+    (let* ((search-opt-regexp "::\\(.*\\)\\'")
+           (matcher nil)
+           (url-or-file
+            (cond ((string-match-p url-handler-regexp query)
+                   (setq matcher (format "\\(%s.*\\)%s"
+                                         url-handler-regexp
+                                         search-opt-regexp))
+                   query)
+                  (t
+                   (setq matcher (format "\\(.*\\)%s"
+                                         search-opt-regexp))
+                   (expand-file-name
+                    (and (not (string-match-p "^file://" query))
+                         (replace-regexp-in-string "^\\(?:/\\)?file:" "" query)))))))
+      (if (string-match matcher url-or-file)
+          `(,(match-string 1 url-or-file) ,(match-string 2 url-or-file))
+        `(,url-or-file nil))))
+
+  ;; ==============================================
+  ;; org-open handling
+
+  (with-eval-after-load 'org
+    (customize-set-variable
+     `org-file-apps
+     `(("\\.html\\'" . my/org-open-html)
+       ("\\.pdf\\(\\.gpg\\)?\\'" . my/org-open-pdf)
+       ("\\.epub\\'" . my/org-open-epub)
+       (,(eval `(rx "." (or ,@my/open-file-media-extensions
+                            ,@my/open-file-compressed-media-extensions)
+                    (opt ".gpg") string-end))
+        . my/org-open-media)
+       (auto-mode . emacs)
+       (directory . my/org-open-media)
+       (system . browse-url-default-browser))))
+
+  (defun my/org-open-html (file-path link-string)
+    "Open a html file at FILE-PATH via org-open command."
+    (browse-url file-path)
+    (when-let ((search (my/org-link-search link-string)))
+      (org-link-search search)))
+
+  (defun my/org-open-pdf (file-path link-string)
+    "Open a pdf file at FILE-PATH via org-open command."
+    (my/open-pdf-as-html file-path)
+    (when-let ((search (my/org-link-search link-string)))
+      (org-link-search search)))
+
+  (defun my/org-open-epub (file-path link-string)
+    "Open an epub file at FILE-PATH via org-open command."
+    (my/open-epub-as-html file-path)
+    (when-let ((search (my/org-link-search link-string)))
+      (org-link-search search)))
+
+  (defun my/org-open-media (file-path link-string)
+    "Open a media file at FILE-PATH via org-open command."
+    (my/open-media file-path
+                   (my/org-link-search link-string)))
+
+  (defun my/org-link-search (link-string)
+    (and (stringp link-string)
+         (string-match "::\\(.*\\)\\'" link-string)
+         (match-string 1 link-string)))
+
+  (defun my/org-execute-file-search-line-number (s)
+    "A search function responsible for line number inside of S."
+    (and (string-match "^l=\\([-+[:digit:]]+\\)\\'" s)
+         (goto-line (string-to-number (match-string 1 s)))))
+
+  (add-hook 'org-execute-file-search-functions
+            'my/org-execute-file-search-line-number)
+
+  ;; ==============================================
+  ;; dired-open handling
+
+  (with-eval-after-load 'dired-open
+    (customize-set-variable
+     'dired-open-functions
+     '(dired-open-call-function-by-extension
+       dired-open-guess-shell-alist
+       dired-open-by-extension
+       dired-open-subdir))
+    (customize-set-variable
+     'dired-open-extensions-elisp
+     `(("pdf" . my/open-pdf-as-html)
+       ("pdf.gpg" . my/open-pdf-as-html)
+       ("epub" . my/open-epub-as-html)
+       ("jpg.gpg" . my/open-media)
+       ,@(mapcar (lambda (ext)
+                   (cons ext 'my/open-media))
+                 my/open-file-media-extensions)))
+    (customize-set-variable
+     'dired-open-find-file-function 'my/dired-find-file))
+
+  (defun my/dired-find-file ()
+    "A function for `dired-open-find-file-function' dealing with
+  a `dired-open-file' call with `C-u' or `C-u C-u'."
+    (let ((file-for-visit (dired-get-file-for-visit)))
+      (cond
+       ((equal current-prefix-arg '(16))
+        (browse-url-default-browser file-for-visit))
+       ((equal current-prefix-arg '(4))
+        (dired--find-possibly-alternative-file file-for-visit))
+       ((or (file-directory-p file-for-visit)
+            (string-match-p (eval `(rx (or ,@my/open-file-compressed-media-extensions)))
+                            file-for-visit))
+        (my/open-media file-for-visit)))))
+
+  (provide 'open-file)
+#+end_src
+
 **** org-password-store
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 17:48]
@@ -9633,6 +9516,145 @@ test code
           (setq newhead (org-get-heading))))))
 
   (provide 'org-relate)
+#+end_src
+
+**** org-clocktable-by-tag
+
+Provide a function to Build a clock table summing up time by tag.
+
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
+  (with-eval-after-load 'org
+    (require 'org-clocktable-by-tag))
+#+end_src
+
+#+begin_src emacs-lisp :tangle (expand-file-name "org-clocktable-by-tag.el" my/user-package-dir)
+  (require 'org-table)
+  (require 'org-clock)
+
+  (defun clocktable-by-tag/shift-cell (n)
+    (let ((str ""))
+      (dotimes (i n)
+        (setq str (concat str "| ")))
+      str))
+
+  (defun clocktable-by-tag/insert-tag (params)
+    (let ((match (plist-get params :match)))
+      (insert "|--\n")
+      (insert (format "| %s | *Tag time* |\n" match))
+      (let ((total 0))
+        (mapcar
+         (lambda (file)
+           (let ((clock-data (with-current-buffer (find-file-noselect file)
+                               (org-clock-get-table-data (buffer-name) params))))
+             (when (> (nth 1 clock-data) 0)
+               (setq total (+ total (nth 1 clock-data)))
+               (insert (format "| | File *%s* | %.2f |\n"
+                               (file-name-nondirectory file)
+                               (/ (nth 1 clock-data) 60.0)))
+               (dolist (entry (nth 2 clock-data))
+                 (insert (format "| | . %s%s | %s %.2f |\n"
+                                 (org-clocktable-indent-string (nth 0 entry))
+                                 (replace-regexp-in-string "|" "\\vert\{\}" (nth 1 entry) nil t)
+                                 (clocktable-by-tag/shift-cell (nth 0 entry))
+                                 (/ (nth 4 entry) 60.0)))))))
+         (org-agenda-files))
+        (if (= total 0)
+            (save-excursion
+              (re-search-backward "*Tag time*")
+              (forward-line -1)
+              (dotimes (i 2)
+                (org-table-kill-row)))
+          (save-excursion
+            (re-search-backward "*Tag time*")
+            (org-table-next-field)
+            (org-table-blank-field)
+            (insert (format "*%.2f*" (/ total 60.0))))))
+      (org-table-align)))
+
+  ;;;###autoload
+  (defun org-dblock-write:clocktable-by-tag (params)
+    (funcall indent-line-function)
+    (insert "| Tag | Headline | Time (h) |\n")
+    (insert "|     |          | <r>  |\n")
+    (let ((matches
+           (org-global-tags-completion-table)))
+      (mapcar (lambda (match)
+                (let ((match-str (car match))
+                      (case-fold-search nil))
+                  (when (string-match-p "^AC_" match-str)
+                    (setq params (plist-put params :match match-str))
+                    (clocktable-by-tag/insert-tag params))))
+              matches)))
+
+  (provide 'org-clocktable-by-tag)
+#+end_src
+
+**** weather
+
+#+begin_src emacs-lisp :tangle (expand-file-name "weather.el" my/user-package-dir)
+  ;; 気象庁配信の天気情報を加工して表示
+
+  (require 'request)
+  (require 'cl-lib)
+
+  (defvar weather-areas
+    '(((url . "http://www.drk7.jp/weather/xml/14.xml")
+       (pref . "神奈川県")
+       (area . "西部"))
+      ((url . "http://www.drk7.jp/weather/xml/22.xml")
+       (pref . "静岡県")
+       (area . "中部"))))
+
+  (defun weather-area-show (weather-area-alist weather-buffer)
+    (lexical-let ((url (assoc-default 'url weather-area-alist))
+                  (pref (assoc-default 'pref weather-area-alist))
+                  (area (assoc-default 'area weather-area-alist))
+                  (buffer weather-buffer))
+      (request
+        url
+        :parser
+        (lambda ()
+          (let ((xml-string (string-as-multibyte (string-as-unibyte (buffer-string)))))
+            (with-temp-buffer
+              (erase-buffer)
+              (insert xml-string)
+              (libxml-parse-xml-region (point-min) (point-max)))))
+        :success
+        (cl-function
+         (lambda (&key data &allow-other-keys)
+           (when data
+             (with-current-buffer buffer
+               (insert (format "%s %s\n" pref area))
+               (mapcar
+                (lambda (info-node)
+                  (insert
+                   (format "%s %s %s %s\n"
+                           (dom-attr info-node 'date)
+                           (apply (lambda (max-temp-node min-temp-node)
+                                    (format "%2d/%2d℃"
+                                            (string-to-number (dom-text min-temp-node))
+                                            (string-to-number (dom-text max-temp-node))))
+                                  (dom-by-tag (dom-child-by-tag info-node 'temperature) 'range))
+                           (apply (lambda (node-1 node-2 node-3 node-4)
+                                    (format "%2d-%2d-%2d-%2d％"
+                                            (string-to-number (dom-text node-1))
+                                            (string-to-number (dom-text node-2))
+                                            (string-to-number (dom-text node-3))
+                                            (string-to-number (dom-text node-4))))
+                                  (dom-by-tag (dom-child-by-tag info-node 'rainfallchance) 'period))
+                           (dom-text (dom-child-by-tag info-node 'weather)))))
+                (dom-by-tag (dom-by-id data area) 'info))
+               (insert "\n"))))))))
+
+  (defun weather ()
+    (interactive)
+    (let ((buffer (get-buffer-create "weather")))
+      (mapcar (lambda (weather-area)
+                (weather-area-show weather-area buffer))
+              weather-areas)
+      (switch-to-buffer buffer)))
+
+  (provide 'weather)
 #+end_src
 
 ** Findutils
