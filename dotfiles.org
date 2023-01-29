@@ -3509,7 +3509,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-capture-templates
      `(("e" "Entry"
         entry (id "58e12e3e-da50-4089-9d22-565986637121")
-        "* %?")
+        ,(concat "* %a\n"
+                 "%(and (length> \"%i\" 0)
+                        \"#+begin_quote\n%i\n#+end_quote\n\")"))
        ("t" "Task"
         entry (id "58e12e3e-da50-4089-9d22-565986637121")
         ,(format "* %s %%?\n"
@@ -6358,6 +6360,7 @@ Major mode for manupulating password store file.
     "Shorten `nov-file-name' using `directory-abbrev-alist'."
     (setq nov-file-name (abbreviate-file-name nov-file-name)))
 #+end_src
+
 ***** yasnippet
 :PROPERTIES:
 :ID:       e91bfa7e-79be-4abc-ac0c-232aa3ccddda
