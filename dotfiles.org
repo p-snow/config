@@ -3511,7 +3511,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
         entry (id "58e12e3e-da50-4089-9d22-565986637121")
         ,(concat "* %a\n"
                  "%(and (length> \"%i\" 0)
-                        \"#+begin_quote\n%i\n#+end_quote\n\")"))
+  (format \"#+begin_\%1$s\n\%2$s#+end_%1$s\n\"
+  \"text\"
+  (replace-regexp-in-string \"^*\" \",*\" \"%i\")))"))
        ("t" "Task"
         entry (id "58e12e3e-da50-4089-9d22-565986637121")
         ,(format "* %s %%?\n"
@@ -7503,6 +7505,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
            (export-buf-name "*Org HTML Export*")
            (org-export-with-broken-links 'mark)
            (org-export-babel-evaluate nil)
+           (org-export-preserve-breaks t)
            (id (org-id-get))
            (uuid (downcase (if id id (org-id-uuid))))
            (html-file (format "%s/%s.html" my/org-subtree-view-directory uuid))
