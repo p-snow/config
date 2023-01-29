@@ -14,8 +14,8 @@ tangle: $(TANGLE_EL) $(EARLYINIT_EL)
 detangle: $(DETANGLE_EL) $(EARLYINIT_EL)
 	$(EMACS) -Q --batch -l $(word 2,$^) -l $<
 
-publish: $(PUBLISH_EL) $(EARLYINIT_EL)
-	$(EMACS) -Q --batch -l $(word 2,$^) -l $<
+publish: $(PUBLISH_EL)
+	$(EMACS) -Q --batch -l $<
 
 all: tangle
 
