@@ -3232,7 +3232,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
       (define-key map (kbd "C->") #'org-next-link)
       (define-key map (kbd "C-c @") #'org-mark-element)
       (define-key map (kbd "C-c C-SPC") #'org-mark-subtree)
-      (define-key map (kbd "C-c !") #'org-readable)
       (define-key map (kbd "C-c C-a") nil)
       (define-key map (kbd "C-,") nil)
       (define-key map (kbd "M-h") nil)))
@@ -3695,7 +3694,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
      ("Org Capture")
      ("Misc")
      ("$" . org-archive-subtree)
-     ("!" . org-readable)
      ("o" . org-open-at-point)
      ("?" . org-speed-command-help)
      ("<" . (org-agenda-set-restriction-lock 'subtree))
@@ -7488,7 +7486,10 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
 #+begin_src emacs-lisp
   (with-eval-after-load 'org
     (bind-keys :map org-mode-map
-               ("C-c C-!" . my/org-subtree-view-in-browser)))
+               ("C-c C-!" . my/org-subtree-view-in-browser))
+    (add-to-list 'org-speed-commands
+                 '("!" . my/org-subtree-view-in-browser)
+                 t))
 
   (defvar my/org-subtree-view-directory
     (expand-file-name "org-subtree-view"
