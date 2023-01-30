@@ -3578,51 +3578,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (customize-set-variable 'org-log-reschedule 'time)
   (customize-set-variable 'org-log-redeadline 'time)
   (customize-set-variable 'org-closed-keep-when-no-todo nil)
-
-  (with-eval-after-load 'org
-    (add-hook 'org-after-todo-state-change-hook
-              #'my/org-remove-priority-if-done)
-    (add-hook 'org-after-todo-state-change-hook
-              #'my/org-remove-done-if-nonrepeated-habit)
-    (add-hook 'org-after-todo-state-change-hook
-              #'my/org-close-project))
-
-  (defun my/org-remove-priority-if-done ()
-    "Remove priority if todo state of the entry at point has changed to `org-done-keywords'."
-    (when (and
-           ;; the entry has one of org-done-keywords
-           (string-match-p
-            (eval `(rx (or ,my/org-done-keyword--done
-                           ,my/org-done-keyword--cancel
-                           ,my/org-done-keyword--pending)))
-            org-state)
-           ;; the entry has been set any priority
-           (/= 21000 (save-excursion
-                       (save-match-data
-                         (beginning-of-line)
-                         (and (looking-at org-heading-regexp)
-                              (org-get-priority (match-string 0)))))))
-      (org-priority 'remove)))
-
-  (defun my/org-remove-done-if-nonrepeated-habit ()
-    "Reset todo state of the entry at point if it is habit without repeats."
-    (when (and (string-match-p my/org-done-keyword--done
-                               org-state)
-               (org-is-habit-p)
-               (not (org-get-scheduled-time (point))))
-      (org-todo "")))
-
-  (defun my/org-close-project ()
-    "Try to close the project entry which this entry belongs.
-
-  If the project entry has BLOCKER property, Ord EDNA prohibit the entry to close."
-    (when (member org-state
-                  `(,my/org-done-keyword--done ,my/org-done-keyword--cancel ,my/org-done-keyword--pending))
-      (save-excursion
-        (org-back-to-heading t)
-        (org-speed-move-safe 'outline-up-heading)
-        (and (member my/org-project-tag (org-get-tags))
-             (org-todo my/org-done-keyword--done)))))
 #+end_src
 
 ****** Org Structure
@@ -7306,21 +7261,13 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
   If the entry has ATTENTION_SPAN property, use it for `org-timer-default-timer'.
   Otherwise count down time is Effort property value.
   In neither case, count down time is 25 min which is suggested in the Pomodoro-technique."
-    (let ((todo (org-get-todo-state))
-          (attention-span (org-entry-get (point) "ATTENTION_SPAN" 'selective))
-          (effort (org-entry-get (point) "Effort" 'selective)))
-      (when org-clock-clocking-in
-        (org-clock-out))
-      (cond
-       ((stringp attention-span)
-        (let ((org-timer-default-timer attention-span))
-          (org-timer-set-timer '(64))))
-       ((and (stringp effort)
-             (ts< (ts-parse effort) (ts-parse "01:40")))
-        (org-timer-set-timer '(16)))
-       (todo
-        (let ((org-timer-default-timer "25"))
-          (org-timer-set-timer '(64)))))))
+    (let* ((todo (org-get-todo-state))
+           (attention-span (org-entry-get (point) "ATTENTION_SPAN" 'selective))
+           (effort (org-entry-get (point) "Effort" 'selective))
+           (org-timer-default-timer (or attention-span
+                                        (and todo "25")
+                                        org-timer-default-timer)))
+      (org-timer-set-timer '(16))))
 #+end_src
 
 ***** notify completion of timer for a task
@@ -7737,12 +7684,67 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
                           (buffer-string)))
       (kill-buffer export-buf-name)))
 #+end_src
+***** clean up after the task has chenged to DONE
+:PROPERTIES:
+:CREATED:  [2023-01-30 Mon 13:45]
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org
+    (add-hook 'org-after-todo-state-change-hook
+              #'my/org-todo-cleanup-when-done))
+
+  (defun my/org-todo-cleanup-when-done ()
+    "Exert several procedure when the state of the task has chnaged to DONE.
+
+  Including:
+  - Remove priority
+  - Reset DONE state if the task is non-repeated habit
+  - Close the project of the task"
+    ;; when the entry has any org-done-keywords
+    (when (member org-state
+                  `(,my/org-done-keyword--done ,my/org-done-keyword--cancel ,my/org-done-keyword--pending))
+      ;; remove priority if exists
+      (and ;; the entry has been set any priority
+       (/= 21000 (save-excursion
+                   (save-match-data
+                     (beginning-of-line)
+                     (and (looking-at org-heading-regexp)
+                          (org-get-priority (match-string 0))))))
+       (org-priority 'remove))
+      ;; reset done state if the task is non-repeated habit
+      (and (org-is-habit-p)
+           (not (org-get-scheduled-time (point)))
+           (org-todo ""))
+      ;; close the project
+      (save-excursion
+        (org-back-to-heading t)
+        (org-speed-move-safe 'outline-up-heading)
+        (and (member my/org-project-tag (org-get-tags))
+             (org-todo my/org-done-keyword--done)))))
+#+end_src
+
 ***** tidy up org entry by removing old blobs
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 14:51]
 :END:
 
+Following hook settings cause habit procedure malfunctioning. More specifically, todo state change log which should appear after habit has done is not recoreded.
+
 #+begin_src emacs-lisp
+  ;; (with-eval-after-load 'org-clock
+  ;;   (add-hook 'org-clock-out-hook
+  ;;             (lambda ()
+  ;;               (funcall #'my/org-clock-remove-old-clock-entries 4 5)))
+  ;;   (add-hook 'org-clock-cancel-hook
+  ;;             (lambda ()
+  ;;               (funcall #'my/org-clock-remove-old-clock-entries 4 5))))
+
+  ;; (with-eval-after-load 'org
+  ;;   (add-hook 'org-after-todo-state-change-hook
+  ;;             (lambda ()
+  ;;               (funcall #'my/org-remove-old-state-change-entries 12))))
+
   (defun my/org-clock-remove-old-clock-entries (n &optional min)
     "Remove clock entries whose end is older than N weeks in current subtree.
   Skip over dangling clock entries."
@@ -7790,25 +7792,31 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
         (org-clock-remove-empty-clock-drawer))))
 #+end_src
 
-***** pad void time in org clock            :ARCHIVE:
+***** stop timer when task has done
+:PROPERTIES:
+:CREATED:  [2023-01-29 Sun 15:08]
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org-timer
+    (add-hook 'org-after-todo-state-change-hook
+              (lambda ()
+                (and org-timer-countdown-timer
+                     (org-timer-stop)))))
+#+end_src
+
+***** pad non clocking time
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 07:36]
 :END:
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'org-clock
-    (add-hook 'org-clock-out-hook #'my/org-clock-pad-void-time)
-    (add-hook 'org-clock-cancel-hook #'my/org-clock-pad-void-time))
+    (add-hook 'org-clock-out-hook #'my/org-clock-pad-time)
+    (add-hook 'org-clock-cancel-hook #'my/org-clock-pad-time))
 
-  (defun my/org-clock-pad-void-time ()
+  (defun my/org-clock-pad-time ()
     "Clock in the 'Break' task if the previous task has clocked out."
-    ;; remove old clock entries if the entry is neither habit nor have any todo keywords
-    (when (or (org-is-habit-p)
-              (not (org-get-todo-state)))
-      (my/org-clock-remove-old-clock-entries 4 5))
-    (and (boundp 'org-timer-countdown-timer)
-         org-timer-countdown-timer
-         (org-timer-stop))
     (save-excursion
       (let ((break-entry-id "d49d97de-58ec-4e41-b58c-491a9e216e1c"))
         (when (and (not org-clock-clocking-in)
