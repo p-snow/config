@@ -2744,7 +2744,6 @@ Command in practice presumably looks like:
 
 #+begin_src emacs-lisp
   (use-package mu4e
-    :defer 3
     :delight
     (mu4e-main-mode    " MU")
     (mu4e-headers-mode " MU")
@@ -2780,8 +2779,6 @@ Command in practice presumably looks like:
     (mml-secure-openpgp-sign-with-sender t)
     (mml-default-sign-method 'pgpmime)
     :config
-    (require 'mu4e)
-    (require 'org-mu4e)
     (bind-keys :map mu4e-headers-mode-map
                ("C-j" . mu4e-headers-view-message)
                :map mu4e-view-mode-map
