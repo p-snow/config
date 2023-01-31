@@ -3364,7 +3364,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                     (not (habit)))
                               ((org-ql-block-header "Scheduled/Deadlined on today")))
          (org-ql-search-block `(and (habit)
-                                    (todo ,my/org-todo-keyword--todo)
+                                    (or (todo ,my/org-todo-keyword--todo)
+                                        (todo ,my/org-todo-keyword--next))
                                     (scheduled :to today)
                                     (not (tags "bad_habit"))
                                     (not (tags-inherited "ARCHIVE")))
@@ -3375,7 +3376,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                               ((org-ql-block-header "Today's common event")))
          (org-ql-search-block '(and (done)
                                     (closed :on today))
-                              ((org-ql-block-header "Completed tasks on today")))))
+                              ((org-ql-block-header "Completed tasks on today"))))
+        ((org-agenda-sorting-strategy
+          '(todo-state-up priority-down deadline-up))))
        ("n" "This Week's agenda"
         ((org-ql-search-block `(heading ,(format-time-string "%G-W%V"))
                               ((org-agenda-files `(,(file-name-concat org-directory "archive" (format-time-string "archive_%Y.org"))))
