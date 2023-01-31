@@ -7251,7 +7251,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
 :END:
-***** set timer when clock in for a task
+***** set timer at clocking in
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'org-clock
@@ -7271,6 +7271,20 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
                                         (and todo "25")
                                         org-timer-default-timer)))
       (org-timer-set-timer '(16))))
+#+end_src
+
+***** stop timer at clocking out
+:PROPERTIES:
+:CREATED:  [2023-01-29 Sun 15:08]
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org-clock
+    (with-eval-after-load 'org-timer
+      (add-hook 'org-clock-out-hook
+                (lambda ()
+                  (and org-timer-countdown-timer
+                       (org-timer-stop))))))
 #+end_src
 
 ***** notify completion of timer for a task
@@ -7793,19 +7807,6 @@ Following hook settings cause habit procedure malfunctioning. More specifically,
                       (float n))
               (kill-whole-line))))
         (org-clock-remove-empty-clock-drawer))))
-#+end_src
-
-***** stop timer when task has done
-:PROPERTIES:
-:CREATED:  [2023-01-29 Sun 15:08]
-:END:
-
-#+begin_src emacs-lisp
-  (with-eval-after-load 'org-timer
-    (add-hook 'org-after-todo-state-change-hook
-              (lambda ()
-                (and org-timer-countdown-timer
-                     (org-timer-stop)))))
 #+end_src
 
 ***** pad non clocking time
