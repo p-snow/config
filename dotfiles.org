@@ -7641,6 +7641,11 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
                         (not (done)))
             :super-groups ((:auto-tags))
             :sort (priority date))
+          org-ql-views)
+    (push `("Habits"
+            :buffers-files org-agenda-files
+            :query (habit)
+            :sort (todo scheduled))
           org-ql-views))
 #+end_src
 
@@ -7749,20 +7754,48 @@ Following hook settings cause habit procedure malfunctioning. More specifically,
   ;; (with-eval-after-load 'org-clock
   ;;   (add-hook 'org-clock-out-hook
   ;;             (lambda ()
-  ;;               (funcall #'my/org-clock-remove-old-clock-entries 4 5)))
+  ;;               (funcall #'my/org-remove-old-clock-logs 4 5)))
   ;;   (add-hook 'org-clock-cancel-hook
   ;;             (lambda ()
-  ;;               (funcall #'my/org-clock-remove-old-clock-entries 4 5))))
+  ;;               (funcall #'my/org-remove-old-clock-logs 4 5))))
 
   ;; (with-eval-after-load 'org
   ;;   (add-hook 'org-after-todo-state-change-hook
   ;;             (lambda ()
-  ;;               (funcall #'my/org-remove-old-state-change-entries 12))))
+  ;;               (and (org-is-habit-p)
+  ;;                    (string= org-state
+  ;;                             my/org-done-keyword--done)
+  ;;                    (funcall #'my/org-remove-old-state-changes 12)))))
 
-  (defun my/org-clock-remove-old-clock-entries (n &optional min)
+  (defvar my/org-remove-old-clock-logs-weeks 20
+    "Number of weeks on which state change logs to remove for `my/org-remove-old-clock-logs'.")
+
+  (defun my/org-agenda-remove-old-clock-logs ()
+    "Call `my/org-remove-old-clock-logs' from agenda view."
+    (interactive)
+    (or (eq major-mode 'org-agenda-mode) (user-error "Not in agenda"))
+    (org-agenda-check-type t 'agenda 'todo 'tags 'search)
+    (org-agenda-check-no-diary)
+    (org-agenda-maybe-loop
+     #'my/org-agenda-remove-old-clock-logs nil nil nil
+     (let* ((marker (or (org-get-at-bol 'org-marker)
+                        (org-agenda-error)))
+            (buffer (marker-buffer marker))
+            (pos (marker-position marker)))
+       (set-marker-insertion-type marker t)
+       (org-with-remote-undo buffer
+         (with-current-buffer buffer
+           (widen)
+           (goto-char pos)
+           (funcall-interactively
+            #'my/org-remove-old-clock-logs
+            my/org-remove-old-clock-logs-weeks))))))
+
+  (defun my/org-remove-old-clock-logs (weeks &optional min)
     "Remove clock entries whose end is older than N weeks in current subtree.
   Skip over dangling clock entries."
-    (interactive "nnumber of weeks: ")
+    (interactive (list (or my/org-remove-old-clock-logs-weeks
+                           (read-number "Number of Weeks to remove: "))))
     (org-save-outline-visibility t
       (save-excursion
         (org-back-to-heading t)
@@ -7780,16 +7813,41 @@ Following hook settings cause habit procedure malfunctioning. More specifically,
                 (unless (and (numberp min-applied)
                              (natnump (setq min-applied (1- min-applied))))
                   (when (>= (/ (time-to-number-of-days (org-time-since (match-string-no-properties 2))) 7)
-                            (float n))
+                            (float weeks))
                     (kill-whole-line)))))))
         (org-clock-remove-empty-clock-drawer))))
 
-  (defun my/org-remove-old-state-change-entries (n)
-    "Remove state change entries whose inactive timestamp is older than N weeks in current subtree.
+  (defvar my/org-remove-old-state-changes-weeks 30
+    "Number of weeks on which state change logs to remove for `my/org-remove-old-state-changes'.")
+
+  (defun my/org-agenda-remove-old-state-changes ()
+    "Call `my/org-remove-old-state-changes' from agenda view."
+    (interactive)
+    (or (eq major-mode 'org-agenda-mode) (user-error "Not in agenda"))
+    (org-agenda-check-type t 'agenda 'todo 'tags 'search)
+    (org-agenda-check-no-diary)
+    (org-agenda-maybe-loop
+     #'my/org-agenda-remove-old-state-changes nil nil nil
+     (let* ((marker (or (org-get-at-bol 'org-marker)
+                        (org-agenda-error)))
+            (buffer (marker-buffer marker))
+            (pos (marker-position marker)))
+       (set-marker-insertion-type marker t)
+       (org-with-remote-undo buffer
+         (with-current-buffer buffer
+           (widen)
+           (goto-char pos)
+           (funcall-interactively
+            #'my/org-remove-old-state-changes
+            my/org-remove-old-state-changes-weeks))))))
+
+  (defun my/org-remove-old-state-changes (weeks)
+    "Remove state change entries whose inactive timestamp is older than WEEKS weeks in current subtree.
 
   This command remove all lines that have an old inactive timestamp regardless
    whether it is a state change log or not."
-    (interactive "nnumber of weeks: ")
+    (interactive (list (or my/org-remove-old-state-changes-weeks
+                           (read-number "Number of Weeks to remove: "))))
     (org-save-outline-visibility t
       (save-excursion
         (org-back-to-heading t)
@@ -7801,7 +7859,7 @@ Following hook settings cause habit procedure malfunctioning. More specifically,
           (goto-char (match-beginning 0))
           (while (re-search-forward re (marker-position end-mkr) t)
             (when (>= (/ (time-to-number-of-days (org-time-since (match-string-no-properties 0))) 7)
-                      (float n))
+                      (float weeks))
               (kill-whole-line))))
         (org-clock-remove-empty-clock-drawer))))
 #+end_src
