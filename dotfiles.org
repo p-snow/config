@@ -9106,6 +9106,7 @@ My workflow for acquiring English words is:
 
 #+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
   (use-package org-drill-english
+    :commands my/org-english-insert-japanese-pronunciation
     :bind (("C-o e e" . my/org-english-capture)
            ("C-o e d" . my/org-english-drill)
            ("C-o e D" . my/org-english-drill-resume)
@@ -9116,7 +9117,7 @@ My workflow for acquiring English words is:
 #+begin_src emacs-lisp  :tangle (expand-file-name "org-drill-english.el" my/user-package-dir)
   (require 'define-word)
   (require 'org)
-  (require 'cl)
+  (require 'org-drill)
 
   (defvar my/org-english-file (file-name-concat org-directory "lists" "english.org")
     "A file where all english words to learn locate.")
