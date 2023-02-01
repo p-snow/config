@@ -2744,6 +2744,9 @@ Command in practice presumably looks like:
 
 #+begin_src emacs-lisp
   (use-package mu4e
+    :hook (after-init . (lambda ()
+                          (mu4e t)
+                          (mu4e-update-mail-and-index t)))
     :delight
     (mu4e-main-mode    " MU")
     (mu4e-headers-mode " MU")
@@ -2791,8 +2794,7 @@ Command in practice presumably looks like:
     (add-to-list 'mu4e-view-actions
                  '("XWidget View" . mu4e-action-view-with-xwidget) t)
     (when (fboundp 'imagemagick-register-types)
-      (imagemagick-register-types))
-    (add-hook 'after-init-hook (lambda () (mu4e t))))
+      (imagemagick-register-types)))
 #+end_src
 
 ***** mu4e-alert
