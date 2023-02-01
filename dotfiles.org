@@ -7296,8 +7296,9 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
     "Supersede clocking task with the task at point."
     (interactive)
     (let ((org-clock-continuously t))
-      (and (bound-and-true-p org-clock-current-task)
-           (org-clock-cancel))
+      (save-excursion
+        (and (bound-and-true-p org-clock-current-task)
+             (org-clock-cancel)))
       (org-clock-in)))
 
   (bind-keys ("C-o x" . my/org-clock-supersede))
@@ -7891,15 +7892,17 @@ Following hook settings cause habit procedure malfunctioning. More specifically,
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'org-clock
-    (add-hook 'org-clock-out-hook #'my/org-clock-pad-time)
-    (add-hook 'org-clock-cancel-hook #'my/org-clock-pad-time))
+    (add-hook 'org-clock-out-hook #'my/org-clock-pad-time))
 
   (defun my/org-clock-pad-time ()
     "Clock in the 'Break' task if the previous task has clocked out."
     (save-excursion
       (let ((break-entry-id "d49d97de-58ec-4e41-b58c-491a9e216e1c"))
         (when (and (not org-clock-clocking-in)
-                   (not (string= (or (org-id-get) "")
+                   (not (string= (or (save-excursion
+                                       (org-clock-goto)
+                                       (org-id-get))
+                                     "")
                                  break-entry-id)))
           (org-id-goto break-entry-id)
           (org-clock-in)))))
