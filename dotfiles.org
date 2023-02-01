@@ -7277,10 +7277,10 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'org-clock
-    (with-eval-after-load 'org-timer
-      (add-hook 'org-clock-out-hook
+    (dolist (hook '(org-clock-out-hook org-clock-cancel-hook))
+      (add-hook hook
                 (lambda ()
-                  (and org-timer-countdown-timer
+                  (and (bound-and-true-p  org-timer-countdown-timer)
                        (org-timer-stop))))))
 #+end_src
 
