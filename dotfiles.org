@@ -7264,10 +7264,11 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
     (let* ((todo (org-get-todo-state))
            (attention-span (org-entry-get (point) "ATTENTION_SPAN" 'selective))
            (effort (org-entry-get (point) "Effort" 'selective))
-           (org-timer-default-timer (or attention-span
-                                        (and todo "25")
-                                        org-timer-default-timer)))
-      (org-timer-set-timer '(16))))
+           (countdown-time (or attention-span
+                               (and todo "25")))
+           (org-timer-default-timer countdown-time))
+      (and countdown-time
+           (org-timer-set-timer '(16)))))
 #+end_src
 
 ***** stop timer at clocking out
