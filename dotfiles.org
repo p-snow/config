@@ -2106,7 +2106,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   ("https://github.com/skk-dev/ddskk/releases.atom" soft_update)
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
   (defvar skk-dir (expand-file-name "skk" my/user-share-directory))
   (defvar skk-dotemacs-dir (expand-file-name "ddskk" user-emacs-directory-default))
 
@@ -2118,7 +2118,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
                                          :height ,(my/normalized-font-size 860))))
       "Default face for ddskk candidates."
       :group 'skk-dcomp)
-    (setq skk-get-jisyo-directory (expand-file-name "get-jisyo" skk-dir))
+    (setq skk-get-jisyo-directory "<<skk-jisyo-path()>>")
     :custom
     (skk-kakutei-key (kbd "C-x j"))
     (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
@@ -10850,8 +10850,22 @@ aspell - interactive spell checker
   #+end_src
 
 ** SKK
+:PROPERTIES:
+:ID:       97b009df-7d14-452f-8e39-3da290a01792
+:END:
 
 SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
+
+#+begin_src scheme :tangle no :noweb-ref base-pkgs
+  "skk-jisyo"
+#+end_src
+
+#+name: skk-jisyo-path
+#+begin_src shell :noweb tangle :tangle no
+  source ~/.bashrc
+
+  echo "${GUIX_EXTRA_PROFILES}/base/base/share/skk/"
+#+end_src
 
 - TODO: following programs have no guix package.
   It is better to write my own one for my reproducible system.
