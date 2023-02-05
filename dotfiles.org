@@ -6112,15 +6112,17 @@ migemo allows me to search incrementally Japanese words using roma-ji expression
   ("https://github.com/emacs-jp/migemo/releases.atom" soft_update)
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
   (use-package migemo
     :ensure t
     :ensure-system-package cmigemo
     :custom
     (migemo-command "cmigemo")
     (migemo-options '("-q" "--emacs"))
-    (migemo-directory "/usr/share/cmigemo/utf-8")
-    (migemo-dictionary "/usr/share/cmigemo/utf-8/migemo-dict")
+    (migemo-directory
+     (file-name-concat "<<migemo-dict-path()>>" "utf-8"))
+    (migemo-dictionary
+     (file-name-concat "<<migemo-dict-path()>>" "utf-8/migemo-dict"))
     (migemo-user-dictionary nil)
     (migemo-coding-system 'utf-8-unix)
     (migemo-regex-dictionary nil)
@@ -11037,12 +11039,26 @@ XRandR is a command line utility for changing display options without restarting
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "cmigemo"
-  "migemo-dict"
+  "migemo-dict-azik"
 #+end_src
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
   ("https://github.com/koron/cmigemo/releases.atom" soft_update)
 #+end_src
+
+#+name: migemo-dict-path
+#+begin_src shell :noweb tangle :tangle no
+  source ~/.bashrc
+
+  echo "${GUIX_EXTRA_PROFILES}/emacs/emacs/share/migemo/"
+#+end_src
+
+*** AZIK-compliant C/Migemo                   :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-02-05 Sun 12:02]
+:END:
+
+Caveat: The effect in this section can be made happen to use 'migemo-dict-azik' guix package.
 
 If you are AZIK lover, replace /usr/share/cmigemo/utf-8/roma2hira.dat with the content below to activate AZIK key assign in migemo.
 
@@ -11613,6 +11629,7 @@ If you are AZIK lover, replace /usr/share/cmigemo/utf-8/roma2hira.dat with the c
   zyi	ずぃ
   zz	ざん
 #+end_src
+
 ** LilyPond
 
 [[https://lilypond.org/unix.html][LilyPond]] elisp package is included in source tarball available at [[https://lilypond.org/download/source][here]],
