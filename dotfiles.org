@@ -9975,6 +9975,12 @@ Provide a function to Build a clock table summing up time by tag.
             patience = true
     [diff "gpg"]
             textconv = gpg --no-tty --decrypt
+    [diff "common-lisp"]
+            xfuncname="^\\((def\\S+\\s+\\S+)"
+    [diff "elisp"]
+            xfuncname="^\\((((def\\S+)|use-package)\\s+\\S+)"
+    [diff "org"]
+            xfuncname="^\\*+ +(.*)$"
     [help]
             autocorrect = 0
     [alias]
@@ -10025,6 +10031,9 @@ Provide a function to Build a clock table summing up time by tag.
     ,*.csv encoding=cp932
     ,*.json diff=json
     ,*.gpg filter=gpg diff=gpg
+    ,*.org diff=org
+    ,*.lisp diff=common-lisp
+    ,*.el diff=elisp
   #+END_SRC
 
 *** git-annex
