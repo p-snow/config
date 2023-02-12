@@ -8441,6 +8441,7 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
 
 #+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "lfile.el" my/user-package-dir)
   (defcustom my/lfile-root "~/" "docstring")
+  (defcustom my/lfile-exclude-string ".local/share/Trash" "")
 
   (defmacro my/expand-lfile (file body exclude-search)
     "Evaluate BODY with resolving a path from FILE.
@@ -8553,11 +8554,14 @@ lfile is a custom org link type inspired by [[https://karl-voit.at/2022/02/10/lf
                                 (match-string 2 pattern))))
                     (split-string
                      (shell-command-to-string
-                      (format "plocate -d <<plocate-db()>> -ie \"%s\""
-                              (shell-quote-argument
-                               (or (and match-idx
-                                        (match-string 1 pattern))
-                                   pattern))))
+                      (concat (format "plocate -d <<plocate-db()>> -ie \"%s\""
+                                      (shell-quote-argument
+                                       (or (and match-idx
+                                                (match-string 1 pattern))
+                                           pattern)))
+                              (and (stringp my/lfile-exclude-string)
+                                   (format " | grep -v %s"
+                                           (shell-quote-argument  my/lfile-exclude-string)))))
                      "\n" t))))
       ""))
 
