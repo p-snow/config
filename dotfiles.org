@@ -6900,12 +6900,6 @@ It's confortable to read long material such as web page , epub file or email wit
            (format "yt-dlp %1$s '%2$s'"
                    (mapconcat #'identity
                               (list (format "--format '%s'" (ytdl-format))
-                                    (when (and filename
-                                               (not playlistp)
-                                               (not (string= (car pq-orig) "/playlist")))
-                                      (format "--output %s"
-                                              (shell-quote-argument
-                                               (my/file-name-validate filename))))
                                     (when playlistp "--yes-playlist --ignore-errors --download-archive downloaded.txt"))
                               " ")
                    yt-url))))))
