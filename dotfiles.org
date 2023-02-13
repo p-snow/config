@@ -224,8 +224,7 @@ initialization script for a linuxmint account
 - desktop
   #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/desktop.scm")
     (specifications->manifest
-     '("firefox"
-       "font-adobe-source-han-sans"
+     '("font-adobe-source-han-sans"
        "imagemagick"
        "pulseaudio"
        "gparted"
@@ -243,13 +242,19 @@ initialization script for a linuxmint account
        <<creative-pkgs>>))
   #+end_src
 - emacs
-  #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/emacs.scm")
+  #+begin_src scheme :noweb yes :noweb-prefix no :tangle (expand-file-name ".config/guix/manifests/emacs.scm")
     (specifications->manifest
-     '("sicp"
-       <<emacs-pkgs>>
+     '(<<emacs-pkgs>>
+       "sicp"
        "isync"
        "stunnel"
        "wordnet"))
+  #+end_src
+- firefox
+  a guix profile dedicated for firefox since building firefox takes tremendous time and requires 15GB+ memory.
+  #+begin_src scheme :noweb yes :noweb-prefix no :tangle (expand-file-name ".config/guix/manifests/firefox.scm")
+    (specifications->manifest
+     '("firefox"))
   #+end_src
 *** Activating Profiles
 
