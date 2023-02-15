@@ -10043,7 +10043,7 @@ Provide a function to Build a clock table summing up time by tag.
     [commit]
             gpgsign = true
     [credential]
-            helper = <<which(pass-git-helper)>> -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
+            helper = <<which(filename="pass-git-helper")>> -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
     <<git-config>>
   #+END_SRC
 - git attributes
@@ -11938,13 +11938,15 @@ As of now, rTorrent on guix does not support for XMLRPC. You need to install fro
   recollcmd
 #+end_src
 
-#+begin_src conf :tangle (expand-file-name ".recoll/recoll.conf")
+#+begin_src conf :noweb tangle :tangle (expand-file-name ".recoll/recoll.conf")
   topdirs = ~/doc-pc01/doc ~/data
 
   [~/doc-pc01/doc/]
   followLinks = 1
 
-  skippedNames = .git open-file org-subtree-view
+  skippedNames = .git
+
+  skippedPaths = <<share-dir()>>/emacs/open-file <<share-dir()>>/emacs/org-subtree-view
 
   indexstemminglanguages = english
 #+end_src
