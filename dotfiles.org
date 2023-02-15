@@ -42,6 +42,16 @@
   #+begin_src shell :eval no-export
     echo -n "${EMAIL}" | cut -d'@' -f2
   #+end_src
+** Utility Functions
+:PROPERTIES:
+:CREATED:  [2023-02-15 Wed 19:50]
+:END:
+
+#+name: which
+#+begin_src bash :var filename=""
+  which ${filename}
+#+end_src
+
 * Linux Distributions
 :PROPERTIES:
 :CREATED:  [2022-09-03 Sat 14:59]
@@ -5140,6 +5150,29 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+end_src
 **** other third-party packages
 
+***** consult-recoll
+:PROPERTIES:
+:CREATED:  [2023-02-11 Sat 22:31]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package consult-recoll
+    :ensure t
+    :after consult
+    :bind ("M-s c" . consult-recoll)
+    :preface
+    (defun my/consult-recoll--html (file)
+      (let ((mime (mailcap-extension-to-mime (file-name-extension file))))
+        (cond
+         ((string= mime (regexp-quote "application/epub+zip"))
+          (my/open-epub-as-html file))
+         (t (eww-open-file file)))))
+    :custom
+    (consult-recoll-open-fns
+     '(("text/html" . my/consult-recoll--html)
+       ("application/pdf" . my/open-pdf-as-html))))
+#+end_src
+
 ***** detached
 :PROPERTIES:
 :CREATED:  [2022-12-27 Tue 15:35]
@@ -10010,7 +10043,7 @@ Provide a function to Build a clock table summing up time by tag.
     [commit]
             gpgsign = true
     [credential]
-            helper = <<home-dir()>>/.guix-extra-profiles/base/base/bin/pass-git-helper -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
+            helper = <<which(pass-git-helper)>> -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
     <<git-config>>
   #+END_SRC
 - git attributes
@@ -10074,7 +10107,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 #+name: ghq-root
 #+begin_src shell :eval no-export
-  echo ~/ghq
+  echo ~/data/ghq
 #+end_src
 
 #+begin_src gitconfig :noweb yes :noweb-ref git-config
@@ -11890,6 +11923,54 @@ As of now, rTorrent on guix does not support for XMLRPC. You need to install fro
 
   curl -sL "${rga_url}/${rga_fname}" | tar zxf - -C ${rga_workdir} \
     && cp -fv ${rga_workdir}/${rga_fname%.tar.gz}/{rga,rga-preproc} ${rga_lbinpath}
+#+end_src
+
+** Recoll
+:PROPERTIES:
+:CREATED:  [2023-02-11 Sat 22:11]
+:END:
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "recoll"
+#+end_src
+
+#+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+  recollcmd
+#+end_src
+
+#+begin_src conf :tangle (expand-file-name ".recoll/recoll.conf")
+  topdirs = ~/doc-pc01/doc ~/data
+
+  [~/doc-pc01/doc/]
+  followLinks = 1
+
+  skippedNames = .git open-file org-subtree-view
+
+  indexstemminglanguages = english
+#+end_src
+
+*** systemd setting
+:PROPERTIES:
+:CREATED:  [2023-02-15 Wed 19:41]
+:END:
+
+#+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+  systemctl --user enable recollindex.service
+#+end_src
+
+#+begin_src conf :noweb tangle :tangle (expand-file-name ".config/systemd/user/recollindex.service")
+  # Contributed by Frank Dana, licensed as Recoll itself
+  [Unit]
+  Description=Recoll real-time document indexing
+  After=gnome-session-manager.target
+
+  [Service]
+  Type=simple
+  ExecStart=<<which(filename="recollindex")>> -m -D -x -w 30 -c %h/.recoll/
+  Restart=on-failure
+
+  [Install]
+  WantedBy=graphical-session.target
 #+end_src
 
 * Development Infrastructures
