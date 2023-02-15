@@ -1938,7 +1938,11 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 ****** Browse Url
 
 #+begin_src emacs-lisp
-  (global-set-key (kbd "C-c C-o") #'browse-url-at-point)
+  (use-package browse-url
+    :init
+    (global-set-key (kbd "C-c C-o") #'browse-url-at-point)
+    :custom
+    (browse-url-secondary-browser-function 'browse-url-firefox))
 #+end_src
 
 ****** locate
@@ -7496,12 +7500,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
            (org-export-preserve-breaks t)
            (id (org-id-get))
            (uuid (downcase (if id id (org-id-uuid))))
-           (html-file (format "%s/%s.html" my/org-subtree-view-directory uuid))
-           (browse-url-browser-function
-            (cond
-             ((equal arg '(16)) 'browse-url-xdg-open)
-             ((equal arg '(4)) 'browse-url-emacs)
-             (t 'eww-browse-url))))
+           (html-file (format "%s/%s.html" my/org-subtree-view-directory uuid)))
       (org-html-export-as-html nil t nil)
       (with-current-buffer export-buf-name
         (write-file html-file))
@@ -8265,7 +8264,7 @@ This section mainly for elisp code associated with some other programs.
   ;;                                      (text-scale-set 0))
   ;;                                    nil))))))
 #+end_src
-***** view-file (deprecated)                :ARCHIVE:
+***** view-file (obsolete)                  :ARCHIVE:
 
 #+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/site-lisp/view-file.el")
   (defcustom my/view-file--temp-dir "~/tmp/view-file"
@@ -8762,8 +8761,8 @@ This set of code (open-file) offers file opener functionality in my liking. With
 
   (defun my/browse-url-external (url &optional same-window)
     "A handler for `browse-url' invoked with `C-u C-u' responsible for a file at URL."
-    (browse-url-xdg-open (car (my/browse-url-break-down url))
-                         same-window))
+    (browse-url-firefox (car (my/browse-url-break-down url))
+                        same-window))
 
   (defun my/browse-url-break-down (query)
     (let* ((search-opt-regexp "::\\(.*\\)\\'")
