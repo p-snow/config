@@ -2074,6 +2074,23 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (customize-set-variable 'package-native-compile t)
 #+end_src
 
+****** Eglot
+:PROPERTIES:
+:CREATED:  [2022-08-04 Thu 13:32]
+:END:
+
+[[https://github.com/joaotavora/eglot][Eglot]]
+
+#+begin_src emacs-lisp
+  (use-package eglot
+    :hook ((sh-mode ruby-mode python-mode) . eglot-ensure)
+    :custom
+    (eglot-extend-to-xref t)
+    :config
+    (add-to-list 'eglot-server-programs
+                 '(python-mode "pylsp")))
+#+end_src
+
 ***** Text
 
 ****** View
@@ -4777,12 +4794,10 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   (use-package python
     :mode "\\.py\\'"
     :interpreter "python"
-    :delight " PY"
     :hook
-    ((python-mode inferior-python-mode) . my-python-mode-hook)
-    (lsp-mode . (lambda ()
-                  (add-to-list 'lsp-disabled-clients 'jedi)
-                  (add-to-list 'lsp-enabled-clients 'pyls)))
+    ((python-mode inferior-python-mode) .
+     (lambda ()
+       (setq-local flycheck-checker 'python-pylint)))
     :config
     (my/add-dash-docsets-hook 'python-mode-hook
                               '("Python 3"))
@@ -5368,24 +5383,6 @@ How to use detached.el
                    (setq-local consult-dash-docsets ,docsets)))))
 #+end_src
 
-***** eglot
-:PROPERTIES:
-:CREATED:  [2022-08-04 Thu 13:32]
-:END:
-
-[[https://github.com/joaotavora/eglot][Eglot]]
-
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-eglot"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package eglot
-    :hook ((sh-mode ruby-mode) . eglot-ensure)
-    :custom
-    (eglot-extend-to-xref t))
-#+end_src
-
 ***** denote
 :PROPERTIES:
 :CREATED:  [2022-08-02 Tue 20:08]
@@ -5682,11 +5679,14 @@ Handy commands
       (advice-add fun :around #'my/paredit-fix-transient-mark-mode))
   #+end_src
 
-***** lsp-mode
+***** lsp-mode                              :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-02-16 Thu 22:10]
+:END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-lsp-mode"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#   "emacs-lsp-mode"
+# #+end_src
 
 #+begin_src emacs-lisp
   (use-package lsp-mode
@@ -12058,8 +12058,10 @@ As of now, rTorrent on guix does not support for XMLRPC. You need to install fro
 
 #+begin_src scheme :noweb-ref base-pkgs
   "python"
+  "python-pip"
   "python-sphinx"
   "python-lxml"
+  "python-lsp-server"
   "python-jedi"
   "python-send2trash"
   "python-matplotlib"
