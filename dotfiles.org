@@ -1511,6 +1511,7 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
   (customize-set-variable 'read-file-name-completion-ignore-case t)
   (customize-set-variable 'read-minibuffer-restore-windows t)
   (customize-set-variable 'minibuffer-default-prompt-format " [%s]")
+  (customize-set-variable 'completion-cycle-threshold 3)
 
   (add-hook 'minibuffer-setup-hook 'my/minibuffer-setup-function)
   (defun my/minibuffer-setup-function ()
@@ -4405,6 +4406,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
            ("M-g I" . consult-imenu-multi)
            ("M-s e" . consult-isearch)
            ("M-s \\" . consult-locate)
+           ("M-s f" . consult-find)
            ("M-s g" . consult-grep)
            ("M-s G" . consult-git-grep)
            ("M-s r" . consult-ripgrep)
@@ -4421,12 +4423,23 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
            :map minibuffer-local-map
            ("C-M-n" . consult-history)
            :map help-map
-           ("a" . consult-apropos))
+           ("a" . consult-apropos)
+           :map text-mode-map
+           ("C-M-i" . completion-at-point)
+           :map org-mode-map
+           ("C-M-i" . completion-at-point))
     :custom
     (consult-line-start-from-top t)
     (consult-project-root-function #'project-root-function)
     (consult-locate-args "plocate -d <<plocate-db()>> --ignore-case --existing --regexp")
     :config
+    ;; use consult for completion unless Corfu is active
+    (setq completion-in-region-function
+          (lambda (&rest args)
+            (apply (if vertico-mode
+                       #'consult-completion-in-region
+                     #'completion--in-region)
+                   args)))
     (with-eval-after-load 'org
       (bind-keys :map org-mode-map
                  ("C-c h" . consult-org-heading))))
@@ -5690,13 +5703,72 @@ Handy commands
   ;;   :hook (lsp-mode . lsp-ivy-mode))
 #+end_src
 
-***** company-mode
+***** corfu
+:PROPERTIES:
+:CREATED:  [2023-02-16 Thu 15:12]
+:END:
+
+Though I prefer vertico more for completion interface, [[https://github.com/minad/consult][consult manual]] says Vertico can't be used with Eglot or lsp-mode. So I decided to use Corfu only in prog-mode.
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-company"
+  "emacs-corfu"
 #+end_src
 
 #+begin_src emacs-lisp
+  (use-package corfu
+    :hook ((prog-mode . corfu-mode)
+           (shell-mode . corfu-mode)
+           (eshell-mode . corfu-mode))
+    :custom
+    (corfu-cycle t)
+    (corfu-auto nil)
+    (corfu-preselect-first t))
+#+end_src
+
+***** cape
+:PROPERTIES:
+:CREATED:  [2023-02-16 Thu 15:45]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-cape"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package cape
+    :init
+    (unbind-key "C-x TAB")
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+    (add-to-list 'completion-at-point-functions #'cape-file)
+    (add-to-list 'completion-at-point-functions #'cape-symbol)
+    :bind (("C-x TAB TAB" . completion-at-point)
+           ("C-x TAB t" . complete-tag)
+           ("C-x TAB d" . cape-dabbrev)
+           ("C-x TAB h" . cape-history)
+           ("C-x TAB f" . cape-file)
+           ("C-x TAB k" . cape-keyword)
+           ("C-x TAB s" . cape-symbol)
+           ("C-x TAB a" . cape-abbrev)
+           ("C-x TAB i" . cape-ispell)
+           ("C-x TAB l" . cape-line)
+           ("C-x TAB w" . cape-dict)
+           ("C-x TAB \\" . cape-tex)
+           ("C-x TAB _" . cape-tex)
+           ("C-x TAB ^" . cape-tex)
+           ("C-x TAB &" . cape-sgml)
+           ("C-x TAB r" . cape-rfc1345)))
+#+end_src
+
+***** company-mode                          :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-02-16 Thu 15:26]
+:END:
+
+# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#   "emacs-company"
+# #+end_src
+
+#+begin_src emacs-lisp :tangle no
   (use-package company
     :hook (prog-mode . company-mode)
     :bind (:map company-active-map
