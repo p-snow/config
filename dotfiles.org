@@ -4449,7 +4449,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (consult-line-start-from-top t)
     (consult-project-root-function #'project-root-function)
     (consult-locate-args "plocate -d <<plocate-db()>> --ignore-case --existing --regexp")
-    :config
+    :init
     ;; use consult for completion unless Corfu is active
     (setq completion-in-region-function
           (lambda (&rest args)
@@ -4457,6 +4457,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                        #'consult-completion-in-region
                      #'completion--in-region)
                    args)))
+    :config
     (with-eval-after-load 'org
       (bind-keys :map org-mode-map
                  ("C-c h" . consult-org-heading))))
