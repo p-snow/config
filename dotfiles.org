@@ -1174,10 +1174,15 @@ Settings in this section are influenced a great deal by my personal preference. 
   (use-package emacs
     :no-require t
     :hook
-    ((after-init server-after-make-frame) .
-     (lambda ()
-       (when (member (window-system) '(x ns w32))
-         (set-frame-parameter nil 'fullscreen 'fullboth)))))
+    (after-init . my/frame-fullscreen)
+    :init
+    (add-to-list 'after-make-frame-functions
+                 #'my/frame-fullscreen))
+
+  (defun my/frame-fullscreen (&optional frame)
+    "Display FRAME in full screen mode."
+    (when (member (window-system) '(x ns w32))
+      (set-frame-parameter frame 'fullscreen 'fullboth)))
 #+end_src
 ***** Fontsets
 
@@ -1779,7 +1784,8 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
 
 #+begin_src emacs-lisp
   (use-package bookmark
-    :bind ("C-c b" . bookmark-jump)
+    :bind (("C-x B" . bookmark-jump)
+           ("C-x 5 B" . bookmark-jump-other-frame))
     :custom
     (bookmark-menu-confirm-deletion t)
     (bookmark-watch-bookmark-file 'silent))
@@ -4390,9 +4396,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package vertico
+    :custom
+    (vertico-cycle t)
     :config
-    (bind-keys :map vertico-map
-               ("M-w" . vertico-save))
     (vertico-mode))
 #+end_src
 
@@ -4408,7 +4414,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp :noweb tangle
   (use-package consult
-    :bind (("C-;" . consult-buffer)
+    :bind (("C-;" . (lambda (&optional arg)
+                      (interactive "P")
+                      (if (equal arg '(4))
+                          (consult-buffer-other-frame)
+                        (consult-buffer))))
            ("C-c m" . consult-mode-command)
            ("C-c r" . consult-recent-file)
            ("C-c g" . consult-outline)
@@ -7342,6 +7352,35 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 :CREATED:  [2022-10-14 Fri 17:43]
 :END:
 
+****** frame repeat map
+:PROPERTIES:
+:CREATED:  [2023-02-17 Fri 22:24]
+:END:
+
+#+begin_src emacs-lisp
+  (defvar my/frame-repeat-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map "o" #'other-frame)
+      (define-key map "0" #'delete-frame)
+      (define-key map "1" #'delete-other-frames)
+      (define-key map "2" #'make-frame-command)
+      (define-key map "B" #'bookmark-jump-other-frame)
+      (define-key map "p" #'project-other-frame-command)
+      (define-key map "d" #'dired-other-frame)
+      (define-key map "m" #'compose-mail-other-frame)
+      map)
+    "Keymap to invoke successive commands related to frame.")
+
+  (put 'other-frame 'repeat-map #'my/frame-repeat-map)
+#+end_src
+
+****** delete repeat map
+:PROPERTIES:
+:CREATED:  [2023-02-17 Fri 22:22]
+:END:
+
+Suport successive deletion with C-h/M-h
+
 #+begin_src emacs-lisp
   (defvar my/delete-repeat-map
     (let ((map (make-sparse-keymap)))
@@ -7370,7 +7409,8 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
                                    (jaword-kill -1)
                                  (backward-kill-word 1))))
       map)
-    "Keymap to repeat `next-error' key sequences.  Used in `repeat-mode'.")
+    "Keymap for allowing deletion with C-h/M-h for convenience.")
+
   (put 'delete-char 'repeat-map 'my/delete-repeat-map)
   (put 'org-delete-char 'repeat-map 'my/delete-repeat-map)
   (put 'kill-word 'repeat-map 'my/delete-repeat-map)
