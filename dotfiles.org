@@ -75,7 +75,7 @@ initialization script for a ubuntu account
        <<apt-pkgs>>
 #+end_src
 
-** Linux Mint (Cinnamon Desktop)
+** Linux Mint (Cinnamon DE)
 :PROPERTIES:
 :CREATED:  [2022-09-03 Sat 15:00]
 :ID:       f3cd9a3b-9ff5-4cc8-807e-846f3f04c97a
@@ -325,7 +325,7 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
   guix pull --channels=$HOME/.config/guix/base-channels.scm
   guix describe --format=channels > ~/.config/guix/channels.scm
 #+end_src
-* System Components
+* System Complemental Tools
 :PROPERTIES:
 :CREATED:  [2022-09-13 Tue 16:14]
 :END:
@@ -581,6 +581,11 @@ install available fonts by rescanning font directories
 ** Systemd
 
 #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/start-systemd-services") :shebang #!/bin/sh :tangle-mode (identity #o755)
+  cd ~/.config/systemd/system/ && \
+    for sys_service in $(ls ./*); do
+      sudo cp -f ${sys_service} /etc/systemd/system
+    done
+
   <<systemd-service>>
 #+end_src
 
@@ -784,6 +789,11 @@ A structure described below is expected under all devices.
   "xdg-utils"
 #+end_src
 
+#+name: conf-dir
+#+begin_src shell :eval no-export
+  echo "${XDG_CONFIG_HOME}"
+#+end_src
+
 *** xdg-mime
 - ask default application for text/plain
   : $ xdg-mime query default text/plain
@@ -832,6 +842,235 @@ GnuPG - ArchWiki]]
   #+begin_src emacs-lisp :var h=1
     (* h 60 60)
   #+end_src
+
+** Key Remappers
+:PROPERTIES:
+:CREATED:  [2023-02-23 Thu 17:44]
+:END:
+
+*** Xremap
+:PROPERTIES:
+:CREATED:  [2023-02-23 Thu 17:45]
+:END:
+
+[[https://github.com/k0kubun/xremap][Xremap]] is a key remapper for Wayland/X11. It's astoundingly fast, customizable and easy-to-use.
+
+- config file
+ #+begin_src yaml :tangle (expand-file-name ".config/xremap/config.yml")
+   modmap:
+     - name: CapsCtrlSwap
+       remap:
+         CapsLock: Ctrl_L
+         Ctrl_L: CapsLock
+     - name: RightCtrl
+       remap:
+         KEY_ENTER:
+           held: Ctrl_R
+           alone: KEY_ENTER
+           alone_timeout_millis: 500
+     - name: ThumbShift
+       remap:
+         Space:
+           held: Shift_L
+           alone: Space
+           alone_timeout_millis: 500
+     - name: ShiftParen
+       remap:
+         Shift_L:
+           held: Shift_L
+           alone: KEY_EQUAL
+           alone_timeout_millis: 300
+         Shift_R:
+           held: Shift_R
+           alone: KEY_MINUS
+           alone_timeout_millis: 300
+   keymap:
+     - name: asdf1234
+       exact_match: true
+       remap:
+         C-Shift-a: KEY_1
+         C-Shift-s: KEY_2
+         C-Shift-d: KEY_3
+         C-Shift-f: KEY_4
+         C-Shift-g: KEY_5
+         C-Shift-h: KEY_6
+         C-Shift-j: KEY_7
+         C-Shift-k: KEY_8
+         C-Shift-l: KEY_9
+         C-Shift-semicolon: KEY_0
+ #+end_src
+
+**** xremap systemd service
+:PROPERTIES:
+:CREATED:  [2023-02-23 Thu 17:49]
+:END:
+
+#+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+  sudo systemctl enable xremap
+  sudo systemctl start xremap
+#+end_src
+
+#+begin_src conf :noweb tangle :tangle (expand-file-name ".config/systemd/system/xremap.service")
+  [Unit]
+  Description=xremap daemon
+
+  [Service]
+  ExecStart=<<which(filename="xremap")>> <<conf-dir()>>/xremap/config.yml
+  Restart=always
+  Type=simple
+
+  [Install]
+  WantedBy=multi-user.target
+#+end_src
+
+*** XKB                                       :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-02-19 Sun 15:32]
+:END:
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "xkeyboard-config"
+  "setxkbmap"
+  "xkbcomp"
+#+end_src
+
+- 通常の'setxkbmap -print'の出力からシンボルctrl(swapcaps)を加えたもの (CtrlとCapsLockの入替)
+ #+begin_src conf :tangle (expand-file-name ".config/xkb/keymap/keymap.xkb")
+   xkb_keymap {
+           xkb_keycodes  { include "evdev+aliases(qwerty)"	};
+           xkb_types     { include "complete"	};
+           xkb_compat    { include "complete"	};
+           xkb_symbols   { include "pc+us+inet(evdev)+group(win_space_toggle)+ctrl(swapcaps)+terminate(ctrl_alt_bksp)"	};
+           xkb_geometry  { include "pc(pc105)"	};
+   };
+ #+end_src
+
+**** xkb user systemd service
+:PROPERTIES:
+:CREATED:  [2023-02-22 Wed 18:45]
+:END:
+
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/start-xkb") :shebang #!/bin/bash :tangle-mode (identity #o755)
+  <<which(filename="xkbcomp")>> -I<<conf-dir()>>/xkb/ <<conf-dir()>>/xkb/keymap/user.xkb $DISPLAY 2>/dev/null
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref additional-elisp
+  (use-package emacs
+    :no-require t
+    ;; :defer 5
+    ;; :config
+    ;; (call-process-shell-command "start-xkb")
+    :hook
+    (after-init . (lambda ()
+                    (message "Calling xkb...")
+                    (shell-command "start-xkb")))
+    )
+#+end_src
+
+#+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+  systemctl --user enable xkb
+  systemctl --user start xkb
+#+end_src
+
+#+begin_src conf :noweb tangle :tangle (expand-file-name ".config/systemd/user/xkb.service")
+  [Unit]
+  Description=xkb
+  # Wants=systemd-udev-settle.service
+  # After=systemd-udev-settle.service
+
+  [Service]
+  ExecStart=<<which(filename="xkbcomp")>> -I<<conf-dir()>>/xkb/ <<conf-dir()>>/xkb/keymap/user.xkb $DISPLAY
+
+  [Install]
+  # WantedBy=default.target
+  WantedBy=basic.target
+  # WantedBy=graphical-session.target
+
+  # [Unit]
+  # Description=Custom xkb layout service
+
+  # [Service]
+  # # ExecStart=/usr/bin/setxkbmap -layout us -variant altgr-intl -option grp:ctrl_shift_toggle
+  # ExecStart=<<which(filename="xkbcomp")>> -I<<conf-dir()>>/xkb/ <<conf-dir()>>/xkb/keymap/user.xkb $DISPLAY
+  # Restart=always
+
+  # [Install]
+  # WantedBy=multi-user.target
+#+end_src
+
+*** Interception Tools                        :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-02-22 Wed 13:02]
+:END:
+
+[[https://gitlab.com/interception/linux/tools][Interception Tools]] offers a set of programs to change key event by intervening evdev which is low layer key event managing program.
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "interception-dual-function-keys"
+  "interception-tools"
+#+end_src
+
+**** udevmon
+:PROPERTIES:
+:CREATED:  [2023-02-22 Wed 13:10]
+:END:
+
+#+begin_src yaml :noweb tangle :tangle (expand-file-name ".config/interception/udevmon.yaml")
+  - JOB: "<<which(filename="intercept")>> -g $DEVNODE | <<which(filename="dual-function-keys")>> -c <<home-dir()>>/.config/interception/dual-function-keys.yaml | <<which(filename="uinput")>> -d $DEVNODE"
+    DEVICE:
+      EVENTS:
+        EV_KEY: [KEY_ENTER]
+      LINK: .*_Realforce_103-event-kbd
+#+end_src
+
+***** udevmon systemd service
+
+# #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+#   sudo systemctl enable udevmon
+#   sudo systemctl start udevmon
+# #+end_src
+
+# #+begin_src conf :noweb tangle :tangle (expand-file-name ".config/systemd/system/udevmon.service")
+#+begin_src conf :noweb tangle :tangle no
+  [Unit]
+  Description=udevmon
+  Wants=systemd-udev-settle.service
+  After=systemd-udev-settle.service
+
+  [Service]
+  ExecStart=<<which(filename="pwsudo")>> <<which(filename="nice")>> -n -20 <<which(filename="udevmon")>> -c <<home-dir()>>/.config/interception/udevmon.yaml
+
+  [Install]
+  WantedBy=multi-user.target
+#+end_src
+
+**** dual function keys
+:PROPERTIES:
+:CREATED:  [2023-02-22 Wed 13:09]
+:END:
+
+[[https://man.archlinux.org/man/community/interception-dual-function-keys/dual-function-keys.1.en][dual-function-keys]] is constituent of Interception Tools. It allows users to add a function to the key resulting to impart two capability for one key exerted at tapped and held.
+
+#+begin_src yaml :tangle (expand-file-name ".config/interception/dual-function-keys.yaml")
+  TIMING:
+    TAP_MILLISEC: 400
+    DOUBLE_TAP_MILLISEC: 150
+
+  MAPPINGS:
+    - KEY: KEY_ENTER
+      TAP: KEY_ENTER
+      HOLD: KEY_RIGHTCTRL
+    # space for shift on hold
+    - KEY: KEY_SPACE
+      TAP: KEY_SPACE
+      HOLD: KEY_LEFTSHIFT
+    - KEY: KEY_LEFTSHIFT
+      TAP: KEY_MINUS
+      HOLD: KEY_LEFTSHIFT
+    - KEY: KEY_RIGHTSHIFT
+      TAP: KEY_EQUAL
+      HOLD: KEY_RIGHTSHIFT
+#+end_src
 
 * Application Configurations
 :PROPERTIES:
@@ -2122,7 +2361,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
-  systemctl start dictd
+  sudo systemctl start dictd
 #+end_src
 
 #+begin_src emacs-lisp
@@ -10868,152 +11107,155 @@ aspell - interactive spell checker
 #+end_src
 
 - config.py
-  #+begin_src python :tangle (expand-file-name ".config/xkeysnail/config.py")
-  # -*- coding: utf-8 -*-
+  # #+begin_src python :tangle (expand-file-name ".config/xkeysnail/config.py")
+  #+begin_src python :tangle no
+    # -*- coding: utf-8 -*-
 
-  import re
-  from xkeysnail.transform import *
+    import re
+    from xkeysnail.transform import *
 
-  define_multipurpose_modmap({
-      # SandS
-      Key.SPACE: [Key.SPACE, Key.LEFT_SHIFT],
+    define_multipurpose_modmap({
+        # SandS
+        Key.SPACE: [Key.SPACE, Key.LEFT_SHIFT],
 
-      # Enter is enter when pressed and released. Control when held down.
-      Key.ENTER: [Key.ENTER, Key.RIGHT_CTRL],
+        # Enter is enter when pressed and released. Control when held down.
+        Key.ENTER: [Key.ENTER, Key.RIGHT_CTRL],
 
-      Key.LEFT_SHIFT: [Key.EQUAL, Key.LEFT_SHIFT],
-      Key.RIGHT_SHIFT: [Key.MINUS, Key.RIGHT_SHIFT],
-  })
+        Key.LEFT_SHIFT: [Key.EQUAL, Key.LEFT_SHIFT],
+        Key.RIGHT_SHIFT: [Key.MINUS, Key.RIGHT_SHIFT],
+    })
 
-  define_modmap({
-      Key.LEFT_CTRL: Key.CAPSLOCK,
-      Key.CAPSLOCK: Key.LEFT_CTRL,
-      Key.SYSRQ: Key.RIGHT_META,
-  })
+    define_modmap({
+        Key.LEFT_CTRL: Key.CAPSLOCK,
+        Key.CAPSLOCK: Key.LEFT_CTRL,
+        Key.SYSRQ: Key.RIGHT_META,
+    })
 
-  define_keymap(None, {
-      K("C-Shift-a"): K("KEY_1"),
-      K("C-Shift-s"): K("KEY_2"),
-      K("C-Shift-d"): K("KEY_3"),
-      K("C-Shift-f"): K("KEY_4"),
-      K("C-Shift-g"): K("KEY_5"),
-      K("C-Shift-h"): K("KEY_6"),
-      K("C-Shift-j"): K("KEY_7"),
-      K("C-Shift-k"): K("KEY_8"),
-      K("C-Shift-l"): K("KEY_9"),
-      K("C-Shift-semicolon"): K("KEY_0"),
-  })
-
-
-  # # [Conditional modmap] Change modifier keys in certain applications
-  # define_conditional_modmap(re.compile(r'Emacs'), {
-  #     Key.RIGHT_CTRL: Key.ESC,
-  # })
-
-  # # [Multipurpose modmap] Give a key two meanings. A normal key when pressed and
-  # # released, and a modifier key when held down with another key. See Xcape,
-  # # Carabiner and caps2esc for ideas and concept.
-  # define_multipurpose_modmap(
-  #     # Enter is enter when pressed and released. Control when held down.
-  #     {Key.ENTER: [Key.ENTER, Key.RIGHT_CTRL]}
-
-  #     # Capslock is escape when pressed and released. Control when held down.
-  #     # {Key.CAPSLOCK: [Key.ESC, Key.LEFT_CTRL]
-  #     # To use this example, you can't remap capslock with define_modmap.
-  # )
+    define_keymap(None, {
+        K("C-Shift-a"): K("KEY_1"),
+        K("C-Shift-s"): K("KEY_2"),
+        K("C-Shift-d"): K("KEY_3"),
+        K("C-Shift-f"): K("KEY_4"),
+        K("C-Shift-g"): K("KEY_5"),
+        K("C-Shift-h"): K("KEY_6"),
+        K("C-Shift-j"): K("KEY_7"),
+        K("C-Shift-k"): K("KEY_8"),
+        K("C-Shift-l"): K("KEY_9"),
+        K("C-Shift-semicolon"): K("KEY_0"),
+    })
 
 
-  # # Keybindings for Firefox/Chrome
-  # define_keymap(re.compile("Firefox|Google-chrome"), {
-  #     # Ctrl+Alt+j/k to switch next/previous tab
-  #     K("C-M-j"): K("C-TAB"),
-  #     K("C-M-k"): K("C-Shift-TAB"),
-  #     # Type C-j to focus to the content
-  #     K("C-j"): K("C-f6"),
-  #     # very naive "Edit in editor" feature (just an example)
-  #     K("C-o"): [K("C-a"), K("C-c"), launch(["gedit"]), sleep(0.5), K("C-v")]
-  # }, "Firefox and Chrome")
+    # # [Conditional modmap] Change modifier keys in certain applications
+    # define_conditional_modmap(re.compile(r'Emacs'), {
+    #     Key.RIGHT_CTRL: Key.ESC,
+    # })
 
-  # # Keybindings for Zeal https://github.com/zealdocs/zeal/
-  # define_keymap(re.compile("Zeal"), {
-  #     # Ctrl+s to focus search area
-  #     K("C-s"): K("C-k"),
-  # }, "Zeal")
+    # # [Multipurpose modmap] Give a key two meanings. A normal key when pressed and
+    # # released, and a modifier key when held down with another key. See Xcape,
+    # # Carabiner and caps2esc for ideas and concept.
+    # define_multipurpose_modmap(
+    #     # Enter is enter when pressed and released. Control when held down.
+    #     {Key.ENTER: [Key.ENTER, Key.RIGHT_CTRL]}
 
-  # # Emacs-like keybindings in non-Emacs applications
-  # define_keymap(lambda wm_class: wm_class not in ("Emacs", "URxvt"), {
-  #     # Cursor
-  #     K("C-b"): with_mark(K("left")),
-  #     K("C-f"): with_mark(K("right")),
-  #     K("C-p"): with_mark(K("up")),
-  #     K("C-n"): with_mark(K("down")),
-  #     K("C-h"): with_mark(K("backspace")),
-  #     # Forward/Backward word
-  #     K("M-b"): with_mark(K("C-left")),
-  #     K("M-f"): with_mark(K("C-right")),
-  #     # Beginning/End of line
-  #     K("C-a"): with_mark(K("home")),
-  #     K("C-e"): with_mark(K("end")),
-  #     # Page up/down
-  #     K("M-v"): with_mark(K("page_up")),
-  #     K("C-v"): with_mark(K("page_down")),
-  #     # Beginning/End of file
-  #     K("M-Shift-comma"): with_mark(K("C-home")),
-  #     K("M-Shift-dot"): with_mark(K("C-end")),
-  #     # Newline
-  #     K("C-m"): K("enter"),
-  #     K("C-j"): K("enter"),
-  #     K("C-o"): [K("enter"), K("left")],
-  #     # Copy
-  #     K("C-w"): [K("C-x"), set_mark(False)],
-  #     K("M-w"): [K("C-c"), set_mark(False)],
-  #     K("C-y"): [K("C-v"), set_mark(False)],
-  #     # Delete
-  #     K("C-d"): [K("delete"), set_mark(False)],
-  #     K("M-d"): [K("C-delete"), set_mark(False)],
-  #     # Kill line
-  #     K("C-k"): [K("Shift-end"), K("C-x"), set_mark(False)],
-  #     # Undo
-  #     K("C-slash"): [K("C-z"), set_mark(False)],
-  #     K("C-Shift-ro"): K("C-z"),
-  #     # Mark
-  #     K("C-space"): set_mark(True),
-  #     K("C-M-space"): with_or_set_mark(K("C-right")),
-  #     # Search
-  #     K("C-s"): K("F3"),
-  #     K("C-r"): K("Shift-F3"),
-  #     K("M-Shift-key_5"): K("C-h"),
-  #     # Cancel
-  #     K("C-g"): [K("esc"), set_mark(False)],
-  #     # Escape
-  #     K("C-q"): escape_next_key,
-  #     # C-x YYY
-  #     K("C-x"): {
-  #         # C-x h (select all)
-  #         K("h"): [K("C-home"), K("C-a"), set_mark(True)],
-  #         # C-x C-f (open)
-  #         K("C-f"): K("C-o"),
-  #         # C-x C-s (save)
-  #         K("C-s"): K("C-s"),
-  #         # C-x k (kill tab)
-  #         K("k"): K("C-f4"),
-  #         # C-x C-c (exit)
-  #         K("C-c"): K("C-q"),
-  #         # cancel
-  #         K("C-g"): pass_through_key,
-  #         # C-x u (undo)
-  #         K("u"): [K("C-z"), set_mark(False)],
-  #     }
-  # }, "Emacs-like keys")
+    #     # Capslock is escape when pressed and released. Control when held down.
+    #     # {Key.CAPSLOCK: [Key.ESC, Key.LEFT_CTRL]
+    #     # To use this example, you can't remap capslock with define_modmap.
+    # )
+
+
+    # # Keybindings for Firefox/Chrome
+    # define_keymap(re.compile("Firefox|Google-chrome"), {
+    #     # Ctrl+Alt+j/k to switch next/previous tab
+    #     K("C-M-j"): K("C-TAB"),
+    #     K("C-M-k"): K("C-Shift-TAB"),
+    #     # Type C-j to focus to the content
+    #     K("C-j"): K("C-f6"),
+    #     # very naive "Edit in editor" feature (just an example)
+    #     K("C-o"): [K("C-a"), K("C-c"), launch(["gedit"]), sleep(0.5), K("C-v")]
+    # }, "Firefox and Chrome")
+
+    # # Keybindings for Zeal https://github.com/zealdocs/zeal/
+    # define_keymap(re.compile("Zeal"), {
+    #     # Ctrl+s to focus search area
+    #     K("C-s"): K("C-k"),
+    # }, "Zeal")
+
+    # # Emacs-like keybindings in non-Emacs applications
+    # define_keymap(lambda wm_class: wm_class not in ("Emacs", "URxvt"), {
+    #     # Cursor
+    #     K("C-b"): with_mark(K("left")),
+    #     K("C-f"): with_mark(K("right")),
+    #     K("C-p"): with_mark(K("up")),
+    #     K("C-n"): with_mark(K("down")),
+    #     K("C-h"): with_mark(K("backspace")),
+    #     # Forward/Backward word
+    #     K("M-b"): with_mark(K("C-left")),
+    #     K("M-f"): with_mark(K("C-right")),
+    #     # Beginning/End of line
+    #     K("C-a"): with_mark(K("home")),
+    #     K("C-e"): with_mark(K("end")),
+    #     # Page up/down
+    #     K("M-v"): with_mark(K("page_up")),
+    #     K("C-v"): with_mark(K("page_down")),
+    #     # Beginning/End of file
+    #     K("M-Shift-comma"): with_mark(K("C-home")),
+    #     K("M-Shift-dot"): with_mark(K("C-end")),
+    #     # Newline
+    #     K("C-m"): K("enter"),
+    #     K("C-j"): K("enter"),
+    #     K("C-o"): [K("enter"), K("left")],
+    #     # Copy
+    #     K("C-w"): [K("C-x"), set_mark(False)],
+    #     K("M-w"): [K("C-c"), set_mark(False)],
+    #     K("C-y"): [K("C-v"), set_mark(False)],
+    #     # Delete
+    #     K("C-d"): [K("delete"), set_mark(False)],
+    #     K("M-d"): [K("C-delete"), set_mark(False)],
+    #     # Kill line
+    #     K("C-k"): [K("Shift-end"), K("C-x"), set_mark(False)],
+    #     # Undo
+    #     K("C-slash"): [K("C-z"), set_mark(False)],
+    #     K("C-Shift-ro"): K("C-z"),
+    #     # Mark
+    #     K("C-space"): set_mark(True),
+    #     K("C-M-space"): with_or_set_mark(K("C-right")),
+    #     # Search
+    #     K("C-s"): K("F3"),
+    #     K("C-r"): K("Shift-F3"),
+    #     K("M-Shift-key_5"): K("C-h"),
+    #     # Cancel
+    #     K("C-g"): [K("esc"), set_mark(False)],
+    #     # Escape
+    #     K("C-q"): escape_next_key,
+    #     # C-x YYY
+    #     K("C-x"): {
+    #         # C-x h (select all)
+    #         K("h"): [K("C-home"), K("C-a"), set_mark(True)],
+    #         # C-x C-f (open)
+    #         K("C-f"): K("C-o"),
+    #         # C-x C-s (save)
+    #         K("C-s"): K("C-s"),
+    #         # C-x k (kill tab)
+    #         K("k"): K("C-f4"),
+    #         # C-x C-c (exit)
+    #         K("C-c"): K("C-q"),
+    #         # cancel
+    #         K("C-g"): pass_through_key,
+    #         # C-x u (undo)
+    #         K("u"): [K("C-z"), set_mark(False)],
+    #     }
+    # }, "Emacs-like keys")
   #+end_src
 - xkeysnail.service
 
-  #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+  # #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+  #+begin_src conf :tangle no
     systemctl --user enable xkeysnail
     systemctl --user start xkeysnail
   #+end_src
 
-  #+begin_src conf :tangle (expand-file-name ".config/systemd/user/xkeysnail.service")
+  # #+begin_src conf :tangle (expand-file-name ".config/systemd/user/xkeysnail.service")
+  #+begin_src conf :tangle no
     [Unit]
     Description=xkeysnail
 
