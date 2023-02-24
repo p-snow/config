@@ -4635,10 +4635,13 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package vertico
+    :hook
+    (minibuffer-setup . vertico-repeat-save)
     :custom
     (vertico-cycle t)
     :config
-    (vertico-mode))
+    (bind-keys ("M-R" . vertico-repeat))
+    (vertico-mode 1))
 #+end_src
 
 ***** consult
