@@ -5133,7 +5133,10 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 #+begin_src emacs-lisp
   (use-package rustic
     :custom
-    (rustic-lsp-client "eglot"))
+    (rustic-lsp-client "eglot")
+    :config
+    (my/add-dash-docsets-hook 'rustic-mode-hook
+                              '("Rust")))
 #+end_src
 
 ***** python-mode
