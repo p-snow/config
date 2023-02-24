@@ -4732,6 +4732,31 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
            ("C-x C-j" . consult-dir-jump-file)))
 #+end_src
 
+****** affe
+:PROPERTIES:
+:CREATED:  [2023-02-24 Fri 14:02]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package affe
+    :ensure t
+    :bind (("M-s a f" . affe-find)
+           ("M-s a g" . affe-grep)))
+#+end_src
+
+****** consult-ghq
+:PROPERTIES:
+:CREATED:  [2023-02-24 Fri 15:56]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package consult-ghq
+    :ensure t
+    ;; :after (consult affe)
+    :bind (("C-x g f" . consult-ghq-find)
+           ("C-x g g" . consult-ghq-grep)))
+#+end_src
+
 ***** embark
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
