@@ -4635,6 +4635,12 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package vertico
+    :bind (:map vertico-map
+                ("M-D" . vertico-directory-enter)
+                ("C-d" . vertico-directory-delete-char)
+                ("M-d" . vertico-directory-delete-word)
+                ("M-q" . vertico-quick-insert)
+                ("C-q" . vertico-quick-exit))
     :hook
     (minibuffer-setup . vertico-repeat-save)
     :custom
@@ -4642,6 +4648,13 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :config
     (bind-keys ("M-R" . vertico-repeat))
     (vertico-mode 1))
+
+  (use-package vertico-multiform
+    :after vertico
+    :bind (:map vertico-map
+                ("M-G" . vertico-multiform-grid))
+    :custom
+    (vertico-multiform-mode t))
 #+end_src
 
 ***** consult
@@ -5132,6 +5145,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 #+begin_src emacs-lisp
   (use-package rustic
+    :mode ("\\.rs$" . rustic-mode)
     :custom
     (rustic-lsp-client "eglot")
     :config
