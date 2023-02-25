@@ -855,6 +855,10 @@ GnuPG - ArchWiki]]
 
 [[https://github.com/k0kubun/xremap][Xremap]] is a key remapper for Wayland/X11. It's astoundingly fast, customizable and easy-to-use.
 
+#+begin_src scheme :noweb-ref base-pkgs
+  "xremap-x11"
+#+end_src
+
 - config file
  #+begin_src yaml :tangle (expand-file-name ".config/xremap/config.yml")
    modmap:
@@ -954,20 +958,8 @@ GnuPG - ArchWiki]]
   <<which(filename="xkbcomp")>> -I<<conf-dir()>>/xkb/ <<conf-dir()>>/xkb/keymap/user.xkb $DISPLAY 2>/dev/null
 #+end_src
 
-#+begin_src emacs-lisp :tangle no :noweb-ref additional-elisp
-  (use-package emacs
-    :no-require t
-    ;; :defer 5
-    ;; :config
-    ;; (call-process-shell-command "start-xkb")
-    :hook
-    (after-init . (lambda ()
-                    (message "Calling xkb...")
-                    (shell-command "start-xkb")))
-    )
-#+end_src
-
-#+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+# #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+#+begin_src conf :tangle no
   systemctl --user enable xkb
   systemctl --user start xkb
 #+end_src
