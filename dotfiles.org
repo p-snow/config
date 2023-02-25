@@ -1667,11 +1667,11 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 
 #+begin_src emacs-lisp
   (use-package desktop
-    :disabled t
+    :commands (desktop-save)
     :custom
-    (desktop-restore-frames nil)
-    (desktop-restore-eager 0)
-    (desktop-lazy-idle-delay 10)
+    (desktop-restore-frames t)
+    (desktop-restore-eager 1)
+    (desktop-lazy-idle-delay 5)
     :config
     (desktop-change-dir (expand-file-name "desktop" user-emacs-directory))
     (desktop-save-mode 1))
