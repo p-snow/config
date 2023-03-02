@@ -2004,11 +2004,13 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
 ******* Isearch
 
 #+begin_src emacs-lisp
-  (provide 'isearch)
-
-  (customize-set-variable 'isearch-allow-motion t)
-
-  (define-key isearch-mode-map (kbd "C-j") #'isearch-exit)
+  (use-package isearch
+    :custom
+    (isearch-allow-motion t)
+    (isearch-lazy-count t)
+    :config
+    (bind-keys :map isearch-mode-map
+               ("C-j" . isearch-exit)))
 #+end_src
 
 ******* Bookmark
