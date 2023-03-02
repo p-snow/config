@@ -3796,7 +3796,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                  my/org-todo-keyword--todo))
        ("p" "Project"
         entry (id "58e12e3e-da50-4089-9d22-565986637121")
-        "* %? [/] :project:\n- [ ] insert ID property if necessary"
+        "* %? [/] :project:\n#+CALL: project-tasks(id=\"\")"
         :jump-to-captured t)
        ("M" "Append memo to clocking task"
         item (clock)
@@ -4191,11 +4191,15 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org ID
 
 #+begin_src emacs-lisp
-  (customize-set-variable 'org-id-track-globally t)
-  (customize-set-variable 'org-id-link-to-org-use-id 'create-if-interactive)
-  (with-eval-after-load 'org
-    (customize-set-variable 'org-id-locations-file
-                            (expand-file-name ".org-id-locations" org-directory)))
+  (use-package org-id
+    :after org
+    :bind (:map org-mode-map
+                ("C-c i" . org-id-copy))
+    :custom
+    (org-id-track-globally t)
+    (org-id-link-to-org-use-id 'create-if-interactive)
+    (org-id-locations-file
+     (expand-file-name ".org-id-locations" org-directory)))
 #+end_src
 
 ****** Org Crypt
@@ -4340,6 +4344,24 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 :PROPERTIES:
 :CREATED:  [2023-01-24 Tue 16:07]
 :END:
+****** org-transclusion
+:PROPERTIES:
+:CREATED:  [2023-03-02 Thu 14:10]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-org-transclusion"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package org-transclusion
+    :after org
+    :bind (("C-o t a" . org-transclusion-add)
+           ("C-o t A" . org-transclusion-add-all)
+           ("C-o t n" . org-transclusion-make-from-link)
+           ("C-o t t" . org-transclusion-activate)))
+#+end_src
+
 ****** org-edna
 :PROPERTIES:
 :CREATED:  [2022-10-24 Mon 15:28]
