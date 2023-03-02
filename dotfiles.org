@@ -5534,6 +5534,41 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+end_src
 **** other third-party packages
 
+***** beframe
+:PROPERTIES:
+:CREATED:  [2023-03-01 Wed 15:47]
+:END:
+
+# #+begin_src scheme :noweb-ref emacs-pkgs :tangle no
+#   "emacs-beframe"
+# #+end_src
+
+#+begin_src emacs-lisp
+  (use-package beframe
+    :ensure t
+    :bind (("C-x B" . beframe-switch-buffer)
+           ("C-x C-b" . beframe-buffer-menu))
+    :custom
+    (beframe-global-buffers '("*Messages*" "*Backtrace*"))
+    (beframe-create-frame-scratch-buffer nil)
+    :config
+    (with-eval-after-load 'consult
+      (defface beframe-buffer
+        '((t :inherit font-lock-string-face))
+        "Face for `consult' framed buffers.")
+      (defvar beframe--consult-source
+        `( :name     "Frame-specific buffers (current frame)"
+           :narrow   ?F
+           :category buffer
+           :face     beframe-buffer
+           :history  beframe-history
+           :items    ,#'beframe--buffer-names
+           :action   ,#'switch-to-buffer
+           :state    ,#'consult--buffer-state))
+      (add-to-list 'consult-buffer-sources 'beframe--consult-source))
+    (beframe-mode 1))
+#+end_src
+
 ***** free-keys
 :PROPERTIES:
 :CREATED:  [2023-02-17 Fri 21:51]
