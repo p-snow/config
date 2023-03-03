@@ -5815,6 +5815,7 @@ How to use detached.el
 ***** denote
 :PROPERTIES:
 :CREATED:  [2022-08-02 Tue 20:08]
+:ID:       d5bd559a-2cab-4495-993b-f7a21637f0ea
 :END:
 
 [[https://protesilaos.com/emacs/denote][Denote]] leverages note taking in org mode by providing file naming scheme and backlink capability.
@@ -7768,6 +7769,43 @@ Suport successive deletion with C-h/M-h
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
 :END:
+***** show org entries pointing to the current (backlink)
+:PROPERTIES:
+:CREATED:  [2023-03-03 Fri 11:26]
+:END:
+
+These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea][denote]] files.
+
+#+begin_src emacs-lisp
+  (defun my/org-backlink-entry ()
+    "Show all entries that point to the entry at point."
+    (interactive)
+    (let ((id (org-entry-get (point) "ID"))
+          (heading (org-get-heading t t t t)))
+      (org-ql-search
+        (directory-files-recursively org-directory "\\.org$" t
+                                     (lambda (subdir)
+                                       (member (file-relative-name subdir org-directory)
+                                               '("agenda" "lists" "notes" "wiki"))))
+        `(link ,(or id heading))
+        :super-groups '((:auto-parent)))))
+  (global-set-key (kbd "C-c b b") #'my/org-backlink-entry)
+
+  (defun my/org-backlink-by-tag ()
+    "Show all entries that share tag with the entry at point."
+    (interactive)
+    (let* ((org-use-tag-inheritance t)
+           (tags (org-get-tags)))
+      (org-ql-search
+        (directory-files-recursively org-directory "\\.org$" t
+                                     (lambda (subdir)
+                                       (member (file-relative-name subdir org-directory)
+                                               '("agenda" "lists" "notes" "wiki"))))
+        `(tags ,@tags)
+        :super-groups '((:auto-tags)))))
+  (global-set-key (kbd "C-c b t") #'my/org-backlink-by-tag)
+#+end_src
+
 ***** set timer at clocking in
 
 #+begin_src emacs-lisp
