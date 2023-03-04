@@ -9888,40 +9888,37 @@ My workflow for acquiring English words is:
       (request
         (concat "https://eow.alc.co.jp/search?q=" (string-replace " " "+" (downcase w)))
         :sync t
+        :timeout 3
         :parser
         (lambda ()
           (let ((str (buffer-string)))
             (with-temp-buffer
               (insert str)
               (shr-render-region (point-min) (point-max))
-              (let ((str (buffer-substring-no-properties (point-min) (point-max))))
-                (if (string-match
-                     (rx (seq (opt "【レベル】" (** 1 2 digit) "、")
-                              "【発音" (opt "！") "】"
-                              (+ (or (category combining-diacritic)
-                                     (category latin)
-                                     (category japanese-katakana-two-byte)
-                                     (category korean)
-                                     (category greek)))
-                              "、"
-                              (? (or (seq "【＠】" (opt "[US]")
-                                          (+ (or (category japanese-katakana-two-byte)
-                                                 "（" "）"))
-                                          (? "、"))
-                                     (seq (+ any) "*")))))
-                     str)
-                    (match-string 0 str)
-                  "")))))
+              (buffer-substring-no-properties (point-min) (point-max)))))
         :success
         (cl-function
          (lambda (&key data &allow-other-keys)
-           (setq pron (replace-regexp-in-string
-                       "\\[\\(.\\{2\\}\\)\\]" "【\\1】"
-                       (string-trim-right (substring-no-properties data)
-                                          "、"))))))
-      (when (interactive-p)
-        (kill-new (princ pron)))
-      pron))
+           (and (string-match
+                 (rx (seq (opt "【レベル】" (** 1 2 digit) "、")
+                          "【発音" (opt "！") "】"
+                          (+ (or (category combining-diacritic)
+                                 (category latin)
+                                 (category japanese-katakana-two-byte)
+                                 (category korean)
+                                 (category greek)))
+                          "、"
+                          (? (or (seq "【＠】" (opt "[US]")
+                                      (+ (or (category japanese-katakana-two-byte)
+                                             "（" "）"))
+                                      (? "、"))
+                                 (seq (+ any) "*")))))
+                 data)
+                (kill-new (princ
+                           (replace-regexp-in-string
+                            "\\[\\(.\\{2\\}\\)\\]" "【\\1】"
+                            (string-trim-right (match-string 0 data)
+                                               "、"))))))))))
 
   (defmacro with-org-drill-english-config (&rest body)
     "Evaluate BODY with config for Org-Drill for english words review."
