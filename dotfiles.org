@@ -9765,10 +9765,12 @@ My workflow for acquiring English words is:
            ("C-o e d" . my/org-english-drill)
            ("C-o e D" . my/org-english-drill-resume)
            ("C-o e c" . my/cloze-deletion-replace)
-           ("C-o e l" . my/org-english-lookup)))
+           ("C-c l p" . my/org-english-insert-japanese-pronunciation)))
 #+end_src
 
 #+begin_src emacs-lisp  :tangle (expand-file-name "org-drill-english.el" my/user-package-dir)
+  ;; -*- lexical-binding: t -*-
+
   (require 'define-word)
   (require 'org)
   (require 'org-drill)
@@ -9777,6 +9779,9 @@ My workflow for acquiring English words is:
   (defvar my/org-english-file (file-name-concat org-directory "lists" "english.org")
     "A file where all english words to learn locate.")
 
+  (defvar my/org-english-word nil
+    "An english word to capture.")
+
   (defun my/org-english-capture (word)
     "Capture an english WORD as a `org-mode' entry suitable for org-drill.
 
@@ -9784,8 +9789,8 @@ My workflow for acquiring English words is:
     (interactive (list (if (use-region-p)
                            (buffer-substring (region-beginning) (region-end))
                          (read-string "Phrase: "))))
+    (setq org-english-word (downcase word))
     (let* ((sentence-end-double-space nil)
-           (org-english-word (downcase word))
            (match-entry (org-ql-select
                           `(,my/org-english-file)
                           `(and (heading-regexp
@@ -9844,7 +9849,7 @@ My workflow for acquiring English words is:
                  '("!0" "drill entry for english word"
                    entry (id "de0983a7-9d1a-4ef8-b882-148c401e862d")
                    "* %i :drill:fd_en:
-  [%(my/org-english-insert-japanese-translation) %(my/org-english-insert-japanese-pronunciation org-english-word)]
+  [%(my/org-english-insert-japanese-translation) %(my/org-english-insert-japanese-pronunciation org-english-word t)]
   %(my/org-english-insert-english-translation)
   - %a
     %c"))
@@ -9879,15 +9884,20 @@ My workflow for acquiring English words is:
         (url-insert-buffer-contents buffer url)
         (funcall 'my/define-word--parse-weblio))))
 
-  (defun my/org-english-insert-japanese-pronunciation (w)
-    "Return and add to the kill ring (if interactive) Japanese pronunciation info for word `W'."
+  (defun my/org-english-insert-japanese-pronunciation (word &optional sync)
+    "Search pronunciation information for WORD and add it to kill ring.
+
+  SYNC handles whether network access procedure is synchronous.
+  Return search infromation as a string If SYNC is non-nil.
+  Display information and add it to kill ring if called interactively."
     (interactive `(,(or (when (region-active-p)
                           (buffer-substring (region-beginning) (region-end)))
                         (read-string "Word: "))))
-    (let (pron)
+    (let ((intr-p (interactive-p))
+          pron)
       (request
-        (concat "https://eow.alc.co.jp/search?q=" (string-replace " " "+" (downcase w)))
-        :sync t
+        (concat "https://eow.alc.co.jp/search?q=" (string-replace " " "+" (downcase word)))
+        :sync sync
         :timeout 3
         :parser
         (lambda ()
@@ -9914,11 +9924,12 @@ My workflow for acquiring English words is:
                                       (? "、"))
                                  (seq (+ any) "*")))))
                  data)
-                (kill-new (princ
-                           (replace-regexp-in-string
+                (setq pron (replace-regexp-in-string
                             "\\[\\(.\\{2\\}\\)\\]" "【\\1】"
                             (string-trim-right (match-string 0 data)
-                                               "、"))))))))))
+                                               "、")))
+                (when intr-p (kill-new (princ pron)))))))
+      pron))
 
   (defmacro with-org-drill-english-config (&rest body)
     "Evaluate BODY with config for Org-Drill for english words review."
