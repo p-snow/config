@@ -3499,7 +3499,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
       (define-key map (kbd "C-S-p") #'org-previous-item)
       (define-key map (kbd "C-S-n") #'org-next-item)
       (define-key map (kbd "C-S-u") #'org-up-element)
-      (define-key map (kbd "C-$") #'org-down-element)
+      (define-key map (kbd "C-M-d") #'org-down-element)
       (define-key map (kbd "C-<") #'org-previous-link)
       (define-key map (kbd "C->") #'org-next-link)
       (define-key map (kbd "C-c @") #'org-mark-element)
@@ -7769,6 +7769,45 @@ Suport successive deletion with C-h/M-h
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
 :END:
+***** org move repeat map
+:PROPERTIES:
+:CREATED:  [2023-03-05 Sun 16:15]
+:END:
+
+[[help:my/org-move-repeat-map][my/org-move-repeat-map]] allow to move around org elements and blocks with ease.
+
+#+begin_src emacs-lisp
+  (defvar my/org-move-repeat-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map "n" #'org-next-item)
+      (define-key map "p" #'org-previous-item)
+      (define-key map "u" #'org-up-element)
+      (define-key map "d" #'org-down-element)
+      (define-key map "f" #'org-forward-element)
+      (define-key map "b" #'org-backward-element)
+      (define-key map ">" #'org-next-link)
+      (define-key map "<" #'org-previous-link)
+      (define-key map (kbd "M-f") #'org-next-block)
+      (define-key map (kbd "M-b") #'org-previous-block)
+      (define-key map (kbd "M-n") #'org-babel-next-src-block)
+      (define-key map (kbd "M-p") #'org-babel-previous-src-block)
+      map)
+    "Keymap for movement commands in org.")
+
+  (put 'org-next-item 'repeat-map 'my/org-move-repeat-map)
+  (put 'org-previous-item 'repeat-map 'my/org-move-repeat-map)
+  (put 'org-up-element 'repeat-map 'my/org-move-repeat-map)
+  (put 'org-down-element 'repeat-map 'my/org-move-repeat-map)
+  (put 'org-forward-element 'repeat-map 'my/org-move-repeat-map)
+  (put 'org-backward-element 'repeat-map 'my/org-move-repeat-map)
+  (put 'org-next-link 'repeat-map 'my/org-move-repeat-map)
+  (put 'org-previous-link 'repeat-map 'my/org-move-repeat-map)
+  (put 'org-next-block 'repeat-map 'my/org-move-repeat-map)
+  (put 'org-previous-block 'repeat-map 'my/org-move-repeat-map)
+  (put 'org-babel-next-src-block 'repeat-map 'my/org-move-repeat-map)
+  (put 'org-babel-previous-src-block 'repeat-map 'my/org-move-repeat-map)
+#+end_src
+
 ***** show org entries pointing to the current (backlink)
 :PROPERTIES:
 :CREATED:  [2023-03-03 Fri 11:26]
