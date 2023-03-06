@@ -5556,6 +5556,26 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+end_src
 **** other third-party packages
 
+***** tmr
+:PROPERTIES:
+:CREATED:  [2023-03-06 Mon 14:16]
+:END:
+
+#+begin_src scheme :noweb-ref emacs-pkgs :tangle no
+  "emacs-tmr"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package tmr
+    :bind (("C-x M-t t"   . tmr)
+           ("C-x M-t M-t" . tmr)
+           ("M-o t"       . tmr)
+           ("C-x M-t x"   . tmr-cancel)
+           ("C-x M-t k"   . tmr-remove)
+           ("C-x M-t s"   . tmr-reschedule)
+           ("C-x M-t l"   . tmr-tabulated-view)))
+#+end_src
+
 ***** beframe
 :PROPERTIES:
 :CREATED:  [2023-03-01 Wed 15:47]
@@ -7582,7 +7602,6 @@ It's confortable to read long material such as web page , epub file or email wit
       ("c" calendar)
       ("%" calc)
       ("?" woman)
-      ("t" mentor)
       ("\\" locate-with-filter)
       (";" my/tldr)
       ("q" quickrun)
