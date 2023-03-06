@@ -6466,17 +6466,13 @@ helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mod
     :defer t
     :custom
     (define-word-displayfn-alist
-      '((wordnik . my/define-word--display-in-buffer)
-        (openthesaurus . my/define-word--display-in-buffer)
-        (webster . my/define-word--display-in-buffer)
-        (weblio . my/define-word--display-in-buffer)))
+     '((wordnik . my/define-word--display-in-buffer)
+       (openthesaurus . my/define-word--display-in-buffer)
+       (webster . my/define-word--display-in-buffer)))
     (define-word-default-service 'wordnik)
     :config
     (setf (cdr (assoc 'wordnik define-word-services))
           '("http://wordnik.com/words/%s" my/define-word--parse-wordnik-all))
-    (push '(weblio "https://ejje.weblio.jp/content/%s"
-                   my/define-word--parse-weblio)
-          define-word-services)
     (push '("<b>\\(.*?\\)</b>" bold)
           define-word--tag-faces)
     ;; fix issue #31 temporally
@@ -6575,19 +6571,6 @@ helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mod
        (when def (format "Definitions:\n%s\n\n" def))
        (when rel (format "%s\n\n" rel))
        (when exp (format "Examples:\n%s\n" exp)))))
-
-  (defun my/define-word--parse-weblio ()
-    (save-excursion
-      (let (beg
-            results
-            (define-word-limit 10))
-        (re-search-forward "<span class=\"squareCircle description\">\n[[:blank:]]*意味・対訳</span>" nil t)
-        (save-excursion
-          (setq beg (re-search-forward "</div>" nil t)))
-        (while (re-search-forward "<span class=\"content-explanation  ej\">\n[[:blank:]]*\\([^<]*\\)</span>" beg t)
-          (push (match-string 1) results))
-        (when (setq results (nreverse results))
-          (define-word--convert-html-tag-to-face (define-word--join-results results))))))
 #+end_src
 
 ***** synosaurus
@@ -7328,15 +7311,9 @@ It's confortable to read long material such as web page , epub file or email wit
       ("l" lookup-weblio "weblio")
       ("y" lookup-youtube "youtube")
       ("e" my/define-word)
-      ("j" (lambda ()
-             (interactive)
-             (let ((define-word-default-service 'weblio))
-               (my/define-word)))
-       "japanese translation")
-      ("J" lookup-eijiro)
+      ("j" lookup-eijiro)
       ("s" synosaurus-lookup "synosaurus-lookup")
       ("S" synosaurus-choose-and-replace "synosaurus-replace")
-      ("oe" my/org-english-lookup)
       ("q" nil "quit")))
 #+end_src
 
@@ -9818,12 +9795,13 @@ My workflow for acquiring English words is:
 
 #+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
   (use-package org-drill-english
-    :commands my/org-english-insert-japanese-pronunciation
     :bind (("C-o e e" . my/org-english-capture)
            ("C-o e d" . my/org-english-drill)
            ("C-o e D" . my/org-english-drill-resume)
            ("C-o e c" . my/cloze-deletion-replace)
-           ("C-c l p" . my/org-english-insert-japanese-pronunciation)))
+           ("C-o e q" . my/org-english-search)
+           ("C-x ? j" . my/english-japanese-translate)
+           ("C-x ? p" . my/english-pronunciation)))
 #+end_src
 
 #+begin_src emacs-lisp  :tangle (expand-file-name "org-drill-english.el" my/user-package-dir)
@@ -9840,6 +9818,9 @@ My workflow for acquiring English words is:
   (defvar my/org-english-word nil
     "An english word to capture.")
 
+  (defvar my/org-english-match-entry nil
+    "An org entry which matches search word.")
+
   (defun my/org-english-capture (word)
     "Capture an english WORD as a `org-mode' entry suitable for org-drill.
 
@@ -9848,21 +9829,22 @@ My workflow for acquiring English words is:
                            (buffer-substring (region-beginning) (region-end))
                          (read-string "Phrase: "))))
     (setq org-english-word (downcase word))
+    (setq my/org-english-match-entry nil)
     (let* ((sentence-end-double-space nil)
-           (match-entry (org-ql-select
-                          `(,my/org-english-file)
-                          `(and (heading-regexp
-                                 ,(eval `(rx word-start
-                                             ,org-english-word
-                                             word-end)))
-                                (tags "drill"))
-                          :action 'element-with-markers))
+           (my/org-english-match-entry (org-ql-select
+                                         `(,my/org-english-file)
+                                         `(and (heading-regexp
+                                                ,(eval `(rx word-start
+                                                            ,org-english-word
+                                                            word-end)))
+                                               (tags "drill"))
+                                         :action 'element-with-markers))
            (sentence (replace-regexp-in-string word
                                                (my/cloze-deletion word)
                                                (sentence-at-point))))
       (kill-new (if (stringp sentence) sentence ""))
       (cond
-       (match-entry (org-capture nil "!1"))
+       (my/org-english-match-entry (org-capture nil "!1"))
        (t (org-capture nil "!0")))))
 
   (defun my/cloze-deletion (word)
@@ -9907,7 +9889,7 @@ My workflow for acquiring English words is:
                  '("!0" "drill entry for english word"
                    entry (id "de0983a7-9d1a-4ef8-b882-148c401e862d")
                    "* %i :drill:fd_en:
-  [%(my/org-english-insert-japanese-translation) %(my/org-english-insert-japanese-pronunciation org-english-word t)]
+  [%(my/english-japanese-translate org-english-word t) %(my/english-pronunciation org-english-word t)]
   %(my/org-english-insert-english-translation)
   - %a
     %c"))
@@ -9921,7 +9903,7 @@ My workflow for acquiring English words is:
     "Goto function for org-capture-template designed to insert an edditional example
   to existing english word entry."
     (org-goto-marker-or-bmk
-     (plist-get (cadar match-entry) :org-marker)))
+     (plist-get (cadar my/org-english-match-entry) :org-marker)))
 
   (defun my/org-english-insert-english-translation ()
     "Insert English translation into org capture entry."
@@ -9934,15 +9916,45 @@ My workflow for acquiring English words is:
 
   (advice-add #'my/org-english-insert-english-translation :around #'my/define-word--fix-31)
 
-  (defun my/org-english-insert-japanese-translation ()
-    "Insert Japanese translation into org capture entry."
-    (let* ((url (format "https://ejje.weblio.jp/content/%s" (downcase org-english-word)))
-           (buffer (url-retrieve-synchronously url t t)))
-      (with-temp-buffer
-        (url-insert-buffer-contents buffer url)
-        (funcall 'my/define-word--parse-weblio))))
+  (defun my/english-japanese-translate (word &optional sync)
+    "Search Japanese translation for WORD and add it to kill ring.
 
-  (defun my/org-english-insert-japanese-pronunciation (word &optional sync)
+  SYNC handles whether network access procedure is synchronous.
+  Return translation result as a string If SYNC is non-nil.
+  If called interactively, display results and add them to kill ring."
+    (interactive `(,(or (when (region-active-p)
+                          (buffer-substring (region-beginning) (region-end)))
+                        (read-string "Word: "))))
+    (let ((intr-p (interactive-p))
+          trans)
+      (request
+        (concat "https://ejje.weblio.jp/content/" (downcase word))
+        :sync sync
+        :timeout 3
+        :parser
+        (lambda ()
+          (let ((str (buffer-string)))
+            (with-temp-buffer
+              (insert str)
+              (shr-render-region (point-min) (point-max))
+              (buffer-substring-no-properties (point-min) (point-max)))))
+        :success
+        (cl-function
+         (lambda (&key data &allow-other-keys)
+           (and (string-match
+                 (rx (seq "意味・対訳 "
+                          (group-n 1 (+ (or (category base)
+                                            (category combining-diacritic)
+                                            (category latin)
+                                            (category japanese-katakana-two-byte)
+                                            (category korean)
+                                            (category greek))))))
+                 data)
+                (setq trans (match-string 1 data))
+                (when intr-p (kill-new (princ trans)))))))
+      trans))
+
+  (defun my/english-pronunciation (word &optional sync)
     "Search pronunciation information for WORD and add it to kill ring.
 
   SYNC handles whether network access procedure is synchronous.
@@ -10033,16 +10045,16 @@ My workflow for acquiring English words is:
               (not (property "DRILL_LAST_REVIEWED")))
         :sort 'my/org-ql--english-level<)))
 
-  (defun my/org-english-lookup (word)
+  (defun my/org-english-search (word)
     "Look up WORD in my archive files using `org-ql-search'."
     (interactive (list (if (use-region-p)
                            (buffer-substring (region-beginning) (region-end))
                          (read-string "Word: "))))
     (org-ql-search
-      my/org-english-file
-      `(heading-regexp ,(eval `(rx word-start
-                                   ,(downcase word)
-                                   word-end)))))
+     my/org-english-file
+     `(heading-regexp ,(eval `(rx word-start
+                                  ,(downcase word)
+                                  word-end)))))
 
   (defun my/org-english-level (word)
     "Return difficulty level of `WORD' in number."
@@ -10066,7 +10078,7 @@ My workflow for acquiring English words is:
         (string-to-number (or (and local-str
                                    (parse-level local-str))
                               ;; CAVEAT: getting level from web costs a lot
-                              ;; (when-let ((remote-str (my/org-english-insert-japanese-pronunciation word)))
+                              ;; (when-let ((remote-str (my/english-pronunciation word)))
                               ;;   (parse-level remote-str))
                               "99")))))
 
