@@ -9631,17 +9631,10 @@ This set of code (open-file) offers file opener functionality in my liking. With
 
 #+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
   (use-package org-web-track
-    :bind (("C-o W g" . org-web-track-update)
-           ("C-o W W" . my/org-web-track-list)
-           :map org-agenda-mode-map
-           ("W" . org-agenda-web-track-columns))
+    :after org
+    :bind (("C-o W W" . my/org-web-track-list)
+           ("C-o W U" . org-web-track-update))
     :preface
-    (defun org-web-track-probe--amazon-jp (url)
-      "A tracker responsible for retrieving price data in URL."
-      (shell-command-on-region (point-min) (point-max)
-                               "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \\
-    \| jq -r '.[0].text'"
-                               t t))
     (defun my/org-web-track-list ()
       "Open Org Agenda view with tracking items which hold TRACK_URL property."
       (interactive)
@@ -9652,61 +9645,105 @@ This set of code (open-file) offers file opener functionality in my liking. With
                      '("agenda" "wiki" "notes" "lists" "archive"))))
         (when (require 'org-ql nil t)
           (org-ql-search
-            (org-agenda-files)
-            '(property "TRACK_URL")
-            :super-groups '((:tag "ac_buy")
-                            (:tag "food"))))))
+           (org-agenda-files)
+           '(property "TRACK_URL")
+           :super-groups '((:tag "ac_buy")
+                           (:tag "food"))))))
     :custom
-    (org-web-track-probe-functions
-     '(("www\.amazon\.co\.jp" . org-web-track-probe--amazon-jp)))
+    (org-web-track-trackers
+     '(("www\.amazon\.co\.jp" .
+        "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")))
     (org-agenda-bulk-custom-functions
-     '((?W org-agenda-web-track-update))))
+     '((?W org-agenda-web-track-update)))
+    :config
+    (bind-keys :map org-agenda-mode-map
+               ("W" . org-agenda-web-track-columns)))
 #+end_src
 
 #+begin_src emacs-lisp :tangle (expand-file-name "org-web-track.el" my/user-package-dir)
+  ;; -*- lexical-binding: t -*-
+
   (require 'org)
   (require 'org-agenda)
+  (require 'url-http)
+  (require 'request)
 
-  (defcustom org-web-track-probe-functions nil
+  (defvar org-web-track--propname-value "TRACK_VALUE"
+    "Property name for value.")
+
+  (defvar org-web-track--propname-last-value "TRACK_VALUE_LAST"
+    "Property name for last value.")
+
+  (defvar org-web-track--propname-url "TRACK_URL"
+    "Property name for tracking URL.")
+
+  (defvar org-web-track--propname-date "TRACK_DATE"
+    "Property name for the date at which track value.")
+
+  (defcustom org-web-track-trackers nil
     "An alist for tracking each site.
 
   Each element is for specific site whose car is regexp for the site url and
   cdr is a function responsible for tracking data in the site.")
 
+  (defun org-web-track-value (url &optional sync on-success &rest args)
+    ""
+    (let ((tracker (assoc-default url org-web-track-trackers #'string-match))
+          (request-backend 'url-retrieve)
+          value)
+      (request url
+        :sync sync
+        :timeout 10
+        :success
+        (cl-function
+         (lambda (&key data &allow-other-keys)
+           (with-temp-buffer
+             (insert data)
+             (shell-command-on-region (point-min) (point-max)
+                                      tracker
+                                      t t)
+             (setq value
+                   (string-trim (buffer-substring-no-properties (point-min) (point-max))))
+             (and (functionp on-success)
+                  (apply on-success value args))))))
+      value))
+
   (defun org-web-track-update ()
-    "Update tracking data for org entry at point."
+    ""
     (interactive)
     (let ((url (org-entry-get (point) "TRACK_URL"))
-          (last-date (org-entry-get (point) "TRACK_DATE"))
-          (last-val (org-entry-get (point) "TRACK_VALUE"))
-          (val))
+          (marker (point-marker)))
       (unless (or (and (not url)
                        (user-error "TRACK_URL is missing")))
-        (and (not
-              (setq val
-                    (with-temp-buffer
-                      (call-process-shell-command (format "curl --silent -A 'Mozilla/5.0' \"%s\""
-                                                          url)
-                                                  nil '(t . nil))
-                      (funcall (assoc-default url org-web-track-probe-functions #'string-match)
-                               url)
-                      (string-trim (buffer-string)))))
-             (user-error "Could not retrieve valid value"))
-        (org-entry-put (point) "TRACK_DATE" (format-time-string (org-time-stamp-format t t)))
-        (when (or (not last-val)
-                  (and (stringp last-val)
-                       (not (string= val last-val))))
-          (and (stringp last-val)
-               (org-entry-put (point) "TRACK_VALUE_PREV" last-val))
-          (org-entry-put (point) "TRACK_VALUE" val)
-          (setq-local org-log-note-headings
-                      (append (default-value 'org-log-note-headings)
-                              `((web-track . ,(concat (format "Value %-7s" val)
-                                                      (if last-val
-                                                          (format "from %-7s" last-val)
-                                                        (make-string 13 ? ))
-                                                      " on %t")))))
-          (org-add-log-setup 'web-track nil nil 'time)))))
+        (org-web-track-value url nil
+                             #'org-web-track--do-update
+                             marker))))
+
+  (defun org-web-track--do-update (value &rest args)
+    ""
+    (let* ((marker (car args))
+           (last-date (org-entry-get marker "TRACK_DATE"))
+           (value-last (org-entry-get marker "TRACK_VALUE")))
+      (org-entry-put marker "TRACK_VALUE" value)
+      (org-entry-put marker "TRACK_DATE" (format-time-string (org-time-stamp-format t t)))
+      (when (or (not value-last)
+                (and (stringp value-last)
+                     (not (string= value value-last))))
+        (and (stringp value-last)
+             (org-entry-put marker
+                            org-web-track--propname-last-value
+                            value-last))
+        (org-entry-put marker "TRACK_VALUE" value)
+        ;; FIXME: value history in log book
+        ;; (setq-local org-log-note-headings
+        ;;             (append (default-value 'org-log-note-headings)
+        ;;                     `((web-track . ,(concat (format "Value %-7s" value)
+        ;;                                             (if value-last
+        ;;                                                 (format "from %-7s" value-last)
+        ;;                                               (make-string 13 ? ))
+        ;;                                             " on %t")))))
+        ;; (org-add-log-setup 'web-track nil nil 'time)
+        (message "Tracking value was updated."))))
 
   (defun org-agenda-web-track-update ()
     "Invoke `org-web-track-update' in org agenda mode."
@@ -9728,10 +9765,12 @@ This set of code (open-file) offers file opener functionality in my liking. With
            (funcall-interactively #'org-web-track-update))))))
 
   (defun org-agenda-web-track-columns ()
-    "Display column view showing TRACK_VALUE,TRACK_VALUE_PREV and TRACK_DATE property in org agenda view."
+    "Display column view showing TRACK_VALUE,TRACK_VALUE_LAST and TRACK_DATE property in org agenda view."
     (interactive)
     (when (eq major-mode 'org-agenda-mode)
-      (let* ((org-agenda-overriding-columns-format "%20ITEM %7TRACK_VALUE(VALUE) %7TRACK_VALUE_PREV(PREV) %TRACK_DATE(DATE)"))
+      (let* ((org-overriding-columns-format
+              (format "%%20ITEM %%7TRACK_VALUE(VALUE) %%7%s(LAST) %%TRACK_DATE(DATE)"
+                      org-web-track--propname-last-value)))
         (org-agenda-columns))))
 
   (provide 'org-web-track)
@@ -9758,27 +9797,36 @@ Send a mail to notify the tracking value of some items have changed.
 #+end_src
 
 #+begin_src emacs-lisp :tangle (expand-file-name "org-web-track-mail.el" my/user-batch-dir)
+  ;; -*- lexical-binding: t -*-
+
   (require 'org)
   (require 'org-ql)
   (require 'text-mail)
   (require 'org-web-track)
 
-  (let (mail-msg)
+  (let ((request-backend 'url-retrieve)
+        (org-web-track-trackers
+         '(("www\.amazon\.co\.jp" .
+            "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")))
+        mail-msg)
     (mapc (lambda (price-entry)
             (let* ((heading (org-element-property :raw-value price-entry))
                    (track-url (org-element-property :TRACK_URL price-entry))
                    (value-last (org-element-property :TRACK_VALUE price-entry))
-                   (value (funcall (assoc-default track-url org-web-track-probe-functions #'string-match)
-                                   track-url)))
-              (unless (string= value value-last)
-                (setq mail-msg
-                      (concat mail-msg
-                              (format "\"%s\": %s => %s\n"
-                                      heading value-last value))))))
+                   (cmpr (lambda (value &rest args)
+                           (let ((last (car args)))
+                             (unless (string= value last)
+                               (setq mail-msg
+                                     (concat mail-msg
+                                             (format "\"%s\": %s => %s\n"
+                                                     heading last value))))))))
+              (org-web-track-value track-url t
+                                   cmpr
+                                   value-last)))
           (org-ql-select
             (directory-files-recursively org-directory
                                          (rx (seq ".org" eol)))
-            `(and (property ,"TRACK_URL")
+            `(and (property ,org-web-track--propname-url)
                   (not (tags ,org-archive-tag)))))
     (when (stringp mail-msg)
       (mail-send-string user-mail-address
