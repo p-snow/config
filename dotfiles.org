@@ -9013,7 +9013,7 @@ This section mainly for elisp code associated with some other programs.
   (provide 'my/view-file)
 #+end_src
 
-*** my packages
+*** package candidates
 :PROPERTIES:
 :CREATED:  [2023-01-12 Thu 14:14]
 :END:
@@ -9670,15 +9670,18 @@ This set of code (open-file) offers file opener functionality in my liking. With
 
   (defvar org-web-track--propname-value "TRACK_VALUE"
     "Property name for value.")
+  (put 'org-web-track--propname-value 'label "VALUE")
 
   (defvar org-web-track--propname-last-value "TRACK_VALUE_LAST"
     "Property name for last value.")
+  (put 'org-web-track--propname-last-value 'label "LAST")
 
   (defvar org-web-track--propname-url "TRACK_URL"
     "Property name for tracking URL.")
 
   (defvar org-web-track--propname-date "TRACK_DATE"
     "Property name for the date at which track value.")
+  (put 'org-web-track--propname-date 'label "UPDATED AT")
 
   (defcustom org-web-track-trackers nil
     "An alist for tracking each site.
@@ -9714,10 +9717,10 @@ This set of code (open-file) offers file opener functionality in my liking. With
   (defun org-web-track-update ()
     ""
     (interactive)
-    (let ((url (org-entry-get (point) "TRACK_URL"))
+    (let ((url (org-entry-get (point) org-web-track--propname-url))
           (marker (point-marker)))
       (unless (or (and (not url)
-                       (user-error "TRACK_URL is missing")))
+                       (error "%s is missing" org-web-track--propname-url)))
         (org-web-track-value url nil
                              #'org-web-track--do-update
                              marker))))
@@ -9725,10 +9728,10 @@ This set of code (open-file) offers file opener functionality in my liking. With
   (defun org-web-track--do-update (value &rest args)
     ""
     (let* ((marker (car args))
-           (last-date (org-entry-get marker "TRACK_DATE"))
-           (value-last (org-entry-get marker "TRACK_VALUE")))
-      (org-entry-put marker "TRACK_VALUE" value)
-      (org-entry-put marker "TRACK_DATE" (format-time-string (org-time-stamp-format t t)))
+           (last-date (org-entry-get marker org-web-track--propname-date))
+           (value-last (org-entry-get marker org-web-track--propname-value)))
+      (org-entry-put marker org-web-track--propname-value value)
+      (org-entry-put marker org-web-track--propname-date (format-time-string (org-time-stamp-format t t)))
       (when (or (not value-last)
                 (and (stringp value-last)
                      (not (string= value value-last))))
@@ -9736,7 +9739,7 @@ This set of code (open-file) offers file opener functionality in my liking. With
              (org-entry-put marker
                             org-web-track--propname-last-value
                             value-last))
-        (org-entry-put marker "TRACK_VALUE" value)
+        (org-entry-put marker org-web-track--propname-value value)
         ;; FIXME: value history in log book
         ;; (setq-local org-log-note-headings
         ;;             (append (default-value 'org-log-note-headings)
@@ -9772,8 +9775,13 @@ This set of code (open-file) offers file opener functionality in my liking. With
     (interactive)
     (when (eq major-mode 'org-agenda-mode)
       (let* ((org-overriding-columns-format
-              (format "%%20ITEM %%7TRACK_VALUE(VALUE) %%7%s(LAST) %%TRACK_DATE(DATE)"
-                      org-web-track--propname-last-value)))
+              (format "%%20ITEM %%7%s(%s) %%7%s(%s) %%%s(%s)"
+                      org-web-track--propname-value
+                      (get 'org-web-track--propname-value 'label)
+                      org-web-track--propname-last-value
+                      (get 'org-web-track--propname-last-value 'label)
+                      org-web-track--propname-date
+                      (get 'org-web-track--propname-date 'label))))
         (org-agenda-columns))))
 
   (provide 'org-web-track)
