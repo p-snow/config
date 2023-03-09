@@ -9632,8 +9632,6 @@ This set of code (open-file) offers file opener functionality in my liking. With
 #+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
   (use-package org-web-track
     :after org
-    :bind (("C-o W W" . my/org-web-track-list)
-           ("C-o W U" . org-web-track-update))
     :preface
     (defun my/org-web-track-list ()
       "Open Org Agenda view with tracking items which hold TRACK_URL property."
@@ -9645,10 +9643,10 @@ This set of code (open-file) offers file opener functionality in my liking. With
                      '("agenda" "wiki" "notes" "lists" "archive"))))
         (when (require 'org-ql nil t)
           (org-ql-search
-           (org-agenda-files)
-           '(property "TRACK_URL")
-           :super-groups '((:tag "ac_buy")
-                           (:tag "food"))))))
+            (org-agenda-files)
+            '(property "TRACK_URL")
+            :super-groups '((:tag "ac_buy")
+                            (:tag "food"))))))
     :custom
     (org-web-track-trackers
      '(("www\.amazon\.co\.jp" .
@@ -9656,7 +9654,9 @@ This set of code (open-file) offers file opener functionality in my liking. With
     (org-agenda-bulk-custom-functions
      '((?W org-agenda-web-track-update)))
     :config
-    (bind-keys :map org-agenda-mode-map
+    (bind-keys ("C-o W W" . my/org-web-track-list)
+               ("C-o W U" . org-web-track-update)
+               :map org-agenda-mode-map
                ("W" . org-agenda-web-track-columns)))
 #+end_src
 
