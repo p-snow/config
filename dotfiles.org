@@ -9699,9 +9699,12 @@ This set of code (open-file) offers file opener functionality in my liking. With
          (lambda (&key data &allow-other-keys)
            (with-temp-buffer
              (insert data)
-             (shell-command-on-region (point-min) (point-max)
-                                      tracker
-                                      t t)
+             (cond
+              ((stringp tracker)
+               (shell-command-on-region (point-min) (point-max)
+                                        tracker
+                                        t t))
+              ((error "No tracker")))
              (setq value
                    (string-trim (buffer-substring-no-properties (point-min) (point-max))))
              (and (functionp on-success)
@@ -9790,8 +9793,6 @@ Send a mail to notify the tracking value of some items have changed.
         -l "${batch_dir}/org-web-track-mail.el"
 #+end_src
 
-#+RESULTS:
-
 #+begin_src conf :noweb yes :noweb-ref cronjob-pc :tangle no
   50 2 * * * /bin/bash -ci "web-track-mail >> $LOG_DIR/web-track-mail.log 2>&1"
 #+end_src
@@ -9804,10 +9805,11 @@ Send a mail to notify the tracking value of some items have changed.
   (require 'text-mail)
   (require 'org-web-track)
 
+  (setq org-web-track-trackers
+        '(("www\.amazon\.co\.jp" .
+           "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")))
+
   (let ((request-backend 'url-retrieve)
-        (org-web-track-trackers
-         '(("www\.amazon\.co\.jp" .
-            "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")))
         mail-msg)
     (mapc (lambda (price-entry)
             (let* ((heading (org-element-property :raw-value price-entry))
@@ -9820,9 +9822,10 @@ Send a mail to notify the tracking value of some items have changed.
                                      (concat mail-msg
                                              (format "\"%s\": %s => %s\n"
                                                      heading last value))))))))
-              (org-web-track-value track-url t
-                                   cmpr
-                                   value-last)))
+              (ignore-errors
+                (org-web-track-value track-url t
+                                     cmpr
+                                     value-last))))
           (org-ql-select
             (directory-files-recursively org-directory
                                          (rx (seq ".org" eol)))
