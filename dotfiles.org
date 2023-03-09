@@ -9719,11 +9719,19 @@ This set of code (open-file) offers file opener functionality in my liking. With
     (interactive)
     (let ((url (org-entry-get (point) org-web-track--propname-url))
           (marker (point-marker)))
-      (unless (or (and (not url)
-                       (error "%s is missing" org-web-track--propname-url)))
+      (unless (and (not url)
+                   (error "Missing %s" org-web-track--propname-url))
         (org-web-track-value url nil
                              #'org-web-track--do-update
-                             marker))))
+                             marker)
+        (when-let ((value (org-entry-get (point) org-web-track--propname-value))
+                   (last-value (org-entry-get (point) org-web-track--propname-last-value))
+                   (date (org-entry-get (point) org-web-track--propname-date)))
+          (setq-local org-log-note-headings
+                      (append (default-value 'org-log-note-headings)
+                              `((value . ,(concat (format "Value %%-12s from %%-12S %s"
+                                                          date))))))
+          (org-add-log-setup 'value value last-value 'state date)))))
 
   (defun org-web-track--do-update (value &rest args)
     ""
@@ -9740,15 +9748,6 @@ This set of code (open-file) offers file opener functionality in my liking. With
                             org-web-track--propname-last-value
                             value-last))
         (org-entry-put marker org-web-track--propname-value value)
-        ;; FIXME: value history in log book
-        ;; (setq-local org-log-note-headings
-        ;;             (append (default-value 'org-log-note-headings)
-        ;;                     `((web-track . ,(concat (format "Value %-7s" value)
-        ;;                                             (if value-last
-        ;;                                                 (format "from %-7s" value-last)
-        ;;                                               (make-string 13 ? ))
-        ;;                                             " on %t")))))
-        ;; (org-add-log-setup 'web-track nil nil 'time)
         (message "Tracking value was updated."))))
 
   (defun org-agenda-web-track-update ()
@@ -9775,7 +9774,7 @@ This set of code (open-file) offers file opener functionality in my liking. With
     (interactive)
     (when (eq major-mode 'org-agenda-mode)
       (let* ((org-overriding-columns-format
-              (format "%%20ITEM %%7%s(%s) %%7%s(%s) %%%s(%s)"
+              (format "%%20ITEM %%12%s(%s) %%12%s(%s) %%%s(%s)"
                       org-web-track--propname-value
                       (get 'org-web-track--propname-value 'label)
                       org-web-track--propname-last-value
