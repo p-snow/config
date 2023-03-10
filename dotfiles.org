@@ -9725,13 +9725,12 @@ This set of code (open-file) offers file opener functionality in my liking. With
                              #'org-web-track--do-update
                              marker)
         (when-let ((value (org-entry-get (point) org-web-track--propname-value))
-                   (last-value (org-entry-get (point) org-web-track--propname-last-value))
                    (date (org-entry-get (point) org-web-track--propname-date)))
           (setq-local org-log-note-headings
                       (append (default-value 'org-log-note-headings)
-                              `((value . ,(concat (format "Value %%-12s from %%-12S %s"
+                              `((value . ,(concat (format "Value %%-12s %s"
                                                           date))))))
-          (org-add-log-setup 'value value last-value 'state date)))))
+          (org-add-log-setup 'value value nil 'state date)))))
 
   (defun org-web-track--do-update (value &rest args)
     ""
