@@ -9648,16 +9648,21 @@ This set of code (open-file) offers file opener functionality in my liking. With
             :super-groups '((:tag "ac_buy")
                             (:tag "food"))))))
     :custom
-    (org-web-track-trackers
-     '(("www\.amazon\.co\.jp" .
-        "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")))
     (org-agenda-bulk-custom-functions
      '((?W org-agenda-web-track-update)))
     :config
     (bind-keys ("C-o W W" . my/org-web-track-list)
                ("C-o W U" . org-web-track-update)
                :map org-agenda-mode-map
-               ("W" . org-agenda-web-track-columns)))
+               ("W" . org-agenda-web-track-columns))
+    (setq org-web-track-trackers
+          `((,(rx "www.amazon.co.jp"
+                  (+ anychar)
+                  "-ebook")
+             "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")
+            (,(regexp-quote "www.amazon.co.jp")
+             ("price" . "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")
+             ("availability" . "pup 'div[id=\"availability\"] json{}' \| jq -r '.[0].children[0].text'")))))
 #+end_src
 
 #+begin_src emacs-lisp :tangle (expand-file-name "org-web-track.el" my/user-package-dir)
@@ -9691,63 +9696,90 @@ This set of code (open-file) offers file opener functionality in my liking. With
 
   (defun org-web-track-value (url &optional sync on-success &rest args)
     ""
-    (let ((tracker (assoc-default url org-web-track-trackers #'string-match))
+    (let ((tracker-def (assoc-default url org-web-track-trackers #'string-match))
           (request-backend 'url-retrieve)
-          value)
+          values)
       (request url
         :sync sync
         :timeout 10
         :success
         (cl-function
          (lambda (&key data &allow-other-keys)
-           (with-temp-buffer
-             (insert data)
-             (cond
-              ((stringp tracker)
-               (shell-command-on-region (point-min) (point-max)
-                                        tracker
-                                        t t))
-              ((error "No tracker")))
-             (setq value
-                   (string-trim (buffer-substring-no-properties (point-min) (point-max))))
-             (and (functionp on-success)
-                  (apply on-success value args))))))
-      value))
+           (setq values
+                 (mapcar (lambda (tracker)
+                           (with-temp-buffer
+                             (insert data)
+                             (cond
+                              ((stringp tracker)
+                               (shell-command-on-region (point-min) (point-max)
+                                                        tracker
+                                                        t t))
+                              ((listp tracker)
+                               (shell-command-on-region (point-min) (point-max)
+                                                        (cdr tracker)
+                                                        t t))
+                              ((error "No tracker")))
+                             (string-trim (buffer-substring-no-properties (point-min) (point-max)))))
+                         (if (listp tracker-def)
+                             tracker-def (list tracker-def))))
+           (and (functionp on-success)
+                (apply on-success values args)))))
+      (and sync
+           values)))
 
   (defun org-web-track-update ()
     ""
     (interactive)
     (let ((url (org-entry-get (point) org-web-track--propname-url))
           (marker (point-marker)))
-      (unless (and (not url)
+      (unless (and (not (stringp url))
                    (error "Missing %s" org-web-track--propname-url))
-        (org-web-track-value url nil
-                             #'org-web-track--do-update
-                             marker)
         (when-let ((value (org-entry-get (point) org-web-track--propname-value))
                    (date (org-entry-get (point) org-web-track--propname-date)))
           (setq-local org-log-note-headings
                       (append (default-value 'org-log-note-headings)
                               `((value . ,(concat (format "Value %%-12s %s"
                                                           date))))))
-          (org-add-log-setup 'value value nil 'state date)))))
+          (org-add-log-setup 'value value nil 'state date))
+        (org-web-track-value url nil
+                             #'org-web-track--do-update
+                             marker))))
 
-  (defun org-web-track--do-update (value &rest args)
+  (defun org-web-track--do-update (updates &rest args)
     ""
     (let* ((marker (car args))
-           (last-date (org-entry-get marker org-web-track--propname-date))
-           (value-last (org-entry-get marker org-web-track--propname-value)))
-      (org-entry-put marker org-web-track--propname-value value)
+           (last-values (org-entry-get marker org-web-track--propname-last-value))
+           (values (org-entry-get-multivalued-property marker org-web-track--propname-value)))
       (org-entry-put marker org-web-track--propname-date (format-time-string (org-time-stamp-format t t)))
-      (when (or (not value-last)
-                (and (stringp value-last)
-                     (not (string= value value-last))))
-        (and (stringp value-last)
-             (org-entry-put marker
-                            org-web-track--propname-last-value
-                            value-last))
-        (org-entry-put marker org-web-track--propname-value value)
-        (message "Tracking value was updated."))))
+      (cl-labels ((update-values ()
+                    (apply #'org-entry-put-multivalued-property marker org-web-track--propname-value updates)
+                    (apply #'org-entry-put-multivalued-property marker org-web-track--propname-last-value values)))
+        (if (not values)
+            (update-values)
+          (if (not (equal updates values))
+              (update-values)
+            (org-web-track-remove-latest-log marker))))
+      (message "Values have been updated.")))
+
+  (defun org-web-track-remove-latest-log (marker)
+    "docstring"
+    (org-with-point-at marker
+      (org-with-wide-buffer
+       (org-save-outline-visibility t
+         (org-back-to-heading t)
+         (org-fold-show-all '(drawers))
+         (let* ((case-fold-search t)
+                (drawer-end (save-excursion (re-search-forward org-logbook-drawer-re (save-excursion (org-end-of-subtree)) t)))
+                (re (concat "- Value.+" org-ts-regexp-inactive))
+                (end-mkr (set-marker (mark-marker) drawer-end))
+                (remove-flag nil))
+           (goto-char (match-beginning 0))
+           (while (and (not remove-flag)
+                       (re-search-forward re (marker-position end-mkr) t))
+             (kill-whole-line)
+             (setq remove-flag t))
+           (and remove-flag
+                (org-remove-empty-drawer-at end-mkr)))))))
 
   (defun org-agenda-web-track-update ()
     "Invoke `org-web-track-update' in org agenda mode."
@@ -9812,26 +9844,32 @@ Send a mail to notify the tracking value of some items have changed.
   (require 'org-web-track)
 
   (setq org-web-track-trackers
-        '(("www\.amazon\.co\.jp" .
-           "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")))
+        `((,(rx "www.amazon.co.jp"
+                (+ anychar)
+                "-ebook")
+           "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")
+          (,(regexp-quote "www.amazon.co.jp")
+           ("price" . "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")
+           ("availability" . "pup 'div[id=\"availability\"] json{}' \| jq -r '.[0].children[0].text'"))))
 
   (let ((request-backend 'url-retrieve)
         mail-msg)
     (mapc (lambda (price-entry)
             (let* ((heading (org-element-property :raw-value price-entry))
                    (track-url (org-element-property :TRACK_URL price-entry))
-                   (value-last (org-element-property :TRACK_VALUE price-entry))
-                   (cmpr (lambda (value &rest args)
-                           (let ((last (car args)))
-                             (unless (string= value last)
+                   (values-last (org-element-property :TRACK_VALUE price-entry))
+                   (cmpr (lambda (values &rest args)
+                           (let ((last (car args))
+                                 (values-joined (string-join values " ")))
+                             (unless (equal values-joined last)
                                (setq mail-msg
                                      (concat mail-msg
                                              (format "\"%s\": %s => %s\n"
-                                                     heading last value))))))))
+                                                     heading last values-joined))))))))
               (ignore-errors
                 (org-web-track-value track-url t
                                      cmpr
-                                     value-last))))
+                                     values-last))))
           (org-ql-select
             (directory-files-recursively org-directory
                                          (rx (seq ".org" eol)))
