@@ -9633,7 +9633,21 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
 :CREATED:  [2023-01-06 Fri 13:43]
 :END:
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
+#+begin_src emacs-lisp :noweb-ref web-tracker
+  (setq org-web-track-trackers
+        `((,(rx "www.amazon.co.jp"
+                (+ anychar)
+                "-ebook")
+           "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")
+          (,(regexp-quote "www.amazon.co.jp")
+           ("price" . "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")
+           ("availability" . "pup 'div[id=\"availability\"] json{}' \| jq -r '.[0].children[0].text'"))
+          (,(regexp-quote "www.yodobashi.com/product")
+           ("price" . "pup 'span[id=\"js_scl_unitPrice\"] json{}' \| jq -r .[0].text")
+           ("point" . "pup 'span[id=\"js_scl_pointValue\"] json{}' \| jq -r .[0].text"))))
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
   (use-package org-web-track
     :after org
     :preface
@@ -9660,14 +9674,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                ("C-o W i" . org-web-track-insert-value-change-table)
                :map org-agenda-mode-map
                ("W" . org-agenda-web-track-columns))
-    (setq org-web-track-trackers
-          `((,(rx "www.amazon.co.jp"
-                  (+ anychar)
-                  "-ebook")
-             "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")
-            (,(regexp-quote "www.amazon.co.jp")
-             ("price" . "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")
-             ("availability" . "pup 'div[id=\"availability\"] json{}' \| jq -r '.[0].children[0].text'")))))
+    <<web-tracker>>)
 #+end_src
 
 #+begin_src emacs-lisp :tangle (expand-file-name "org-web-track.el" my/user-package-dir)
@@ -9881,6 +9888,15 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                       (get 'org-web-track--propname-date 'label))))
         (org-agenda-columns))))
 
+  (defun org-web-track-test-tracker (tracker url)
+    "Return a value, which is a result of applying TRACKER for contents at URL.
+
+  User can test their tracker without setting `org-web-track-trackers'."
+    (let ((org-web-track-trackers
+           (append `((,(regexp-quote url) ,tracker))
+                   org-web-track-trackers)))
+      (princ (org-web-track-value url t))))
+
   (provide 'org-web-track)
 #+end_src
 
@@ -9902,7 +9918,7 @@ Send a mail to notify the tracking value of some items have changed.
   50 2 * * * /bin/bash -ci "web-track-mail >> $LOG_DIR/web-track-mail.log 2>&1"
 #+end_src
 
-#+begin_src emacs-lisp :tangle (expand-file-name "org-web-track-mail.el" my/user-batch-dir)
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "org-web-track-mail.el" my/user-batch-dir)
   ;; -*- lexical-binding: t -*-
 
   (require 'org)
@@ -9910,14 +9926,7 @@ Send a mail to notify the tracking value of some items have changed.
   (require 'text-mail)
   (require 'org-web-track)
 
-  (setq org-web-track-trackers
-        `((,(rx "www.amazon.co.jp"
-                (+ anychar)
-                "-ebook")
-           "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")
-          (,(regexp-quote "www.amazon.co.jp")
-           ("price" . "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")
-           ("availability" . "pup 'div[id=\"availability\"] json{}' \| jq -r '.[0].children[0].text'"))))
+  <<web-tracker>>
 
   (let ((request-backend 'url-retrieve)
         mail-msg)
