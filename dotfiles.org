@@ -1347,7 +1347,7 @@ Settings in this section are influenced a great deal by my personal preference. 
   (put 'upcase-region 'disabled nil)
   (put 'downcase-region 'disabled nil)
 
-  (unbind-key "C-o")
+  (keymap-global-unset "C-o" 'remove)
 #+end_src
 
 - Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
@@ -4921,7 +4921,7 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
 #+begin_src emacs-lisp
   (use-package cape
     :init
-    (unbind-key "C-x TAB")
+    (keymap-global-unset "C-x TAB")
     (add-to-list 'completion-at-point-functions #'cape-dabbrev)
     (add-to-list 'completion-at-point-functions #'cape-file)
     (add-to-list 'completion-at-point-functions #'cape-symbol)
