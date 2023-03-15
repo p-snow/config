@@ -6933,13 +6933,18 @@ Major mode for manupulating password store file.
   (use-package ts)
 #+end_src
 
-***** app-launcher                          :ARCHIVE:
+***** app-launcher
+:PROPERTIES:
+:CREATED:  [2023-03-15 Wed 21:42]
+:END:
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src scheme :noweb-ref emacs-pkgs :tangle no
+  "emacs-app-launcher"
+#+end_src
+
+#+begin_src emacs-lisp
   (use-package app-launcher
-    :straight '(app-launcher
-                :host github
-                :repo "SebastienWae/app-launcher"))
+    :bind ("M-o a" . app-launcher-run-app))
 #+end_src
 
 ***** tldr
