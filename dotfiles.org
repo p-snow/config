@@ -4780,7 +4780,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package consult-ghq
     :ensure t
-    ;; :after (consult affe)
     :bind (("C-x g f" . consult-ghq-find)
            ("C-x g g" . consult-ghq-grep)))
 #+end_src
@@ -5557,6 +5556,55 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     (vc-follow-symlinks t))
 #+end_src
 **** other third-party packages
+
+***** engine-mode
+:PROPERTIES:
+:CREATED:  [2023-03-15 Wed 16:27]
+:ID:       db630173-d371-45de-a78e-bcc57cb9d50c
+:END:
+
+#+begin_src scheme :noweb-ref emacs-pkgs :tangle no
+  "emacs-engine-mode"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package engine-mode
+    :custom
+    (engine/browser-function 'eww-browse-url)
+    :config
+    (engine-mode 1)
+    (defengine google
+      "https://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
+      :keybinding "g")
+    (defengine duckduckgo
+      "https://duckduckgo.com/?q=%s"
+      :keybinding "d")
+    (defengine youtube
+      ;; "https://www.youtube.com/results?search_query=%s"
+      "https://www.youtube.com/results?aq=f&oq=&search_query=%s"
+      :keybinding "y")
+    (defengine github
+      "https://github.com/search?ref=simplesearch&q=%s"
+      :keybinding "h")
+    (defengine amazon
+      "https://www.amazon.co.jp/gp/search/?field-keywords=%s"
+      :keybinding "a")
+    (defengine melpa
+      "https://melpa.org/#/?q=%s"
+      :keybinding "m")
+    (defengine eijiro
+      "https://eow.alc.co.jp/search?q=%s"
+      :keybinding "j")
+    (defengine weblio
+      "https://www.weblio.jp/content/%s"
+      :keybinding "l")
+    (defengine wikipedia-ja
+      "https://ja.wikipedia.org/wiki/%s"
+      :keybinding "w")
+    (defengine wikipedia
+      "https://en.wikipedia.org/wiki/%s"
+      :keybinding "W"))
+#+end_src
 
 ***** tmr
 :PROPERTIES:
@@ -6466,6 +6514,17 @@ helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mod
   (use-package define-word
     :ensure t
     :defer t
+    :bind (:map engine-mode-prefixed-map
+                ("e" . my/define-word))
+    :preface
+    (defun my/define-word ()
+      "docstring"
+      (interactive)
+      (if (use-region-p)
+          (call-interactively #'define-word-at-point)
+
+
+        (call-interactively #'define-word)))
     :custom
     (define-word-displayfn-alist
      '((wordnik . my/define-word--display-in-buffer)
@@ -6485,13 +6544,6 @@ helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mod
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_5_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36"))))
         (apply define-word-orig args)))
     (advice-add #'define-word :around #'my/define-word--fix-31))
-
-  (defun my/define-word ()
-    "docstring"
-    (interactive)
-    (if (use-region-p)
-        (call-interactively #'define-word-at-point)
-      (call-interactively #'define-word)))
 
   (defun my/define-word--display-in-buffer (definition)
     "docstring"
@@ -6583,6 +6635,8 @@ helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mod
 
 #+begin_src emacs-lisp
   (use-package synosaurus
+    :bind (:map engine-mode-prefixed-map
+                ("s" . synosaurus-lookup))
     :custom
     (synosaurus-choose-method 'default))
 #+end_src
@@ -7266,9 +7320,14 @@ It's confortable to read long material such as web page , epub file or email wit
     (recenter-top-bottom 0))
 #+end_src
 
-***** lookup functions
+***** lookup functions                      :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-03-15 Wed 21:30]
+:END:
 
-#+begin_src emacs-lisp
+lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode]]
+
+#+begin_src emacs-lisp :tangle no
   (defmacro define-lookup-function (fun search-prefix)
     "Create lookup function named FUN using SEARCH-PREFIX for querying.
 
@@ -9312,8 +9371,6 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                                       ,@my/open-file-compressed-media-extensions)
                               (opt ".gpg"))
                           search-suffix))
-          . my/browse-url-media)
-         (,(concat my/open-file-yt-regexp search-suffix)
           . my/browse-url-media)))
       (customize-set-variable
        'browse-url-browser-function 'eww-browse-url)))
