@@ -5580,7 +5580,6 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
       "https://duckduckgo.com/?q=%s"
       :keybinding "d")
     (defengine youtube
-      ;; "https://www.youtube.com/results?search_query=%s"
       "https://www.youtube.com/results?aq=f&oq=&search_query=%s"
       :keybinding "y")
     (defengine github
@@ -9271,12 +9270,6 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     '("tar.gz" "tgz" "tar.xz" "txz" "zip" "7z")
     "Extensions compressed files which can play with media player must have.")
 
-  (defvar my/open-file-yt-regexp
-    (rx (? (or "https://" "http://" "//"))
-        (? "www")
-        (or "youtube.com" "youtu.be"))
-    "Regexp for youtube url.")
-
   (defmacro my/open-file-as-html (file convert-cmd)
     `(let* ((cap-command (if (string-match-p url-handler-regexp ,file)
                              "curl"
@@ -9371,6 +9364,15 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                                       ,@my/open-file-compressed-media-extensions)
                               (opt ".gpg"))
                           search-suffix))
+          . my/browse-url-media)
+         ((lambda (url)
+            (let ((ignore-pattern "search_query"))
+              (if (string-match-p ignore-pattern url)
+                  nil
+                (string-match-p (rx-to-string '(: (? (or "https://" "http://" "//"))
+                                                  (? "www")
+                                                  (or "youtube.com" "youtu.be")))
+                                url))))
           . my/browse-url-media)))
       (customize-set-variable
        'browse-url-browser-function 'eww-browse-url)))
