@@ -5809,20 +5809,25 @@ How to use detached.el
 
 [[https://github.com/skangas/mentor][mentor]] is a [[id:bdc987ad-419b-4f36-922d-de75207d85c0][rTorrent]] client for emacs.
 
+Typical file downloading workflow:
+1. start mentor: M-x mentor
+2. add magnet link (URL or torrent file path): M-x mentor-download-load-magnet-link-or-url (l)
+3. view downloaded file in dired: M-x mentor-dired-jump (v)
+4. shutdown mentor: M-x mentor-shutdown (Q)
+
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-mentor"
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle
-  (autoload #'mentor "mentor" nil t)
-
-  (with-eval-after-load 'mentor
-    (customize-set-variable 'mentor-rtorrent-download-directory
-                            (expand-file-name "data/media/torrent"
-                                              "<<home-dir()>>"))
-    (customize-set-variable 'mentor-rtorrent-keep-session t)
-    (customize-set-variable 'mentor-rtorrent-external-rpc
-                            "<<rtorrent-sock()>>"))
+  (use-package mentor
+    :commands mentor
+    :custom
+    (mentor-rtorrent-download-directory
+     (expand-file-name "data/media/torrent"
+                       "<<home-dir()>>"))
+    (mentor-rtorrent-keep-session t)
+    (mentor-rtorrent-external-rpc "<<rtorrent-sock()>>"))
 #+end_src
 
 ***** Geiser
@@ -12693,11 +12698,15 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 
 [[https://github.com/rakshasa/rtorrent/wiki][rTorrent]] is a bittorrent client using ncurses.
 
-As of now, rTorrent on guix does not support for XMLRPC. You need to install from another source, if you want rTorrent with RPC capability.
+As of [2023-03-16 Thu], rTorrent on guix does not support XMLRPC. If you desire rTorrent with XMLRPC, you have to install from another source or build manually.
 
 # #+begin_src scheme :noweb-ref base-pkgs
 #   "rtorrent"
 # #+end_src
+
+#+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+  rtorrent
+#+end_src
 
 #+name: rtorrent-sock
 #+begin_src emacs-lisp :eval no-export
@@ -12723,7 +12732,7 @@ As of now, rTorrent on guix does not support for XMLRPC. You need to install fro
   [Service]
   Type=simple
   WorkingDirectory=<<home-dir()>>/data/media/torrent
-  ExecStart=/bin/bash -ic 'rtorrent -o system.daemon.set=true'
+  ExecStart=<<which(filename="rtorrent")>> -o system.daemon.set=true
   Restart=on-failure
   RestartSec=3
 
