@@ -7269,41 +7269,40 @@ It's confortable to read long material such as web page , epub file or email wit
     (interactive)
     (set-transient-map my/lazy-view-map
                        #'my/lazy-view-keep
-                       #'my/lazy-view-exit)
-    (set-face-attribute 'fringe nil :background "LightSeaGreen"))
+                       #'my/lazy-view-exit
+                       "You are in lazy view mode"))
 
   (defun my/lazy-view-keep ()
-    (if (member this-command
-                `(beginning-of-visual-line
-                  end-of-visual-line
-                  recenter-top-bottom
-                  reposition-window
-                  Info-next-reference
-                  Info-prev-reference
-                  Info-up
-                  Info-history-back
-                  Info-history-forward
-                  Info-follow-nearest-node
-                  Info-forward-node
-                  Info-backward-node
-                  forward-button
-                  backward-button
-                  shr-next-link
-                  shr-previous-link
-                  eww-follow-link
-                  eww-back-url
-                  eww-forward-url
-                  eww-goto-title-heading
-                  eww-reload
-                  nov-browse-url
-                  nov-next-document
-                  nov-previous-document
-                  ,@(mapcar (lambda (key-command)
-                              (let ((cmd (cdr key-command)))
-                                (and (commandp cmd)
-                                     cmd)))
-                            (cdr my/lazy-view-map))))
-        t nil))
+    (member this-command
+            `(beginning-of-visual-line
+              end-of-visual-line
+              recenter-top-bottom
+              reposition-window
+              Info-next-reference
+              Info-prev-reference
+              Info-up
+              Info-history-back
+              Info-history-forward
+              Info-follow-nearest-node
+              Info-forward-node
+              Info-backward-node
+              forward-button
+              backward-button
+              shr-next-link
+              shr-previous-link
+              eww-follow-link
+              eww-back-url
+              eww-forward-url
+              eww-goto-title-heading
+              eww-reload
+              nov-browse-url
+              nov-next-document
+              nov-previous-document
+              ,@(mapcar (lambda (key-command)
+                          (let ((cmd (cdr key-command)))
+                            (and (commandp cmd)
+                                 cmd)))
+                        (cdr my/lazy-view-map)))))
 
   (defun my/lazy-view-exit ()
     (set-face-attribute 'fringe nil :background nil))
