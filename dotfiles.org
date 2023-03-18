@@ -1834,6 +1834,23 @@ Mouse needs to be unobtrusive in my Emacs experience.
     (mouse-wheel-mode nil))
 #+end_src
 
+****** Hardware
+:PROPERTIES:
+:CREATED:  [2023-03-18 Sat 14:00]
+:END:
+
+******* Battery
+:PROPERTIES:
+:CREATED:  [2023-03-18 Sat 14:01]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package battery
+    :after my-invoke-command
+    :bind (:map my/invoke-command-map
+                ("b" . battery)))
+#+end_src
+
 ***** Convenience
 
 #+begin_src emacs-lisp
@@ -2211,7 +2228,9 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (use-package flyspell
     :diminish "fs"
     :if (executable-find "aspell")
-    :after (hydra)
+    :bind (("C-c $ c" . flyspell-buffer)
+           ("C-c $ n" . flyspell-goto-next-error)
+           ("C-c $ ." . flyspell-auto-correct-word))
     :custom
     (ispell-program-name "aspell")
     (flyspell-issue-message-flag nil)
@@ -2228,14 +2247,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
                ("C-."   . nil)
                ("C-;"   . nil)
                ("C-c $" . nil)
-               ("C-M-i" . nil))
-    (defhydra hydra-flyspell (flyspell-mode-map "C-c $"
-                                                :color red)
-      "Flyspell"
-      ("c" flyspell-buffer)
-      ("n" flyspell-goto-next-error)
-      ("." flyspell-auto-correct-word)
-      ("q" nil "quit")))
+               ("C-M-i" . nil)))
 #+end_src
 
 ****** News
@@ -2364,6 +2376,26 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
                    display-buffer-in-tab))
     (add-hook 'dictionary-mode-hook
               #'my/lazy-view-enter))
+#+end_src
+
+***** Communication
+:PROPERTIES:
+:CREATED:  [2023-03-18 Sat 12:58]
+:END:
+
+****** Net Utils
+:PROPERTIES:
+:CREATED:  [2023-03-18 Sat 12:58]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package net-utils
+    :after my-invoke-command
+    :bind (:map my/invoke-command-map
+                ("n d" . run-dig)
+                ("n i" . ifconfig)
+                ("n w" . iwconfig)
+                ("n p" . ping)))
 #+end_src
 
 **** Input Methods
@@ -2689,20 +2721,14 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp
   (use-package find-dired
+    :bind (("M-s d f" . find-dired)
+           ("M-s d F" . find-lisp-find-dired)
+           ("M-s d g" . find-grep-dired)
+           ("M-s d n" . find-name-dired)
+           ("M-s d d" . find-lisp-find-dired-subdirectories))
     :custom
     (find-grep-options "-n -H --no-heading -q")
     (find-ls-option '("-print0 | xargs -0 ls -ldN" . "-ldN")))
-
-  (with-eval-after-load 'hydra
-    (defhydra hydra-find-dired (global-map "M-s d"
-                                           :color teal)
-      "find dired"
-      ("f" find-dired)
-      ("F" find-lisp-find-dired)
-      ("g" find-grep-dired)
-      ("n" find-name-dired)
-      ("d" find-lisp-find-dired-subdirectories)
-      ("q" nil "quit")))
 #+end_src
 
 **** EWW
@@ -6281,7 +6307,6 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
   (use-package twittering-mode
     :ensure t
     :delight " TW"
-    :after hydra
     :commands twit
     :hook
     (twittering-mode . twittering-icon-mode)
@@ -6816,17 +6841,21 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
     (which-key-mode 1)
     (which-key-setup-side-window-bottom))
 #+end_src
-***** hydra
+***** hydra                                 :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-03-18 Sat 14:16]
+:END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-hydra"
-#+end_src
+# #+begin_src scheme :tangle no
+#   "emacs-hydra"
+# #+end_src
 
 #+begin_src emacs-lisp
   (use-package hydra
     :custom
     (hydra-is-helpful nil))
 #+end_src
+
 ***** pass
 
 Major mode for manupulating password store file.
@@ -7234,78 +7263,81 @@ It's confortable to read long material such as web page , epub file or email wit
   (use-package emacs
     :bind ("C-c v" . my/lazy-view-enter)
     :hook ((help-mode Info-mode eww-mode nov-mode mu4e-view-mode woman-mode)
-           . my/lazy-view-enter))
-
-  (defvar my/lazy-view-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "<SPC>") #'my/forward-paragraph)
-      (define-key map (kbd "E") #'my/backward-paragraph)
-      (define-key map (kbd "f") #'scroll-up-line)
-      (define-key map (kbd "e") #'scroll-down-line)
-      (define-key map (kbd "F") #'forward-char)
-      (define-key map (kbd "B") #'backward-char)
-      (define-key map (kbd "N") #'next-line)
-      (define-key map (kbd "P") #'previous-line)
-      (define-key map (kbd "C-a") #'move-beginning-of-line)
-      (define-key map (kbd "C-e") #'move-end-of-line)
-      (define-key map (kbd "C-v") #'scroll-up-command)
-      (define-key map (kbd "M-v") #'scroll-down-command)
-      (lambda-key map (kbd ">") '(lambda () "Scroll right one column." (interactive)
-                                   (scroll-left 1)))
-      (define-key map (kbd "C->") #'scroll-left)
-      (lambda-key map (kbd "<") '(lambda () "Scroll left one column." (interactive)
-                                   (scroll-right 1)))
-      (define-key map (kbd "C-<") #'scroll-right)
-      (define-key map (kbd "+") #'text-scale-adjust)
-      (define-key map (kbd "-") #'text-scale-adjust)
-      (define-key map (kbd "=") #'text-scale-adjust)
-      (define-key map (kbd "0") #'text-scale-adjust)
-      (define-key map (kbd "\\") #'toggle-truncate-lines)
-      (define-key map (kbd "|") #'visual-line-mode)
-      map))
-
-  (defun my/lazy-view-enter ()
-    "Activate my/lazy-view-map in current buffer."
-    (interactive)
-    (set-transient-map my/lazy-view-map
-                       #'my/lazy-view-keep
-                       #'my/lazy-view-exit
-                       "You are in lazy view mode"))
-
-  (defun my/lazy-view-keep ()
-    (member this-command
-            `(beginning-of-visual-line
-              end-of-visual-line
-              recenter-top-bottom
-              reposition-window
-              Info-next-reference
-              Info-prev-reference
-              Info-up
-              Info-history-back
-              Info-history-forward
-              Info-follow-nearest-node
-              Info-forward-node
-              Info-backward-node
-              forward-button
-              backward-button
-              shr-next-link
-              shr-previous-link
-              eww-follow-link
-              eww-back-url
-              eww-forward-url
-              eww-goto-title-heading
-              eww-reload
-              nov-browse-url
-              nov-next-document
-              nov-previous-document
-              ,@(mapcar (lambda (key-command)
-                          (let ((cmd (cdr key-command)))
-                            (and (commandp cmd)
-                                 cmd)))
-                        (cdr my/lazy-view-map)))))
-
-  (defun my/lazy-view-exit ()
-    (set-face-attribute 'fringe nil :background nil))
+           . my/lazy-view-enter)
+    :preface
+    (defvar my/lazy-view-map
+      (let ((map (make-sparse-keymap)))
+        (define-key map (kbd "<SPC>") #'my/forward-paragraph)
+        (define-key map (kbd "E") #'my/backward-paragraph)
+        (define-key map (kbd "f") #'scroll-up-line)
+        (define-key map (kbd "e") #'scroll-down-line)
+        (define-key map (kbd "F") #'forward-char)
+        (define-key map (kbd "B") #'backward-char)
+        (define-key map (kbd "N") #'next-line)
+        (define-key map (kbd "P") #'previous-line)
+        (define-key map (kbd "C-a") #'move-beginning-of-line)
+        (define-key map (kbd "C-e") #'move-end-of-line)
+        (define-key map (kbd "C-v") #'scroll-up-command)
+        (define-key map (kbd "M-v") #'scroll-down-command)
+        (lambda-key map (kbd ">") '(lambda () "Scroll right one column." (interactive)
+                                     (scroll-left 1)))
+        (define-key map (kbd "C->") #'scroll-left)
+        (lambda-key map (kbd "<") '(lambda () "Scroll left one column." (interactive)
+                                     (scroll-right 1)))
+        (define-key map (kbd "C-<") #'scroll-right)
+        (define-key map (kbd "V") #'visual-line-mode)
+        (define-key map (kbd "F") #'toggle-frame-fullscreen)
+        (define-key map (kbd "P") #'variable-pitch-mode)
+        (define-key map (kbd "#") #'display-line-numbers-mode)
+        (define-key map (kbd "L") #'line-number-mode)
+        (define-key map (kbd "C") #'column-number-mode)
+        (define-key map (kbd "R") #'rainbow-mode)
+        (define-key map (kbd "TAB") #'adaptive-wrap-prefix-mode)
+        (define-key map (kbd "+") #'text-scale-adjust)
+        (define-key map (kbd "-") #'text-scale-adjust)
+        (define-key map (kbd "0") '(lambda () "Set text scale to default level." (interactive)
+                                     (text-scale-set 0)))
+        map))
+    (defun my/lazy-view-enter ()
+      "Activate my/lazy-view-map in current buffer."
+      (interactive)
+      (set-transient-map my/lazy-view-map
+                         #'my/lazy-view-keep
+                         #'my/lazy-view-exit
+                         "You are in lazy view mode"))
+    (defun my/lazy-view-keep ()
+      (member this-command
+              `(beginning-of-visual-line
+                end-of-visual-line
+                recenter-top-bottom
+                reposition-window
+                Info-next-reference
+                Info-prev-reference
+                Info-up
+                Info-history-back
+                Info-history-forward
+                Info-follow-nearest-node
+                Info-forward-node
+                Info-backward-node
+                forward-button
+                backward-button
+                shr-next-link
+                shr-previous-link
+                eww-follow-link
+                eww-back-url
+                eww-forward-url
+                eww-goto-title-heading
+                eww-reload
+                nov-browse-url
+                nov-next-document
+                nov-previous-document
+                ,@(mapcar (lambda (key-command)
+                            (let ((cmd (cdr key-command)))
+                              (and (commandp cmd)
+                                   cmd)))
+                          (cdr my/lazy-view-map)))))
+    (defun my/lazy-view-exit ()
+      (set-face-attribute 'fringe nil :background nil)))
 
   (defun my/forward-paragraph ()
     (interactive)
@@ -7620,58 +7652,27 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
   exit 0
 #+end_src
 
-***** collective hydra definitions
+***** wrap up command invocations in single keymap
 
 #+begin_src emacs-lisp
-  (with-eval-after-load 'hydra
-    (defhydra hydra-launcher (global-map "M-o"
-                                         :color blue)
-      "Launch"
-      ("e" eshell)
-      ("v" my/multi-vterm)
-      ("V" multi-vterm-project)
-      ("D" dired-jump)
-      ("=" ediff)
-      ("@" twit)
-      ("r" re-builder)
-      ("w" eww)
-      ("W" eww-switch-to-buffer)
-      ("m" mu4e)
-      ("M" magit-status)
-      ("p" proced)
-      ("P" list-processes)
-      ("d" run-dig)
-      ("if" ifconfig)
-      ("iw" iwconfig)
-      ("I" ping)
-      ("b" battery)
-      ("c" calendar)
-      ("%" calc)
-      ("?" woman)
-      ("\\" locate-with-filter)
-      (";" my/tldr)
-      ("q" quickrun)
-      ("C-g" nil "cancel"))
-    (defhydra hydra-toggle
-      (global-map "C-c t"
-                  :color pink
-                  :pre (set-face-background 'mode-line "DarkOrange4")
-                  :post (set-face-background 'mode-line "gray10"))
-      "Toggle"
-      ("t" visual-line-mode)
-      ("T" toggle-truncate-lines)
-      ("i" adaptive-wrap-prefix-mode)
-      ("p" variable-pitch-mode)
-      ("w" whitespace-mode)
-      ("l" display-line-numbers-mode)
-      ("L" line-number-mode)
-      ("C" column-number-mode)
-      ("v" view-mode)
-      ("r" rainbow-mode)
-      ("\\" toggle-input-method)
-      ("F" toggle-frame-fullscreen)
-      ("SPC" pangu-spacing-mode)
-      ("q" nil "quit")))
+  (use-package emacs
+    :bind-keymap ("M-o" . my/invoke-command-map)
+    :preface
+    (defvar my/invoke-command-map
+      (let ((map (make-sparse-keymap)))
+        (define-key map (kbd "e") #'eshell)
+        (define-key map (kbd "v") #'my/multi-vterm)
+        (define-key map (kbd "D") #'dired-jump)
+        (define-key map (kbd "@") #'twit)
+        (define-key map (kbd "w") #'eww)
+        (define-key map (kbd "m") #'mu4e)
+        (define-key map (kbd "g") #'magit-status)
+        (define-key map (kbd "p") #'proced)
+        (define-key map (kbd "P") #'list-processes)
+        (define-key map (kbd "?") #'woman)
+        map))
+    :config
+    (provide 'my-invoke-command))
 #+end_src
 
 ***** show the day in calendar
