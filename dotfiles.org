@@ -9293,7 +9293,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                          ,file))
             (dirname-html
              (expand-file-name
-              (file-name-sans-extension dir-name)
+              dir-name
               my/open-file-dir))
             (filename-html
              (concat (file-name-as-directory dirname-html)
@@ -9537,6 +9537,29 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
 
   (provide 'open-file)
 #+end_src
+
+- get original file name from converted html file
+  #+begin_src emacs-lisp
+    (defun my/open-file-original-file (html)
+      "Revert HTML file into original file name."
+      (interactive (list (if (use-region-p)
+                             (buffer-substring (use-region-beginning)
+                                               (use-region-end))
+                           (read-string "HTML: "))))
+      (when-let* ((regex (rx (group-n 1 (opt (or "file://" "file:~")))
+                             (1+ (: "/" (1+ nonl)))
+                             (group-n 2 (1+ (: "!" (1+ (: nonl)))))
+                             "/index.html"))
+                  (index (string-match regex html))
+                  (rep (concat (and (cl-some (lambda (cand)
+                                               (string= cand (match-string 1 html)))
+                                             '("file://" "file:~"))
+                                    "lfile:")
+                               (substring (match-string 2 html) 1))))
+        (if (use-region-p)
+            (replace-string-in-region html rep)
+          (princ (replace-regexp-in-string regex rep html)))))
+  #+end_src
 
 **** org-password-store
 :PROPERTIES:
