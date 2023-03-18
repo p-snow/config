@@ -5645,13 +5645,15 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 
 #+begin_src emacs-lisp
   (use-package tmr
+    :after my-invoke-command
     :bind (("C-x M-t t"   . tmr)
            ("C-x M-t M-t" . tmr)
-           ("M-o t"       . tmr)
            ("C-x M-t x"   . tmr-cancel)
            ("C-x M-t k"   . tmr-remove)
            ("C-x M-t s"   . tmr-reschedule)
-           ("C-x M-t l"   . tmr-tabulated-view)))
+           ("C-x M-t l"   . tmr-tabulated-view)
+           :map my/invoke-command-map
+           ("t" . tmr)))
 #+end_src
 
 ***** beframe
