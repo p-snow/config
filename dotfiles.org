@@ -12692,10 +12692,22 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
     - *
   #+end_src
 ** libvirt
+:PROPERTIES:
+:ID:       4736bf4d-4185-4683-818d-700f980bc6ca
+:END:
 
 #+begin_src scheme :noweb-ref desktop-pkgs
   "libvirt"
   "virt-manager"
+#+end_src
+
+#+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+  qemu-kvm libvirt-clients libvirt-daemon libvirt-daemon-system virtinst virt-manager virt-top bridge-utils
+#+end_src
+
+#+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+  systemctl enable libvirtd
+  systemctl start libvirtd
 #+end_src
 
 #+begin_src conf :tangle (expand-file-name ".config/libvirt/libvirt.conf")
@@ -12713,7 +12725,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
       <source>
       </source>
       <target>
-        <path><<home-dir()>>/media/libvirt/images</path>
+        <path><<home-dir()>>/data/media/libvirt/images</path>
         <permissions>
           <mode>0711</mode>
           <owner>0</owner>
@@ -12722,6 +12734,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
       </target>
     </pool>
 #+end_src
+
 ** Calibre
 
 [[https://calibre-ebook.com/download_linux][Calibre for linux]] is a e-book reader. I use it in the mood of reading epub in GUI app.
@@ -14954,12 +14967,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 :CREATED:  [2022-08-15 Mon 20:13]
 :END:
 
-[[https://www.thregr.org/~wavexx/software/screenkey/][Screencast your keys.]]
-
-: $ screenkey -p fixed -g 1090x248+1470+348
-
 #+begin_src scheme :noweb-ref creative-pkgs
-  "python-screenkey"
   "slop"
   "gimp"
   "obs"
@@ -14967,9 +14975,19 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
   "audacity"
 #+end_src
 
-#+begin_src json :tangle no  :tangle (expand-file-name ".config/screenkey.json")  :tangle-mode (identity #o644)
+*** Screenkey
+:PROPERTIES:
+:CREATED:  [2023-03-19 Sun 16:43]
+:END:
+
+#+begin_src scheme :noweb-ref creative-pkgs
+  "python-screenkey"
+#+end_src
+
+#+begin_src json :tangle no :tangle (expand-file-name ".config/screenkey.json")  :tangle-mode (identity #o644)
   {"no_systray": false, "timeout": 0.5, "recent_thr": 0.1, "compr_cnt": 3, "ignore": [], "position": "bottom", "persist": false, "font_desc": "Sans Bold", "font_size": "medium", "font_color": "white", "bg_color": "black", "opacity": 0.9, "key_mode": "composed", "bak_mode": "baked", "mods_mode": "emacs", "mods_only": false, "multiline": false, "vis_shift": true, "vis_space": true, "geometry": null, "screen": 0, "start_disabled": false, "mouse": false, "button_hide_duration": 2.0}
 #+end_src
+
 ** Sync Git Repos Automatically
 :PROPERTIES:
 :CREATED:  [2022-09-26 Mon 16:43]
