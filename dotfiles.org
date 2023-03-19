@@ -2048,6 +2048,27 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
     (image-use-external-converter t))
 #+end_src
 
+***** Programming
+:PROPERTIES:
+:CREATED:  [2023-03-19 Sun 12:43]
+:END:
+
+****** Tools
+:PROPERTIES:
+:CREATED:  [2023-03-19 Sun 12:43]
+:END:
+
+******* Xref
+:PROPERTIES:
+:CREATED:  [2023-03-19 Sun 12:43]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package xref
+    :custom
+    (xref-show-definitions-function 'xref-show-definitions-completing-read))
+#+end_src
+
 ***** Development
 
 ****** Internal
@@ -6090,12 +6111,17 @@ Tree-sitter module for Elisp had been incorporated into Emacs core since Emacs 2
 
 #+begin_src emacs-lisp
   (use-package dumb-jump
-    :bind (("M-g o" . dumb-jump-go-other-window)
-           ("M-g j" . dumb-jump-go)
-           ("M-g x" . dumb-jump-go-prefer-external)
-           ("M-g z" . dumb-jump-go-prefer-external-other-window)
-           ("M-g /" . dumb-jump-back)
-           ("M-g l" . dumb-jump-quick-look)))
+    :hook (prog-mode . (lambda ()
+                         (add-to-list 'xref-backend-functions
+                                      #'dumb-jump-xref-activate
+                                      t)))
+    :config
+    (bind-keys ("M-g o" . dumb-jump-go-other-window)
+               ("M-g j" . dumb-jump-go)
+               ("M-g x" . dumb-jump-go-prefer-external)
+               ("M-g z" . dumb-jump-go-prefer-external-other-window)
+               ("M-g /" . dumb-jump-back)
+               ("M-g l" . dumb-jump-quick-look)))
 #+end_src
 
 ***** visual-regexp                         :ARCHIVE:
