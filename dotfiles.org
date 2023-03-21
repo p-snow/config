@@ -9816,6 +9816,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
      '((?W org-agenda-web-track-update)))
     :config
     (bind-keys ("C-o W W" . my/org-web-track-list)
+               ("C-o W n" . org-web-track-initialize)
                ("C-o W u" . org-web-track-update)
                ("C-o W i" . org-web-track-insert-value-change-table)
                :map org-agenda-mode-map
@@ -9852,6 +9853,12 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
 
   Each element is for specific site whose car is regexp for the site url and
   cdr is a function responsible for tracking data in the site.")
+
+  (defun org-web-track-initialize (url)
+    "Initialize the org entry at point as a web tracking item by putting URL."
+    (interactive (list (read-string "URL: ")))
+    (org-entry-put (point) org-web-track--propname-url url)
+    (org-web-track-update))
 
   (defun org-web-track-value (url &optional sync on-success &rest args)
     ""
