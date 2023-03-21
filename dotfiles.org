@@ -4751,11 +4751,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp :noweb tangle
   (use-package consult
-    :bind (("C-;" . (lambda (&optional arg)
-                      (interactive "P")
-                      (if (equal arg '(4))
-                          (consult-buffer-other-frame)
-                        (consult-buffer))))
+    :bind (("C-;" . consult-buffer)
            ("C-c m" . consult-mode-command)
            ("C-c r" . consult-recent-file)
            ("C-c g" . consult-outline)
