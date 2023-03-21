@@ -169,100 +169,123 @@ initialization script for a linuxmint account
 #+end_src
 
 *** Manifests
-- base
-  #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/base.scm")
-    (specifications->manifest
-     '("coreutils"
-       "diffutils"
-       "parallel"
-       "gawk"
-       "sed"
-       "tar"
-       "zip"
-       "unzip"
-       "zstd"
-       "p7zip"
-       "shadow"
-       "sshfs"
-       "grep"
-       "ripgrep"
-       "less"
-       "gnupg"
-       "pwgen"
-       "file"
-       "nkf"
-       "lsof"
-       "tree"
-       "poppler"
-       "pass-git-helper"
-       "stow"
-       "pandoc"
-       "nss-certs"
-       "openssl"
-       "glibc"
-       "glibc-locales"
-       "procps"
-       "time"
-       "htop"
-       "net-tools"
-       "curl"
-       "wget"
-       "httrack"
-       "ghc-tldr"
-       "speedtest-cli"
-       "parted"
-       "fdisk"
-       "gptfdisk"
-       "cryptsetup"
-       "smartmontools"
-       "ddrescue"
-       "sqlite"
-       "libarchive"
-       "ffmpeg"
-       "dav1d"
-       "jq"
-       "pup"
-       "binutils"
-       "make"
-       "llvm"
-       "cmake"
-       "libtool"
-       "texinfo"
-       "shellcheck"
-       "global"
-       "perl"
-       <<base-pkgs>>))
-  #+end_src
-- desktop
-  #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/desktop.scm")
-    (specifications->manifest
-     '("font-adobe-source-han-sans"
-       "imagemagick"
-       "pulseaudio"
-       "gparted"
-       "vlc"
-       "gcompris-qt"
-       "gnome-disk-utility"
-       "wine64"
-       "winetricks"
-       "kdeconnect"
-       <<desktop-pkgs>>))
-  #+end_src
-- creative
-  #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/creative.scm")
-    (specifications->manifest
-     '("krita"
-       <<creative-pkgs>>))
-  #+end_src
-- emacs
-  #+begin_src scheme :noweb yes :noweb-prefix no :tangle (expand-file-name ".config/guix/manifests/emacs.scm")
-    (specifications->manifest
-     '(<<emacs-pkgs>>
-       "sicp"
-       "isync"
-       "stunnel"
-       "wordnet"))
-  #+end_src
+**** guix base profile
+
+#+begin_src shell :noweb yes :noweb-ref bashrc
+  export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/base/base/share:${XDG_DATA_DIRS}
+#+end_src
+
+#+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/base.scm")
+  (specifications->manifest
+   '("coreutils"
+     "diffutils"
+     "parallel"
+     "gawk"
+     "sed"
+     "tar"
+     "zip"
+     "unzip"
+     "zstd"
+     "p7zip"
+     "shadow"
+     "sshfs"
+     "grep"
+     "ripgrep"
+     "less"
+     "gnupg"
+     "pwgen"
+     "file"
+     "nkf"
+     "lsof"
+     "tree"
+     "poppler"
+     "pass-git-helper"
+     "stow"
+     "pandoc"
+     "nss-certs"
+     "openssl"
+     "glibc"
+     "glibc-locales"
+     "procps"
+     "time"
+     "htop"
+     "net-tools"
+     "curl"
+     "wget"
+     "httrack"
+     "ghc-tldr"
+     "speedtest-cli"
+     "parted"
+     "fdisk"
+     "gptfdisk"
+     "cryptsetup"
+     "smartmontools"
+     "ddrescue"
+     "sqlite"
+     "libarchive"
+     "ffmpeg"
+     "dav1d"
+     "jq"
+     "pup"
+     "binutils"
+     "make"
+     "llvm"
+     "cmake"
+     "libtool"
+     "texinfo"
+     "shellcheck"
+     "global"
+     "perl"
+     <<base-pkgs>>))
+#+end_src
+
+**** guix desktop profile
+
+#+begin_src shell :noweb yes :noweb-ref bashrc
+  export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/desktop/desktop/share:${XDG_DATA_DIRS}
+#+end_src
+
+#+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/desktop.scm")
+  (specifications->manifest
+   '("font-adobe-source-han-sans"
+     "imagemagick"
+     "pulseaudio"
+     "gparted"
+     "vlc"
+     "gcompris-qt"
+     "gnome-disk-utility"
+     "wine64"
+     "winetricks"
+     "kdeconnect"
+     <<desktop-pkgs>>))
+#+end_src
+
+**** guix creative profile
+
+#+begin_src shell :noweb yes :noweb-ref bashrc
+  export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_DIRS}
+#+end_src
+
+#+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/creative.scm")
+  (specifications->manifest
+   '("krita"
+     <<creative-pkgs>>))
+#+end_src
+
+**** guix emacs profile
+
+#+begin_src shell :noweb yes :noweb-ref bashrc
+  export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/emacs/emacs/share:${XDG_DATA_DIRS}
+#+end_src
+
+#+begin_src scheme :noweb yes :noweb-prefix no :tangle (expand-file-name ".config/guix/manifests/emacs.scm")
+  (specifications->manifest
+   '(<<emacs-pkgs>>
+     "sicp"
+     "isync"
+     "stunnel"
+     "wordnet"))
+#+end_src
 
 *** Activating Profiles
 
@@ -7063,7 +7086,9 @@ Major mode for manupulating password store file.
 
 #+begin_src emacs-lisp
   (use-package app-launcher
-    :bind ("M-o a" . app-launcher-run-app))
+    :after my-invoke-command
+    :bind (:map my/invoke-command-map
+                ("a" . app-launcher-run-app)))
 #+end_src
 
 ***** tldr
