@@ -64,15 +64,16 @@
 initialization script for a ubuntu account
 
 #+begin_src shell :noweb tangle :noweb-sep "\n\n" :tangle (expand-file-name ".local/bin/initialize-ubuntu-desktop") :shebang #!/bin/bash :tangle-mode (identity #o755)
-  install-apt-packages
+  apt-install
+  npm-install
   start-systemd-services
 
   <<ubuntu-setup>>
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/install-apt-packages") :shebang #!/bin/sh :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/apt-install") :shebang #!/bin/sh :tangle-mode (identity #o755)
   sudo apt-get install -y \
-       <<apt-pkgs>>
+       <<apt-pkg>>
 #+end_src
 
 ** Linux Mint (Cinnamon DE)
@@ -367,7 +368,7 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
   "font-inconsolata"
 #+end_src
 
-# #+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+# #+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
 #   fonts-ipafont-mincho fonts-ipafont-gothic
 # #+end_src
 
@@ -2373,12 +2374,9 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp
   (use-package eglot
-    :hook ((sh-mode ruby-mode python-mode) . eglot-ensure)
+    :hook ((sh-mode ruby-mode python-mode graphviz-dot-mode) . eglot-ensure)
     :custom
-    (eglot-extend-to-xref t)
-    :config
-    (add-to-list 'eglot-server-programs
-                 '(python-mode "pylsp")))
+    (eglot-extend-to-xref t))
 #+end_src
 
 ***** Text
@@ -2399,7 +2397,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 :CREATED:  [2022-10-20 Thu 17:01]
 :END:
 
-#+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+#+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
   dictd dict \
         dict-gcide dict-wn \
         dict-jargon dict-foldoc dict-vera \
@@ -11604,19 +11602,8 @@ aspell - interactive spell checker
   install-textlint
 #+end_src
 
-#+begin_src shell :shebang #!/bin/sh :tangle (expand-file-name ".local/bin/install-textlint") :tangle-mode (identity #o755)
-  npm install -g \
-    textlint \
-    @textlint/ast-node-types \
-    textlint-rule-preset-ja-spacing \
-    textlint-rule-preset-ja-technical-writing \
-    textlint-rule-spellcheck-tech-word \
-    textlint-rule-ginger \
-    textlint-rule-write-good \
-    textlint-rule-prh \
-    textlint-filter-rule-node-types \
-    textlint-plugin-org \
-    traverse
+#+begin_src shell :tangle no :noweb-ref npm-pkg
+  textlint @textlint/ast-node-types textlint-rule-preset-ja-spacing textlint-rule-preset-ja-technical-writing textlint-rule-spellcheck-tech-word textlint-rule-ginger textlint-rule-write-good textlint-rule-prh textlint-filter-rule-node-types textlint-plugin-org traverse
 #+end_src
 
 - config for English
@@ -11936,7 +11923,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 #+end_src
 
 - install on Ubuntu
-  #+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+  #+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
     open-jtalk open-jtalk-mecab-naist-jdic hts-voice-nitech-jp-atr503-m001
   #+end_src
 - download hts voices
@@ -12026,7 +12013,7 @@ XRandR is a command line utility for changing display options without restarting
 
 As of [2023-02-08 Wed] C/Migemo is installed via guix package system since [[https://gitlab.com/guix-jp/guix-jp][guix-jp]] has offered that.
 
-# #+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+# #+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
 #   cmigemo
 # #+end_src
 
@@ -12643,7 +12630,14 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 
 #+begin_src emacs-lisp :noweb-ref additional-elisp
   (use-package graphviz-dot-mode
-    :mode ("\\.\\(?:dot\\|gz\\)$" . graphviz-dot-mode))
+    :after eglot
+    :config
+    (add-to-list 'eglot-server-programs
+                 '(graphviz-dot-mode "dot-language-server" "--stdio")))
+#+end_src
+
+#+begin_src shell :noweb-ref npm-pkg :tangle no
+  dot-language-server
 #+end_src
 
 ** Rsync
@@ -12730,7 +12724,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
   "virt-manager"
 #+end_src
 
-#+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+#+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
   qemu-kvm libvirt-clients libvirt-daemon libvirt-daemon-system virtinst virt-manager virt-top bridge-utils
 #+end_src
 
@@ -12798,7 +12792,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
   "rtorrent-xmlrpc"
 #+End_src
 
-#+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+#+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
   rtorrent
 #+end_src
 
@@ -12872,7 +12866,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
   "recoll"
 #+end_src
 
-#+begin_src shell :noweb-ref apt-pkgs :noweb-sep " \\\n" :tangle no
+#+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
   recollcmd
 #+end_src
 
@@ -12986,6 +12980,10 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
   #+begin_src shell :tangle no :noweb yes
     mkdir -pv <<npm-prefix()>>
   #+end_src
+- install npm packages
+  #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/npm-install") :shebang #!/bin/sh :tangle-mode (identity #o755)
+    npm install -g <<npm-pkg>>
+  #+end_src
 
 ** asdf-vm                                     :ARCHIVE:
 Extendable version manager
@@ -13043,8 +13041,9 @@ Extendable version manager
 
 [[https://github.com/bash-lsp/bash-language-server][Bash Language Server]]
 
-- how to install
-  : $ npm install -g bash-language-server
+#+begin_src shell :noweb-ref npm-pkg :tangle no
+  bash-language-server
+#+end_src
 
 *** Solargraph
 :PROPERTIES:
