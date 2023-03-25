@@ -7318,6 +7318,10 @@ It's confortable to read long material such as web page , epub file or email wit
     :preface
     (defvar my/lazy-view-map
       (let ((map (make-sparse-keymap)))
+        (define-key map (kbd "C-h") (lambda ()
+                                      "Show this keymap list."
+                                      (interactive)
+                                      (describe-keymap 'my/lazy-view-map)))
         (define-key map (kbd "<SPC>") #'my/forward-paragraph)
         (define-key map (kbd "E") #'my/backward-paragraph)
         (define-key map (kbd "f") #'scroll-up-line)
@@ -7362,6 +7366,7 @@ It's confortable to read long material such as web page , epub file or email wit
                 end-of-visual-line
                 recenter-top-bottom
                 reposition-window
+                quit-window
                 Info-next-reference
                 Info-prev-reference
                 Info-up
