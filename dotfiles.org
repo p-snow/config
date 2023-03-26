@@ -2133,10 +2133,13 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
 ******* Eldoc
 
 #+begin_src emacs-lisp
-  (require 'eldoc)
-
-  (customize-set-variable 'eldoc-echo-area-display-truncation-message nil)
-  (customize-set-variable 'eldoc-echo-area-prefer-doc-buffer 'maybe)
+  (use-package eldoc
+    :preface
+    (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
+    :custom
+    (eldoc-echo-area-prefer-doc-buffer 'maybe)
+    :config
+    (eldoc-add-command-completions "paredit-"))
 #+end_src
 
 ****** Debug
