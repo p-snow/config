@@ -5625,6 +5625,24 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+end_src
 **** other third-party packages
 
+***** gptel
+:PROPERTIES:
+:CREATED:  [2023-03-28 Tue 13:53]
+:END:
+
+#+begin_src emacs-lisp :noweb tangle
+  (use-package gptel
+    :ensure t
+    :bind (("C-x / c" . gptel))
+    :custom
+    (gptel-api-key "<<openai-api-key()>>"))
+#+end_src
+
+#+name: openai-api-key
+#+begin_src emacs-lisp
+  (password-store-get-field "beta.openai.com" "API key")
+#+end_src
+
 ***** engine-mode
 :PROPERTIES:
 :CREATED:  [2023-03-15 Wed 16:27]
