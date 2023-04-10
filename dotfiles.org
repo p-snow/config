@@ -7,26 +7,44 @@
 
 * Personal Information
 ** Local Directories
-+ home directory
-  #+name: home-dir
-  #+begin_src shell :eval no-export
-    echo "${HOME}"
-  #+end_src
-+ share directory
-  #+name: share-dir
-  #+begin_src shell :eval no-export
-    echo "${HOME}/data/share"
-  #+end_src
-+ video directory
-  #+name: video-dir
-  #+begin_src shell :eval no-export
-    echo "${HOME}/data/videos"
-  #+end_src
-+ audio directory
-  #+name: audio-dir
-  #+begin_src shell :eval no-export
-    echo "${HOME}/data/audios"
-  #+end_src
+*** home directory
+
+#+name: home-dir
+#+begin_src shell :eval no-export
+  echo "${HOME}"
+#+end_src
+
+*** share directory
+
+#+name: share-dir
+#+begin_src shell :eval no-export
+  echo "${HOME}/data/share"
+#+end_src
+
+*** video directory
+
+#+name: video-dir
+#+begin_src shell :eval no-export
+  echo "${HOME}/data/videos"
+#+end_src
+
+*** audio directory
+
+#+name: audio-dir
+#+begin_src shell :eval no-export
+  echo "${HOME}/data/audios"
+#+end_src
+
+*** trash directory
+:PROPERTIES:
+:CREATED:  [2023-04-10 Mon 21:57]
+:END:
+
+#+name: trash-dir
+#+begin_src shell :eval no-export
+  echo "${XDG_DATA_HOME}/Trash"
+#+end_src
+
 ** Email
 #+name: email
 #+begin_src bash
@@ -624,7 +642,7 @@ You may need to enable systemd-tmpfiles service for user
 #+end_src
 
 #+begin_src conf :noweb tangle :tangle (expand-file-name ".config/user-tmpfiles.d/cleanup.conf")
-  D <<home-dir()>>/.local/share/Trash/files 0700 - - 1w
+  d <<trash-dir()>>/files 0700 - - 1w
   d <<home-dir()>>/tmp 0755 - - 5d
   d <<home-dir()>>/Downloads 0755 - - 4w
   <<tmpfiles-cleanup>>
@@ -9326,8 +9344,13 @@ Open-file is a feature that allows you to specify the application to open a file
 
 By default, PDF and EPUB files are opened in EWW after converted into HTML. Videos and audio files are played in MPV media player.
 
+#+name: open-file-dir
+#+begin_src emacs-lisp :noweb yes :eval no-export
+  (file-name-concat "<<share-dir()>>" "emacs/open-file")
+#+end_src
+
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-  d <<share-dir()>>/emacs/open-file 0755 - - 14d
+  d <<open-file-dir()>> 0755 - - 14d
 #+end_src
 
 #+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
@@ -10812,9 +10835,11 @@ Provide a function to Build a clock table summing up time by tag.
 #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/updatedb-home") :tangle-mode (identity #o755)
   #!/usr/bin/env bash
 
+  . ~/.bashrc
+
   [[ -d $(dirname <<plocate-db()>>) ]] \
    || mkdir -p $(dirnmae <<plocate-db()>>) \
-     && which -a updatedb | grep sbin | xargs -I{} sh -c '{} -l 0 -U '<<home-dir()>>' -o <<plocate-db()>>'
+     && $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> -e <<open-file-dir()>> -e <<trash-dir()>> -o <<plocate-db()>>
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-pc
