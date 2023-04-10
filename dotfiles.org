@@ -8548,7 +8548,7 @@ Following hook settings cause habit procedure malfunctioning. More specifically,
   ;;                             my/org-done-keyword--done)
   ;;                    (funcall #'my/org-remove-old-state-changes 12)))))
 
-  (defvar my/org-remove-old-clock-logs-weeks 20
+  (defvar my/org-remove-old-clock-logs-weeks 12
     "Number of weeks on which state change logs to remove for `my/org-remove-old-clock-logs'.")
 
   (defun my/org-agenda-remove-old-clock-logs ()
@@ -8635,7 +8635,7 @@ Following hook settings cause habit procedure malfunctioning. More specifically,
         (org-show-all)
         (let* ((drawer-end (save-excursion (re-search-forward org-logbook-drawer-re (save-excursion (org-end-of-subtree)) t)))
                (case-fold-search t)
-               (re org-ts-regexp-inactive)
+               (re (concat (rx "- State \"" (= 2 alnum) "\"" (+ any)) org-ts-regexp-inactive))
                (end-mkr (set-marker (mark-marker) drawer-end)))
           (goto-char (match-beginning 0))
           (while (re-search-forward re (marker-position end-mkr) t)
