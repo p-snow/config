@@ -10841,184 +10841,187 @@ Provide a function to Build a clock table summing up time by tag.
   "git"
 #+end_src
 
-- git ignore
-  #+BEGIN_SRC conf :tangle (expand-file-name ".config/git/info/ignore")
-    #
-    # ~/.gitignote
-    #
-    ## Compiled object files ##
-    ,*.slo
-    ,*.lo
-    ,*.o
-    ,*.obj
+*** git ignore
 
-    ## Compiled Dynamic libraries ##
-    ,*.so
-    ,*.dylib
-    ,*.dll
+#+BEGIN_SRC conf :tangle (expand-file-name ".config/git/info/ignore")
+  #
+  # ~/.gitignote
+  #
+  ## Compiled object files ##
+  ,*.slo
+  ,*.lo
+  ,*.o
+  ,*.obj
 
-    ## Compiled Static libraries ##
-    ,*.lai
-    ,*.la
-    ,*.a
-    ,*.lib
+  ## Compiled Dynamic libraries ##
+  ,*.so
+  ,*.dylib
+  ,*.dll
 
-    ## Executables ##
-    ,*.out
-    ,*.app
+  ## Compiled Static libraries ##
+  ,*.lai
+  ,*.la
+  ,*.a
+  ,*.lib
 
-    ## Windows ##
-    Thumbs.db
-    ehthumbs.db
-    Desktop.ini
-    $RECYCLE.BIN/
-    ,*.cab
-    ,*.msm
-    ,*.msp
+  ## Executables ##
+  ,*.out
+  ,*.app
 
-    ## Mac ##
-    .DS_Store
-    .AppleDouble
-    .LSOverride
-    .Spotlight-V100
-    .Trashes
-    ._*
+  ## Windows ##
+  Thumbs.db
+  ehthumbs.db
+  Desktop.ini
+  $RECYCLE.BIN/
+  ,*.cab
+  ,*.msm
+  ,*.msp
 
-    ## Linux ##
-    locate.db
+  ## Mac ##
+  .DS_Store
+  .AppleDouble
+  .LSOverride
+  .Spotlight-V100
+  .Trashes
+  ._*
 
-    ## version control system ##
-    .git/
-    .hg/
-    .svn/
+  ## Linux ##
+  locate.db
 
-    ## backup,log ##
-    ,*~
-    ~*
-    ,*.swp
-    .swp.*
-    ,*.tmp
-    ,*.bak
-    ,*.old
-    ,*.log
-    .cache/
-    ,*.autosave
+  ## version control system ##
+  .git/
+  .hg/
+  .svn/
 
-    ## Emacs ##
-    ,*.elc
+  ## backup,log ##
+  ,*~
+  ~*
+  ,*.swp
+  .swp.*
+  ,*.tmp
+  ,*.bak
+  ,*.old
+  ,*.log
+  .cache/
+  ,*.autosave
 
-    ## Vim ##
-    ,*.un~
-    Session.vim
-    .netrwhist
+  ## Emacs ##
+  ,*.elc
 
-    ## GNU GLOBAL ##
-    GPATH
-    GRTAGS
-    GTAGS
+  ## Vim ##
+  ,*.un~
+  Session.vim
+  .netrwhist
 
-    ## netbeans ##
-    nbproject/
-    ## intellij idea ##
-    .idea/
-    ## eclipse ##
-    .settings/
-    .project
-    .classpath
-    .buildpath
-    ## XCode ##
-    ,*.xcodeproj/*
+  ## GNU GLOBAL ##
+  GPATH
+  GRTAGS
+  GTAGS
 
-    ## Build dir ##
-    build/
+  ## netbeans ##
+  nbproject/
+  ## intellij idea ##
+  .idea/
+  ## eclipse ##
+  .settings/
+  .project
+  .classpath
+  .buildpath
+  ## XCode ##
+  ,*.xcodeproj/*
+
+  ## Build dir ##
+  build/
+#+END_SRC
+
+*** git config
+
+[[https://magit.vc/manual/magit/How-to-show-diffs-for-gpg_002dencrypted-files_003f.html][This page]] show you how to get diffs of gpg files in Magit.
+
+#+BEGIN_SRC gitconfig :noweb tangle :tangle (expand-file-name ".config/git/config")
+  [core]
+          excludesfile = <<home-dir()>>/.config/git/info/ignore
+          attributesfile = <<home-dir()>>/.config/git/info/attributes
+          editor = emacs
+          symlinks = true
+          # Unicode
+          precomposeunicode = true
+          quotepath = true
+          autocrlf = false
+  [push]
+          # simple,matching,upstream,current
+          default = simple
+  [color]
+          ui = auto
+          status = auto
+          diff = auto
+          branch = auto
+          interactive = auto
+          grep = auto
+  [diff]
+          patience = true
+  [diff "gpg"]
+          textconv = gpg --no-tty --decrypt
+  [diff "common-lisp"]
+          xfuncname="^\\((def\\S+\\s+\\S+)"
+  [diff "elisp"]
+          xfuncname="^\\((((def\\S+)|use-package)\\s+\\S+)"
+  [diff "org"]
+          xfuncname="^\\*+ +(.*)$"
+  [help]
+          autocorrect = 0
+  [alias]
+          co = checkout
+          ca = commit -a -v
+          ce = commit -v --amend
+          st = status --branch --short
+          si = status --ignored --short
+          branches = branch -a
+          remotes = remote -v
+          tags = tag -l
+          lg = log --graph --all --decorate --abbrev-commit --branches --date=short --pretty=format:\"%C(red)%h%C(reset) %C(green)[%ad]%C(reset) %s %C(cyan)@%an%C(reset) %C(yellow)%d%C(reset)\"
+          fp = fetch --prune
+          di = diff
+          dh = diff --histogram
+          dw = diff --word-diff
+          dc = diff --cached
+          wc = whatchanged
+  [user]
+          email = 6841207+p-snow@users.noreply.github.com
+          name = p-snow
+          signingkey = 0D2BAF0E8AEF0306
+  [commit]
+          gpgsign = true
+  [credential]
+          helper = <<which(filename="pass-git-helper")>> -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
+  <<git-config>>
   #+END_SRC
-- git config
+*** git attributes
 
-  [[https://magit.vc/manual/magit/How-to-show-diffs-for-gpg_002dencrypted-files_003f.html][This page]] show you how to get diffs of gpg files in Magit.
-
-  #+BEGIN_SRC gitconfig :noweb tangle :tangle (expand-file-name ".config/git/config")
-    [core]
-            excludesfile = <<home-dir()>>/.config/git/info/ignore
-            attributesfile = <<home-dir()>>/.config/git/info/attributes
-            editor = emacs
-            symlinks = true
-            # Unicode
-            precomposeunicode = true
-            quotepath = true
-            autocrlf = false
-    [push]
-            # simple,matching,upstream,current
-            default = simple
-    [color]
-            ui = auto
-            status = auto
-            diff = auto
-            branch = auto
-            interactive = auto
-            grep = auto
-    [diff]
-            patience = true
-    [diff "gpg"]
-            textconv = gpg --no-tty --decrypt
-    [diff "common-lisp"]
-            xfuncname="^\\((def\\S+\\s+\\S+)"
-    [diff "elisp"]
-            xfuncname="^\\((((def\\S+)|use-package)\\s+\\S+)"
-    [diff "org"]
-            xfuncname="^\\*+ +(.*)$"
-    [help]
-            autocorrect = 0
-    [alias]
-            co = checkout
-            ca = commit -a -v
-            ce = commit -v --amend
-            st = status --branch --short
-            si = status --ignored --short
-            branches = branch -a
-            remotes = remote -v
-            tags = tag -l
-            lg = log --graph --all --decorate --abbrev-commit --branches --date=short --pretty=format:\"%C(red)%h%C(reset) %C(green)[%ad]%C(reset) %s %C(cyan)@%an%C(reset) %C(yellow)%d%C(reset)\"
-            fp = fetch --prune
-            di = diff
-            dh = diff --histogram
-            dw = diff --word-diff
-            dc = diff --cached
-            wc = whatchanged
-    [user]
-            email = 6841207+p-snow@users.noreply.github.com
-            name = p-snow
-            signingkey = 0D2BAF0E8AEF0306
-    [commit]
-            gpgsign = true
-    [credential]
-            helper = <<which(filename="pass-git-helper")>> -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
-    <<git-config>>
-  #+END_SRC
-- git attributes
-  #+BEGIN_SRC gitattributes :tangle (expand-file-name ".config/git/info/attributes")
-    ,*.c diff=cpp
-    ,*.h diff=cpp
-    ,*.cpp diff=cpp
-    ,*.hpp diff=cpp
-    ,*.cs diff=csharp
-    ,*.m diff=objc
-    ,*.java diff=java
-    ,*.html diff=html
-    ,*.xml diff=html
-    ,*.pl diff=perl
-    ,*.pm diff=perl
-    ,*.t diff=perl
-    ,*.php diff=php
-    ,*.ptml diff=php
-    ,*.py diff=python
-    ,*.rb diff=ruby
-    ,*.js diff=java
-    ,*.csv encoding=cp932
-    ,*.json diff=json
-    ,*.gpg filter=gpg diff=gpg
-    ,*.org diff=org
-    ,*.lisp diff=common-lisp
-    ,*.el diff=elisp
+#+BEGIN_SRC gitattributes :tangle (expand-file-name ".config/git/info/attributes")
+  ,*.c diff=cpp
+  ,*.h diff=cpp
+  ,*.cpp diff=cpp
+  ,*.hpp diff=cpp
+  ,*.cs diff=csharp
+  ,*.m diff=objc
+  ,*.java diff=java
+  ,*.html diff=html
+  ,*.xml diff=html
+  ,*.pl diff=perl
+  ,*.pm diff=perl
+  ,*.t diff=perl
+  ,*.php diff=php
+  ,*.ptml diff=php
+  ,*.py diff=python
+  ,*.rb diff=ruby
+  ,*.js diff=java
+  ,*.csv encoding=cp932
+  ,*.json diff=json
+  ,*.gpg filter=gpg diff=gpg
+  ,*.org diff=org
+  ,*.lisp diff=common-lisp
+  ,*.el diff=elisp
   #+END_SRC
 
 ** git-annex
