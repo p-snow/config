@@ -7934,6 +7934,40 @@ Suport successive deletion with C-h/M-h
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
 :END:
+***** embark keymaps for consult-org-heading and consult-location
+:PROPERTIES:
+:CREATED:  [2023-04-16 Sun 17:13]
+:END:
+
+#+begin_src emacs-lisp
+  (defun my/org-clock-in-with (cand)
+    "Clock in for CAND org heading.
+
+  CAND is supposed to be either consult-candidate or consult-location."
+    (when-let* ((marker (or (get-text-property 0 'consult--candidate cand)
+                            (car (get-text-property 0 'consult-location cand))))
+                (buffer (marker-buffer marker))
+                (pos (marker-position marker)))
+      (save-excursion
+        (org-with-remote-undo buffer
+          (with-current-buffer buffer
+            (goto-char pos)
+            (org-clock-in))))))
+
+  (with-eval-after-load 'embark
+    (defvar-keymap embark-consult-org-heading-map
+      :doc "Keymap for actions on Org headings."
+      :parent embark-general-map
+      "I" #'my/org-clock-in-with)
+    (add-to-list 'embark-keymap-alist '(consult-org-heading embark-consult-org-heading-map))
+
+    (defvar-keymap embark-consult-outline-map
+      :doc "Keymap for actions on Org headings."
+      :parent embark-general-map
+      "I" #'my/org-clock-in-with)
+    (add-to-list 'embark-keymap-alist '(consult-location embark-consult-outline-map)))
+#+end_src
+
 ***** org move repeat map
 :PROPERTIES:
 :CREATED:  [2023-03-05 Sun 16:15]
