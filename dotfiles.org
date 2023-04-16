@@ -7954,17 +7954,33 @@ Suport successive deletion with C-h/M-h
             (goto-char pos)
             (org-clock-in))))))
 
+  (defun my/org-clock-supersede-with (cand)
+    "Clock in for CAND org heading with superseding current entry.
+
+  CAND is supposed to be either consult-candidate or consult-location."
+    (when-let* ((marker (or (get-text-property 0 'consult--candidate cand)
+                            (car (get-text-property 0 'consult-location cand))))
+                (buffer (marker-buffer marker))
+                (pos (marker-position marker)))
+      (save-excursion
+        (org-with-remote-undo buffer
+          (with-current-buffer buffer
+            (goto-char pos)
+            (my/org-clock-supersede))))))
+
   (with-eval-after-load 'embark
     (defvar-keymap embark-consult-org-heading-map
       :doc "Keymap for actions on Org headings."
       :parent embark-general-map
-      "I" #'my/org-clock-in-with)
+      "I" #'my/org-clock-in-with
+      "V" #'my/org-clock-supersede-with)
     (add-to-list 'embark-keymap-alist '(consult-org-heading embark-consult-org-heading-map))
 
     (defvar-keymap embark-consult-outline-map
       :doc "Keymap for actions on Org headings."
       :parent embark-general-map
-      "I" #'my/org-clock-in-with)
+      "I" #'my/org-clock-in-with
+      "V" #'my/org-clock-supersede-with)
     (add-to-list 'embark-keymap-alist '(consult-location embark-consult-outline-map)))
 #+end_src
 
@@ -8098,8 +8114,8 @@ These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea
              (org-clock-cancel)))
       (org-clock-in)))
 
-  (bind-keys ("C-o x" . my/org-clock-supersede))
-  (setf (map-elt org-speed-commands "x") #'my/org-clock-supersede)
+  (bind-keys ("C-o V" . my/org-clock-supersede))
+  (setf (map-elt org-speed-commands "V") #'my/org-clock-supersede)
 #+end_src
 
 ***** notify completion of timer for a task
