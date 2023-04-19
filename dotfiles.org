@@ -10247,34 +10247,45 @@ Send a mail to notify the tracking value of some items have changed.
 
   <<web-tracker>>
 
-  (let ((request-backend 'url-retrieve)
-        mail-msg)
-    (mapc (lambda (price-entry)
-            (let* ((heading (org-element-property :raw-value price-entry))
-                   (track-url (org-element-property :TRACK_URL price-entry))
-                   (values-last (org-element-property :TRACK_VALUE price-entry))
-                   (cmpr (lambda (values &rest args)
-                           (let ((last (car args))
-                                 (values-joined (string-join values " ")))
-                             (unless (equal values-joined last)
-                               (setq mail-msg
-                                     (concat mail-msg
-                                             (format "\"%s\": %s => %s\n"
-                                                     heading last values-joined))))))))
-              (ignore-errors
-                (org-web-track-value track-url t
-                                     cmpr
-                                     values-last))))
-          (org-ql-select
-            (directory-files-recursively org-directory
-                                         (rx (seq ".org" eol)))
-            `(and (property ,org-web-track--propname-url)
-                  (not (tags ,org-archive-tag)))))
+  (let* ((request-backend 'url-retrieve)
+         (track-entries (org-ql-select
+                          (directory-files-recursively org-directory
+                                                       (rx (seq ".org" eol)))
+                          `(and (property ,org-web-track--propname-url)
+                                (not (tags ,org-archive-tag)))
+                          :action 'element-with-markers))
+         mail-msg)
+    (mapc (lambda (track-entry)
+            (org-with-point-at (plist-get (cadr track-entry) :org-marker)
+              (let* ((heading (org-get-heading t t t t))
+                     (track-url
+                      (org-entry-get (point) "TRACK_URL"))
+                     (values-last
+                      (org-entry-get-multivalued-property (point) "TRACK_VALUE"))
+                     (cmpr (lambda (values &rest args)
+                             (let ((last (car args)))
+                               (unless (equal values last)
+                                 (setq mail-msg
+                                       (concat mail-msg
+                                               (format "%s: %s -> %s\n\n"
+                                                       heading last values))))))))
+                (ignore-errors
+                  (org-web-track-value track-url t
+                                       cmpr
+                                       values-last)))))
+          track-entries)
     (when (stringp mail-msg)
       (mail-send-string user-mail-address
                         "Web Track Results"
                         mail-msg)))
 #+end_src
+
+***** org-web-track unit test
+:PROPERTIES:
+:CREATED:  [2023-02-05 Sun 13:08]
+:END:
+
+https://www.amazon.co.jp/%E3%81%AF%E3%81%8F%E3%81%B0%E3%81%8F-%E4%B8%B8%E7%B2%92%E9%BA%A6%E8%8C%B6-30g%C3%9730%E8%A2%8B/dp/B0087WQ6NI/ref=asc_df_B0087WQ6NI/?tag=jpgo-22&linkCode=df0&hvadid=204320102829&hvpos=&hvnetw=g&hvrand=6273707311668630873&hvpone=&hvptwo=&hvqmt=&hvdev=c&hvdvcmdl=&hvlocint=&hvlocphy=1009441&hvtargid=pla-338981819961&psc=1&th=1&psc=1
 
 **** learning english words/phrases
 
