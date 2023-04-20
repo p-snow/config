@@ -9966,15 +9966,19 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     (defun my/org-web-track-list ()
       "Open Org Agenda view with tracking items which hold TRACK_URL property."
       (interactive)
+      (setq org-columns-modify-value-for-display-function
+            'org-web-track-display-values)
       (let ((org-agenda-files
              (mapcar (lambda (sub-dir)
                        (file-name-as-directory
                         (file-name-concat org-directory sub-dir)))
-                     '("agenda" "wiki" "notes" "lists" "archive"))))
+                     '("agenda" "wiki" "notes" "lists" "archive")))
+            (org-overriding-columns-format org-web-track-columns-format)
+            (org-agenda-view-columns-initially t))
         (when (require 'org-ql nil t)
           (org-ql-search
             (org-agenda-files)
-            '(property "TRACK_URL")
+            `(property ,org-web-track--propname-value)
             :super-groups '((:tag "ac_buy")
                             (:tag "food"))))))
     :custom
@@ -9984,9 +9988,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     (bind-keys ("C-o W W" . my/org-web-track-list)
                ("C-o W n" . org-web-track-initialize)
                ("C-o W u" . org-web-track-update)
-               ("C-o W i" . org-web-track-insert-value-change-table)
-               :map org-agenda-mode-map
-               ("W" . org-agenda-web-track-columns))
+               ("C-o W i" . org-web-track-insert-value-change-table))
     <<web-tracker>>)
 #+end_src
 
@@ -10001,7 +10003,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
 
   (defvar org-web-track--propname-value "TRACK_VALUE"
     "Property name for value.")
-  (put 'org-web-track--propname-value 'label "VALUE")
+  (put 'org-web-track--propname-value 'label "VALUES")
 
   (defvar org-web-track--propname-last-value "TRACK_VALUE_LAST"
     "Property name for last value.")
@@ -10193,19 +10195,35 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
            (goto-char pos)
            (funcall-interactively #'org-web-track-update))))))
 
-  (defun org-agenda-web-track-columns ()
-    "Display column view showing TRACK_VALUE,TRACK_VALUE_LAST and TRACK_DATE property in org agenda view."
-    (interactive)
-    (when (eq major-mode 'org-agenda-mode)
-      (let* ((org-overriding-columns-format
-              (format "%%20ITEM %%12%s(%s) %%12%s(%s) %%%s(%s)"
-                      org-web-track--propname-value
-                      (get 'org-web-track--propname-value 'label)
-                      org-web-track--propname-last-value
-                      (get 'org-web-track--propname-last-value 'label)
-                      org-web-track--propname-date
-                      (get 'org-web-track--propname-date 'label))))
-        (org-agenda-columns))))
+  (defun org-web-track-display-values (column-title values)
+    "Return clean print of current value title in column view is COLUMN-TITLE."
+    (when (string= column-title
+                   (get 'org-web-track--propname-value 'label))
+      (save-excursion
+        (let ((multivalues (org-entry-get-multivalued-property (point) org-web-track--propname-value))
+              (last-multivalues (org-entry-get-multivalued-property (point) org-web-track--propname-last-value)))
+          (string-join
+           (cl-mapcar #'org-web-track-changes
+                      multivalues
+                      (or last-multivalues
+                          (make-list (length multivalues) nil)))
+           ", ")))))
+
+  (defun org-web-track-changes (value last-value)
+    "Return a string which represents VALUE along with LAST-VALUE in case of non-nil."
+    (concat (and (stringp value)
+                 value)
+            (and (stringp last-value)
+                 (not (string= value last-value))
+                 (format " (%s)" last-value))))
+
+  (defvar org-web-track-columns-format
+    (format "%%12ITEM %%%s(%s) %%%s(%s)"
+            org-web-track--propname-value
+            (get 'org-web-track--propname-value 'label)
+            org-web-track--propname-date
+            (get 'org-web-track--propname-date 'label))
+    "")
 
   (defun org-web-track-test-tracker (tracker url)
     "Return a value, which is a result of applying TRACKER for contents at URL.
@@ -10247,37 +10265,42 @@ Send a mail to notify the tracking value of some items have changed.
 
   <<web-tracker>>
 
-  (let* ((request-backend 'url-retrieve)
-         (track-entries (org-ql-select
-                          (directory-files-recursively org-directory
-                                                       (rx (seq ".org" eol)))
-                          `(and (property ,org-web-track--propname-url)
-                                (not (tags ,org-archive-tag)))
-                          :action 'element-with-markers))
-         mail-msg)
-    (mapc (lambda (track-entry)
-            (org-with-point-at (plist-get (cadr track-entry) :org-marker)
-              (let* ((heading (org-get-heading t t t t))
-                     (track-url
-                      (org-entry-get (point) "TRACK_URL"))
-                     (values-last
-                      (org-entry-get-multivalued-property (point) "TRACK_VALUE"))
-                     (cmpr (lambda (values &rest args)
-                             (let ((last (car args)))
-                               (unless (equal values last)
-                                 (setq mail-msg
-                                       (concat mail-msg
-                                               (format "%s: %s -> %s\n\n"
-                                                       heading last values))))))))
-                (ignore-errors
-                  (org-web-track-value track-url t
-                                       cmpr
-                                       values-last)))))
-          track-entries)
-    (when (stringp mail-msg)
-      (mail-send-string user-mail-address
-                        "Web Track Results"
-                        mail-msg)))
+  (defvar mail-msg nil "Message of an email to send.")
+
+  (mapc (lambda (track-entry)
+          (org-with-point-at (plist-get (cadr track-entry) :org-marker)
+            (let* ((heading (org-get-heading t t t t))
+                   (track-url
+                    (org-entry-get (point) "TRACK_URL"))
+                   (values-recorded
+                    (org-entry-get-multivalued-property (point) "TRACK_VALUE"))
+                   (msg-builder (lambda (values &rest args)
+                                  (unless (equal values values-recorded)
+                                    (setq mail-msg
+                                          (concat mail-msg
+                                                  heading ":\n"
+                                                  (string-join
+                                                   (cl-mapcar #'org-web-track-changes
+                                                              values
+                                                              (or values-recorded
+                                                                  (make-list (length values) nil)))
+                                                   ", ")
+                                                  "\n\n"))))))
+              (ignore-errors
+                (org-web-track-value track-url t
+                                     msg-builder
+                                     values-recorded)))))
+        (org-ql-select
+          (directory-files-recursively org-directory
+                                       (rx (seq ".org" eol)))
+          `(and (property ,org-web-track--propname-url)
+                (not (tags ,org-archive-tag)))
+          :action 'element-with-markers))
+
+  (when (stringp mail-msg)
+    (mail-send-string user-mail-address
+                      "Web Track Results"
+                      mail-msg))
 #+end_src
 
 ***** org-web-track unit test
