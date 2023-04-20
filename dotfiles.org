@@ -9956,7 +9956,9 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
            ("availability" . "pup 'div[id=\"availability\"] json{}' \| jq -r '.[0].children[0].text'"))
           (,(regexp-quote "www.yodobashi.com/product")
            ("price" . "pup 'span[id=\"js_scl_unitPrice\"] json{}' \| jq -r .[0].text")
-           ("point" . "pup 'span[id=\"js_scl_pointValue\"] json{}' \| jq -r .[0].text"))))
+           ("point" . "pup 'span[id=\"js_scl_pointValue\"] json{}' \| jq -r .[0].text"))
+          (,(regexp-quote "store.steampowered.com")
+           ("price" . "pup 'div[class=\"discount_final_price\"] json{}' | jq -r .[0].text"))))
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
