@@ -9987,10 +9987,10 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     (org-agenda-bulk-custom-functions
      '((?W org-agenda-web-track-update)))
     :config
-    (bind-keys ("C-o W W" . my/org-web-track-list)
-               ("C-o W n" . org-web-track-initialize)
-               ("C-o W u" . org-web-track-update)
-               ("C-o W i" . org-web-track-insert-value-change-table))
+    (bind-keys ("C-o T T" . my/org-web-track-list)
+               ("C-o T n" . org-web-track-initialize)
+               ("C-o T u" . org-web-track-update)
+               ("C-o T i" . org-web-track-insert-value-change-table))
     <<web-tracker>>)
 #+end_src
 
@@ -10018,7 +10018,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     "Property name for the date at which track value.")
   (put 'org-web-track--propname-date 'label "UPDATED AT")
 
-  (defvar org-web-track-update-timeout 10
+  (defvar org-web-track-update-timeout 20
     "Time out in second for accessing web site to get values.")
 
   (defcustom org-web-track-trackers nil
@@ -10033,7 +10033,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     (org-entry-put (point) org-web-track--propname-url url)
     (org-web-track-update))
 
-  (defun org-web-track-get-values (url &optional sync on-success &rest args)
+  (defun org-web-track-get-values (url &optional sync on-success on-fail &rest args)
     "Get values by accessing URL."
     (let ((tracker-def (assoc-default url org-web-track-trackers #'string-match))
           (request-backend 'url-retrieve)
@@ -10060,9 +10060,21 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                               ((error "No tracker")))
                              (string-trim (buffer-substring-no-properties (point-min) (point-max)))))
                          (if (listp tracker-def)
-                             tracker-def (list tracker-def))))
-           (and (functionp on-success)
-                (apply on-success values args)))))
+                             tracker-def (list tracker-def))))))
+        :error
+        (cl-function
+         (lambda (&key symbol-status &allow-other-keys)
+           (cond
+            ((eq symbol-status 'timeout)
+             (setq values nil)))))
+        :complete
+        (cl-function
+         (lambda (&key data &allow-other-keys)
+           (if values
+               (and (functionp on-success)
+                    (apply on-success values args))
+             (and (functionp on-fail)
+                  (apply on-fail args))))))
       (and sync
            values)))
 
@@ -10081,11 +10093,12 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                                                           date))))))
           (org-add-log-setup 'value value nil 'state date))
         (org-web-track-get-values url nil
-                                  #'org-web-track--do-update
+                                  #'org-web-track-interpolate-entry
+                                  #'org-web-track-remove-latest-log
                                   marker))))
 
-  (defun org-web-track--do-update (updates &rest args)
-    "Propagate UPDATES to the entry."
+  (defun org-web-track-interpolate-entry (updates &rest args)
+    "Propagate UPDATES to the entry in consequence of getting values in success."
     (let* ((marker (car args))
            (last-values (org-entry-get marker org-web-track--propname-last-value))
            (values (org-entry-get-multivalued-property marker org-web-track--propname-value)))
@@ -10101,9 +10114,9 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
             (org-web-track-remove-latest-log marker))))
       (message "Values have been updated.")))
 
-  (defun org-web-track-remove-latest-log (marker)
-    "Remove latest value change record, which means a cancel for proactive logging at MARKER."
-    (org-with-point-at marker
+  (defun org-web-track-remove-latest-log (&rest args)
+    "Remove latest value change record so as to cancel proactive logging at MARKER."
+    (org-with-point-at (car args)
       (org-with-wide-buffer
        (org-save-outline-visibility t
          (org-back-to-heading t)
@@ -10187,6 +10200,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     (or (eq major-mode 'org-agenda-mode) (user-error "Not in agenda"))
     (org-agenda-check-type t 'agenda 'todo 'tags 'search)
     (org-agenda-check-no-diary)
+    (org-agenda-redo-all)
     (org-agenda-maybe-loop
      #'org-agenda-web-track-update nil nil nil
      (let* ((marker (or (org-get-at-bol 'org-marker)
@@ -10197,6 +10211,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
        (org-with-remote-undo buffer
          (with-current-buffer buffer
            (widen)
+           (org-show-all)
            (goto-char pos)
            (funcall-interactively #'org-web-track-update))))))
 
@@ -10237,7 +10252,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     (let ((org-web-track-trackers
            (append `((,(regexp-quote url) ,tracker))
                    org-web-track-trackers)))
-      (princ (org-web-track-get-values url t))))
+      (princ (org-web-track-get-values url t nil))))
 
   (provide 'org-web-track)
 #+end_src
