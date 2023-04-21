@@ -10033,7 +10033,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     (org-entry-put (point) org-web-track--propname-url url)
     (org-web-track-update))
 
-  (defun org-web-track-value (url &optional sync on-success &rest args)
+  (defun org-web-track-get-values (url &optional sync on-success &rest args)
     "Get values by accessing URL."
     (let ((tracker-def (assoc-default url org-web-track-trackers #'string-match))
           (request-backend 'url-retrieve)
@@ -10067,7 +10067,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
            values)))
 
   (defun org-web-track-update ()
-    ""
+    "Update tracking entry at point."
     (interactive)
     (let ((url (org-entry-get (point) org-web-track--propname-url))
           (marker (point-marker)))
@@ -10080,12 +10080,12 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                               `((value . ,(concat (format "Value %%-12s %s"
                                                           date))))))
           (org-add-log-setup 'value value nil 'state date))
-        (org-web-track-value url nil
-                             #'org-web-track--do-update
-                             marker))))
+        (org-web-track-get-values url nil
+                                  #'org-web-track--do-update
+                                  marker))))
 
   (defun org-web-track--do-update (updates &rest args)
-    ""
+    "Propagate UPDATES to the entry."
     (let* ((marker (car args))
            (last-values (org-entry-get marker org-web-track--propname-last-value))
            (values (org-entry-get-multivalued-property marker org-web-track--propname-value)))
@@ -10237,7 +10237,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     (let ((org-web-track-trackers
            (append `((,(regexp-quote url) ,tracker))
                    org-web-track-trackers)))
-      (princ (org-web-track-value url t))))
+      (princ (org-web-track-get-values url t))))
 
   (provide 'org-web-track)
 #+end_src
@@ -10292,9 +10292,9 @@ Send a mail to notify the tracking value of some items have changed.
                                                    ", ")
                                                   "\n\n"))))))
               (ignore-errors
-                (org-web-track-value track-url t
-                                     msg-builder
-                                     values-recorded)))))
+                (org-web-track-get-values track-url t
+                                          msg-builder
+                                          values-recorded)))))
         (org-ql-select
           (directory-files-recursively org-directory
                                        (rx (seq ".org" eol)))
