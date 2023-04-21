@@ -10018,6 +10018,9 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     "Property name for the date at which track value.")
   (put 'org-web-track--propname-date 'label "UPDATED AT")
 
+  (defvar org-web-track-update-timeout 10
+    "Time out in second for accessing web site to get values.")
+
   (defcustom org-web-track-trackers nil
     "An alist for tracking each site.
 
@@ -10031,13 +10034,13 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     (org-web-track-update))
 
   (defun org-web-track-value (url &optional sync on-success &rest args)
-    ""
+    "Get values by accessing URL."
     (let ((tracker-def (assoc-default url org-web-track-trackers #'string-match))
           (request-backend 'url-retrieve)
           values)
       (request url
         :sync sync
-        :timeout 10
+        :timeout org-web-track-update-timeout
         :success
         (cl-function
          (lambda (&key data &allow-other-keys)
