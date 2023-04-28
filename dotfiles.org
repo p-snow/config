@@ -10048,7 +10048,9 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
   (defun org-web-track-get-values (url &optional sync on-success on-fail &rest args)
     "Get values by accessing URL."
     (let ((tracker-def (assoc-default url org-web-track-trackers #'string-match))
-          (request-backend 'url-retrieve)
+          (request-backend 'curl)
+          (request-curl-options
+           `(,(format "-H \"User-Agent: %s\"" (string-trim (url-http-user-agent-string)))))
           (values nil))
       (unless tracker-def
         (and (functionp on-fail)
