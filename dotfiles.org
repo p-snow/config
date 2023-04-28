@@ -5650,6 +5650,15 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+end_src
 **** other third-party packages
 
+***** enlive
+:PROPERTIES:
+:CREATED:  [2023-04-28 Fri 15:49]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-enlive"
+#+end_src
+
 ***** gptel
 :PROPERTIES:
 :CREATED:  [2023-03-28 Tue 13:53]
@@ -9953,15 +9962,18 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
         `((,(rx "www.amazon.co.jp"
                 (+ anychar)
                 "-ebook")
-           "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")
+           "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'")
+          (,(regexp-quote "www.amazon.co.jp/product-reviews")
+           [.a-size-base.a-color-secondary] ; num of stars
+           [.a-size-medium.a-color-base]) ; rating
           (,(regexp-quote "www.amazon.co.jp")
-           ("price" . "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -r '.[0].text'")
-           ("availability" . "pup 'div[id=\"availability\"] json{}' \| jq -r '.[0].children[0].text'"))
+           "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'" ; price
+           "pup 'div[id=\"availability\"] json{}' \| jq -re '.[0].children[0].text'") ; availability
           (,(regexp-quote "www.yodobashi.com/product")
-           ("price" . "pup 'span[id=\"js_scl_unitPrice\"] json{}' \| jq -r .[0].text")
-           ("point" . "pup 'span[id=\"js_scl_pointValue\"] json{}' \| jq -r .[0].text"))
+           "pup 'span[id=\"js_scl_unitPrice\"] json{}' \| jq -r .[0].text" ; price
+           "pup 'span[id=\"js_scl_pointValue\"] json{}' \| jq -r .[0].text") ; point
           (,(regexp-quote "store.steampowered.com")
-           ("price" . "pup 'div[class=\"discount_final_price\"] json{}' | jq -r .[0].text"))))
+           "pup 'div[class=\"discount_final_price\"] json{}' | jq -re .[0].text")))
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
@@ -9990,11 +10002,11 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     (org-agenda-bulk-custom-functions
      '((?W org-agenda-web-track-update)))
     :config
+    <<web-tracker>>
     (bind-keys ("C-o T T" . my/org-web-track-list)
                ("C-o T n" . org-web-track-initialize)
                ("C-o T u" . org-web-track-update)
-               ("C-o T i" . org-web-track-insert-value-change-table))
-    <<web-tracker>>)
+               ("C-o T i" . org-web-track-insert-value-change-table)))
 #+end_src
 
 #+begin_src emacs-lisp :tangle (expand-file-name "org-web-track.el" my/user-package-dir)
@@ -10004,6 +10016,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
   (require 'org-agenda)
   (require 'url-http)
   (require 'request)
+  (require 'enlive)
   (require 'rx)
 
   (defvar org-web-track--propname-value "TRACK_VALUE"
@@ -10040,7 +10053,11 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
     "Get values by accessing URL."
     (let ((tracker-def (assoc-default url org-web-track-trackers #'string-match))
           (request-backend 'url-retrieve)
-          values)
+          (values nil))
+      (unless tracker-def
+        (and (functionp on-fail)
+             (progn (apply on-fail args)
+                    (user-error "No tracker available for this entry"))))
       (request url
         :sync sync
         :timeout org-web-track-update-timeout
@@ -10051,33 +10068,40 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                  (mapcar (lambda (tracker)
                            (with-temp-buffer
                              (insert data)
-                             (cond
-                              ((stringp tracker)
-                               (shell-command-on-region (point-min) (point-max)
-                                                        tracker
-                                                        t t))
-                              ((listp tracker)
-                               (shell-command-on-region (point-min) (point-max)
-                                                        (cdr tracker)
-                                                        t t))
-                              ((error "No tracker")))
-                             (string-trim (buffer-substring-no-properties (point-min) (point-max)))))
-                         (if (listp tracker-def)
-                             tracker-def (list tracker-def))))))
+                             (decode-coding-region (point-min) (point-max) 'utf-8)
+                             (if (= 0 (cond
+                                       ((stringp tracker)
+                                        (shell-command-on-region (point-min) (point-max)
+                                                                 tracker
+                                                                 t t))
+                                       ((vectorp tracker)
+                                        (set-buffer-multibyte t)
+                                        (let ((text (enlive-text
+                                                     (enlive-query
+                                                      (enlive-parse-region)
+                                                      tracker))))
+                                          (erase-buffer)
+                                          (insert text))
+                                        0)))
+                                 (string-trim (buffer-substring-no-properties (point-min) (point-max)))
+                               nil)))
+                         (ensure-list tracker-def)))))
         :error
         (cl-function
-         (lambda (&key symbol-status &allow-other-keys)
-           (cond
-            ((eq symbol-status 'timeout)
-             (setq values nil)))))
+         (lambda (&key response &allow-other-keys)
+           (when (eq (request-response-symbol-status response) 'timeout)
+             (setq values nil))
+           (message "Error %s occurred"
+                    (request-response-error-thrown response))))
         :complete
         (cl-function
          (lambda (&key data &allow-other-keys)
-           (if values
+           (if (seq-some 'stringp values)
                (and (functionp on-success)
                     (apply on-success values args))
              (and (functionp on-fail)
-                  (apply on-fail args))))))
+                  (apply on-fail args))
+             (message "No value available at the end of tracker appliance")))))
       (and sync
            values)))
 
@@ -10139,7 +10163,6 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                         (apply 'encode-time (parse-time-string (car latest-log)))
                         (apply 'encode-time (parse-time-string (match-string-no-properties 2)))))
                (setq latest-log `(,(match-string-no-properties 2) . ,(point-marker)))))
-           (princ latest-log)
            (and latest-log
                 (progn
                   (org-with-point-at (cdr latest-log)
