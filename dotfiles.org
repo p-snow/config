@@ -9966,8 +9966,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
            "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'" ; price
            "pup 'div[id=\"availability\"] json{}' \| jq -re '.[0].children[0].text'") ; availability
           (,(regexp-quote "www.yodobashi.com/product")
-           "pup 'span[id=\"js_scl_unitPrice\"] json{}' \| jq -r .[0].text" ; price
-           "pup 'span[id=\"js_scl_pointValue\"] json{}' \| jq -r .[0].text") ; point
+           [:js_scl_unitPrice]) ; price
           (,(regexp-quote "store.steampowered.com")
            "pup 'div[class=\"discount_final_price\"] json{}' | jq -re .[0].text")))
 #+end_src
@@ -10048,9 +10047,8 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
   (defun org-web-track-get-values (url &optional sync on-success on-fail &rest args)
     "Get values by accessing URL."
     (let ((tracker-def (assoc-default url org-web-track-trackers #'string-match))
-          (request-backend 'curl)
           (request-curl-options
-           `(,(format "-H \"User-Agent: %s\"" (string-trim (url-http-user-agent-string)))))
+           `(,(format "-H \"%s\"" (string-trim (url-http-user-agent-string)))))
           (values nil))
       (unless tracker-def
         (and (functionp on-fail)
@@ -10329,7 +10327,8 @@ Send a mail to notify the tracking value of some items have changed.
                                                               (or values-recorded
                                                                   (make-list (length values) nil)))
                                                    ", ")
-                                                  "\n\n"))))))
+                                                  "\n\n")))))
+                   (request-backend 'url-retrieve))
               (ignore-errors
                 (org-web-track-get-values track-url t
                                           msg-builder
