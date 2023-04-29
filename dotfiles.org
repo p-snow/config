@@ -4083,7 +4083,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
              ((member todo-state
                       `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
               (format "%s::* suspended tasks"
-                      (file-name-concat org-directory "archive" "suspended.org"))))))
+                      (file-name-concat org-directory "lists" "somedays.org"))))))
       (when (stringp org-archive-location)
         (and (require 'org-relate nil t)
              (org-relate-interrelate))
@@ -8405,7 +8405,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             subgraph cluster_0 {
                     someday -> someday [label = "review (inactive)"];
                     pending;
-                    label = "suspended.org";
+                    label = "somedays.org";
             }
     }
   #+end_src
@@ -8441,7 +8441,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             :buffers-files
             ,(append
               (org-agenda-files)
-              (list (file-name-concat org-directory "archive" "suspended.org")))
+              (list (file-name-concat org-directory "lists" "somedays.org")))
             :query (todo ,my/org-todo-keyword--someday)
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
             :sort (priority date))
@@ -8450,7 +8450,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             :buffers-files
             ,(append
               (org-agenda-files)
-              (list (file-name-concat org-directory "archive" "suspended.org")))
+              (list (file-name-concat org-directory "lists" "somedays.org")))
             :query (todo ,my/org-todo-keyword--someday)
             :sort (scheduled))
           org-ql-views)
@@ -8458,7 +8458,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             :buffers-files
             ,(append
               (org-agenda-files)
-              (list (file-name-concat org-directory "archive" "suspended.org")))
+              (list (file-name-concat org-directory "lists" "somedays.org")))
             :query (todo ,my/org-done-keyword--pending)
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
             :sort (scheduled priority date))
@@ -9976,7 +9976,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
              (mapcar (lambda (sub-dir)
                        (file-name-as-directory
                         (file-name-concat org-directory sub-dir)))
-                     '("agenda" "wiki" "notes" "lists" "archive")))
+                     '("agenda" "wiki" "notes" "lists")))
             (org-overriding-columns-format org-web-track-columns-format)
             (org-agenda-view-columns-initially t))
         (when (require 'org-ql nil t)
