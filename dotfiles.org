@@ -9273,7 +9273,7 @@ It is implemented using abbrev mechanism since functionality of file: link type 
            (link (if match-idx (match-string 1 tag) tag)))
       (concat (string-trim
                (shell-command-to-string
-                (concat (format "plocate -d <<plocate-db()>> -ie \"%s\" 2>/dev/null"
+                (concat (format "plocate -d <<plocate-db()>> -e \"%s\" 2>/dev/null"
                                 (shell-quote-argument link))
                         " | head --lines=1")))
               (when match-idx (match-string 2 tag)))))
