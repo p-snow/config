@@ -7640,7 +7640,8 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
                           "b[filesize<20M] / w")
                          ;; using wired network or broad wifi
                          ((or (string-prefix-p "192.168.100." ipv4-addr)
-                              (member wifi-ssid '("saint_laurent_ap" "FREE_SPOT")))
+                              (string-match-p (rx (or "saint_laurent_ap" "FREE_SPOT" "FREESPOT"))
+                                              wifi-ssid))
                           "bv*[height<=720]+ba/b")
                          ;; using unknown network
                          (t
@@ -9488,7 +9489,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
 
   (defvar my/open-file-media-extensions
     '("mpg" "mpeg" "mp3" "mp4" "m4v" "m4a"
-      "avi" "wmv" "wav" "mov" "flv" "mkv" "webm"
+      "avi" "wmv" "wav" "mov" "flv" "mkv" "webm" "3gp"
       "ogv" "oga" "ogx" "ogg" "spx" "opus"
       "xbm" "pbm" "pgm" "ppm" "pnm" "png" "gif" "bmp" "tif" "jpeg" "jpg")
     "Extensions files which can play with media player must have.")
