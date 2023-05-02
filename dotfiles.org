@@ -9959,8 +9959,8 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
            [.a-size-base.a-color-secondary] ; num of stars
            [.a-size-medium.a-color-base]) ; rating
           (,(regexp-quote "www.amazon.co.jp")
-           "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'" ; price
-           "pup 'div[id=\"availability\"] json{}' \| jq -re '.[0].children[0].text'") ; availability
+           [.a-price .a-offscreen]
+           [div:availability span]) ; availability
           (,(regexp-quote "www.yodobashi.com/product")
            [:js_scl_unitPrice]) ; price
           (,(regexp-quote "store.steampowered.com")
