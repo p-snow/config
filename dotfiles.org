@@ -9964,7 +9964,21 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
           (,(regexp-quote "www.yodobashi.com/product")
            [:js_scl_unitPrice]) ; price
           (,(regexp-quote "store.steampowered.com")
-           "pup 'div[class=\"discount_final_price\"] json{}' | jq -re .[0].text")))
+           "pup 'div[class=\"discount_final_price\"] json{}' | jq -re .[0].text")
+          ("www.googleapis.com/youtube/v3/channels"
+           (lambda (json)
+             (assoc-default 'subscriberCount
+                            (assoc-default 'statistics (aref (cdr (assoc 'items json))
+                                                             0)))))))
+#+end_src
+
+#+begin_src emacs-lisp :noweb-ref web-track-org-files
+  (let ((org-agenda-files
+         (mapcar (lambda (sub-dir)
+                   (file-name-as-directory
+                    (file-name-concat org-directory sub-dir)))
+                 '("agenda" "wiki" "notes" "lists"))))
+    (org-agenda-files))
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
@@ -9976,16 +9990,11 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
       (interactive)
       (setq org-columns-modify-value-for-display-function
             'org-web-track-display-values)
-      (let ((org-agenda-files
-             (mapcar (lambda (sub-dir)
-                       (file-name-as-directory
-                        (file-name-concat org-directory sub-dir)))
-                     '("agenda" "wiki" "notes" "lists")))
-            (org-overriding-columns-format org-web-track-columns-format)
+      (let ((org-overriding-columns-format org-web-track-columns-format)
             (org-agenda-view-columns-initially t))
         (when (require 'org-ql nil t)
           (org-ql-search
-            (org-agenda-files)
+            <<web-track-org-files>>
             `(property ,org-web-track--propname-url)
             :super-groups '((:tag "book") (:tag "food")
                             (:tag "tool") (:tag "supply"))))))
@@ -10055,29 +10064,28 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
         :timeout org-web-track-update-timeout
         :success
         (cl-function
-         (lambda (&key data &allow-other-keys)
-           (setq values
-                 (mapcar (lambda (tracker)
-                           (with-temp-buffer
-                             (insert data)
-                             (decode-coding-region (point-min) (point-max) 'utf-8)
-                             (if (= 0 (cond
-                                       ((stringp tracker)
-                                        (shell-command-on-region (point-min) (point-max)
-                                                                 tracker
-                                                                 t t))
-                                       ((vectorp tracker)
-                                        (set-buffer-multibyte t)
-                                        (let ((text (enlive-text
-                                                     (enlive-query
-                                                      (enlive-parse-region)
-                                                      tracker))))
-                                          (erase-buffer)
-                                          (insert text))
-                                        0)))
-                                 (string-trim (buffer-substring-no-properties (point-min) (point-max)))
-                               nil)))
-                         (ensure-list tracker-def)))))
+         (lambda (&key response &allow-other-keys)
+           (let* ((content-type (request-response-header response "content-type"))
+                  (content-charset (if (string-match url-mime-content-type-charset-regexp
+                                                     content-type)
+                                       (match-string 1 content-type)
+                                     ""))
+                  (content (request-response-data response)))
+             (setq values
+                   (mapcar (lambda (selector)
+                             (string-trim
+                              (funcall (cond
+                                        ((string-prefix-p "text/html" content-type t)
+                                         #'org-web-track--parse-html)
+                                        ((string-prefix-p "application/json" content-type t)
+                                         #'org-web-track--parse-json))
+                                       (if (string-match-p (rx (or "UTF" "utf")
+                                                               (? "-") "8")
+                                                           content-charset)
+                                           (decode-coding-string content 'utf-8)
+                                         content)
+                                       selector)))
+                           (ensure-list tracker-def))))))
         :error
         (cl-function
          (lambda (&key response &allow-other-keys)
@@ -10096,6 +10104,39 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
              (message "No value available at the end of tracker appliance")))))
       (and sync
            values)))
+
+  (defun org-web-track--parse-html (html selector)
+    "Return tracked value by applying SELECTOR to HTML.
+
+  SELECTOR is supposed to be a vector or a string. If vector, it is used as a css
+  selector."
+    (cond
+     ((vectorp selector)
+      (enlive-text
+       (enlive-query (enlive-parse html)
+                     selector)))
+     ((stringp selector)
+      (with-temp-buffer
+        (set-buffer-multibyte t)
+        (insert html)
+        (decode-coding-region (point-min) (point-max) 'utf-8)
+        (if (= 0 (shell-command-on-region (point-min) (point-max)
+                                          selector
+                                          t t))
+            (buffer-substring-no-properties (point-min) (point-max))
+          "")))
+     (t nil)))
+
+  (defun org-web-track--parse-json (json selector)
+    "Return tracked value by applying SELECTOR to JSON.
+
+  SELECTOR is supposed to be a function that take a json object."
+    (let ((json-obj (json-parse-string json
+                                       :object-type 'alist)))
+      (cond
+       ((or (functionp selector)
+            (symbolp selector))
+        (funcall selector json-obj)))))
 
   (defun org-web-track-update ()
     "Update tracking entry at point."
@@ -10119,7 +10160,6 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
   (defun org-web-track-interpolate-entry (updates &rest args)
     "Propagate UPDATES to the entry in consequence of getting values in success."
     (let* ((marker (car args))
-           (last-values (org-entry-get marker org-web-track--propname-last-value))
            (values (org-entry-get-multivalued-property marker org-web-track--propname-value)))
       (org-entry-put marker org-web-track--propname-date (format-time-string (org-time-stamp-format t t)))
       (cl-labels ((update-value ()
@@ -10330,8 +10370,7 @@ Send a mail to notify the tracking value of some items have changed.
                                           msg-builder
                                           values-recorded)))))
         (org-ql-select
-          (directory-files-recursively org-directory
-                                       (rx (seq ".org" eol)))
+          <<web-track-org-files>>
           `(and (property ,org-web-track--propname-url)
                 (not (tags ,org-archive-tag)))
           :action 'element-with-markers))
