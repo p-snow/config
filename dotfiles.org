@@ -1327,6 +1327,13 @@ init.el devote itself to call for remaining config files.
 
 **** Themes
 
+The theme of my choice at present
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'ef-themes
+    (load-theme 'ef-dark :no-confirm))
+#+end_src
+
 ***** modus-themes
 
 I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modus-themes/][conforms to WCAG AAA]]. [[https://protesilaos.com/codelog/2022-04-21-modus-themes-colour-theory/][This blog post]] explains how this package determines colors theoretically and perceptually.
@@ -1348,9 +1355,24 @@ Following configuration is for version 4 of modus-themes which takes breaking ch
     :config
     (customize-set-variable 'modus-themes-common-palette-overrides
                             modus-themes-preset-overrides-faint)
-    (load-theme (car modus-themes-to-toggle) t t)
-    (enable-theme (car modus-themes-to-toggle))
     (bind-keys ("<f6>" . modus-themes-toggle)))
+#+end_src
+
+***** ef-themes
+:PROPERTIES:
+:CREATED:  [2023-05-15 Mon 15:41]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-ef-themes"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package ef-themes
+    :custom
+    (ef-themes-to-toggle ef-themes-dark-themes)
+    :config
+    (bind-keys ("<f9>" . ef-themes-toggle)))
 #+end_src
 
 **** Basic Preferences
@@ -4801,6 +4823,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
            ("M-s k" . consult-keep-lines)
            ("M-s u" . consult-focus-lines)
            ("M-s i" . consult-info)
+           ("C-x M-#" . consult-theme)
            ("C-o g" . consult-org-agenda)
            :map isearch-mode-map
            ("M-n" . consult-isearch)
