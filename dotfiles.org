@@ -4293,10 +4293,18 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org Crypt
 
 #+begin_src emacs-lisp
-  (customize-set-variable 'org-crypt-key user-mail-address)
-  (customize-set-variable 'org-tags-exclude-from-inheritance '("crypt"))
-
-  (with-eval-after-load 'org-crypt
+  (use-package org-crypt
+    :after org
+    :bind (:map org-mode-map
+                ("C-c M-: e" . org-encrypt-entry)
+                ("C-c M-: E" . org-encrypt-entries)
+                ("C-c M-: d" . org-decrypt-entry)
+                ("C-c M-: D" . org-decrypt-entries))
+    :custom
+    (org-crypt-key user-mail-address)
+    :config
+    (add-to-list 'org-tags-exclude-from-inheritance
+                 org-crypt-tag-matcher)
     (org-crypt-use-before-save-magic))
 #+end_src
 
