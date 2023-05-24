@@ -2693,7 +2693,6 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (dired-open-query-before-exit nil)
     (completion-ignored-extensions nil)
     :config
-    (require 'dired-open)
     (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
     (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion)
     (put 'dired-find-alternate-file 'disabled nil))
@@ -2779,6 +2778,8 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+end_src
 
 #+begin_src emacs-lisp
+  (require 'dired-open)
+
   (use-package dired-subtree
     :after dired
     :bind (:map dired-mode-map
