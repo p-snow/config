@@ -2693,11 +2693,21 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (dired-open-query-before-exit nil)
     (completion-ignored-extensions nil)
     :config
-    (require 'dired-x)
     (require 'dired-open)
     (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
     (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion)
     (put 'dired-find-alternate-file 'disabled nil))
+
+  (use-package dired-x
+    :custom
+    ;; hide ., .. and all dotfiles starting with .
+    (dired-omit-files (rx (seq string-start
+                               (or "." ".."
+                                   (seq "." (+? graph)))
+                               string-end)))
+    :config
+    (bind-keys :map dired-mode-map
+               ("." . dired-omit-mode)))
 
   (use-package dired-aux
     :config
@@ -2783,7 +2793,12 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
           ("C-j" . exit-minibuffer)))
 #+end_src
 
-***** dired-hide-dotfiles
+***** dired-hide-dotfiles                   :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-05-24 Wed 21:44]
+:END:
+
+dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#start-of-content][dired-hide-dotfiles]].
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
   ("https://github.com/mattiasb/dired-hide-dotfiles/releases.atom" soft_update)
