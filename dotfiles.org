@@ -7660,12 +7660,16 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
         (detached-shell-command
          (if (string-match-p "https?://www.youtube.com.+" url)
              (format "yt-dlp --extract-audio %s" url)
-           (concat (format "curl -LJ %s" url)
-                   (and filename
-                        (format " -o %s.%s"
-                                (shell-quote-argument
-                                 (my/file-name-validate filename))
-                                (file-name-extension url)))))))))
+           (concat (format "curl -LJ -o %s %s"
+                           (or (and filename
+                                    (format "%s.%s"
+                                            (shell-quote-argument
+                                             (my/file-name-validate filename))
+                                            (file-name-extension url)))
+                               (file-name-nondirectory
+                                (car (url-path-and-query
+                                      (url-generic-parse-url url)))))
+                           url)))))))
 
   (defun show-media-duration (url)
     "Return a duration value for media located at URL."
