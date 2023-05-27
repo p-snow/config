@@ -5895,6 +5895,24 @@ How to use detached.el
     (detached-terminal-data-command system-type)
     (detached-terminal-data-command system-type))
 
+  (defun my/org-link--open-shell-detached (path _)
+    "Open a \"shell\" type.
+
+  PATH is the command to execute with `detached-shell-command'."
+    (if (or (and (org-string-nw-p org-link-shell-skip-confirm-regexp)
+                 (string-match-p org-link-shell-skip-confirm-regexp path))
+            (not org-link-shell-confirm-function)
+            (funcall org-link-shell-confirm-function
+                     (format "Execute %s in shell? "
+                             (org-add-props path nil 'face 'org-warning))))
+        (progn
+          (message "Executing %s" path)
+          (detached-shell-command path))
+      (user-error "Abort")))
+
+  (with-eval-after-load 'ol
+    (org-link-set-parameters "shell" :follow #'my/org-link--open-shell-detached))
+
   (use-package detached-list
     :bind
     ("C-x C-d" . detached-list-sessions)
