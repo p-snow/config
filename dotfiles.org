@@ -9898,7 +9898,11 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                        (password-store--completing-read t)))
             (field (or ,field
                        (password-store-read-field entry)))
-            (field-value (password-store-get-field entry field)))
+            (field-value (password-store-get-field entry
+                                                   (or (and (string= field "secret")
+                                                            'secret)
+                                                       (and (stringp field)
+                                                            field)))))
        ,@body))
 
   (defun my/password-store-copy ()
@@ -9935,7 +9939,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
   or selected by user."
     (interactive)
     (with-password-store-entry-field nil nil
-                                     (message "%s: %s" field field-value)))
+      (message "%s: %s" field field-value)))
 
   (defun my/password-store-create ()
     (interactive)
