@@ -3568,6 +3568,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-org"
+  "tree-sitter-org"
 #+end_src
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
@@ -5132,14 +5133,43 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
                        nil)))
 #+end_src
 
-***** yaml-mode
+***** toml-mode
+:PROPERTIES:
+:CREATED:  [2023-06-01 Thu 18:01]
+:END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-yaml-mode"
+language grammar for toml
+
+#+begin_src emacs-lisp :tangle no :noweb-ref treesit-language-source
+  (toml "https://github.com/tree-sitter/tree-sitter-toml")
 #+end_src
 
-#+begin_src emacs-lisp
-  (require 'yaml-mode)
+#+begin_src emacs-lisp :tangle no :noweb-ref major-mode-remap-rule
+  (toml-mode . toml-ts-mode)
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
+  (use-package toml
+    :mode "\\.toml$")
+#+end_src
+
+***** yaml-mode
+
+#+begin_src emacs-lisp :tangle no :noweb-ref treesit-language-source
+  (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref major-mode-remap-rule
+  (yaml-mode . yaml-ts-mode)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb yes :noweb-ref combobulate-hook
+  (yaml-ts-mode . combobulate-mode)
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
+  (use-package yaml
+    :mode "\\.ya?ml$")
 #+end_src
 
 ***** json-mode
@@ -5148,11 +5178,32 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
 :END:
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-json-mode"
+  "tree-sitter-json"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref major-mode-remap-rule
+  (json-mode . json-ts-mode)
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
+  (use-package json
+    :mode "\\.json$")
+#+end_src
+
+***** markdown-mode
+:PROPERTIES:
+:CREATED:  [2023-06-02 Fri 18:02]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "markdown"
+  "tree-sitter-markdown"
+  "emacs-markdown-mode"
 #+end_src
 
 #+begin_src emacs-lisp
-  (require 'json-mode)
+  (use-package markdown-mode
+    :mode "\\.md$")
 #+end_src
 
 ***** tex-mode
@@ -5182,6 +5233,10 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
 
 ***** sh-mode
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "tree-sitter-bash"
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package sh-script
     :delight " SH"
@@ -5199,6 +5254,10 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
 ***** emacs-lisp-mode
 
 I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[https://karthinks.com/software/an-elisp-editing-tip/][this blog post]]
+
+#+begin_src emacs-lisp :tangle no :noweb-ref treesit-language-source
+  (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package elisp-mode
@@ -5225,6 +5284,10 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** scheme-mode
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "tree-sitter-scheme"
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package scheme
     :mode (("\\.guix-channel" . scheme-mode)
@@ -5232,6 +5295,10 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 #+end_src
 
 ***** c-mode
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "tree-sitter-c"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package cc-mode
@@ -5303,7 +5370,19 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** python-mode
 
-#+begin_src emacs-lisp
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "tree-sitter-python"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref major-mode-remap-rule
+  (python-mode . python-ts-mode)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb yes :noweb-ref combobulate-hook
+  (python-ts-mode . combobulate-mode)
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
   (use-package python
     :mode "\\.py\\'"
     :interpreter "python"
@@ -5359,9 +5438,16 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** ruby-mode
 
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "tree-sitter-ruby"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref major-mode-remap-rule
+  (ruby-mode . ruby-ts-mode)
+#+end_src
+
 #+begin_src emacs-lisp
-  (use-package ruby-mode
-    :delight " RB"
+  (use-package ruby
     :mode (("\\.rb$"   . ruby-mode)
            ("Capfile$" . ruby-mode)
            ("Gemfile$" . ruby-mode))
@@ -5420,6 +5506,8 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
   "emacs-web-mode"
+  "tree-sitter-html"
+  "tree-sitter-css"
 #+end_src
 
 #+begin_src emacs-lisp
@@ -5458,6 +5546,11 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   "emacs-js2-mode"
 #+end_src
 
+#+begin_src emacs-lisp :tangle no :noweb-ref major-mode-remap-rule
+  (js2-mode . js-ts-mode)
+  (css-mode . css-ts-mode)
+#+end_src
+
 #+begin_src emacs-lisp
   (use-package js2-mode
     :delight " J2"
@@ -5474,6 +5567,26 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     :delight " JS"
     :custom
     (js-indent-level 2))
+#+end_src
+
+***** make
+:PROPERTIES:
+:CREATED:  [2023-06-02 Fri 19:18]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref treesit-language-source
+  (cmake "https://github.com/uyha/tree-sitter-cmake")
+  (make "https://github.com/alemuller/tree-sitter-make")
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref major-mode-remap-rule
+  (cmake-mode . cmake-ts-mode)
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
+  (use-package cmake
+    :mode (("\\.mk$" . cmake-mode)
+           ("^Makefile$" . cmake-mode)))
 #+end_src
 
 ***** sql-mode
@@ -5689,6 +5802,54 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
     :custom
     (vc-follow-symlinks t))
 #+end_src
+**** tree sitter
+:PROPERTIES:
+:CREATED:  [2023-05-31 Wed 17:00]
+:END:
+
+#+begin_src scheme :noweb-ref emacs-pkgs
+  "tree-sitter"
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle :noweb-prefix no
+  (use-package treesit
+    :preface
+    (defun my/setup-install-grammars ()
+      "Install Tree-sitter grammars if they are absent."
+      (interactive)
+      (dolist (grammar
+               '(<<treesit-language-source>>))
+        (add-to-list 'treesit-language-source-alist grammar)
+        (unless (treesit-language-available-p (car grammar))
+          (treesit-install-language-grammar (car grammar)))))
+    :config
+    (my/setup-install-grammars))
+#+end_src
+
+***** combobulate
+:PROPERTIES:
+:CREATED:  [2023-05-31 Wed 17:08]
+:END:
+
+#+begin_src emacs-lisp :noweb tangle :noweb-prefix no
+  (use-package combobulate
+    :after treesit
+    :preface
+    (setq combobulate-key-prefix "C-c o")
+    :hook (<<combobulate-hook>>)
+    :load-path ("~/.emacs.d/site-elisp/combobulate/"))
+#+end_src
+
+***** major mode remapping
+:PROPERTIES:
+:CREATED:  [2023-05-31 Wed 17:12]
+:END:
+
+#+begin_src emacs-lisp :noweb tangle :noweb-prefix no
+  (setq major-mode-remap-alist
+        '(<<major-mode-remap-rule>>))
+#+end_src
+
 **** other third-party packages
 
 ***** meow                                  :ARCHIVE:
@@ -13526,15 +13687,6 @@ Extendable version manager
   ical2orgpy
   Send2Trash
 #+end_src
-** Tree Sitter
-:PROPERTIES:
-:CREATED:  [2022-08-04 Thu 14:55]
-:END:
-
-#+begin_src scheme :noweb-ref base-pkgs
-  "tree-sitter"
-#+end_src
-
 ** Language Servers
 
 *** Bash Language Server
