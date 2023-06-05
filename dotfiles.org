@@ -8311,13 +8311,18 @@ Suport successive deletion with C-h/M-h
     "Change the todo state of an org heading CAND."
     (my/with-org-heading cand (org-todo)))
 
+  (defun my/org-open-with (cand)
+    "Open org link in an org heading CAND."
+    (my/with-org-heading cand (org-open-at-point)))
+
   (with-eval-after-load 'embark
     (defvar-keymap embark-consult-org-heading-map
       :doc "Keymap for actions on Org headings."
       :parent embark-general-map
       "I" #'my/org-clock-in-with
       "V" #'my/org-clock-supersede-with
-      "T" #'my/org-todo-with)
+      "T" #'my/org-todo-with
+      "O" #'my/org-open-with)
     (add-to-list 'embark-keymap-alist '(consult-org-heading embark-consult-org-heading-map))
 
     (defvar-keymap embark-consult-outline-map
@@ -8325,7 +8330,8 @@ Suport successive deletion with C-h/M-h
       :parent embark-general-map
       "I" #'my/org-clock-in-with
       "V" #'my/org-clock-supersede-with
-      "T" #'my/org-todo-with)
+      "T" #'my/org-todo-with
+      "O" #'my/org-open-with)
     (add-to-list 'embark-keymap-alist '(consult-location embark-consult-outline-map)))
 #+end_src
 
