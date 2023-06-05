@@ -10359,7 +10359,12 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
            (lambda (json)
              (assoc-default 'subscriberCount
                             (assoc-default 'statistics (aref (cdr (assoc 'items json))
-                                                             0)))))))
+                                                             0)))))
+          ("openexchangerates.org/api/latest"
+           (lambda (json)
+             (number-to-string
+              (assoc-default 'JPY
+                             (assoc-default 'rates json)))))))
 #+end_src
 
 #+begin_src emacs-lisp :noweb-ref web-track-org-files
