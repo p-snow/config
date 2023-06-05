@@ -3420,11 +3420,13 @@ Command in practice presumably looks like:
   (use-package elfeed-org
     :after (elfeed org)
     :custom
-    (rmh-elfeed-org-files '("~/org/lists/feeds.org"))
     (rmh-elfeed-org-ignore-tag "ARCHIVE")
     (rmh-elfeed-org-auto-ignore-invalid-feeds nil)
     :config
-    (elfeed-org))
+    (with-eval-after-load 'denote
+      (setq rmh-elfeed-org-files
+            (list (denote-get-path-by-id "20230605T173315")))
+      (elfeed-org)))
 #+end_src
 
 Packages managed by other than guix (i.e. straight.el or apt) are encouraged to register feed since updating information channel is desirable to exist.
@@ -3842,7 +3844,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                               ((org-ql-block-header "All Habits"))))
         ((org-agenda-sorting-strategy '(scheduled-up))))))
     :config
-    (dolist (dir '("archive" "lists" "wiki" "notes"))
+    (dolist (dir '("archive" "notes"))
       (mapc (lambda (org-file)
               (add-to-list 'org-agenda-text-search-extra-files
                            org-file))
@@ -4125,7 +4127,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
              ((member todo-state
                       `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
               (format "%s::* suspended tasks"
-                      (file-name-concat org-directory "lists" "somedays.org"))))))
+                      (denote-get-path-by-id "20230605T180351"))))))
       (when (stringp org-archive-location)
         (and (require 'org-relate nil t)
              (org-relate-interrelate))
@@ -4589,10 +4591,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-contacts
-    :after org
+    :after (org denote)
     :custom
     (org-contacts-files
-     `(,(file-name-concat org-directory "lists" "contacts.org.gpg"))))
+     (list (denote-get-path-by-id "20230605T173003"))))
 #+end_src
 
 ****** org-ml                              :ARCHIVE:
@@ -6346,7 +6348,6 @@ Typical file downloading workflow:
 
 #+begin_src emacs-lisp
   (use-package denote
-    :defer 4
     :custom
     (denote-directory
      (file-name-concat org-directory "notes"))
@@ -7368,6 +7369,7 @@ Major mode for manupulating password store file.
 #+begin_src emacs-lisp
   (use-package yankpad
     :ensure t
+    :after denote
     :bind (("C-c y i" . yankpad-insert)
            ("C-c y TAB" . yankpad-expand)
            ("C-c y p" . company-yankpad)
@@ -7376,7 +7378,7 @@ Major mode for manupulating password store file.
            ("C-c y z" . yankpad-repeat)
            ("C-c y e" . yankpad-edit))
     :custom
-    (yankpad-file (expand-file-name "lists/yankpad.org" org-directory)))
+    (yankpad-file (denote-get-path-by-id "20230605T175742")))
 #+end_src
 
 ***** pdf-tools
@@ -8388,12 +8390,12 @@ These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea
     (let ((id (org-entry-get (point) "ID"))
           (heading (org-get-heading t t t t)))
       (org-ql-search
-        (directory-files-recursively org-directory "\\.org$" t
-                                     (lambda (subdir)
-                                       (member (file-relative-name subdir org-directory)
-                                               '("agenda" "lists" "notes" "wiki"))))
-        `(link ,(or id heading))
-        :super-groups '((:auto-parent)))))
+       (directory-files-recursively org-directory "\\.org$" t
+                                    (lambda (subdir)
+                                      (member (file-relative-name subdir org-directory)
+                                              '("agenda" "notes"))))
+       `(link ,(or id heading))
+       :super-groups '((:auto-parent)))))
   (global-set-key (kbd "C-c b b") #'my/org-backlink-entry)
 
   (defun my/org-backlink-by-tag ()
@@ -8404,12 +8406,12 @@ These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea
                 t nil))
            (tags (org-get-tags)))
       (org-ql-search
-        (directory-files-recursively org-directory "\\.org$" t
-                                     (lambda (subdir)
-                                       (member (file-relative-name subdir org-directory)
-                                               '("agenda" "lists" "notes" "wiki"))))
-        `(tags ,@tags)
-        :super-groups '((:auto-tags)))))
+       (directory-files-recursively org-directory "\\.org$" t
+                                    (lambda (subdir)
+                                      (member (file-relative-name subdir org-directory)
+                                              '("agenda" "notes"))))
+       `(tags ,@tags)
+       :super-groups '((:auto-tags)))))
   (global-set-key (kbd "C-c b t") #'my/org-backlink-by-tag)
 #+end_src
 
@@ -8608,7 +8610,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
       (seq-reduce (lambda (org-files dir)
                     (append org-files
                             (directory-files (expand-file-name dir org-directory) "\.org$")))
-                  '("agenda" "lists" "wiki" "notes")
+                  '("agenda" "notes")
                   nil)
       "A list of org files which is used in `my/org-babel-lob-ingest-all'.")
 
@@ -8792,7 +8794,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             :buffers-files
             ,(append
               (org-agenda-files)
-              (list (file-name-concat org-directory "lists" "somedays.org")))
+              (list (denote-get-path-by-id "20230605T180351")))
             :query (todo ,my/org-todo-keyword--someday)
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
             :sort (priority date))
@@ -8801,7 +8803,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             :buffers-files
             ,(append
               (org-agenda-files)
-              (list (file-name-concat org-directory "lists" "somedays.org")))
+              (list (denote-get-path-by-id "20230605T180351")))
             :query (todo ,my/org-todo-keyword--someday)
             :sort (scheduled))
           org-ql-views)
@@ -8809,7 +8811,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             :buffers-files
             ,(append
               (org-agenda-files)
-              (list (file-name-concat org-directory "lists" "somedays.org")))
+              (list (denote-get-path-by-id "20230605T180351")))
             :query (todo ,my/org-done-keyword--pending)
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
             :sort (scheduled priority date))
@@ -10372,7 +10374,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
          (mapcar (lambda (sub-dir)
                    (file-name-as-directory
                     (file-name-concat org-directory sub-dir)))
-                 '("agenda" "wiki" "notes" "lists"))))
+                 '("agenda" "notes"))))
     (org-agenda-files))
 #+end_src
 
@@ -10797,7 +10799,10 @@ My workflow for acquiring English words is:
            ("C-o e c" . my/cloze-deletion-replace)
            ("C-o e q" . my/org-english-search)
            ("C-x ? j" . my/english-japanese-translate)
-           ("C-x ? p" . my/english-pronunciation)))
+           ("C-x ? p" . my/english-pronunciation))
+    :config
+    (with-eval-after-load 'denote
+      (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
 #+end_src
 
 #+begin_src emacs-lisp  :tangle (expand-file-name "org-drill-english.el" my/user-package-dir)
@@ -10808,7 +10813,7 @@ My workflow for acquiring English words is:
   (require 'org-drill)
   (require 'cl)
 
-  (defvar my/org-english-file (file-name-concat org-directory "lists" "english.org")
+  (defvar my/org-english-file "~/documents/english.org"
     "A file where all english words to learn locate.")
 
   (defvar my/org-english-word nil
