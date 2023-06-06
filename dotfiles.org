@@ -8272,6 +8272,25 @@ Suport successive deletion with C-h/M-h
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
 :END:
+***** remove empty clock log unless manually clocked out
+:PROPERTIES:
+:CREATED:  [2023-06-06 Tue 10:23]
+:END:
+
+Removing zero time clock log makes sense that you can exclude undesirable line. But there is some sxception. Suppose you want to make clock log afterwards. Then you must create zero time clock log first and tune beginning and/or end of time. So I decided to retain zero time clock log only if clocked out manually (called org-clock-out interactively).
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org-clock
+    (setq org-clock-out-remove-zero-time-clocks t)
+    (advice-add #'org-clock-out :around #'my/org-clock-out-force-keep))
+
+  (defun my/org-clock-out-force-keep (oldfun &rest r)
+    "Clock out with removing zero time clock log if called interactively."
+    (let ((org-clock-out-remove-zero-time-clocks
+           (if (called-interactively-p) nil t)))
+      (apply oldfun r)))
+#+end_src
+
 ***** embark keymaps for consult-org-heading and consult-location
 :PROPERTIES:
 :CREATED:  [2023-04-16 Sun 17:13]
