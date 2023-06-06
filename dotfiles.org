@@ -375,17 +375,18 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
 :CREATED:  [2022-09-07 Wed 19:08]
 :END:
 
-*** Fontconfig
-
-#+begin_src scheme :noweb-ref desktop-pkgs
-  "fontconfig"
-#+end_src
-
-#+begin_src scheme :noweb-ref desktop-pkgs
+#+begin_src scheme :noweb-ref base-pkgs
   "font-ipa"
   "font-ipa-ex"
   "font-google-noto"
   "font-inconsolata"
+  "font-iosevka"
+#+end_src
+
+*** Fontconfig
+
+#+begin_src scheme :noweb-ref base-pkgs
+  "fontconfig"
 #+end_src
 
 # #+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
@@ -396,7 +397,7 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
   <?xml version='1.0'?>
   <!DOCTYPE fontconfig SYSTEM 'fonts.dtd'>
   <fontconfig>
-    <dir><<home-dir()>>/.guix-extra-profiles/desktop/desktop/share/fonts</dir>
+    <dir><<home-dir()>>/.guix-extra-profiles/base/base/share/fonts</dir>
   </fontconfig>
 #+end_src
 
@@ -1483,9 +1484,10 @@ Settings in this section are influenced a great deal by my personal preference. 
 
   (create-fontset-from-ascii-font "IPAMincho" nil "mincho")
   (set-fontset-font "fontset-mincho" 'japanese-jisx0208 "IPAMincho")
+  (set-fontset-font "fontset-mincho" 'symbol "IPAMincho")
 
-  (create-fontset-from-ascii-font "Inconsolata" nil "code")
-  (set-fontset-font "fontset-code" 'latin (font-spec :family "Inconsolata" :weight 'Regular :width 'SemiCondensed))
+  (create-fontset-from-ascii-font "Iosevka" nil "code")
+  (set-fontset-font "fontset-code" 'latin (font-spec :family "Iosevka" :weight 'Light :width 'Normal))
 
   ;; foreign fonts for all fontsets
   (set-fontset-font t 'emoji "Noto Color Emoji")
@@ -1549,7 +1551,7 @@ Caveat: There are some face definitions which use an extra large font since I am
          (buffer-face-set
           (or (ignore-errors (check-face 'my/code-face))
               (defface my/code-face `((t . (:font "fontset-code"
-                                                  :height ,(my/normalized-font-size 640))))
+                                                  :height ,(my/normalized-font-size 580))))
                 "My customized face offers condensed fonts for programming code.")))))
     ((dired-mode mu4e-headers-mode elfeed-search-update)
      . (lambda ()
@@ -5848,6 +5850,28 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 #+end_src
 
 **** other third-party packages
+
+***** ligature
+:PROPERTIES:
+:CREATED:  [2023-06-06 Tue 17:21]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-ligature"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package ligature
+    :hook (prog-mode . ligature-mode)
+    :config
+    (ligature-set-ligatures 'prog-mode
+                            '("-<<" "-<" "-<-" "<--" "<---" "<<-" "<-" "->" "->>" "-->" "--->" "->-" ">-" ">>-"
+                              "=<<" "=<" "=<=" "<==" "<===" "<<=" "<=" "=>" "=>>" "==>" "===>" "=>=" ">=" ">>="
+                              "<->" "<-->" "<--->" "<---->" "<=>" "<==>" "<===>" "<====>" "::" ":::" "__"
+                              "<~~" "</" "</>" "/>" "~~>" "==" "!=" "/=" "~=" "<>" "===" "!==" "!===" "=/=" "=!="
+                              "<:" ":=" "*=" "*+" "<*" "<*>" "*>" "<|" "<|>" "|>" "<." "<.>" ".>" "+*" "=*" "=:" ":>"
+                              "(*" "*)" "/*" "*/" "[|" "|]" "{|" "|}" "++" "+++" "\\/" "/\\" "|-" "-|" "<!--" "<!---")))
+#+end_src
 
 ***** meow                                  :ARCHIVE:
 :PROPERTIES:
