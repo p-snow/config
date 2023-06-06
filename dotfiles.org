@@ -3141,6 +3141,7 @@ Command in practice presumably looks like:
 
 #+begin_src emacs-lisp
   (use-package mu4e
+    :defer t
     :hook (after-init . (lambda ()
                           (mu4e t)
                           (mu4e-update-mail-and-index t)))
@@ -3907,7 +3908,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :hook
     (org-capture-mode . delete-other-windows)
     :custom
-    (org-directory (expand-file-name "~/org"))
     (org-reverse-note-order nil)
     (org-capture-bookmark nil)
     (org-capture-templates
@@ -4256,7 +4256,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-clock-string-limit 20)
     (org-clock-continuously t)
     (org-clock-ask-before-exiting nil)
-    (org-clock-out-remove-zero-time-clocks nil)
     :config
     (org-clock-persistence-insinuate)
     (bind-keys ("C-o j" . org-clock-goto)
@@ -4588,7 +4587,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-contacts
-    :after (org denote)
+    :after org
     :custom
     (org-contacts-files
      (list (denote-get-path-by-id "20230605T173003"))))
@@ -6368,8 +6367,7 @@ Typical file downloading workflow:
 #+begin_src emacs-lisp
   (use-package denote
     :custom
-    (denote-directory
-     (file-name-concat org-directory "notes"))
+    (denote-directory (expand-file-name "~/org/notes"))
     :config
     (require 'denote-org-dblock)
     (with-eval-after-load 'org-capture
