@@ -5235,7 +5235,8 @@ language grammar for toml
     (hl-line-mode -1)
     (hs-minor-mode -1)
     (flyspell-prog-mode)
-    (display-fill-column-indicator-mode 1))
+    (display-fill-column-indicator-mode 1)
+    (prettify-symbols-mode 1))
 #+end_src
 
 ***** sh-mode
@@ -5270,6 +5271,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   (use-package elisp-mode
     :commands emacs-lisp-mode
     :hook (emacs-lisp-mode . (lambda ()
+                               (push '("lambda" . ?λ) prettify-symbols-alist)
                                (setq-local tab-width 8)
                                (eldoc-mode 1)))
     :config
