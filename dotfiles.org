@@ -10499,6 +10499,8 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
   (defun org-web-track-get-values (url &optional sync on-success on-fail &rest args)
     "Get values by accessing URL."
     (let ((tracker-def (assoc-default url org-web-track-trackers #'string-match))
+          (request-backend
+           (if (interactive-p) 'curl 'url-retrieve))
           (request-curl-options
            `(,(format "-H \"%s\"" (string-trim (url-http-user-agent-string)))))
           (values nil))
@@ -10599,10 +10601,14 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                               `((value . ,(concat (format "Value %%-12s %s"
                                                           date))))))
           (org-add-log-setup 'value value nil 'state date))
-        (org-web-track-get-values url nil
-                                  #'org-web-track-interpolate-entry
-                                  #'org-web-track-remove-latest-log
-                                  marker))))
+        (apply (if (interactive-p)
+                   #'funcall-interactively
+                 #'funcall)
+               #'org-web-track-get-values
+               url nil
+               #'org-web-track-interpolate-entry
+               #'org-web-track-remove-latest-log
+               (list marker)))))
 
   (defun org-web-track-interpolate-entry (updates &rest args)
     "Propagate UPDATES to the entry in consequence of getting values in success."
