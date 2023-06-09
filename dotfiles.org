@@ -50,16 +50,18 @@
 #+begin_src bash
   echo -n "${EMAIL}"
 #+end_src
+
 + account name
   #+name: account
   #+begin_src shell :eval no-export
     echo -n "${EMAIL}" | cut -d'@' -f1
   #+end_src
 + network name
-  #+name: my-network
+  #+name: my-domain
   #+begin_src shell :eval no-export
     echo -n "${EMAIL}" | cut -d'@' -f2
   #+end_src
+
 ** Utility Functions
 :PROPERTIES:
 :CREATED:  [2023-02-15 Wed 19:50]
@@ -11693,7 +11695,7 @@ Provide a function to Build a clock table summing up time by tag.
           dc = diff --cached
           wc = whatchanged
   [user]
-          email = 6841207+p-snow@users.noreply.github.com
+          email = p-snow@<<my-domain()>>
           name = p-snow
           signingkey = 0D2BAF0E8AEF0306
   [commit]
@@ -15224,7 +15226,7 @@ Utility for sendind email programatically
   from email.utils import formatdate
 
   def sendmail(mail_to, mail_from, subject, message):
-      smtp_host = 'smtp.<<my-network()>>'
+      smtp_host = 'smtp.<<my-domain()>>'
       smtp_port = '465'
       smtp_user = '<<email()>>'.split(sep='@')[0]
       smtp_pass = subprocess.run(["pass {}:{}/{} | head -1".format(smtp_host, smtp_port, smtp_user)], stdout=subprocess.PIPE, shell=True).stdout.decode().strip()
