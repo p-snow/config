@@ -1163,9 +1163,6 @@ Early init file defines fundamental variables used from both normal Emacs sessio
   (defvar my/user-config-dir
     (expand-file-name "config" my/user-lisp-dir)
     "Directory beneath which user Emacs init files are placed.")
-  (defvar my/user-batch-dir
-    (expand-file-name "batch" my/user-lisp-dir)
-    "Directory beneath which user Emacs batch files are placed.")
   (defvar my/user-package-dir
     (expand-file-name "site-elisp" "<<emacs-dir()>>")
     "Directory beneath which Emacs packages including mime are placed.")
@@ -2394,6 +2391,20 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
       (when holiday-list
         (message "%s: %s" date-string (mapconcat #'identity holiday-list "; ")))))
 #+end_src
+
+******* Midnight
+:PROPERTIES:
+:CREATED:  [2023-06-08 Thu 18:20]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package midnight
+    :config
+    ;; set timer at 2:30 a.m.
+    (midnight-delay-set 'midnight-delay
+                        "02:30am"))
+#+end_src
+
 ****** Package
 
 #+begin_src emacs-lisp
@@ -10389,43 +10400,6 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
 :CREATED:  [2023-01-06 Fri 13:43]
 :END:
 
-#+begin_src emacs-lisp :noweb-ref web-tracker
-  (setq org-web-track-trackers
-        `((,(rx "www.amazon.co.jp"
-                (+ anychar)
-                "-ebook")
-           "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'")
-          (,(regexp-quote "www.amazon.co.jp/product-reviews")
-           [.a-size-base.a-color-secondary] ; num of stars
-           [.a-size-medium.a-color-base]) ; rating
-          (,(regexp-quote "www.amazon.co.jp")
-           [.a-price .a-offscreen]
-           [div:availability span]) ; availability
-          (,(regexp-quote "www.yodobashi.com/product")
-           [:js_scl_unitPrice]) ; price
-          (,(regexp-quote "store.steampowered.com")
-           "pup 'div[class=\"discount_final_price\"] json{}' | jq -re .[0].text")
-          ("www.googleapis.com/youtube/v3/channels"
-           (lambda (json)
-             (assoc-default 'subscriberCount
-                            (assoc-default 'statistics (aref (cdr (assoc 'items json))
-                                                             0)))))
-          ("openexchangerates.org/api/latest"
-           (lambda (json)
-             (number-to-string
-              (assoc-default 'JPY
-                             (assoc-default 'rates json)))))))
-#+end_src
-
-#+begin_src emacs-lisp :noweb-ref web-track-org-files
-  (let ((org-agenda-files
-         (mapcar (lambda (sub-dir)
-                   (file-name-as-directory
-                    (file-name-concat org-directory sub-dir)))
-                 '("agenda" "notes"))))
-    (org-agenda-files))
-#+end_src
-
 #+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
   (use-package org-web-track
     :after org
@@ -10440,91 +10414,73 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
             (org-agenda-view-columns-initially t))
         (when (require 'org-ql nil t)
           (org-ql-search
-            <<web-track-org-files>>
-            `(property ,org-web-track--propname-url)
-            :super-groups '((:tag "book") (:tag "food")
-                            (:tag "tool") (:tag "supply"))))))
+           (let ((org-agenda-files
+                  (mapcar (lambda (sub-dir)
+                            (file-name-as-directory
+                             (file-name-concat org-directory sub-dir)))
+                          '("agenda" "notes"))))
+             (org-agenda-files))
+           `(property ,org-web-track--propname-url)
+           :super-groups '((:tag "book") (:tag "food")
+                           (:tag "tool") (:tag "supply"))))))
+    (defun my/org-web-track-mail-chnages ()
+      "docstring"
+      (when-let* ((changes (org-web-track-update-all t))
+                  (mail-msg (mapconcat
+                             (lambda (chg)
+                               (org-with-point-at (car chg)
+                                 (let ((org-trust-scanner-tags t)
+                                       (track-value
+                                        (org-entry-get-multivalued-property (point)
+                                                                            org-web-track--propname-value)))
+                                   (format "%s\n\t%s\n"
+                                           (substring-no-properties
+                                            (org-get-heading t t t t))
+                                           (org-web-track-changes (cdr chg)
+                                                                  track-value)))))
+                             changes)))
+        (let ((message-kill-buffer-on-exit t))
+          (message-mail user-mail-address "Web Track Results")
+          (message-goto-body)
+          (insert mail-msg)
+          (message-send-and-exit))))
     :custom
     (org-agenda-bulk-custom-functions
      '((?W org-agenda-web-track-update)))
     :config
-    <<web-tracker>>
+    (setq org-web-track-trackers
+          `((,(rx "www.amazon.co.jp"
+                  (+ anychar)
+                  "-ebook")
+             "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'")
+            (,(regexp-quote "www.amazon.co.jp/product-reviews")
+             [.a-size-base.a-color-secondary] ; num of stars
+             [.a-size-medium.a-color-base]) ; rating
+            (,(regexp-quote "www.amazon.co.jp")
+             [.a-price .a-offscreen]
+             [div:availability span]) ; availability
+            (,(regexp-quote "www.yodobashi.com/product")
+             [:js_scl_unitPrice]) ; price
+            (,(regexp-quote "store.steampowered.com")
+             "pup 'div[class=\"discount_final_price\"] json{}' | jq -re .[0].text")
+            ("www.googleapis.com/youtube/v3/channels"
+             (lambda (json)
+               (assoc-default 'subscriberCount
+                              (assoc-default 'statistics (aref (cdr (assoc 'items json))
+                                                               0)))))
+            ("openexchangerates.org/api/latest"
+             (lambda (json)
+               (number-to-string
+                (assoc-default 'JPY
+                               (assoc-default 'rates json)))))))
     (bind-keys ("C-o T T" . my/org-web-track-list)
                ("C-o T n" . org-web-track-initialize)
                ("C-o T u" . org-web-track-update)
-               ("C-o T i" . org-web-track-insert-value-change-table)))
+               ("C-o T i" . org-web-track-insert-value-change-table))
+    (when (require 'midnight nil t)
+      (add-hook 'midnight-hook
+                'my/org-web-track-mail-chnages)))
 #+end_src
-
-***** web track mail
-:PROPERTIES:
-:CREATED:  [2023-01-07 Sat 20:03]
-:END:
-
-Send a mail to notify the tracking value of some items have changed.
-
-#+HEADER: :var batch_dir=(expand-file-name my/user-batch-dir)
-#+begin_src shell :eval yes :results verbatim :noweb yes :tangle (expand-file-name "web-track-mail" my/user-bin-dir) :tangle-mode (identity #o755)
-  emacs -batch \
-        -l "<<emacs-dir()>>/early-init.el" \
-        -l "${batch_dir}/org-web-track-mail.el"
-#+end_src
-
-#+begin_src conf :noweb yes :noweb-ref cronjob-pc :tangle no
-  50 2 * * * /bin/bash -ci "web-track-mail >> $LOG_DIR/web-track-mail.log 2>&1"
-#+end_src
-
-#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "org-web-track-mail.el" my/user-batch-dir)
-  ;; -*- lexical-binding: t -*-
-
-  (require 'org)
-  (require 'org-ql)
-  (require 'text-mail)
-  (require 'org-web-track)
-
-  <<web-tracker>>
-
-  (defvar mail-msg nil "Message of an email to send.")
-
-  (mapc (lambda (track-entry)
-          (org-with-point-at (plist-get (cadr track-entry) :org-marker)
-            (let* ((heading (org-get-heading t t t t))
-                   (track-url
-                    (org-entry-get (point) "TRACK_URL"))
-                   (values-recorded
-                    (org-entry-get-multivalued-property (point) "TRACK_VALUE"))
-                   (msg-builder (lambda (values &rest args)
-                                  (unless (equal values values-recorded)
-                                    (setq mail-msg
-                                          (concat mail-msg
-                                                  heading ":\n"
-                                                  (string-join
-                                                   (cl-mapcar #'org-web-track-changes
-                                                              values
-                                                              (or values-recorded
-                                                                  (make-list (length values) nil)))
-                                                   ", ")
-                                                  "\n\n")))))
-                   (request-backend 'url-retrieve))
-              (ignore-errors
-                (org-web-track-get-values track-url t
-                                          msg-builder
-                                          values-recorded)))))
-        (org-ql-select
-          <<web-track-org-files>>
-          `(and (property ,org-web-track--propname-url)
-                (not (tags ,org-archive-tag)))
-          :action 'element-with-markers))
-
-  (when (stringp mail-msg)
-    (mail-send-string user-mail-address
-                      "Web Track Results"
-                      mail-msg))
-#+end_src
-
-***** org-web-track unit test
-:PROPERTIES:
-:CREATED:  [2023-02-05 Sun 13:08]
-:END:
 
 **** learning english words/phrases
 
