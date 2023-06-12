@@ -688,41 +688,32 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 [[https://digint.ch/btrbk/doc/btrbk.conf.5.html][btrbk.conf documentation]]
 
 #+begin_src conf :noweb tangle :tangle (expand-file-name ".config/btrbk/btrbk.conf")
-  snapshot_dir snapshots
   timestamp_format long
   incremental yes
 
+  snapshot_preserve 36h 3d 2w
+  snapshot_preserve_min 6h
+
+  target_preserve 10w 6m 1y
+  target_preserve_min latest
+
+  snapshot_dir snapshots
   volume /mnt/home
+    target /mnt/exbak/pc01
     subvolume incumbents/home
-      snapshot_name home-local
-      snapshot_preserve 36h 3d 2w
-      snapshot_preserve_min 6h
-    subvolume incumbents/home
-      snapshot_name home-backup
-      target send-receive /mnt/exbak/backups
-      target_preserve 10w 6m 1y
-      target_preserve_min latest
 #+end_src
 
 **** snapshot/backup script
 
-- snapshot
-  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-    */15 * * * * /bin/bash -ci "pwsudo btrbk --config ~/.config/btrbk/btrbk.conf --loglevel error snapshot *-local >> $LOG_DIR/snaphome.log 2>&1"
-  #+end_src
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/btrbk_home") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+  BTRBK_CONF=~/.config/btrbk/btrbk.conf
 
-- backup
+  pwsudo btrbk --config "${BTRBK_CONF}" run
+#+end_src
 
-  #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/bkhome") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
-    BTRBK_CONF=~/.config/btrbk/btrbk.conf
-
-    pwsudo btrbk --config "${BTRBK_CONF}" --dry-run run *-backup \
-     && pwsudo btrbk --config "${BTRBK_CONF}" run *-backup
-  #+end_src
-
-  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-    30 * * * * /bin/bash -ci "bkhome >> $LOG_DIR/bkhome.log 2>&1"
-  #+end_src
+#+begin_src conf :noweb yes :noweb-ref cronjob-pc
+  ,*/15 * * * * /bin/bash -ci "btrbk_home >> $LOG_DIR/btrbk_home.log 2>&1"
+#+end_src
 
 *** snapshots management                      :ARCHIVE:
 
