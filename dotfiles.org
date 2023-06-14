@@ -7889,50 +7889,48 @@ It's confortable to read long material such as web page , epub file or email wit
     :hook ((help-mode Info-mode eww-mode nov-mode mu4e-view-mode woman-mode)
            . my/lazy-view-enter)
     :preface
-    (defvar my/lazy-view-map
-      (let ((map (make-sparse-keymap)))
-        (define-key map (kbd "C-h") (lambda ()
-                                      "Show this keymap list."
-                                      (interactive)
-                                      (describe-keymap 'my/lazy-view-map)))
-        (define-key map (kbd "<SPC>") #'my/forward-paragraph)
-        (define-key map (kbd "E") #'my/backward-paragraph)
-        (define-key map (kbd "f") #'scroll-up-line)
-        (define-key map (kbd "e") #'scroll-down-line)
-        (define-key map (kbd "F") #'forward-char)
-        (define-key map (kbd "B") #'backward-char)
-        (define-key map (kbd "N") #'next-line)
-        (define-key map (kbd "P") #'previous-line)
-        (define-key map (kbd "C-a") #'move-beginning-of-line)
-        (define-key map (kbd "C-e") #'move-end-of-line)
-        (define-key map (kbd "C-v") #'scroll-up-command)
-        (define-key map (kbd "M-v") #'scroll-down-command)
-        (lambda-key map (kbd ">") '(lambda () "Scroll right one column." (interactive)
-                                     (scroll-left 1)))
-        (define-key map (kbd "C->") #'scroll-left)
-        (lambda-key map (kbd "<") '(lambda () "Scroll left one column." (interactive)
-                                     (scroll-right 1)))
-        (define-key map (kbd "C-<") #'scroll-right)
-        (define-key map (kbd "V") #'visual-line-mode)
-        (define-key map (kbd "F") #'toggle-frame-fullscreen)
-        (define-key map (kbd "P") #'variable-pitch-mode)
-        (define-key map (kbd "#") #'display-line-numbers-mode)
-        (define-key map (kbd "L") #'line-number-mode)
-        (define-key map (kbd "C") #'column-number-mode)
-        (define-key map (kbd "R") #'rainbow-mode)
-        (define-key map (kbd "TAB") #'adaptive-wrap-prefix-mode)
-        (define-key map (kbd "+") #'text-scale-adjust)
-        (define-key map (kbd "-") #'text-scale-adjust)
-        (define-key map (kbd "0") '(lambda () "Set text scale to default level." (interactive)
-                                     (text-scale-set 0)))
-        map))
+    (defvar-keymap my/lazy-view-map
+      :doc "Keymap to repeat lazy viewing commands.  Used in `repeat-mode'."
+      "C-h" (lambda () "Show this keymap list."
+              (interactive)
+              (describe-keymap 'my/lazy-view-map))
+      "<SPC>" #'my/forward-paragraph
+      "E" #'my/backward-paragraph
+      "f" #'scroll-up-line
+      "e" #'scroll-down-line
+      "C-f" #'forward-char
+      "C-b" #'backward-char
+      "C-n" #'next-line
+      "C-p" #'previous-line
+      "C-a" #'move-beginning-of-line
+      "C-e" #'move-end-of-line
+      "C-v" #'scroll-up-command
+      "M-v" #'scroll-down-command
+      ">" '(lambda () "Scroll right one column." (interactive)
+             (scroll-left 1))
+      "C->" #'scroll-left
+      "<" '(lambda () "Scroll left one column." (interactive)
+             (scroll-right 1))
+      "C-<" #'scroll-right
+      "V" #'visual-line-mode
+      "F" #'toggle-frame-fullscreen
+      "P" #'variable-pitch-mode
+      "#" #'display-line-numbers-mode
+      "L" #'line-number-mode
+      "C" #'column-number-mode
+      "R" #'rainbow-mode
+      "TAB" #'adaptive-wrap-prefix-mode
+      "+" #'text-scale-adjust
+      "-" #'text-scale-adjust
+      "0" '(lambda () "Set text scale to default level." (interactive)
+             (text-scale-set 0)))
     (defun my/lazy-view-enter ()
       "Activate my/lazy-view-map in current buffer."
       (interactive)
       (set-transient-map my/lazy-view-map
                          #'my/lazy-view-keep
-                         #'my/lazy-view-exit
-                         "You are in lazy view mode"))
+                         nil
+                         "LAZY VIEW MODE"))
     (defun my/lazy-view-keep ()
       (member this-command
               `(beginning-of-visual-line
@@ -7964,9 +7962,7 @@ It's confortable to read long material such as web page , epub file or email wit
                             (let ((cmd (cdr key-command)))
                               (and (commandp cmd)
                                    cmd)))
-                          (cdr my/lazy-view-map)))))
-    (defun my/lazy-view-exit ()
-      (set-face-attribute 'fringe nil :background nil)))
+                          (cdr my/lazy-view-map))))))
 
   (defun my/forward-paragraph ()
     (interactive)
@@ -8292,19 +8288,18 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
   (use-package emacs
     :bind-keymap ("M-o" . my/invoke-command-map)
     :preface
-    (defvar my/invoke-command-map
-      (let ((map (make-sparse-keymap)))
-        (define-key map (kbd "e") #'eshell)
-        (define-key map (kbd "v") #'my/multi-vterm)
-        (define-key map (kbd "D") #'dired-jump)
-        (define-key map (kbd "@") #'twit)
-        (define-key map (kbd "w") #'eww)
-        (define-key map (kbd "m") #'mu4e)
-        (define-key map (kbd "g") #'magit-status)
-        (define-key map (kbd "p") #'proced)
-        (define-key map (kbd "P") #'list-processes)
-        (define-key map (kbd "?") #'woman)
-        map))
+    (defvar-keymap my/invoke-command-map
+      :doc "Keymap to invoke app launching commands."
+      "e" #'eshell
+      "v" #'my/multi-vterm
+      "D" #'dired-jump
+      "@" #'twit
+      "w" #'eww
+      "m" #'mu4e
+      "g" #'magit-status
+      "p" #'proced
+      "P" #'list-processes
+      "?" #'woman)
     :config
     (provide 'my-invoke-command))
 #+end_src
@@ -8406,20 +8401,18 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 :END:
 
 #+begin_src emacs-lisp
-  (defvar my/frame-repeat-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map "o" #'other-frame)
-      (define-key map "0" #'delete-frame)
-      (define-key map "1" #'delete-other-frames)
-      (define-key map "2" #'make-frame-command)
-      (define-key map "B" #'bookmark-jump-other-frame)
-      (define-key map "p" #'project-other-frame-command)
-      (define-key map "d" #'dired-other-frame)
-      (define-key map "m" #'compose-mail-other-frame)
-      map)
-    "Keymap to invoke successive commands related to frame.")
-
-  (put 'other-frame 'repeat-map #'my/frame-repeat-map)
+  (defvar-keymap my/frame-repeat-map
+    :doc "Keymap to repeat frame commands.  Used in `repeat-mode'."
+    :repeat (:enter (other-frame))
+    "o" #'other-frame
+    "0" #'delete-frame
+    "1" #'delete-other-frames
+    "2" #'make-frame-command
+    "5" #'other-frame-prefix
+    "B" #'bookmark-jump-other-frame
+    "p" #'project-other-frame-command
+    "D" #'dired-other-frame
+    "m" #'compose-mail-other-frame)
 #+end_src
 
 ****** delete repeat map
@@ -8430,39 +8423,41 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 Suport successive deletion with C-h/M-h
 
 #+begin_src emacs-lisp
-  (defvar my/delete-repeat-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map "\C-d" (lambda ()
-                               (interactive)
-                               (setq repeat-map 'my/delete-repeat-map)
-                               (if (eq major-mode 'org-mode)
-                                   (org-delete-char 1)
-                                 (delete-char 1))))
-      (define-key map "\M-d" (lambda ()
-                               (interactive)
-                               (setq repeat-map 'my/delete-repeat-map)
-                               (if jaword-mode
-                                   (jaword-kill 1)
-                                 (kill-word 1))))
-      (define-key map "\C-h" (lambda ()
-                               (interactive)
-                               (setq repeat-map 'my/delete-repeat-map)
-                               (if (eq major-mode 'org-mode)
-                                   (org-delete-backward-char 1)
-                                 (delete-backward-char 1))))
-      (define-key map "\M-h" (lambda ()
-                               (interactive)
-                               (setq repeat-map 'my/delete-repeat-map)
-                               (if jaword-mode
-                                   (jaword-kill -1)
-                                 (backward-kill-word 1))))
-      map)
-    "Keymap for allowing deletion with C-h/M-h for convenience.")
+  (defun my/delete-char-dwim ()
+    (interactive)
+    (if (eq major-mode 'org-mode)
+        (org-delete-char 1)
+      (delete-char 1)))
+  (defun my/delete-cackward-char-dwim ()
+    (interactive)
+    (if (eq major-mode 'org-mode)
+        (org-delete-backward-char 1)
+      (delete-backward-char 1)))
+  (defun my/kill-word-dwim ()
+    (interactive)
+    (if jaword-mode
+        (jaword-kill 1)
+      (kill-word 1)))
+  (defun my/backward-kill-word-dwim ()
+    (interactive)
+    (if jaword-mode
+        (jaword-kill -1)
+      (backward-kill-word 1)))
 
-  (put 'delete-char 'repeat-map 'my/delete-repeat-map)
-  (put 'org-delete-char 'repeat-map 'my/delete-repeat-map)
-  (put 'kill-word 'repeat-map 'my/delete-repeat-map)
-  (put 'jaword-kill 'repeat-map 'my/delete-repeat-map)
+  (defvar-keymap my/delete-repeat-map
+    :doc "Keymap to repeat deletion commands.  Used in `repeat-mode'."
+    :repeat (:enter (delete-char
+                     org-delete-char
+                     kill-word
+                     jaword-kill
+                     my/delete-char-dwim
+                     my/delete-cackward-char-dwim
+                     my/kill-word-dwim
+                     my/backward-kill-word-dwim))
+    "C-d" #'my/delete-char-dwim
+    "C-h" #'my/delete-cackward-char-dwim
+    "M-d" #'my/kill-word-dwim
+    "M-h" #'my/backward-kill-word-dwim)
 #+end_src
 
 **** additional org tweaks
@@ -8555,38 +8550,24 @@ Removing zero time clock log makes sense that you can exclude undesirable line. 
 :CREATED:  [2023-03-05 Sun 16:15]
 :END:
 
-[[help:my/org-move-repeat-map][my/org-move-repeat-map]] allow to move around org elements and blocks with ease.
+[[help:my/org-move-repeat-map][my/org-move-repeat-map]] allows to move around org elements and blocks with ease.
 
 #+begin_src emacs-lisp
-  (defvar my/org-move-repeat-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map "n" #'org-next-item)
-      (define-key map "p" #'org-previous-item)
-      (define-key map "u" #'org-up-element)
-      (define-key map "d" #'org-down-element)
-      (define-key map "f" #'org-forward-element)
-      (define-key map "b" #'org-backward-element)
-      (define-key map ">" #'org-next-link)
-      (define-key map "<" #'org-previous-link)
-      (define-key map (kbd "M-f") #'org-next-block)
-      (define-key map (kbd "M-b") #'org-previous-block)
-      (define-key map (kbd "M-n") #'org-babel-next-src-block)
-      (define-key map (kbd "M-p") #'org-babel-previous-src-block)
-      map)
-    "Keymap for movement commands in org.")
-
-  (put 'org-next-item 'repeat-map 'my/org-move-repeat-map)
-  (put 'org-previous-item 'repeat-map 'my/org-move-repeat-map)
-  (put 'org-up-element 'repeat-map 'my/org-move-repeat-map)
-  (put 'org-down-element 'repeat-map 'my/org-move-repeat-map)
-  (put 'org-forward-element 'repeat-map 'my/org-move-repeat-map)
-  (put 'org-backward-element 'repeat-map 'my/org-move-repeat-map)
-  (put 'org-next-link 'repeat-map 'my/org-move-repeat-map)
-  (put 'org-previous-link 'repeat-map 'my/org-move-repeat-map)
-  (put 'org-next-block 'repeat-map 'my/org-move-repeat-map)
-  (put 'org-previous-block 'repeat-map 'my/org-move-repeat-map)
-  (put 'org-babel-next-src-block 'repeat-map 'my/org-move-repeat-map)
-  (put 'org-babel-previous-src-block 'repeat-map 'my/org-move-repeat-map)
+  (defvar-keymap my/org-move-repeat-map
+    :doc "Keymap to repeat moving commands in `org-mode'.  Used in `repeat-mode'."
+    :repeat t
+    "n" #'org-next-item
+    "p" #'org-previous-item
+    "u" #'org-up-element
+    "d" #'org-down-element
+    "f" #'org-forward-element
+    "b" #'org-backward-element
+    ">" #'org-next-link
+    "<" #'org-previous-link
+    "M-f" #'org-next-block
+    "M-b" #'org-previous-block
+    "M-n" #'org-babel-next-src-block
+    "M-p" #'org-babel-previous-src-block)
 #+end_src
 
 ***** show org entries pointing to the current (backlink)
