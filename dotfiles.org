@@ -691,11 +691,14 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
   timestamp_format long
   incremental yes
 
-  snapshot_preserve 36h 3d 2w
   snapshot_preserve_min 6h
+  snapshot_preserve 36h 3d 2w
 
-  target_preserve 10w 6m 1y
+  # Create snapshots only if the backup disk is attached
+  #snapshot_create ondemand
+
   target_preserve_min latest
+  target_preserve 8w 6m *y
 
   snapshot_dir snapshots
   volume /mnt/home
