@@ -4806,17 +4806,18 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
       "Open Org Agenda view with tracking items which hold TRACK_URL property."
       (interactive)
       (with-current-buffer (get-buffer-create "Org Web Track")
+        (org-agenda-mode)
         (setq-local org-overriding-columns-format org-web-track-columns-format
                     org-agenda-view-columns-initially t)
         (setq org-columns-modify-value-for-display-function
               'org-web-track-display-values)
         (when (require 'org-ql nil t)
           (org-ql-search
-            my/org-web-track-files
-            `(property ,org-web-track--propname-url)
-            :super-groups '((:tag "book") (:tag "food")
-                            (:tag "tool") (:tag "supply"))
-            :buffer (current-buffer)))))
+           my/org-web-track-files
+           `(property ,org-web-track-url-property)
+           :super-groups '((:tag "book") (:tag "food")
+                           (:tag "tool") (:tag "supply"))
+           :buffer (current-buffer)))))
     (defun my/org-web-track-mail-chnages ()
       "docstring"
       (when-let* ((changes (org-web-track-update-all t))
@@ -4826,7 +4827,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                  (let ((org-trust-scanner-tags t)
                                        (track-value
                                         (org-entry-get-multivalued-property (point)
-                                                                            org-web-track--propname-value)))
+                                                                            org-web-track-update-property)))
                                    (format "%s\n\t%s\n"
                                            (substring-no-properties
                                             (org-get-heading t t t t))
