@@ -3687,17 +3687,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                 (search   . " ")))
     (org-agenda-custom-commands
      `(("a" "Week-agenda"
-        agenda ""
-        ((org-agenda-skip-function
-          (lambda ()
-            ;; skip entries whose tag is 'web' and does not have todo state
-            (and (save-excursion
-                   (and (member "web" (org-get-tags))
-                        (not (member (org-get-todo-state)
-                                     `(,my/org-todo-keyword--todo
-                                       ,my/org-todo-keyword--next
-                                       ,my/org-todo-keyword--in-action)))))
-                 (progn (outline-next-heading) (point)))))))
+        agenda "")
        ("l" "Log entries in a week"
         agenda ""
         ((org-agenda-span (if (equal current-prefix-arg '(4))
