@@ -6318,6 +6318,14 @@ How to use detached.el
   "emacs-guix"
 #+end_src
 
+#+begin_src emacs-lisp
+  (use-package guix
+    :config
+    (with-eval-after-load 'my-invoke-command
+      (bind-keys :map my/invoke-command-map
+                 ("x" . guix))))
+#+end_src
+
 ***** pcre2el
 :PROPERTIES:
 :CREATED:  [2022-12-06 Tue 16:50]
