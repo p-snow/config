@@ -2856,14 +2856,14 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
     (customize-set-variable 'shr-cookie-policy nil))
 
   (use-package eww
-    :delight " EW"
-    :defer t
-    :hook
-    (eww-after-render . my/eww-rename-buffer)
+    :commands eww
     :custom
     ;; set enough large column number to prevent from inserting line break
     (eww-header-line-format nil)
     (eww-browse-url-new-window-is-tab nil)
+    (eww-auto-rename-buffer 'title)
+    (eww-bookmarks-directory (expand-file-name "eww"
+                                               user-emacs-directory))
     :config
     (bind-keys :map eww-mode-map
                ("C" . eww-set-character-encoding)
@@ -2873,17 +2873,6 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
                ("O" . my/eww-view-in-org)
                :map eww-bookmark-mode-map
                ("C-j" . eww-bookmark-browse)))
-
-  (defun my/eww-rename-buffer ()
-    "Rename the name of current EWW buffer.
-
-  If associated HTML file have a title tag, use title as a buffer name.
-  Otherwise, use a current URL."
-    (let ((title (plist-get eww-data :title))
-          (url (file-name-base (eww-current-url))))
-      (rename-buffer (format "eww: %s" (or (if (and title (> (length title) 0))
-                                               title nil)
-                                           url "")) t)))
 
   (defun my/eww-view-in-org ()
     "Convert current html page into one org file and show it.
