@@ -4196,10 +4196,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org Tags
 
 #+begin_src emacs-lisp
-  (customize-set-variable 'org-use-tag-inheritance
-                          org-archive-tag)
-  (customize-set-variable 'org-tags-column -57)
-  (customize-set-variable 'org-tags-sort-function #'org-string-collate-greaterp)
+  (with-eval-after-load 'org
+    (customize-set-variable 'org-use-tag-inheritance
+                            org-archive-tag)
+    (customize-set-variable 'org-tags-column -57)
+    (customize-set-variable 'org-tags-sort-function #'org-string-collate-greaterp))
 #+end_src
 
 ****** Org Properties
@@ -6486,6 +6487,7 @@ Typical file downloading workflow:
 
 #+begin_src emacs-lisp
   (use-package denote
+    :after org
     :custom
     (denote-directory (expand-file-name "~/org/notes"))
     :config
