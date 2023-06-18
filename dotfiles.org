@@ -4595,6 +4595,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-contacts
     :after org
+    :defer t
     :custom
     (org-contacts-files
      (list (denote-get-path-by-id "20230605T173003"))))
@@ -4670,9 +4671,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-web-tools
     :after org
-    :config
-    (bind-keys :map org-mode-map
-               ("C-c C-;" . org-web-tools-insert-link-for-url)))
+    :bind (:map org-mode-map
+                ("C-c C-;" . org-web-tools-insert-link-for-url)))
 #+end_src
 
 ****** org-volume                          :ARCHIVE:
