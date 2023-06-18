@@ -4603,10 +4603,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-contacts
     :after org
-    :defer t
-    :custom
-    (org-contacts-files
-     (list (denote-get-path-by-id "20230605T173003"))))
+    :commands (org-contacts-anniversaries)
+    :init
+    (setq org-contacts-files
+          (list (denote-get-path-by-id "20230605T173003"))))
 #+end_src
 
 ****** org-ml                              :ARCHIVE:
