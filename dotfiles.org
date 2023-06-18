@@ -1194,6 +1194,9 @@ Early init file defines fundamental variables used from both normal Emacs sessio
   (customize-set-variable 'package-enable-at-startup t)
   (customize-set-variable 'package-user-dir
                           (expand-file-name "elpa" user-emacs-directory-default))
+  (with-eval-after-load 'my-invoke-command
+    (keymap-set my/invoke-list-command-map (kbd "p")
+                #'list-packages))
 #+end_src
 
 ***** load cl-lib
@@ -1218,6 +1221,9 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 
   (customize-set-variable 'use-package-compute-statistics t)
   (customize-set-variable 'use-package-verbose nil)
+  (with-eval-after-load 'my-invoke-command
+    (keymap-set my/invoke-list-command-map (kbd "u")
+                #'use-package-report))
 #+end_src
 
 use-package depends on following packages internally
@@ -2858,6 +2864,9 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 
   (use-package eww
     :commands eww
+    :after my-invoke-command
+    :bind (:map my/invoke-list-command-map
+                ("B" . eww-list-bookmarks))
     :custom
     ;; set enough large column number to prevent from inserting line break
     (eww-header-line-format nil)
@@ -8280,23 +8289,23 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
 ***** wrap up command invocations in single keymap
 
 #+begin_src emacs-lisp
-  (use-package emacs
-    :bind-keymap ("M-o" . my/invoke-command-map)
-    :preface
-    (defvar-keymap my/invoke-command-map
-      :doc "Keymap to invoke app launching commands."
-      "e" #'eshell
-      "v" #'my/multi-vterm
-      "D" #'dired-jump
-      "@" #'twit
-      "w" #'eww
-      "m" #'mu4e
-      "g" #'magit-status
-      "p" #'proced
-      "P" #'list-processes
-      "?" #'woman)
-    :config
-    (provide 'my-invoke-command))
+  (global-set-key (kbd "M-o")
+                  (define-keymap
+                    :prefix 'my/invoke-command-map
+                    "e" #'eshell
+                    "v" #'my/multi-vterm
+                    "D" #'dired-jump
+                    "@" #'twit
+                    "w" #'eww
+                    "m" #'mu4e
+                    "g" #'magit-status
+                    "p" #'proced
+                    "P" #'list-processes
+                    "?" #'woman
+                    "l" (define-keymap
+                          :prefix 'my/invoke-list-command-map)))
+
+  (provide 'my-invoke-command)
 #+end_src
 
 ***** show the day in calendar
