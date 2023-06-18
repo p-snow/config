@@ -7532,14 +7532,15 @@ Major mode for manupulating password store file.
 #+begin_src emacs-lisp
   (use-package yasnippet
     :hook
-    ((prog-mode org-mode shell-mode) . yas-minor-mode-on)
+    ((prog-mode org-mode) . yas-minor-mode)
+    :init
+    (setq yas-snippet-dirs
+          (list (expand-file-name "snippets" user-emacs-directory-default)))
     :custom
     (yas-triggers-in-field t)
-    (yas-snippet-dirs
-     (list (expand-file-name "snippets" user-emacs-directory-default))))
-
-  (use-package yasnippet-snippets
-    :after yasnippet)
+    :config
+    (require 'yasnippet-snippets)
+    (yas-reload-all nil))
 #+end_src
 
 ***** yankpad                    :convenience:abbrev:
