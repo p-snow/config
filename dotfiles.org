@@ -1589,6 +1589,9 @@ Caveat: There are some face definitions which use an extra large font since I am
 Entries in this section represnets [[info:emacs#Customization Groups][Customization Groups]] hierarchy.
 
 ***** Files
+:PROPERTIES:
+:ID:       1a73e0cf-f851-4f48-9a22-1ec37fdcf960
+:END:
 
 #+begin_src emacs-lisp
   (customize-set-variable 'create-lockfiles nil)
@@ -1804,7 +1807,6 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
     ;; decrease font size to 90% in minibuffer
     (setq-local face-remapping-alist '((default :height 0.9))))
 #+end_src
-
 
 ******* Savehist
 
@@ -7525,16 +7527,12 @@ Major mode for manupulating password store file.
 
 #+begin_src emacs-lisp
   (use-package yasnippet
-    :commands
-    (yas-new-snippet yas-insert-snippet yas-visit-snippet-file yas-minor-mode-on)
     :hook
     ((prog-mode org-mode shell-mode) . yas-minor-mode-on)
     :custom
     (yas-triggers-in-field t)
     (yas-snippet-dirs
-     (list (expand-file-name "snippets" user-emacs-directory-default)))
-    :config
-    (yas-reload-all nil))
+     (list (expand-file-name "snippets" user-emacs-directory-default))))
 
   (use-package yasnippet-snippets
     :after yasnippet)
