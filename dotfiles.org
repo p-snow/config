@@ -1378,6 +1378,9 @@ Settings in this section are influenced a great deal by my personal preference. 
   (global-set-key (kbd "<f5>") #'revert-buffer-quick)
   (global-set-key (kbd "M-z") #'zap-up-to-char)
   (global-set-key (kbd "C-c d") #'copy-from-above-command)
+  (global-set-key (kbd "C-S-y") #'duplicate-dwim)
+  (global-set-key (kbd "C-M-<delete>") #'restart-emacs)
+  (global-set-key (kbd "C-M-S-<delete>") #'save-buffers-kill-emacs)
 
   ;; M-u for `universal-argument'
   (substitute-key-definition 'upcase-word
@@ -7378,20 +7381,23 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
   (use-package adaptive-wrap)
 #+end_src
 
-***** restart-emacs                     :convenience:
+***** restart-emacs             :convenience:ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-06-11 Sun 18:40]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
-  "emacs-restart-emacs"
-#+end_src
+Configuration for shutting down Emacs moved to [[id:1a73e0cf-f851-4f48-9a22-1ec37fdcf960][here]] since M-x [[help:restart-emacs][restart-emacs]] had been built-in at ver.29.1.
+
+# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#   "emacs-restart-emacs"
+# #+end_src
 
 #+begin_src emacs-lisp
   (use-package restart-emacs
     :bind (("C-M-<delete>"   . restart-emacs)
            ("C-M-S-<delete>" . save-buffers-kill-emacs)))
 #+end_src
+
 ***** pangu-spacing                         :ARCHIVE:
 
 #+begin_src emacs-lisp :tangle no
