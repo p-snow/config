@@ -307,7 +307,9 @@ initialization script for a linuxmint account
      "sicp"
      "isync"
      "stunnel"
-     "wordnet"))
+     "wordnet"
+     "emacs-transient"
+     "emacs-compat"))
 #+end_src
 
 *** Activating Profiles
@@ -1194,9 +1196,6 @@ Early init file defines fundamental variables used from both normal Emacs sessio
   (customize-set-variable 'package-enable-at-startup t)
   (customize-set-variable 'package-user-dir
                           (expand-file-name "elpa" user-emacs-directory-default))
-  (with-eval-after-load 'my-invoke-command
-    (keymap-set my/invoke-list-command-map (kbd "p")
-                #'list-packages))
 #+end_src
 
 ***** load cl-lib
@@ -2165,7 +2164,8 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
   (use-package comp
     :custom
     (native-comp-async-report-warnings-errors 'silent)
-    (native-comp-async-query-on-exit t))
+    (native-comp-async-query-on-exit t)
+    (native-comp-verbose 1))
 #+end_src
 
 ******* Eldoc
@@ -2420,7 +2420,18 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 ****** Package
 
 #+begin_src emacs-lisp
-  (customize-set-variable 'package-native-compile t)
+  (use-package package
+    :custom
+    (package-native-compile t)
+    (package-install-upgrade-built-in t)
+    (package-quickstart t)
+    (package-quickstart-file
+     (expand-file-name "package-quickstart.el"
+                       user-emacs-directory-default))
+    :config
+    (with-eval-after-load 'my-invoke-command
+      (keymap-set my/invoke-list-command-map (kbd "p")
+                  #'list-packages)))
 #+end_src
 
 ****** Eglot
@@ -5072,8 +5083,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package marginalia
-    :custom
-    (marginalia-field-width 180)
+    :after vertico
     :config
     (marginalia-mode 1))
 #+end_src
@@ -5145,9 +5155,7 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
 
 #+begin_src emacs-lisp
   (use-package corfu
-    :hook ((prog-mode . corfu-mode)
-           (shell-mode . corfu-mode)
-           (eshell-mode . corfu-mode))
+    :hook ((prog-mode shell-mode eshell-mode) . corfu-mode)
     :custom
     (corfu-cycle t)
     (corfu-auto t)
@@ -6190,9 +6198,9 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 :CREATED:  [2023-03-01 Wed 15:47]
 :END:
 
-# #+begin_src scheme :noweb-ref emacs-pkgs :tangle no
-#   "emacs-beframe"
-# #+end_src
+#+begin_src scheme :noweb-ref emacs-pkgs :tangle no
+  "emacs-beframe"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package beframe
