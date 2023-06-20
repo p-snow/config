@@ -10109,7 +10109,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
   (defvar my/open-file-media-extensions
     '("mpg" "mpeg" "mp3" "mp4" "m4v" "m4a"
       "avi" "wmv" "wav" "mov" "flv" "mkv" "webm" "3gp"
-      "ogv" "oga" "ogx" "ogg" "spx" "opus"
+      "flac" "ogv" "oga" "ogx" "ogg" "spx" "opus"
       "xbm" "pbm" "pgm" "ppm" "pnm" "png" "gif" "bmp" "tif" "jpeg" "jpg")
     "Extensions files which can play with media player must have.")
 
@@ -15444,16 +15444,30 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 
 #+begin_src scheme :noweb-ref desktop-pkgs
   "abcde"
+  "eyed3"
+  "lame"
+  "opus-tools"
   "cdrtools"
   "easytag"
 #+end_src
 
-- abcde
-  #+BEGIN_SRC conf :tangle (expand-file-name ".abcde.conf")
-    FDKAACENCOPTS='--bitrate 256k'
+*** abcde
 
-    OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
-  #+END_SRC
+#+BEGIN_SRC conf :tangle (expand-file-name ".abcde.conf")
+  # .flac is only desired output format
+  OUTPUTTYPE="flac"
+  # or .flac and .opus (bitrate is 256 kbps) will be generated at the same time
+  # OUTPUTTYPE="flac,opus"
+  # OPUSENCOPTS='--bitrate 256'
+
+  # .flac files will be utterly compressed with verification
+  FLACOPTS="-V8"
+
+  MAXPROCS=4
+
+  OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
+#+END_SRC
+
 ** Tutorial Video Creation
 :PROPERTIES:
 :CREATED:  [2022-08-15 Mon 20:13]
