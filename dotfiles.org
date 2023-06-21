@@ -8550,6 +8550,14 @@ Removing zero time clock log makes sense that you can exclude undesirable line. 
   CAND is supposed to be either consult-candidate or consult-location."
     (my/with-org-heading cand (org-clock-in)))
 
+  (defun my/org-clock-in-and-open-with (cand)
+    "Clock in and open thing for CAND at once.
+
+  CAND is supposed to be either consult-candidate or consult-location."
+    (my/with-org-heading cand
+      (progn (org-clock-in)
+             (org-open-at-point))))
+
   (defun my/org-clock-supersede-with (cand)
     "Clock in for CAND org heading with superseding current entry.
 
@@ -8565,23 +8573,18 @@ Removing zero time clock log makes sense that you can exclude undesirable line. 
     (my/with-org-heading cand (org-open-at-point)))
 
   (with-eval-after-load 'embark
-    (defvar-keymap embark-consult-org-heading-map
-      :doc "Keymap for actions on Org headings."
-      :parent embark-general-map
-      "I" #'my/org-clock-in-with
-      "V" #'my/org-clock-supersede-with
-      "T" #'my/org-todo-with
-      "o" #'my/org-open-with)
-    (add-to-list 'embark-keymap-alist '(consult-org-heading embark-consult-org-heading-map))
-
-    (defvar-keymap embark-consult-outline-map
-      :doc "Keymap for actions on Org headings."
-      :parent embark-general-map
-      "I" #'my/org-clock-in-with
-      "V" #'my/org-clock-supersede-with
-      "T" #'my/org-todo-with
-      "o" #'my/org-open-with)
-    (add-to-list 'embark-keymap-alist '(consult-location embark-consult-outline-map)))
+    (add-to-list 'embark-keymap-alist
+                 `(consult-org-heading
+                   ,(defvar-keymap embark-consult-org-heading-map
+                      :doc "Keymap for actions on Org headings."
+                      :parent embark-general-map
+                      "I" #'my/org-clock-in-with
+                      "i" #'my/org-clock-in-and-open-with
+                      "V" #'my/org-clock-supersede-with
+                      "T" #'my/org-todo-with
+                      "o" #'my/org-open-with)))
+    (add-to-list 'embark-keymap-alist
+                 '(consult-location embark-consult-org-heading-map)))
 #+end_src
 
 ***** org move repeat map
