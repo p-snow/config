@@ -8374,7 +8374,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
   surrounded by word boundaries."
     (interactive "P")
     (reb-update-regexp)
-    (let* ((re (reb-target-binding reb-regexp))
+    (let* ((re (reb-cook-regexp (reb-read-regexp)))
            (replacement (query-replace-read-to
                          re
                          (concat "Query replace"
