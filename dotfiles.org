@@ -2410,6 +2410,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp
   (use-package midnight
+    :defer 60
     :config
     ;; set timer at 2:30 a.m.
     (midnight-delay-set 'midnight-delay
@@ -4804,57 +4805,15 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-web-track
-    :after org
+    :after (org org-agenda)
     :load-path ("~/data/ghq/github.com/p-snow/org-web-track")
+    :bind (("C-o T q" . my/org-web-track-ql-view)
+           ("C-o T a" . org-web-track-agenda-view)
+           ("C-o T n" . org-web-track-initialize)
+           ("C-o T u" . org-web-track-update)
+           ("C-o T U" . org-web-track-update-all)
+           ("C-o T i" . org-web-track-insert-value-change-table))
     :init
-    (setq my/org-web-track-files
-          (mapcan (lambda (dir)
-                    (directory-files dir t ".+\.org"))
-                  '("~/org/agenda/" "~/org/notes/")))
-    :preface
-    (defun my/org-web-track-ql-view ()
-      "Open Org Agenda view with tracking items which hold TRACK_URL property."
-      (interactive)
-      (with-current-buffer (get-buffer-create "Org Web Track")
-        (org-agenda-mode)
-        (setq-local org-overriding-columns-format org-web-track-columns-format
-                    org-agenda-view-columns-initially t)
-        (setq org-columns-modify-value-for-display-function
-              'org-web-track-display-values)
-        (when (require 'org-ql nil t)
-          (org-ql-search
-           my/org-web-track-files
-           `(property ,org-web-track-url-property)
-           :super-groups '((:tag "book") (:tag "food")
-                           (:tag "tool") (:tag "supply"))
-           :buffer (current-buffer)))))
-    (defun my/org-web-track-mail-chnages ()
-      "docstring"
-      (when-let* ((changes (org-web-track-update-all t))
-                  (mail-msg (mapconcat
-                             (lambda (chg)
-                               (org-with-point-at (car chg)
-                                 (let ((org-trust-scanner-tags t)
-                                       (track-value
-                                        (org-entry-get-multivalued-property (point)
-                                                                            org-web-track-update-property)))
-                                   (format "%s\n\t%s\n"
-                                           (substring-no-properties
-                                            (org-get-heading t t t t))
-                                           (org-web-track-changes (cdr chg)
-                                                                  track-value)))))
-                             changes)))
-        ;; you need to set SMTP info to smtpmail-xxx variables
-        (let ((message-kill-buffer-on-exit t))
-          (message-mail user-mail-address "Web Track Results")
-          (message-goto-body)
-          (insert mail-msg)
-          (message-send-and-exit))))
-    :custom
-    (org-agenda-bulk-custom-functions
-     '((?W org-agenda-web-track-update)))
-    (org-web-track-files my/org-web-track-files)
-    :config
     (setq org-web-track-trackers
           `((,(rx "www.amazon.co.jp"
                   (+ anychar)
@@ -4880,15 +4839,59 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                (number-to-string
                 (assoc-default 'JPY
                                (assoc-default 'rates json)))))))
-    (bind-keys ("C-o T q" . my/org-web-track-ql-view)
-               ("C-o T a" . org-web-track-agenda-view)
-               ("C-o T n" . org-web-track-initialize)
-               ("C-o T u" . org-web-track-update)
-               ("C-o T U" . org-web-track-update-all)
-               ("C-o T i" . org-web-track-insert-value-change-table))
-    (when (require 'midnight nil t)
+    (with-eval-after-load 'midnight
       (add-hook 'midnight-hook
-                'my/org-web-track-mail-chnages)))
+                'my/org-web-track-mail-chnages))
+    :preface
+    (defun my/org-web-track-ql-view ()
+      "Open Org Agenda view with tracking items which hold TRACK_URL property."
+      (interactive)
+      (with-current-buffer (get-buffer-create "Org Web Track")
+        (org-agenda-mode)
+        (setq-local org-overriding-columns-format org-web-track-columns-format
+                    org-agenda-view-columns-initially t)
+        (setq org-columns-modify-value-for-display-function
+              'org-web-track-display-values)
+        (when (require 'org-ql nil t)
+          (org-ql-search
+            org-web-track-files
+            `(property ,org-web-track-url-property)
+            :super-groups '((:tag "book") (:tag "food")
+                            (:tag "tool") (:tag "supply"))
+            :buffer (current-buffer)))))
+    (defun my/org-web-track-mail-chnages ()
+      "docstring"
+      (when-let* ((changes (org-web-track-update-all t))
+                  (mail-msg (mapconcat
+                             (lambda (chg)
+                               (org-with-point-at (car chg)
+                                 (let ((org-trust-scanner-tags t)
+                                       (track-value
+                                        (org-entry-get-multivalued-property (point)
+                                                                            org-web-track-update-property)))
+                                   (format "%s\n\t%s\n"
+                                           (substring-no-properties
+                                            (org-get-heading t t t t))
+                                           (org-web-track-changes (cdr chg)
+                                                                  track-value)))))
+                             changes)))
+        ;; you need to set SMTP info to smtpmail-xxx variables
+        (let ((message-kill-buffer-on-exit t))
+          (message-mail user-mail-address "Web Track Results")
+          (message-goto-body)
+          (insert mail-msg)
+          (message-send-and-exit))))
+    :custom
+    (org-agenda-bulk-custom-functions
+     '((?W org-agenda-web-track-update)))
+    :config
+    (setq org-web-track-files
+          (mapcan (lambda (dir)
+                    (directory-files dir t
+                                     (rx bol
+                                         (1+ any) ".org"
+                                         eol)))
+                  '("~/org/agenda/" "~/org/notes/"))))
 #+end_src
 
 **** Completion
