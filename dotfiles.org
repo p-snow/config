@@ -4806,8 +4806,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (use-package org-web-track
     :after (org org-agenda)
     :load-path ("~/data/ghq/github.com/p-snow/org-web-track")
-    :bind (("C-o T q" . my/org-web-track-ql-view)
-           ("C-o T a" . org-web-track-agenda-view)
+    :bind (("C-o T a" . org-web-track-agenda-view)
            ("C-o T n" . org-web-track-initialize)
            ("C-o T u" . org-web-track-update)
            ("C-o T U" . org-web-track-update-all)
@@ -4837,7 +4836,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
              (lambda (json)
                (number-to-string
                 (assoc-default 'JPY
-                               (assoc-default 'rates json)))))))
+                               (assoc-default 'rates json)))))
+            ("map.kaldi.co.jp/kaldi"
+             "pup 'div[class=\"shop_bnr news\"] ul li text{}' | xargs echo -n")))
     (with-eval-after-load 'midnight
       (add-hook 'midnight-hook
                 'my/org-web-track-mail-chnages))
@@ -4883,7 +4884,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :custom
     (org-agenda-bulk-custom-functions
      '((?W org-agenda-web-track-update)))
+    (org-web-track-item-column-width 16)
+    (org-web-track-update-column-width 30)
     :config
+    (bind-keys ("C-o T q" . my/org-web-track-ql-view))
     (setq org-web-track-files
           (mapcan (lambda (dir)
                     (directory-files dir t
