@@ -4007,6 +4007,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (customize-set-variable 'org-M-RET-may-split-line '((default . nil)))
 
   (use-package org-indent
+    :after org
     :bind (:map org-mode-map
                 ("C-o TAB" . org-indent-mode))
     :hook (org-mode . org-indent-mode))
@@ -4227,10 +4228,13 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ****** Org Refile
 
 #+begin_src emacs-lisp
-  (with-eval-after-load 'org
-    (customize-set-variable 'org-refile-targets
-                            `((org-agenda-files :tag . ,my/org-project-tag)
-                              (,(directory-files-recursively org-directory "\\.org$") :tag . "refile"))))
+  (use-package org-refile
+    :after org
+    :commands (org-refile)
+    :custom
+    (org-refile-targets
+     `((org-agenda-files :tag . ,my/org-project-tag)
+       (,(directory-files-recursively org-directory "\\.org$") :tag . "refile")))  )
 #+end_src
 
 ****** Org Time
