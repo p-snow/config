@@ -4500,6 +4500,25 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 :PROPERTIES:
 :CREATED:  [2023-01-24 Tue 16:07]
 :END:
+****** org-ai
+:PROPERTIES:
+:CREATED:  [2023-06-23 Fri 17:40]
+:END:
+
+#+begin_src emacs-lisp :noweb tangle
+  (use-package org-ai
+    :disabled t
+    :after org
+    :hook (org-mode #'org-ai-mode)
+    :custom
+    (org-ai-chat-models '("gpt-3.5-turbo"))
+    (org-ai-default-chat-model "gpt-3.5-turbo")
+    (org-ai-default-max-tokens 150)
+    (org-ai-image-directory (expand-file-name "org-ai-images"
+                                              user-emacs-directory))
+    (org-ai-openai-api-token "<<openai-api-key()>>"))
+#+end_src
+
 ****** org-modern                          :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-06-06 Tue 22:03]
