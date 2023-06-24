@@ -8588,10 +8588,18 @@ Removing zero time clock log makes sense that you can exclude undesirable line. 
              (org-open-at-point))))
 
   (defun my/org-clock-supersede-with (cand)
-    "Clock in for CAND org heading with superseding current entry.
+    "Cancel the current clocking then clock in for CAND with filling out the canceled time.
 
   CAND is supposed to be either consult-candidate or consult-location."
     (my/with-org-heading cand (my/org-clock-supersede)))
+
+  (defun my/org-clock-supersede-and-out-with (cand)
+    "Cancel the current clocking then clock in and out for CAND with filling out the canceled time.
+
+  CAND is supposed to be either consult-candidate or consult-location."
+    (my/with-org-heading cand
+      (progn (my/org-clock-supersede)
+             (org-clock-out))))
 
   (defun my/org-todo-with (cand)
     "Change the todo state of an org heading CAND."
@@ -8610,6 +8618,7 @@ Removing zero time clock log makes sense that you can exclude undesirable line. 
                       "I"   #'my/org-clock-in-with
                       "C-I" #'my/org-clock-in-and-open-with
                       "V"   #'my/org-clock-supersede-with
+                      "C-V" #'my/org-clock-supersede-and-out-with
                       "T"   #'my/org-todo-with
                       "o"   #'my/org-open-with)))
     (add-to-list 'embark-keymap-alist
