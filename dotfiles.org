@@ -4825,13 +4825,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (use-package org-web-track
     :after (org org-agenda)
     :load-path ("~/data/ghq/github.com/p-snow/org-web-track")
-    :bind (("C-o T a" . org-web-track-agenda-view)
-           ("C-o T n" . org-web-track-initialize)
-           ("C-o T u" . org-web-track-update)
-           ("C-o T U" . org-web-track-update-all)
-           ("C-o T i" . org-web-track-insert-value-change-table))
     :init
-    (setq org-web-track-trackers
+    (setq org-web-track-selector-alist
           `((,(rx "www.amazon.co.jp"
                   (+ anychar)
                   "-ebook")
@@ -4906,7 +4901,12 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-web-track-item-column-width 16)
     (org-web-track-update-column-width 30)
     :config
-    (bind-keys ("C-o T q" . my/org-web-track-ql-view))
+    (bind-keys ("C-o T q" . my/org-web-track-ql-view)
+               ("C-o T a" . org-web-track-agenda-view)
+               ("C-o T n" . org-web-track-initialize)
+               ("C-o T u" . org-web-track-update)
+               ("C-o T U" . org-web-track-update-all)
+               ("C-o T i" . org-web-track-insert-value-change-table))
     (setq org-web-track-files
           (mapcan (lambda (dir)
                     (directory-files dir t
