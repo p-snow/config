@@ -8933,7 +8933,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
            (id (org-id-get))
            (uuid (downcase (if id id (org-id-uuid))))
            (html-file (format "%s/%s.html" my/org-subtree-view-directory uuid)))
-      (org-html-export-as-html nil (not (org-before-first-heading-p)) t)
+      (org-html-export-as-html nil (not (org-before-first-heading-p)) nil)
       (with-current-buffer export-buf-name
         (write-file html-file))
       (browse-url-of-file html-file)))
