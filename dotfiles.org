@@ -8918,21 +8918,22 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
                       user-emacs-directory)
     "A directory where generated html files are located in `my/org-subtree-view-in-browser'.")
 
-  (defun my/org-subtree-view-in-browser (&optional arg)
-    "View current org subtree in default browser.
+  (defun my/org-subtree-view-in-browser ()
+    "Display org subtree at point as HTML.
 
-  With `C-u' prefix ARG, try to browse in Emacs."
-    (interactive "P")
+  If cursor points before first heading, all org sub-trees in the buffer will be
+  displayed instead."
+    (interactive)
     (let* ((heading (org-get-heading t t t t))
            (org-export-show-temporary-export-buffer nil)
            (export-buf-name "*Org HTML Export*")
            (org-export-with-broken-links 'mark)
-           (org-export-babel-evaluate nil)
+           (org-export-babel-evaluate t)
            (org-export-preserve-breaks t)
            (id (org-id-get))
            (uuid (downcase (if id id (org-id-uuid))))
            (html-file (format "%s/%s.html" my/org-subtree-view-directory uuid)))
-      (org-html-export-as-html nil t nil)
+      (org-html-export-as-html nil (not (org-before-first-heading-p)) t)
       (with-current-buffer export-buf-name
         (write-file html-file))
       (browse-url-of-file html-file)))
