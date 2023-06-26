@@ -7573,6 +7573,13 @@ Major mode for manupulating password store file.
 
 #+begin_src emacs-lisp
   (use-package yasnippet
+    :bind-keymap ("C-c y" . my/yas-map)
+    :preface
+    (defvar-keymap my/yas-map
+      :doc "Keymap YASnippet family."
+      "v" #'yas-visit-snippet-file
+      "n" #'yas-new-snippet
+      "i" #'yas-insert-snippet)
     :hook
     ((prog-mode org-mode) . yas-minor-mode)
     :init
@@ -7580,12 +7587,35 @@ Major mode for manupulating password store file.
           (list (expand-file-name "snippets" user-emacs-directory-default)))
     :custom
     (yas-triggers-in-field t)
+    (yas-wrap-around-region t)
     :config
     (require 'yasnippet-snippets)
     (yas-reload-all nil))
 #+end_src
 
-***** yankpad                    :convenience:abbrev:
+***** auto-yasnippet
+:PROPERTIES:
+:CREATED:  [2023-06-26 Mon 10:52]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+  "emacs-auto-yasnippet"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package auto-yasnippet
+    :after yasnippet
+    :init
+    (setq aya-persist-snippets-dir
+          (expand-file-name "snippets" user-emacs-directory-default))
+    :config
+    (bind-keys :map my/yas-map
+               ("a"   . aya-create)
+               ("A"   . aya-expand)
+               ("C-s" . aya-persist-snippet)))
+#+end_src
+
+***** yankpad            :convenience:abbrev:ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2022-12-18 Sun 16:01]
 :END:
@@ -7594,8 +7624,8 @@ Major mode for manupulating password store file.
 
 #+begin_src emacs-lisp
   (use-package yankpad
-    :ensure t
-    :after denote
+    :disabled t
+    :after (org denote)
     :bind (("C-c y i" . yankpad-insert)
            ("C-c y TAB" . yankpad-expand)
            ("C-c y p" . company-yankpad)
