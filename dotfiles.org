@@ -6504,7 +6504,8 @@ Typical file downloading workflow:
                  (file-name-concat "<<ghq-root()>>" "git.savannah.gnu.org/git/guix"))
     (with-eval-after-load 'yasnippet
       (add-to-list 'yas-snippet-dirs
-                   (file-name-concat "<<ghq-root()>>" "git.savannah.gnu.org/git/guix/etc/snippets/yas")))
+                   (file-name-concat "<<ghq-root()>>" "git.savannah.gnu.org/git/guix/etc/snippets/yas")
+                   t))
     (load-file (file-name-concat "<<ghq-root()>>" "git.savannah.gnu.org/git/guix/etc/copyright.el")))
 #+end_src
 
@@ -7602,7 +7603,8 @@ Major mode for manupulating password store file.
       :doc "Keymap YASnippet family."
       "v" #'yas-visit-snippet-file
       "n" #'yas-new-snippet
-      "i" #'yas-insert-snippet)
+      "i" #'yas-insert-snippet
+      "TAB" #'yas-insert-snippet)
     :hook
     ((prog-mode org-mode) . yas-minor-mode)
     :init
