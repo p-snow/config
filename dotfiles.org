@@ -257,7 +257,7 @@ initialization script for a linuxmint account
      "shellcheck"
      "global"
      "perl"
-     <<base-pkgs>>))
+     <<guix-base>>))
 #+end_src
 
 **** guix desktop profile
@@ -280,7 +280,7 @@ initialization script for a linuxmint account
      "kdeconnect"
      "dia"
      "inkscape"
-     <<desktop-pkgs>>))
+     <<guix-desktop>>))
 #+end_src
 
 **** guix creative profile
@@ -292,7 +292,7 @@ initialization script for a linuxmint account
 #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/creative.scm")
   (specifications->manifest
    '("krita"
-     <<creative-pkgs>>))
+     <<guix-creative>>))
 #+end_src
 
 **** guix emacs profile
@@ -303,7 +303,7 @@ initialization script for a linuxmint account
 
 #+begin_src scheme :noweb yes :noweb-prefix no :tangle (expand-file-name ".config/guix/manifests/emacs.scm")
   (specifications->manifest
-   '(<<emacs-pkgs>>
+   '(<<guix-emacs>>
      "sicp"
      "isync"
      "stunnel"
@@ -379,7 +379,7 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
 :CREATED:  [2022-09-07 Wed 19:08]
 :END:
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "font-ipa"
   "font-ipa-ex"
   "font-google-noto"
@@ -389,7 +389,7 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
 
 *** Fontconfig
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "fontconfig"
 #+end_src
 
@@ -421,7 +421,7 @@ install available fonts by rescanning font directories
 
 ** Bash
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "bash"
 #+end_src
 
@@ -673,7 +673,7 @@ You may need to enable systemd-tmpfiles service for user
 
 Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mechanism.
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "btrfs-progs"
 #+end_src
 
@@ -681,7 +681,7 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 
 [[https://digint.ch/btrbk/doc/btrbk.1.html][Btrbk]] supports for taking snapshots and backups
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "btrbk"
 #+end_src
 
@@ -825,7 +825,7 @@ A structure described below is expected under all devices.
 #+end_src
 ** XDG
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "xdg-utils"
 #+end_src
 
@@ -895,7 +895,7 @@ GnuPG - ArchWiki]]
 
 [[https://github.com/k0kubun/xremap][Xremap]] is a key remapper for Wayland/X11. It's astoundingly fast, customizable and easy-to-use.
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "xremap-x11"
 #+end_src
 
@@ -972,7 +972,7 @@ GnuPG - ArchWiki]]
 :CREATED:  [2023-02-19 Sun 15:32]
 :END:
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "xkeyboard-config"
   "setxkbmap"
   "xkbcomp"
@@ -1037,7 +1037,7 @@ GnuPG - ArchWiki]]
 
 [[https://gitlab.com/interception/linux/tools][Interception Tools]] offers a set of programs to change key event by intervening evdev which is low layer key event managing program.
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "interception-dual-function-keys"
   "interception-tools"
 #+end_src
@@ -1119,7 +1119,7 @@ GnuPG - ArchWiki]]
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-next-tree-sitter"
 #+end_src
 
@@ -1229,13 +1229,13 @@ use-package depends on following packages internally
 
 ****** diminish
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-diminish"
 #+end_src
 
 ****** delight
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-delight"
 #+end_src
 
@@ -1355,7 +1355,7 @@ Following configuration is for version 4 of modus-themes which takes breaking ch
 :CREATED:  [2023-05-15 Mon 15:41]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-ef-themes"
 #+end_src
 
@@ -2514,7 +2514,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 ***** ddskk
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-ddskk"
 #+end_src
 
@@ -2772,7 +2772,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+end_src
 ***** dired-rsync
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-dired-rsync"
 #+end_src
 
@@ -2802,7 +2802,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 ***** dired-hacks
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-dired-hacks"
 #+end_src
 
@@ -3060,7 +3060,7 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 
 [[https://github.com/magit/magit][Magit]] is git front end for emacs which is outstandingly powerful.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-magit"
 #+end_src
 
@@ -3099,7 +3099,7 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 
 ***** git-modes
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-git-modes"
 #+end_src
 
@@ -3109,7 +3109,7 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 
 ***** orgit
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-orgit"
 #+end_src
 
@@ -3122,7 +3122,7 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 
 ***** git-annex
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-git-annex"
 #+end_src
 
@@ -3142,7 +3142,7 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 :CREATED:  [2022-12-24 Sat 15:47]
 :END:
 
-# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
 #   "emacs-magit-annex"
 # #+end_src
 
@@ -3160,7 +3160,7 @@ You need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-message-
 Command in practice presumably looks like:
 : mu init --maildir=~/data/share/mail --muhome=~/data/share/mu --my-address=jim@example.com --my-address=bob@example.com
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "mu"
 #+end_src
 
@@ -3275,7 +3275,7 @@ Command in practice presumably looks like:
 
 [[https://github.com/skeeto/elfeed][Elfeed]] is a powerful RSS feed reader with tag capability that is one of core software in my input workflow.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-elfeed"
 #+end_src
 
@@ -3435,7 +3435,7 @@ Command in practice presumably looks like:
 
 [[https://github.com/remyhonig/elfeed-org][elfeed-org]] allow me to express feeds for elfeed in org file.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-elfeed-org"
 #+end_src
 
@@ -3503,7 +3503,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
 
 ***** vterm
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-vterm"
   "emacs-multi-vterm"
 #+end_src
@@ -3591,7 +3591,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-org"
   "tree-sitter-org"
 #+end_src
@@ -4302,7 +4302,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 ****** Babel
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "plantuml"
 #+end_src
 
@@ -4490,7 +4490,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 ****** Org Plot                            :ARCHIVE:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "gnuplot"
   "emacs-gnuplot"
   "emacs-mkmcc-gnuplot-mode"
@@ -4533,7 +4533,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 :CREATED:  [2023-03-02 Thu 14:10]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-org-transclusion"
 #+end_src
 
@@ -4553,7 +4553,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 [[https://www.nongnu.org/org-edna-el/][Org Edna]] allows to org entries to be blockers and action triggers, which is very intresting feature especially for managing successive set of tasks or any correlated tasks.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-org-edna"
 #+end_src
 
@@ -4568,7 +4568,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 [[https://gitlab.com/phillord/org-drill][org-drill]] helps me to learn english words and phrases. [[https://youtu.be/SGzdFtN_NqE][This video]] introduces how I use org-drill.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-org-drill"
 #+end_src
 
@@ -4587,7 +4587,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 [[https://github.com/alphapapa/org-ql][Org QL]] enables me to issue queries to search org entries with either SQL-like format or plain search strings.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-org-ql"
 #+end_src
 
@@ -4629,7 +4629,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 ****** org-contacts
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-org-contacts"
 #+end_src
 
@@ -4658,7 +4658,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 ****** org-roam                            :ARCHIVE:
 
-# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
 #   "emacs-org-roam"
 #   "emacs-emacsql-sqlite3"
 # #+end_src
@@ -4692,7 +4692,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+end_src
 ****** org-mime
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-org-mime"
 #+end_src
 
@@ -4705,7 +4705,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 ****** org-web-tools
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-org-web-tools"
 #+end_src
 
@@ -4751,13 +4751,13 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 ****** org-reveal
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-org-reveal"
 #+end_src
 
 ****** org-expiry
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-org-contrib"
 #+end_src
 
@@ -4779,7 +4779,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 :CREATED:  [2023-01-26 Thu 18:31]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-ob-async"
 #+end_src
 
@@ -4807,7 +4807,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 :CREATED:  [2023-01-26 Thu 18:33]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-ox-hugo"
 #+end_src
 
@@ -4920,7 +4920,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 ***** vertico
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-vertico"
 #+end_src
 
@@ -4954,7 +4954,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 ***** consult
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-consult"
 #+end_src
 
@@ -5031,7 +5031,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 :CREATED:  [2022-12-27 Tue 17:01]
 :END:
 
-# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
 #   "emacs-consult-dir"
 # #+end_src
 
@@ -5069,7 +5069,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 ***** embark
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-embark"
 #+end_src
 
@@ -5103,7 +5103,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 :CREATED:  [2023-03-01 Wed 12:10]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-marginalia"
 #+end_src
 
@@ -5123,7 +5123,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 :CREATED:  [2023-03-01 Wed 12:10]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-orderless"
 #+end_src
 
@@ -5179,7 +5179,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 Though I prefer vertico more for completion interface, [[https://github.com/minad/consult][consult manual]] says Vertico can't be used with Eglot or lsp-mode. So I decided to use Corfu only in prog-mode.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-corfu"
 #+end_src
 
@@ -5197,7 +5197,7 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
 :CREATED:  [2023-02-16 Thu 15:45]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-cape"
 #+end_src
 
@@ -5320,7 +5320,7 @@ language grammar for toml
 :CREATED:  [2022-08-01 Mon 15:07]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "tree-sitter-json"
 #+end_src
 
@@ -5338,7 +5338,7 @@ language grammar for toml
 :CREATED:  [2023-06-02 Fri 18:02]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "markdown"
   "tree-sitter-markdown"
   "emacs-markdown-mode"
@@ -5377,7 +5377,7 @@ language grammar for toml
 
 ***** sh-mode
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "tree-sitter-bash"
 #+end_src
 
@@ -5429,7 +5429,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** scheme-mode
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "tree-sitter-scheme"
 #+end_src
 
@@ -5441,7 +5441,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** c-mode
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "tree-sitter-c"
 #+end_src
 
@@ -5499,7 +5499,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 :CREATED:  [2023-02-24 Fri 17:40]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-rustic"
 #+end_src
 
@@ -5515,7 +5515,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** python-mode
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "tree-sitter-python"
 #+end_src
 
@@ -5566,7 +5566,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ****** emacs-project
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-company-jedi"
 #+end_src
 
@@ -5583,7 +5583,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** ruby-mode
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "tree-sitter-ruby"
 #+end_src
 
@@ -5616,7 +5616,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ****** inf-ruby
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-inf-ruby"
 #+end_src
 
@@ -5632,7 +5632,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** lua-mode
 
-# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
 #   "emacs-lua-mode"
 # #+end_src
 
@@ -5649,7 +5649,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** web-mode
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-web-mode"
   "tree-sitter-html"
   "tree-sitter-css"
@@ -5687,7 +5687,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** js2-mode
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-js2-mode"
 #+end_src
 
@@ -5749,7 +5749,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** plantuml-mode
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-plantuml-mode"
 #+end_src
 
@@ -5952,7 +5952,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :CREATED:  [2023-05-31 Wed 17:00]
 :END:
 
-#+begin_src scheme :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "tree-sitter"
 #+end_src
 
@@ -6005,7 +6005,7 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 :CREATED:  [2023-06-08 Thu 14:02]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-eldev"
 #+end_src
 
@@ -6018,7 +6018,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 :CREATED:  [2023-06-27 Tue 10:45]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-ement"
 #+end_src
 
@@ -6027,7 +6027,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 :CREATED:  [2023-06-06 Tue 17:21]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-ligature"
 #+end_src
 
@@ -6151,7 +6151,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 :CREATED:  [2023-04-28 Fri 15:49]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-enlive"
 #+end_src
 
@@ -6160,7 +6160,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 :CREATED:  [2023-03-28 Tue 13:53]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-gptel"
 #+end_src
 
@@ -6185,7 +6185,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 :ID:       db630173-d371-45de-a78e-bcc57cb9d50c
 :END:
 
-#+begin_src scheme :noweb-ref emacs-pkgs :tangle no
+#+begin_src scheme :noweb-ref guix-emacs :tangle no
   "emacs-engine-mode"
 #+end_src
 
@@ -6235,7 +6235,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 :CREATED:  [2023-03-06 Mon 14:16]
 :END:
 
-#+begin_src scheme :noweb-ref emacs-pkgs :tangle no
+#+begin_src scheme :noweb-ref guix-emacs :tangle no
   "emacs-tmr"
 #+end_src
 
@@ -6257,7 +6257,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 :CREATED:  [2023-03-01 Wed 15:47]
 :END:
 
-#+begin_src scheme :noweb-ref emacs-pkgs :tangle no
+#+begin_src scheme :noweb-ref guix-emacs :tangle no
   "emacs-beframe"
 #+end_src
 
@@ -6292,7 +6292,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 :CREATED:  [2023-02-17 Fri 21:51]
 :END:
 
-#+begin_src scheme :noweb-ref emacs-pkgs :tangle no
+#+begin_src scheme :noweb-ref guix-emacs :tangle no
   "emacs-free-keys"
 #+end_src
 
@@ -6339,7 +6339,7 @@ How to use detached.el
 - with shell-command
   - invoke/call detached-shell-command
 
-#+begin_src scheme :noweb-ref emacs-pkgs :tangle no
+#+begin_src scheme :noweb-ref guix-emacs :tangle no
   "dtach"
   "emacs-detached"
 #+end_src
@@ -6387,7 +6387,7 @@ How to use detached.el
 :CREATED:  [2022-12-23 Fri 14:08]
 :END:
 
-#+begin_src scheme :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-guix"
 #+end_src
 
@@ -6406,7 +6406,7 @@ How to use detached.el
 
 [[https://github.com/joddie/pcre2el][pcre2el]] is not only the converter between PCRE, emacs lisp style regexp and RX representation. It support re-builder as a conversion environment. Great!
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-pcre2el"
 #+end_src
 
@@ -6421,7 +6421,7 @@ How to use detached.el
 
 [[https://github.com/victorhge/iedit][IEdit]] is not only replacement for M-%/C-M-% but it highlights symbol occurences to change. [[https://www.masteringemacs.org/article/iedit-interactive-multi-occurrence-editing-in-your-buffer][This advise]] would be useful for anyone who needs dedicated command to replace symbols in defun.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-iedit"
 #+end_src
 
@@ -6440,7 +6440,7 @@ How to use detached.el
 :CREATED:  [2022-10-21 Fri 21:08]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-ledger-mode"
   "emacs-flycheck-ledger"
 #+end_src
@@ -6468,7 +6468,7 @@ Typical file downloading workflow:
 3. view downloaded file in dired: M-x mentor-dired-jump (v)
 4. shutdown mentor: M-x mentor-shutdown (Q)
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-mentor"
 #+end_src
 
@@ -6490,7 +6490,7 @@ Typical file downloading workflow:
 
 [[info:guix#The Perfect Setup][guix#The Perfect Setup]]
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "guile"
   "emacs-geiser"
   "emacs-geiser-guile"
@@ -6514,7 +6514,7 @@ Typical file downloading workflow:
 :CREATED:  [2022-08-05 Fri 16:56]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-dash-docs"
 #+end_src
 
@@ -6548,7 +6548,7 @@ Typical file downloading workflow:
 
 [[https://protesilaos.com/emacs/denote][Denote]] leverages note taking in org mode by providing file naming scheme and backlink capability.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-denote"
 #+end_src
 
@@ -6698,7 +6698,7 @@ Tree-sitter module for Elisp had been incorporated into Emacs core since Emacs 2
 :CREATED:  [2023-06-11 Sun 18:36]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-wgrep"
 #+end_src
 
@@ -6716,7 +6716,7 @@ Tree-sitter module for Elisp had been incorporated into Emacs core since Emacs 2
 
 [[https://github.com/jacktasia/dumb-jump][dumb-jump]] is "jump to definition" package without tagging.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-dumb-jump"
 #+end_src
 
@@ -6767,7 +6767,7 @@ Tree-sitter module for Elisp had been incorporated into Emacs core since Emacs 2
 
 [[https://karthinks.com/software/avy-can-do-anything/][This post]] tell me how we can concoct efficient editing workflow with avy.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-avy"
 #+end_src
 
@@ -6811,7 +6811,7 @@ Handy commands
 - press DEL to remedy unbalanced parenthes
 - press C-q ( to insert ( char manually
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-paredit"
 #+end_src
 
@@ -6862,7 +6862,7 @@ Handy commands
 :CREATED:  [2023-02-16 Thu 22:10]
 :END:
 
-# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
 #   "emacs-lsp-mode"
 # #+end_src
 
@@ -6886,7 +6886,7 @@ Handy commands
 :CREATED:  [2023-02-16 Thu 15:26]
 :END:
 
-# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
 #   "emacs-company"
 # #+end_src
 
@@ -6906,7 +6906,7 @@ Handy commands
 :CREATED:  [2023-06-11 Sun 18:37]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-flycheck"
 #+end_src
 
@@ -6950,7 +6950,7 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
   ("https://github.com/hayamiz/twittering-mode/releases.atom" soft_update)
 #+end_src
 
-#+begin_src scheme :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   ;; "emacs-twittering-mode"
 #+end_src
 
@@ -7105,7 +7105,7 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
 :CREATED:  [2023-06-11 Sun 18:38]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-undo-tree"
 #+end_src
 
@@ -7143,7 +7143,7 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
 
 ***** expand-region
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-expand-region"
 #+end_src
 
@@ -7159,7 +7159,7 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
 
 helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
 
-# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
 #   "emacs-helpful"
 # #+end_src
 
@@ -7318,7 +7318,7 @@ helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mod
 
 ***** synosaurus
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-synosaurus"
 #+end_src
 
@@ -7337,7 +7337,7 @@ helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mod
 
 A GNU Emacs library to ensure environment variables inside Emacs look the same as in the user's shell.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-exec-path-from-shell"
 #+end_src
 
@@ -7432,7 +7432,7 @@ Aggressively delete successive white spaces.
 :CREATED:  [2023-06-11 Sun 18:39]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-aggressive-indent"
 #+end_src
 
@@ -7445,7 +7445,7 @@ Aggressively delete successive white spaces.
 
 adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major modes.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-adaptive-wrap"
 #+end_src
 
@@ -7460,7 +7460,7 @@ adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major mo
 
 Configuration for shutting down Emacs moved to [[id:1a73e0cf-f851-4f48-9a22-1ec37fdcf960][here]] since M-x [[help:restart-emacs][restart-emacs]] had been built-in at ver.29.1.
 
-# #+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
 #   "emacs-restart-emacs"
 # #+end_src
 
@@ -7533,7 +7533,7 @@ Configuration for shutting down Emacs moved to [[id:1a73e0cf-f851-4f48-9a22-1ec3
 
 Major mode for manupulating password store file.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-pass"
 #+end_src
 
@@ -7549,7 +7549,7 @@ Major mode for manupulating password store file.
 :CREATED:  [2023-06-11 Sun 18:40]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-password-store"
 #+end_src
 
@@ -7564,7 +7564,7 @@ Major mode for manupulating password store file.
 :CREATED:  [2023-06-11 Sun 18:40]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-nov-el"
 #+end_src
 
@@ -7590,7 +7590,7 @@ Major mode for manupulating password store file.
 :CREATED:  [2023-06-11 Sun 18:40]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-yasnippet"
   "emacs-yasnippet-snippets"
 #+end_src
@@ -7623,7 +7623,7 @@ Major mode for manupulating password store file.
 :CREATED:  [2023-06-26 Mon 10:52]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-auto-yasnippet"
 #+end_src
 
@@ -7667,7 +7667,7 @@ Major mode for manupulating password store file.
 :CREATED:  [2023-06-11 Sun 18:41]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-pdf-tools"
 #+end_src
 
@@ -7688,7 +7688,7 @@ Major mode for manupulating password store file.
 :CREATED:  [2023-06-11 Sun 18:41]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-rainbow-mode"
 #+end_src
 
@@ -7709,7 +7709,7 @@ Major mode for manupulating password store file.
 :CREATED:  [2023-06-11 Sun 18:41]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-alert"
 #+end_src
 
@@ -7733,7 +7733,7 @@ Major mode for manupulating password store file.
 :CREATED:  [2023-06-11 Sun 18:42]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-ts"
 #+end_src
 
@@ -7746,7 +7746,7 @@ Major mode for manupulating password store file.
 :CREATED:  [2023-03-15 Wed 21:42]
 :END:
 
-#+begin_src scheme :noweb-ref emacs-pkgs :tangle no
+#+begin_src scheme :noweb-ref guix-emacs :tangle no
   "emacs-app-launcher"
 #+end_src
 
@@ -7764,7 +7764,7 @@ Major mode for manupulating password store file.
 
 I ran into a problem with downloading TL;DR document. I forcibly download, uncompress and locate that to `tldr-directory-path'.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-tldr"
 #+end_src
 
@@ -7781,7 +7781,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 
 [[https://github.com/alphapapa/burly.el][Burly.el]] is capable of saving and opening Emacs frames and windows by describing them as URL which can be stored in bookmark. You can use Burly as a lightweight workspace tool.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "emacs-burly"
 #+end_src
 
@@ -8804,7 +8804,7 @@ These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea
 
 ***** notify completion of timer for a task
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "mpg321"
 #+end_src
 
@@ -11322,7 +11322,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 'locate' is GNU implementation of mlocate. I prefer '[[id:c56e19dd-d3b1-4595-be74-0ff7c6558bc8][plocate]]', which is fast than mlocate, for indexed file searching,
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "findutils"
 #+end_src
 
@@ -11332,7 +11332,7 @@ Provide a function to Build a clock table summing up time by tag.
 :ID:       c56e19dd-d3b1-4595-be74-0ff7c6558bc8
 :END:
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "plocate"
 #+end_src
 
@@ -11363,7 +11363,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 [[https://www.openssh.com/][OpenSSH]] is client and server side of ssh implementation.
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "openssh"
 #+end_src
 
@@ -11375,7 +11375,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 ** Git
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "git"
 #+end_src
 
@@ -11568,7 +11568,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 [[https://git-lfs.github.com/][Git-LFS]] is alse designed to manage large files. [[https://lwn.net/Articles/774125/][This article]] compares Git-LFS and git-annex precisely.
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "git-annex"
 #+end_src
 
@@ -11590,7 +11590,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 [[https://github.com/x-motemen/ghq][ghq]] is management system for remote git repositories.
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "ghq"
 #+end_src
 
@@ -11616,7 +11616,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 [[https://www.passwordstore.org/][Pass]] is a simple password manager.
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "password-store"
 #+end_src
 
@@ -11634,7 +11634,7 @@ Provide a function to Build a clock table summing up time by tag.
   #+END_SRC
 ** mpv
 
-#+begin_src scheme :noweb-ref desktop-pkgs
+#+begin_src scheme :noweb-ref guix-desktop
   ;; "mpv-libarchive"
 #+end_src
 
@@ -12211,7 +12211,7 @@ aspell - interactive spell checker
 
 ** xkeysnail
 
-#+begin_src scheme :noweb-ref desktop-pkgs
+#+begin_src scheme :noweb-ref guix-desktop
   "xkeysnail"
 #+end_src
 
@@ -12387,7 +12387,7 @@ aspell - interactive spell checker
 
 SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 
-#+begin_src scheme :tangle no :noweb-ref base-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-base
   "skk-jisyo"
   "skktools"
 #+end_src
@@ -12430,7 +12430,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 
 [[http://festvox.org/festival/][Festival]] is a framework for building and manipulating speech synthesis engine.
 
-#+begin_src scheme :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "festival"
 #+end_src
 
@@ -12521,7 +12521,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 
 ** Jack
 
-#+begin_src scheme :noweb-ref desktop-pkgs
+#+begin_src scheme :noweb-ref guix-desktop
   "qjackctl"
   "qsynth"
   "jack-keyboard"
@@ -12552,7 +12552,7 @@ XRandR is a command line utility for changing display options without restarting
     xrandr --output HDMI-2 --auto
   #+end_src
 
-#+begin_src scheme :noweb-ref desktop-pkgs
+#+begin_src scheme :noweb-ref guix-desktop
   "xrandr"
 #+end_src
 ** C/Migemo
@@ -12562,7 +12562,7 @@ XRandR is a command line utility for changing display options without restarting
 
 [[https://github.com/koron/cmigemo][C/Migemo]] allows us to search Japanese with incremental ASCII charactor input.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "cmigemo"
   "migemo-dict-azik"
 #+end_src
@@ -13171,7 +13171,7 @@ If you are AZIK lover, replace /usr/share/cmigemo/utf-8/roma2hira.dat with the c
 [[https://lilypond.org/unix.html][LilyPond]] elisp package is included in source tarball available at [[https://lilypond.org/download/source][here]],
 you are required to locate that package where emacs can search.
 
-#+begin_src scheme :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "lilypond"
 #+end_src
 
@@ -13195,7 +13195,7 @@ you are required to locate that package where emacs can search.
 
 Documentation is available at [[https://graphviz.org/documentation/][here]] and [[https://graphviz.org/gallery/][gallery]] is also useful.
 
-#+begin_src scheme :tangle no :noweb-ref emacs-pkgs
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
   "graphviz"
   "emacs-graphviz-dot-mode"
 #+end_src
@@ -13216,7 +13216,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 
 ** Rsync
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "rsync"
 #+end_src
 
@@ -13293,7 +13293,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 :ID:       4736bf4d-4185-4683-818d-700f980bc6ca
 :END:
 
-#+begin_src scheme :noweb-ref desktop-pkgs
+#+begin_src scheme :noweb-ref guix-desktop
   "libvirt"
   "virt-manager"
 #+end_src
@@ -13336,7 +13336,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 
 [[https://calibre-ebook.com/download_linux][Calibre for linux]] is a e-book reader. I use it in the mood of reading epub in GUI app.
 
-#+begin_src scheme :noweb-ref desktop-pkgs
+#+begin_src scheme :noweb-ref guix-desktop
   "calibre"
 #+end_src
 
@@ -13345,7 +13345,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 :CREATED:  [2022-08-19 Fri 08:06]
 :END:
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "yt-dlp"
 #+end_src
 
@@ -13362,7 +13362,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 
 [[https://github.com/rakshasa/rtorrent/wiki][rTorrent]] is a bittorrent client using ncurses.
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "rtorrent-xmlrpc"
 #+End_src
 
@@ -13409,7 +13409,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 
 [[https://www.ledger-cli.org/3.0/doc/ledger-mode.html][Ledger]] is double-entry accounting cli tool. [[https://hledger.org/][hledger]] is feature rich reimplementation of ledger in Haskell. User data in ledger is interoperable for hledger and vice versa.
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "ledger"
   "hledger"
 #+end_src
@@ -13436,7 +13436,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 :CREATED:  [2023-02-11 Sat 22:11]
 :END:
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "recoll"
 #+end_src
 
@@ -13488,7 +13488,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 
 ** Python
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "python"
   "python-pip"
   "python-sphinx"
@@ -13501,7 +13501,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 
 ** Ruby
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "ruby"
   "ruby-pry"
   "ruby-rubocop"
@@ -13522,7 +13522,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 :CREATED:  [2023-02-24 Fri 18:53]
 :END:
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "rust"
 #+end_src
 
@@ -13536,7 +13536,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
   echo ${HOME}/.npm-global
 #+end_src
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "node"
 #+end_src
 
@@ -13617,7 +13617,7 @@ Extendable version manager
 
 [[https://github.com/castwide/solargraph][Solargraph]] is Ruby Language Server.
 
-#+begin_src scheme :noweb-ref base-pkgs
+#+begin_src scheme :noweb-ref guix-base
   "ruby-solargraph"
 #+end_src
 
@@ -13948,7 +13948,7 @@ This program determine type of the file.
 
 Utility ruby program for manipulating image, audio and video file.
 
-#+begin_src scheme :noweb-ref desktop-pkgs
+#+begin_src scheme :noweb-ref guix-desktop
   "dvd+rw-tools"
 #+end_src
 
@@ -15496,7 +15496,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 
 ** DVD Packing
 
-#+begin_src scheme :noweb-ref desktop-pkgs
+#+begin_src scheme :noweb-ref guix-desktop
   "handbrake"
   "dvdbackup"
   "libdvdnav"
@@ -15543,7 +15543,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 #+end_src
 ** CD Ripping
 
-#+begin_src scheme :noweb-ref desktop-pkgs
+#+begin_src scheme :noweb-ref guix-desktop
   "abcde"
   "eyed3"
   "lame"
@@ -15574,7 +15574,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 :CREATED:  [2022-08-15 Mon 20:13]
 :END:
 
-#+begin_src scheme :noweb-ref creative-pkgs
+#+begin_src scheme :noweb-ref guix-creative
   "slop"
   "gimp"
   "obs"
@@ -15587,7 +15587,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 :CREATED:  [2023-03-19 Sun 16:43]
 :END:
 
-#+begin_src scheme :noweb-ref creative-pkgs
+#+begin_src scheme :noweb-ref guix-creative
   "python-screenkey"
 #+end_src
 
