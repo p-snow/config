@@ -7606,7 +7606,7 @@ Major mode for manupulating password store file.
       "i" #'yas-insert-snippet
       "TAB" #'yas-insert-snippet)
     :hook
-    ((prog-mode org-mode) . yas-minor-mode)
+    ((prog-mode text-mode) . yas-minor-mode)
     :init
     (setq yas-snippet-dirs
           (list (expand-file-name "snippets" user-emacs-directory-default)))
@@ -7843,7 +7843,9 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
                             ((eq major-mode 'text-mode) concise-fmt)
                             ((eq major-mode 'dired-mode) simple-fmt)
                             (t simple-fmt))))))
-      (insert (format-time-string fmt-in-use))))
+      (if (called-interactively-p)
+          (insert (format-time-string fmt-in-use))
+        (format-time-string fmt-in-use))))
   (global-set-key (kbd "C-c .") 'my/insert-time-stamp)
 
   (defun my/drag-line-backward ()
