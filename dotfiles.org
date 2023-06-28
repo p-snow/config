@@ -4937,7 +4937,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                 ("M-q" . vertico-quick-insert)
                 ("C-q" . vertico-quick-exit))
     :hook
-    (minibuffer-setup . vertico-repeat-save)
+    ((minibuffer-setup . vertico-repeat-save)
+     (rfn-eshadow-update-overlay . vertico-directory-tidy))
     :custom
     (vertico-cycle t)
     :config
