@@ -2722,6 +2722,12 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (dired-open-query-before-exit nil)
     (completion-ignored-extensions nil)
     :config
+    (with-eval-after-load 'open-file
+      (setq dired-guess-shell-alist-user
+            (list `(,(regexp-opt (append my/open-file-media-extensions
+                                         my/open-file-compressed-media-extensions)
+                                 "\\.\\(")
+                    "mpv"))))
     (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
     (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion)
     (put 'dired-find-alternate-file 'disabled nil))
@@ -10447,23 +10453,17 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
   ;; dired-open handling
 
   (with-eval-after-load 'dired-open
-    (customize-set-variable
-     'dired-open-functions
-     '(dired-open-call-function-by-extension
-       dired-open-guess-shell-alist
-       dired-open-by-extension
-       dired-open-subdir))
-    (customize-set-variable
-     'dired-open-extensions-elisp
-     `(("pdf" . my/open-pdf-as-html)
-       ("pdf.gpg" . my/open-pdf-as-html)
-       ("epub" . my/open-epub-as-html)
-       ("jpg.gpg" . my/open-media)
-       ,@(mapcar (lambda (ext)
-                   (cons ext 'my/open-media))
-                 my/open-file-media-extensions)))
-    (customize-set-variable
-     'dired-open-find-file-function 'my/dired-find-file))
+    (setq dired-open-functions '(dired-open-call-function-by-extension
+                                 dired-open-by-extension
+                                 dired-open-subdir)
+          dired-open-extensions-elisp `(("pdf" . my/open-pdf-as-html)
+                                        ("pdf.gpg" . my/open-pdf-as-html)
+                                        ("epub" . my/open-epub-as-html)
+                                        ("jpg.gpg" . my/open-media)
+                                        ,@(mapcar (lambda (ext)
+                                                    (cons ext 'my/open-media))
+                                                  my/open-file-media-extensions))
+          dired-open-find-file-function 'my/dired-find-file))
 
   (defun my/dired-find-file ()
     "A function for `dired-open-find-file-function' dealing with
