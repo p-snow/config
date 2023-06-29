@@ -7600,14 +7600,13 @@ Major mode for manupulating password store file.
 
 #+begin_src emacs-lisp
   (use-package yasnippet
-    :bind-keymap ("C-c y" . my/yas-map)
-    :preface
-    (defvar-keymap my/yas-map
-      :doc "Keymap YASnippet family."
-      "v" #'yas-visit-snippet-file
-      "n" #'yas-new-snippet
-      "i" #'yas-insert-snippet
-      "TAB" #'yas-insert-snippet)
+    :bind (:prefix "C-c y"
+                   :prefix-map my/yas-map
+                   :prefix-docstring "Keymap for YASnippet family."
+                   ("v" . yas-visit-snippet-file)
+                   ("n" . yas-new-snippet)
+                   ("i" . yas-insert-snippet)
+                   ("TAB" . yas-insert-snippet))
     :hook
     ((prog-mode text-mode) . yas-minor-mode)
     :init
@@ -8502,25 +8501,22 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 
 #+begin_src emacs-lisp
   (use-package emacs
-    :bind-keymap
-    ("C-x y" . my/cycle-visual-repeat-map)
-    :preface
-    (defvar-keymap my/cycle-visual-repeat-map
-      :doc "Keymap to repeat toggle/cycling appearance.  Used in `repeat-mode'."
-      :repeat t
-      "#" #'display-line-numbers-mode
-      "SPC" #'cycle-spacing
-      "V" #'visual-line-mode
-      "F" #'toggle-frame-fullscreen
-      "P" #'variable-pitch-mode
-      "L" #'line-number-mode
-      "C" #'column-number-mode
-      "R" #'rainbow-mode
-      "TAB" #'adaptive-wrap-prefix-mode
-      "+" #'text-scale-adjust
-      "-" #'text-scale-adjust
-      "0" (lambda () "Set text scale to default level." (interactive)
-            (text-scale-set 0))))
+    :bind (:prefix "C-x C-y"
+                   :prefix-map my/cycle-visual-repeat-map
+                   :prefix-docstring "Keymap to repeat toggle/cycling appearance.  Used in `repeat-mode'."
+                   ("#" . display-line-numbers-mode)
+                   ("SPC" . cycle-spacing)
+                   ("V" . visual-line-mode)
+                   ("F" . toggle-frame-fullscreen)
+                   ("P" . variable-pitch-mode)
+                   ("L" . line-number-mode)
+                   ("C" . column-number-mode)
+                   ("R" . rainbow-mode)
+                   ("TAB" . adaptive-wrap-prefix-mode)
+                   ("+" . text-scale-adjust)
+                   ("-" . text-scale-adjust)
+                   ("0" . (lambda () "Set text scale to default level." (interactive)
+                            (text-scale-set 0)))))
 #+end_src
 
 ****** frame repeat map
