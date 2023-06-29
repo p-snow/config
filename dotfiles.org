@@ -1910,6 +1910,8 @@ Mouse needs to be unobtrusive in my Emacs experience.
 
 ***** Convenience
 
+subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFeed'
+
 #+begin_src emacs-lisp
   (repeat-mode 1)
   (global-subword-mode 1)
@@ -5213,51 +5215,44 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
 
 #+begin_src emacs-lisp
   (use-package cape
-    :init
-    (keymap-global-unset "C-x TAB")
-    (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-    (add-to-list 'completion-at-point-functions #'cape-file)
-    (add-to-list 'completion-at-point-functions #'cape-symbol)
-    :bind (("C-x TAB TAB" . completion-at-point)
-           ("C-x TAB t" . complete-tag)
-           ("C-x TAB d" . cape-dabbrev)
-           ("C-x TAB h" . cape-history)
-           ("C-x TAB f" . cape-file)
-           ("C-x TAB k" . cape-keyword)
-           ("C-x TAB s" . cape-symbol)
-           ("C-x TAB a" . cape-abbrev)
-           ("C-x TAB l" . cape-line)
-           ("C-x TAB w" . cape-dict)
-           ("C-x TAB \\" . cape-tex)
-           ("C-x TAB _" . cape-tex)
-           ("C-x TAB ^" . cape-tex)
-           ("C-x TAB &" . cape-sgml)
-           ("C-x TAB r" . cape-rfc1345)))
+    :bind (:map ctl-x-map
+                :prefix "C-M-i"
+                :prefix-map my/cape-map
+                :prefix-docstring "Keymap for cape commands."
+                ("C-M-i" . completion-at-point)
+                ("t" . complete-tag)
+                ("d" . cape-dabbrev)
+                ("h" . cape-history)
+                ("f" . cape-file)
+                ("k" . cape-keyword)
+                ("s" . cape-symbol)
+                ("a" . cape-abbrev)
+                ("l" . cape-line)
+                ("w" . cape-dict)
+                ("\\" . cape-tex)
+                ("_" . cape-tex)
+                ("^" . cape-tex)
+                ("&" . cape-sgml)
+                ("r" . cape-rfc1345))
+    :hook
+    (text-mode . (lambda ()
+                   (setq-local completion-at-point-functions
+                               (append completion-at-point-functions
+                                       '(cape-dabbrev
+                                         cape-file
+                                         cape-symbol
+                                         cape-dict)))))
+    (prog-mode . (lambda ()
+                   (setq-local completion-at-point-functions
+                               (append completion-at-point-functions
+                                       '(cape-dabbrev
+                                         cape-file
+                                         cape-symbol
+                                         cape-keyword
+                                         cape-history))))))
 #+end_src
 
-**** text-mode derivatives
-
-***** text-mode
-
-- subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFeed'
-
-#+begin_src emacs-lisp
-  (add-hook 'text-mode-hook #'my/turn-on-input-method)
-
-  ;;;###autoload
-  (defun my/turn-on-input-method ()
-    "Turn on `default-input-method' if buffer text does not seem to consist of ASCII."
-    (when (and
-           ;; this function should be applied to text-mode rather than its inheritor
-           (eq major-mode 'text-mode)
-           ;; target buffer must be front not buried
-           (eq (current-buffer) (window-buffer)))
-      (if (my/ascii-string-p (buffer-string))
-          (activate-input-method nil)
-        (activate-input-method default-input-method))
-      (visual-line-mode 1)
-      (toggle-truncate-lines -1)))
-#+end_src
+**** text-mode and its derivatives
 
 ***** nxml-mode
 
@@ -5369,9 +5364,7 @@ language grammar for toml
     (my/add-dash-docsets-hook 'latex-mode-hook '("LaTeX")))
 #+end_src
 
-**** prog-mode derivatives
-
-***** prog-mode
+**** prog-mode and its derivatives
 
 #+begin_src emacs-lisp
   (add-hook 'prog-mode-hook
