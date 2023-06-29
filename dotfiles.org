@@ -900,7 +900,7 @@ GnuPG - ArchWiki]]
 #+end_src
 
 - config file
- #+begin_src yaml :tangle (expand-file-name ".config/xremap/config.yml")
+ #+begin_src yaml-ts :tangle (expand-file-name ".config/xremap/config.yml")
    modmap:
      - name: CapsCtrlSwap
        remap:
@@ -1047,7 +1047,7 @@ GnuPG - ArchWiki]]
 :CREATED:  [2023-02-22 Wed 13:10]
 :END:
 
-#+begin_src yaml :noweb tangle :tangle (expand-file-name ".config/interception/udevmon.yaml")
+#+begin_src yaml-ts :noweb tangle :tangle (expand-file-name ".config/interception/udevmon.yaml")
   - JOB: "<<which(filename="intercept")>> -g $DEVNODE | <<which(filename="dual-function-keys")>> -c <<home-dir()>>/.config/interception/dual-function-keys.yaml | <<which(filename="uinput")>> -d $DEVNODE"
     DEVICE:
       EVENTS:
@@ -1083,7 +1083,7 @@ GnuPG - ArchWiki]]
 
 [[https://man.archlinux.org/man/community/interception-dual-function-keys/dual-function-keys.1.en][dual-function-keys]] is constituent of Interception Tools. It allows users to add a function to the key resulting to impart two capability for one key exerted at tapped and held.
 
-#+begin_src yaml :tangle (expand-file-name ".config/interception/dual-function-keys.yaml")
+#+begin_src yaml-ts :tangle (expand-file-name ".config/interception/dual-function-keys.yaml")
   TIMING:
     TAP_MILLISEC: 400
     DOUBLE_TAP_MILLISEC: 150
@@ -4316,33 +4316,33 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+end_src
 
 #+begin_src emacs-lisp
-  (customize-set-variable 'org-confirm-babel-evaluate nil)
-  (customize-set-variable 'org-babel-load-languages
-                          '((emacs-lisp . t)
-                            (C          . t)
-                            (java       . t)
-                            (R          . t)
-                            (shell      . t)
-                            (ruby       . t)
-                            (python     . t)
-                            (scheme     . t)
-                            (org        . t)
-                            (lua        . t)
-                            (ledger     . t)
-                            (gnuplot    . t)
-                            (dot        . t)
-                            (plantuml   . t)
-                            (lilypond   . t)))
-  (customize-set-variable 'org-babel-python-command (executable-find "python3"))
-  (customize-set-variable 'org-babel-ruby-command (executable-find "ruby"))
-  (cond
-   ((string= system-type "gnu/linux")
-    (customize-set-variable `org-plantuml-jar-path (expand-file-name "plantuml.jar" "~/.guix-profile/share/java")))
-   ((string= system-type "darwin")
-    (customize-set-variable 'org-plantuml-jar-path "/usr/local/Cellar/plantuml/8041/plantuml.8041.jar")))
-
-  (with-eval-after-load 'ob-core
-    (add-hook 'org-babel-after-execute-hook 'org-display-inline-images))
+  (use-package ob-core
+    :after ob-core
+    :hook (org-babel-after-execute . org-display-inline-images)
+    :init
+    (setq org-babel-python-command (executable-find "python3"))
+    (setq org-babel-ruby-command (executable-find "ruby"))
+    (cond
+     ((string= system-type "gnu/linux")
+      (setq org-plantuml-jar-path (expand-file-name "plantuml.jar" "~/.guix-profile/share/java")))
+     ((string= system-type "darwin")
+      (setq org-plantuml-jar-path "/usr/local/Cellar/plantuml/8041/plantuml.8041.jar")))
+    :custom
+    (org-babel-load-languages '((emacs-lisp . t)
+                                (C          . t)
+                                (java       . t)
+                                (R          . t)
+                                (shell      . t)
+                                (ruby       . t)
+                                (python     . t)
+                                (scheme     . t)
+                                (lua        . t)
+                                (ledger     . t)
+                                (gnuplot    . t)
+                                (dot        . t)
+                                (plantuml   . t)
+                                (lilypond   . t)))
+    (org-confirm-babel-evaluate nil))
 #+end_src
 
 ****** Org ID
