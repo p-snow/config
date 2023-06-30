@@ -900,7 +900,7 @@ GnuPG - ArchWiki]]
 #+end_src
 
 - config file
- #+begin_src yaml-ts :tangle (expand-file-name ".config/xremap/config.yml")
+ #+begin_src yaml :tangle (expand-file-name ".config/xremap/config.yml")
    modmap:
      - name: CapsCtrlSwap
        remap:
@@ -1047,7 +1047,7 @@ GnuPG - ArchWiki]]
 :CREATED:  [2023-02-22 Wed 13:10]
 :END:
 
-#+begin_src yaml-ts :noweb tangle :tangle (expand-file-name ".config/interception/udevmon.yaml")
+#+begin_src yaml :noweb tangle :tangle (expand-file-name ".config/interception/udevmon.yaml")
   - JOB: "<<which(filename="intercept")>> -g $DEVNODE | <<which(filename="dual-function-keys")>> -c <<home-dir()>>/.config/interception/dual-function-keys.yaml | <<which(filename="uinput")>> -d $DEVNODE"
     DEVICE:
       EVENTS:
@@ -1083,7 +1083,7 @@ GnuPG - ArchWiki]]
 
 [[https://man.archlinux.org/man/community/interception-dual-function-keys/dual-function-keys.1.en][dual-function-keys]] is constituent of Interception Tools. It allows users to add a function to the key resulting to impart two capability for one key exerted at tapped and held.
 
-#+begin_src yaml-ts :tangle (expand-file-name ".config/interception/dual-function-keys.yaml")
+#+begin_src yaml :tangle (expand-file-name ".config/interception/dual-function-keys.yaml")
   TIMING:
     TAP_MILLISEC: 400
     DOUBLE_TAP_MILLISEC: 150
@@ -4079,23 +4079,29 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ******* Org Edit Structure
 
 #+begin_src emacs-lisp
-  (customize-set-variable 'org-special-ctrl-a/e t)
-  (customize-set-variable 'org-src-window-setup 'current-window)
-  (customize-set-variable 'org-edit-src-auto-save-idle-delay 30)
-
-  (with-eval-after-load 'org
-    (add-to-list 'org-structure-template-alist (cons "sh" "src shell"))
-    (add-to-list 'org-structure-template-alist (cons "tx" "src text"))
-    (add-to-list 'org-structure-template-alist (cons "el" "src emacs-lisp"))
-    (add-to-list 'org-structure-template-alist (cons "py" "src python")))
-
-  (with-eval-after-load 'org-src
-    (add-to-list 'org-src-lang-modes
-                 '("dot" . graphviz-dot))
+  (use-package org-src
+    :after org
+    :hook (org-src-mode . (lambda ()
+                            (when (eq major-mode 'text-mode)
+                              (visual-line-mode 1))))
+    :custom
+    (org-special-ctrl-a/e t)
+    (org-src-window-setup 'current-window)
+    (org-edit-src-auto-save-idle-delay 30)
+    :config
+    (setq org-structure-template-alist
+          (append org-structure-template-alist
+                  '(("sh" . "src shell")
+                    ("tx" . "src text")
+                    ("el" . "src emacs-lisp")
+                    ("py" . "src python"))))
+    (setq org-src-lang-modes
+          (append org-src-lang-modes
+                  '(("dot" . graphviz-dot)
+                    ("yaml" . yaml-ts))))
     (advice-add #'org-edit-src-save
                 :before
-                (lambda ()
-                  "Delete trailing whitespace."
+                (lambda (&rest _)
                   (delete-trailing-whitespace))))
 #+end_src
 
