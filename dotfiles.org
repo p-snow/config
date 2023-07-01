@@ -1374,7 +1374,7 @@ Following configuration is for version 4 of modus-themes which takes breaking ch
 
 Settings in this section are influenced a great deal by my personal preference. Please be meticulous when you borrow.
 
-***** Key Bindings
+***** Basic Key Bindings
 
 #+begin_src emacs-lisp
   (global-set-key (kbd "M-F") #'forward-to-word)
@@ -1401,9 +1401,6 @@ Settings in this section are influenced a great deal by my personal preference. 
                              global-map)
   (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
 
-  ;; suppress prompting in (up/down)case-region
-  (put 'upcase-region 'disabled nil)
-  (put 'downcase-region 'disabled nil)
 
   (keymap-global-unset "C-o" 'remove)
 #+end_src
@@ -1414,6 +1411,18 @@ Settings in this section are influenced a great deal by my personal preference. 
                                'ibuffer
                                global-map)
   #+end_src
+
+***** Unleash Disabled Commands
+:PROPERTIES:
+:CREATED:  [2023-07-01 Sat 13:59]
+:END:
+
+#+begin_src emacs-lisp
+  (put 'upcase-region 'disabled nil)
+  (put 'downcase-region 'disabled nil)
+
+  (put 'set-goal-column 'disabled nil)
+#+end_src
 
 ***** Language
 
