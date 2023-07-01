@@ -1377,12 +1377,14 @@ Settings in this section are influenced a great deal by my personal preference. 
 ***** Key Bindings
 
 #+begin_src emacs-lisp
+  (global-set-key (kbd "M-F") #'forward-to-word)
+  (global-set-key (kbd "M-B") #'backward-to-word)
+  (global-set-key (kbd "C-c d") #'duplicate-dwim)
+  (global-set-key (kbd "C-c M-d") #'copy-from-above-command)
+  (global-set-key (kbd "M-z") #'zap-up-to-char)
+
   (global-set-key (kbd "C-M-o") #'open-line)
   (global-set-key (kbd "C-c k") #'kill-this-buffer)
-  (global-set-key (kbd "<f5>") #'revert-buffer-quick)
-  (global-set-key (kbd "M-z") #'zap-up-to-char)
-  (global-set-key (kbd "C-c d") #'copy-from-above-command)
-  (global-set-key (kbd "C-S-y") #'duplicate-dwim)
   (global-set-key (kbd "C-M-<delete>") #'restart-emacs)
   (global-set-key (kbd "C-M-S-<delete>") #'save-buffers-kill-emacs)
 
@@ -6385,11 +6387,13 @@ How to use detached.el
     (org-link-set-parameters "shell" :follow #'my/org-link--open-shell-detached))
 
   (use-package detached-list
-    :bind
-    ("C-x C-d" . detached-list-sessions)
-    (:map detached-list-mode-map
-          ("C-m" . detached-list-open-session)
-          ("C-j" . detached-list-open-session)))
+    :after my-invoke-command
+    :config
+    (bind-keys :map my/invoke-list-command-map
+               ("d" . detached-list-sessions))
+    (bind-keys :map detached-list-mode-map
+               ("C-m" . detached-list-open-session)
+               ("C-j" . detached-list-open-session)))
 #+end_src
 
 ***** emacs-guix                              :tools:
