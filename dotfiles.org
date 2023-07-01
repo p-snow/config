@@ -6310,9 +6310,9 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 
 #+begin_src emacs-lisp
   (use-package free-keys
-    :commands free-key
-    :config
-    (add-to-list 'free-keys-modifiers "H" t))
+    :after my-invoke-command
+    :bind (:map my/invoke-command-map
+                ("f" . free-keys)))
 #+end_src
 
 ***** consult-recoll               :docs:convenience:
