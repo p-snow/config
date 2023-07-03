@@ -10498,10 +10498,16 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
         (browse-url-default-browser file-for-visit))
        ((equal current-prefix-arg '(4))
         (dired--find-possibly-alternative-file file-for-visit))
-       ((or (file-directory-p file-for-visit)
+       ((or (and (file-directory-p file-for-visit)
+                 (seq-some (lambda (file)
+                             (string-match-p
+                              (concat "." (regexp-opt my/open-file-media-extensions) "$")
+                              file))
+                           (directory-files file-for-visit)))
             (string-match-p (eval `(rx (or ,@my/open-file-compressed-media-extensions)))
                             file-for-visit))
-        (my/open-media file-for-visit)))))
+        (my/open-media file-for-visit))
+       (t (dired-find-file)))))
 
   (provide 'open-file)
 #+end_src
