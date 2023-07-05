@@ -1377,6 +1377,24 @@ Following configuration is for version 4 of modus-themes which takes breaking ch
 
 Settings in this section are influenced a great deal by my personal preference. Please be meticulous when you borrow.
 
+***** Modifier Keys
+
+#+begin_src emacs-lisp
+  (cond
+   ((string= window-system "x")
+    (setf x-alt-keysym  'alt
+          x-meta-keysym 'meta))
+   ((string= window-system "ns")
+    ;; IME inline patch
+    (setf mac-use-input-method-on-system nil)
+    (setf mac-control-modifier       'control
+          mac-command-modifier       'meta
+          mac-option-modifier        'super
+          mac-right-option-modifier  'alt
+          mac-right-control-modifier 'super
+          mac-function-modifier      'hyper)))
+#+end_src
+
 ***** Basic Key Bindings
 
 #+begin_src emacs-lisp
@@ -1570,24 +1588,6 @@ Caveat: There are some face definitions which use an extra large font since I am
               (defface my/list-face `((t . (:font "fontset-mincho"
                                                   :height ,(my/normalized-font-size 670))))
                 "My customized face offers variable pitch fonts for displaying lists."))))))
-#+end_src
-
-***** Modifier Keys
-
-#+begin_src emacs-lisp
-  (cond
-   ((string= window-system "x")
-    (setf x-alt-keysym  'alt
-          x-meta-keysym 'meta))
-   ((string= window-system "ns")
-    ;; IME inline patch
-    (setf mac-use-input-method-on-system nil)
-    (setf mac-control-modifier       'control
-          mac-command-modifier       'meta
-          mac-option-modifier        'super
-          mac-right-option-modifier  'alt
-          mac-right-control-modifier 'super
-          mac-function-modifier      'hyper)))
 #+end_src
 
 ***** Performance Tuning
@@ -13658,6 +13658,663 @@ Extendable version manager
   "ruby-solargraph"
 #+end_src
 
+* Stuffs for Dedicated Tasks
+
+** Transcode Video Files
+:PROPERTIES:
+:CREATED:  [2022-09-15 Thu 14:44]
+:END:
+
+Transcoding my local video files with open codec, like VP9 and AV1, is effective for disc space usage.
+
+#+begin_src shell :noweb-ref transc-shared
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  CRF=28
+  KBITRATE_AUDIO=128
+
+  function usage() {
+    cat <<_EOT_
+  Usage:
+    $(basename $0) [OPTIONS] <video_in> [<video_out>]
+
+  Description:
+    $(basename $0) encodes <video_in> to <video_out> in specified codec.
+
+  Options:
+    -c <CRF>      CRF value instead of ${CRF} (DEFAULT)
+    -B <AUDIO_BR> Audio Bitrate in kbps
+
+  _EOT_
+  }
+
+  if [ "${OPTIND}" = 1 ]; then
+    while getopts c:B:h OPT
+    do
+      case ${OPT} in
+      c)
+        CRF=${OPTARG}
+        ;;
+      B)
+        CRF=${OPTARG}
+        ;;
+      h)
+        usage
+        ;;
+      \?)
+        echo "Try to enter the h option." 1>&2
+        ;;
+      esac
+    done
+  else
+    echo "No installed getopts-command." 1>&2
+    exit 1
+  fi
+
+  shift $((OPTIND - 1))
+
+  if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+    usage
+    exit -1
+  fi
+
+  INPUT_VIDEO=$1
+  if [ ! -e "${INPUT_VIDEO}" ]; then
+    echo "${INPUT_VIDEO} does not exist." 1>&2
+    exit -1
+  fi
+
+  if [[ $# -eq 2 ]]; then
+    output_cand=$2
+  else
+    output_cand=$(basename "${INPUT_VIDEO}").webm
+  fi
+  if [ -e ${output_cand} ]; then
+    OUTPUT_VIDEO=${output_cand%.*}_$(date +%Y%m%d_%H%M).webm
+  else
+    OUTPUT_VIDEO="${output_cand}"
+  fi
+
+  WORK_DIR="${INPUT_VIDEO%.*}"
+#+end_src
+
+*** vp9 transcoding
+
+- transcode video to vp9
+  : $ vp9transc -c 32 video_orig.mkv video_vp9.webm
+
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/vp9transc") :tangle-mode (identity #o555)
+  <<transc-shared>>
+
+  vp9_opts_pass1="-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf ${CRF} -pass 1 -an -f null"
+  vp9_opts_pass2="-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf ${CRF} -pass 2 -map_metadata 0"
+  opus_opts="-c:a libopus -b:a ${KBITRATE_AUDIO}k -ac 2"
+
+  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass1} /dev/null \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
+#+end_src
+*** av1 transcoding
+
+- transcode video to av1
+  : $ av1transc video_orig.mkv video_av1.webm
+
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/av1transc") :tangle-mode (identity #o555)
+  <<transc-shared>>
+
+  av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf ${CRF}"
+  av1_opts_pass1="${av1_opts_common} -pass 1 -an -f null"
+  av1_opts_pass2="${av1_opts_common} -pass 2 -map_metadata 0"
+  opus_opts="-c:a libopus -b:a ${KBITRATE_AUDIO}k -ac 2"
+
+  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass1} /dev/null \
+    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
+#+end_src
+
+** Transcode Audio Files
+
+- usage
+  + encode bulk podcast files for 64kb/s (in Dired)
+    : $ nohup parallel opusencode "{}" "{.}".oga ::: *
+
+#+begin_src shell :tangle (expand-file-name ".local/bin/opusencode") :tangle-mode (identity #o555)
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  if [[ $# -ge 1 ]]; then
+    INPUT_VIDEO=$1
+    if [[ $# -eq 2 ]]; then
+      OUTPUT_VIDEO=$2
+    else
+      OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").oga
+    fi
+  fi
+
+  opus_opts="-c:a libopus -b:a 64k -ac 2"
+
+  ffmpeg -i "${INPUT_VIDEO}" ${opus_opts} "${OUTPUT_VIDEO}"
+#+end_src
+
+** DVD Packing
+
+#+begin_src scheme :noweb-ref guix-desktop
+  "handbrake"
+  "dvdbackup"
+  "libdvdnav"
+  "libdvdcss"
+#+end_src
+
+#+begin_src shell :tangle (expand-file-name ".local/bin/dvdpack") :tangle-mode (identity #o555)
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  if [ "${OPTIND}" = 1 ]; then
+    while getopts t: OPT
+    do
+      case ${OPT} in
+      t)
+        TITLE=${OPTARG}
+        ;;
+      esac
+    done
+  else
+    echo "No installed getopts-command." 1>&2
+    exit 1
+  fi
+  shift $((OPTIND - 1))
+
+  if [[ $# -ge 1 ]]; then
+    DVD_DIR=$1
+    if [[ $# -eq 2 ]]; then
+      DVD_PACK_VIDEO=$2
+    else
+      DVD_PACK_VIDEO=$(basename "${DVD_DIR}").mkv
+    fi
+  fi
+
+  if [ -v TITLE ]; then
+    title_opt="--title ${TITLE}"
+  else
+    title_opt='--main-feature'
+  fi
+
+  hb_opts="--x264-preset veryslow --quality 18 --aencoder copy ${title_opt} --markers --all-audio --all-subtitles"
+
+  HandBrakeCLI --input "${DVD_DIR}" --output "${DVD_PACK_VIDEO}" ${hb_opts}
+#+end_src
+** CD Ripping
+
+#+begin_src scheme :noweb-ref guix-desktop
+  "abcde"
+  "eyed3"
+  "lame"
+  "opus-tools"
+  "cdrtools"
+  "easytag"
+#+end_src
+
+*** abcde
+
+#+BEGIN_SRC conf :tangle (expand-file-name ".abcde.conf")
+  # .flac is only desired output format
+  OUTPUTTYPE="flac"
+  # or .flac and .opus (bitrate is 256 kbps) will be generated at the same time
+  # OUTPUTTYPE="flac,opus"
+  # OPUSENCOPTS='--bitrate 256'
+
+  # .flac files will be utterly compressed with verification
+  FLACOPTS="-V8"
+
+  MAXPROCS=4
+
+  OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
+#+END_SRC
+
+** Tutorial Video Creation
+:PROPERTIES:
+:CREATED:  [2022-08-15 Mon 20:13]
+:END:
+
+#+begin_src scheme :noweb-ref guix-creative
+  "slop"
+  "gimp"
+  "obs"
+  "kdenlive"
+  "audacity"
+#+end_src
+
+*** Screenkey
+:PROPERTIES:
+:CREATED:  [2023-03-19 Sun 16:43]
+:END:
+
+#+begin_src scheme :noweb-ref guix-creative
+  "python-screenkey"
+#+end_src
+
+#+begin_src json :tangle no :tangle (expand-file-name ".config/screenkey.json")  :tangle-mode (identity #o644)
+  {"no_systray": false, "timeout": 0.5, "recent_thr": 0.1, "compr_cnt": 3, "ignore": [], "position": "bottom", "persist": false, "font_desc": "Sans Bold", "font_size": "medium", "font_color": "white", "bg_color": "black", "opacity": 0.9, "key_mode": "composed", "bak_mode": "baked", "mods_mode": "emacs", "mods_only": false, "multiline": false, "vis_shift": true, "vis_space": true, "geometry": null, "screen": 0, "start_disabled": false, "mouse": false, "button_hide_duration": 2.0}
+#+end_src
+
+** Sync Git Repos Automatically
+:PROPERTIES:
+:CREATED:  [2022-09-26 Mon 16:43]
+:END:
+
+#+begin_src conf :noweb-ref cronjob-pc
+  0 */2 * * * /bin/bash -ci "ghq-sync >> $LOG_DIR/ghq-sync.log 2>&1"
+#+end_src
+
+#+begin_src shell :tangle (expand-file-name ".local/bin/ghq-sync") :shebang #!/usr/bin/env bash :tangle-mode (identity #o500)
+  ghq_repos=$(ghq list --full-path)
+  for repo_path in ${ghq_repos[@]}; do
+    cd ${repo_path} && \
+      (
+        git-sync check && git-sync
+      )
+  done
+#+end_src
+
+*** git-sync
+:PROPERTIES:
+:CREATED:  [2022-09-26 Mon 15:14]
+:END:
+
+[[https://github.com/simonthum/git-sync][git-sync]] enables to sync (stage, commit and pull/push) git repositories. I use it for my org-file repo in daily basis.
+
+#+begin_src gitconfig :noweb-ref git-config
+  [branch "main"]
+          syncCommitMsg = "on $(LC_TIME=en_GB.UTF-8 date) from $(uname -n)"
+#+end_src
+
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/git-sync") :tangle-mode (identity #o755)
+  #!/usr/bin/env bash
+  #
+  # git-sync
+  #
+  # synchronize tracking repositories
+  #
+  # 2012-20 by Simon Thum and contributors
+  # Licensed as: CC0
+  #
+  # This script intends to sync via git near-automatically
+  # in "tracking" repositories where a nice history is not
+  # crucial, but having one at all is.
+  #
+  # Unlike the myriad of scripts to do just that already available,
+  # it follows the KISS principle: It is small, requires nothing but
+  # git and bash, but does not even try to shield you from git.
+  #
+  # Mode sync (default)
+  #
+  # Sync will likely get from you from a dull normal git repo with trivial
+  # changes to an updated dull normal git repo equal to origin. No more,
+  # no less. The intent is to do everything that's needed to sync
+  # automatically, and resort to manual intervention as soon
+  # as something non-trivial occurs. It is designed to be safe
+  # in that it will likely refuse to do anything not known to
+  # be safe.
+  #
+  # Mode check
+  #
+  # Check only performs the basic checks to make sure the repository
+  # is in an orderly state to continue syncing, i.e. committing
+  # changes, pull etc. without losing any data. When check returns
+  # 0, sync can start immediately. This does not, however, indicate
+  # that syncing is at all likely to succeed.
+
+  # command used to auto-commit file modifications
+  DEFAULT_AUTOCOMMIT_CMD="git add -u ; git commit -m \"%message\";"
+
+  # command used to auto-commit all changes
+  ALL_AUTOCOMMIT_CMD="git add -A ; git commit -m \"%message\";"
+
+  # default commit message substituted into autocommit commands
+  DEFAULT_AUTOCOMMIT_MSG="changes from $(uname -n) on $(date)"
+
+
+  # AUTOCOMMIT_CMD="echo \"Please commit or stash pending changes\"; exit 1;"
+  # TODO mode for stash push & pop
+
+  print_usage() {
+      cat << EOF
+  usage: $0 [-h] [-n] [-s] [MODE]
+
+  Synchronize the current branch to a remote backup
+  MODE may be either "sync" (the default) or "check", to verify that the branch is ready to sync
+
+  OPTIONS:
+     -h      Show this message
+     -n      Commit new files even if branch.\$branch_name.syncNewFiles isn't set
+     -s      Sync the branch even if branch.\$branch_name.sync isn't set
+  EOF
+  }
+  sync_new_files_anyway="false"
+  sync_anyway="false"
+
+  while getopts "hns" opt ; do
+      case $opt in
+          h )
+              print_usage
+              exit 0
+              ;;
+          n )
+              sync_new_files_anyway="true"
+              ;;
+          s )
+              sync_anyway="true"
+              ;;
+      esac
+  done
+  shift $((OPTIND-1))
+
+  #
+  #    utility functions, some adapted from git bash completion
+  #
+
+  __log_msg()
+  {
+      echo git-sync: $1
+  }
+
+  # echo the git dir
+  __gitdir()
+  {
+          if [ "true" = "$(git rev-parse --is-inside-work-tree "$PWD" | head -1)" ]; then
+                  git rev-parse --git-dir "$PWD" 2>/dev/null
+          fi
+  }
+
+  # echos repo state
+  git_repo_state ()
+  {
+          local g="$(__gitdir)"
+          if [ -n "$g" ]; then
+                  if [ -f "$g/rebase-merge/interactive" ]; then
+                          echo "REBASE-i"
+                  elif [ -d "$g/rebase-merge" ]; then
+                          echo "REBASE-m"
+                  else
+                          if [ -d "$g/rebase-apply" ]; then
+                                  echo "AM/REBASE"
+                          elif [ -f "$g/MERGE_HEAD" ]; then
+                                  echo "MERGING"
+                          elif [ -f "$g/CHERRY_PICK_HEAD" ]; then
+                                  echo "CHERRY-PICKING"
+                          elif [ -f "$g/BISECT_LOG" ]; then
+                                  echo "BISECTING"
+                          fi
+                  fi
+                  if [ "true" = "$(git rev-parse --is-inside-git-dir 2>/dev/null)" ]; then
+                          if [ "true" = "$(git rev-parse --is-bare-repository 2>/dev/null)" ]; then
+                                  echo "|BARE"
+                          else
+                                  echo "|GIT_DIR"
+                          fi
+                  elif [ "true" = "$(git rev-parse --is-inside-work-tree 2>/dev/null)" ]; then
+                          git diff --no-ext-diff --quiet --exit-code || echo "|DIRTY"
+  #			if [ -n "${GIT_PS1_SHOWSTASHSTATE-}" ]; then
+  #			        git rev-parse --verify refs/stash >/dev/null 2>&1 && s="$"
+  #			fi
+  #
+  #			if [ -n "${GIT_PS1_SHOWUNTRACKEDFILES-}" ]; then
+  #			   if [ -n "$(git ls-files --others --exclude-standard)" ]; then
+  #			      u="%"
+  #			   fi
+  #			fi
+  #
+  #			if [ -n "${GIT_PS1_SHOWUPSTREAM-}" ]; then
+  #				__git_ps1_show_upstream
+  #			fi
+                  fi
+          else
+              echo "NOGIT"
+          fi
+  }
+
+  # check if we only have untouched, modified or (if configured) new files
+  check_initial_file_state()
+  {
+      local syncNew="$(git config --get --bool branch.$branch_name.syncNewFiles)"
+      if [[ "true" == "$syncNew" || "true" == "$sync_new_files_anyway" ]]; then
+          # allow for new files
+          if [ ! -z "$(git status --porcelain | grep -E '^[^ \?][^M\?] *')" ]; then
+              echo "NonNewOrModified"
+          fi
+      else
+          # also bail on new files
+          if [ ! -z "$(git status --porcelain | grep -E '^[^ ][^M] *')" ]; then
+              echo "NotOnlyModified"
+          fi
+      fi
+  }
+
+  # look for local changes
+  # used to decide if autocommit should be invoked
+  local_changes()
+  {
+      if [ ! -z "$(git status --porcelain | grep -E '^(\?\?|[MARC] |[ MARC][MD])*')" ]; then
+          echo "LocalChanges"
+      fi
+  }
+
+  # determine sync state of repository, i.e. how the remote relates to our HEAD
+  sync_state()
+  {
+      local count="$(git rev-list --count --left-right $remote_name/$branch_name...HEAD)"
+
+      case "$count" in
+          "") # no upstream
+              echo "noUpstream"
+              false
+              ;;
+          "0	0")
+              echo "equal"
+              true
+              ;;
+          "0	"*)
+              echo "ahead"
+              true
+              ;;
+          ,*"	0")
+              echo "behind"
+              true
+              ;;
+          ,*)
+              echo "diverged"
+              true
+              ;;
+      esac
+  }
+
+  # exit, issue warning if not in sync
+  exit_assuming_sync() {
+      if [ "equal" == "$(sync_state)" ] ; then
+          __log_msg "In sync, all fine."
+          exit 0;
+      else
+          __log_msg "Synchronization FAILED! You should definitely check your repository carefully!"
+          __log_msg "(Possibly a transient network problem? Please try again in that case.)"
+          exit 3
+      fi
+  }
+
+  #
+  #        Here git-sync actually starts
+  #
+
+  # first some sanity checks
+  rstate="$(git_repo_state)"
+  if [[ -z "$rstate" || "|DIRTY" = "$rstate" ]]; then
+      __log_msg "Preparing. Repo in $(__gitdir)"
+  elif [[ "NOGIT" = "$rstate" ]] ; then
+      __log_msg "No git repository detected. Exiting."
+      exit 128 # matches git's error code
+  else
+      __log_msg "Git repo state considered unsafe for sync: $(git_repo_state)"
+      exit 2
+  fi
+
+  # determine the current branch (thanks to stackoverflow)
+  branch_name=$(git symbolic-ref -q HEAD)
+  branch_name=${branch_name##refs/heads/}
+
+  if [ -z "$branch_name" ] ; then
+      __log_msg "Syncing is only possible on a branch."
+      git status
+      exit 2
+  fi
+
+  # while at it, determine the remote to operate on
+  remote_name=$(git config --get branch.$branch_name.pushRemote)
+  if [ -z "$remote_name" ] ; then
+      remote_name=$(git config --get remote.pushDefault)
+  fi
+  if [ -z "$remote_name" ] ; then
+      remote_name=$(git config --get branch.$branch_name.remote)
+  fi
+
+  if [ -z "$remote_name" ] ; then
+      __log_msg "the current branch does not have a configured remote."
+      echo
+      __log_msg "Please use"
+      echo
+      __log_msg "  git branch --set-upstream-to=[remote_name]/$branch_name"
+      echo
+      __log_msg "replacing [remote_name] with the name of your remote, i.e. - origin"
+      __log_msg "to set the remote tracking branch for git-sync to work"
+      exit 2
+  fi
+
+  # check if current branch is configured for sync
+  if [[ "true" != "$(git config --get --bool branch.$branch_name.sync)" && "true" != "$sync_anyway" ]] ; then
+      echo
+      __log_msg "Please use"
+      echo
+      __log_msg "  git config --bool branch.$branch_name.sync true"
+      echo
+      __log_msg "to enlist branch $branch_name for synchronization."
+      __log_msg "Branch $branch_name has to have a same-named remote branch"
+      __log_msg "for git-sync to work."
+      echo
+      __log_msg "(If you don't know what this means, you should change that"
+      __log_msg "before relying on this script. You have been warned.)"
+      echo
+      exit 1
+  fi
+
+  # determine mode
+  if [[ -z "$1" || "$1" == "sync" ]]; then
+      mode="sync"
+  elif [[ "check" == "$1" ]]; then
+      mode="check"
+  else
+      __log_msg "Mode $1 not recognized"
+      exit 100
+  fi
+
+  __log_msg "Mode $mode"
+
+  __log_msg "Using $remote_name/$branch_name"
+
+  # check for intentionally unhandled file states
+  if [ ! -z "$(check_initial_file_state)" ] ; then
+      __log_msg "There are changed files you should probably handle manually."
+      git status
+      exit 1
+  fi
+
+  # if in check mode, this is all we need to know
+  if [ $mode == "check" ] ; then
+      __log_msg "check OK; sync may start."
+      exit 0
+  fi
+
+  # check if we have to commit local changes, if yes, do so
+  if [ ! -z "$(local_changes)" ]; then
+      autocommit_cmd=""
+      config_autocommit_cmd="$(git config --get branch.$branch_name.autocommitscript)"
+
+      # discern the three ways to auto-commit
+      if [ ! -z "$config_autocommit_cmd" ]; then
+          autocommit_cmd="$config_autocommit_cmd"
+      elif [[ "true" == "$(git config --get --bool branch.$branch_name.syncNewFiles)" || "true" == "$sync_new_files_anyway" ]]; then
+          autocommit_cmd=${ALL_AUTOCOMMIT_CMD}
+      else
+          autocommit_cmd=${DEFAULT_AUTOCOMMIT_CMD}
+      fi
+
+      commit_msg="$(git config --get branch.$branch_name.syncCommitMsg)"
+      if [ "" == "$commit_msg" ]; then
+        commit_msg=${DEFAULT_AUTOCOMMIT_MSG}
+      fi
+      autocommit_cmd=$(echo "$autocommit_cmd" | sed "s/%message/$commit_msg/")
+
+      __log_msg "Committing local changes using ${autocommit_cmd}"
+      eval $autocommit_cmd
+
+      # after autocommit, we should be clean
+      rstate="$(git_repo_state)"
+      if [[ ! -z "$rstate" ]]; then
+          __log_msg "Auto-commit left uncommitted changes. Please add or remove them as desired and retry."
+          exit 1
+      fi
+  fi
+
+  # fetch remote to get to the current sync state
+  # TODO make fetching/pushing optional
+  __log_msg "Fetching from $remote_name/$branch_name"
+  git fetch $remote_name $branch_name
+  if [ $? != 0 ] ; then
+      __log_msg "git fetch $remote_name returned non-zero. Likely a network problem; exiting."
+      exit 3
+  fi
+
+  case "$(sync_state)" in
+  "noUpstream")
+          __log_msg "Strange state, you're on your own. Good luck."
+          exit 2
+          ;;
+  "equal")
+          exit_assuming_sync
+          ;;
+  "ahead")
+          __log_msg "Pushing changes..."
+          git push $remote_name $branch_name:$branch_name
+          if [ $? == 0 ]; then
+              exit_assuming_sync
+          else
+              __log_msg "git push returned non-zero. Likely a connection failure."
+              exit 3
+          fi
+          ;;
+  "behind")
+          __log_msg "We are behind, fast-forwarding..."
+          git merge --ff --ff-only $remote_name/$branch_name
+          if [ $? == 0 ]; then
+              exit_assuming_sync
+          else
+              __log_msg "git merge --ff --ff-only returned non-zero ($?). Exiting."
+              exit 2
+          fi
+          ;;
+  "diverged")
+          __log_msg "We have diverged. Trying to rebase..."
+          git rebase $remote_name/$branch_name
+          if [[ $? == 0 && -z "$(git_repo_state)" && "ahead" == "$(sync_state)" ]] ; then
+              __log_msg "Rebasing went fine, pushing..."
+              git push $remote_name $branch_name:$branch_name
+              exit_assuming_sync
+          else
+              __log_msg "Rebasing failed, likely there are conflicting changes. Resolve them and finish the rebase before repeating git-sync."
+              exit 1
+          fi
+          # TODO: save master, if rebasing fails, make a branch of old master
+          ;;
+  esac
+#+end_src
 * Utility Scripts
 :PROPERTIES:
 :header-args+: :tangle-mode (identity #o755)
@@ -15391,661 +16048,4 @@ Stripping rules are:
 
   CONTENT = html.tostring(ROOT, encoding="utf-8", method='html', pretty_print=True)
   print(CONTENT.decode())
-#+end_src
-* Workflows
-
-** Transcode Video Files
-:PROPERTIES:
-:CREATED:  [2022-09-15 Thu 14:44]
-:END:
-
-Transcoding my local video files with open codec, like VP9 and AV1, is effective for disc space usage.
-
-#+begin_src shell :noweb-ref transc-shared
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  CRF=28
-  KBITRATE_AUDIO=128
-
-  function usage() {
-    cat <<_EOT_
-  Usage:
-    $(basename $0) [OPTIONS] <video_in> [<video_out>]
-
-  Description:
-    $(basename $0) encodes <video_in> to <video_out> in specified codec.
-
-  Options:
-    -c <CRF>      CRF value instead of ${CRF} (DEFAULT)
-    -B <AUDIO_BR> Audio Bitrate in kbps
-
-  _EOT_
-  }
-
-  if [ "${OPTIND}" = 1 ]; then
-    while getopts c:B:h OPT
-    do
-      case ${OPT} in
-      c)
-        CRF=${OPTARG}
-        ;;
-      B)
-        CRF=${OPTARG}
-        ;;
-      h)
-        usage
-        ;;
-      \?)
-        echo "Try to enter the h option." 1>&2
-        ;;
-      esac
-    done
-  else
-    echo "No installed getopts-command." 1>&2
-    exit 1
-  fi
-
-  shift $((OPTIND - 1))
-
-  if [ $# -lt 1 ] || [ $# -gt 2 ]; then
-    usage
-    exit -1
-  fi
-
-  INPUT_VIDEO=$1
-  if [ ! -e "${INPUT_VIDEO}" ]; then
-    echo "${INPUT_VIDEO} does not exist." 1>&2
-    exit -1
-  fi
-
-  if [[ $# -eq 2 ]]; then
-    output_cand=$2
-  else
-    output_cand=$(basename "${INPUT_VIDEO}").webm
-  fi
-  if [ -e ${output_cand} ]; then
-    OUTPUT_VIDEO=${output_cand%.*}_$(date +%Y%m%d_%H%M).webm
-  else
-    OUTPUT_VIDEO="${output_cand}"
-  fi
-
-  WORK_DIR="${INPUT_VIDEO%.*}"
-#+end_src
-
-*** vp9 transcoding
-
-- transcode video to vp9
-  : $ vp9transc -c 32 video_orig.mkv video_vp9.webm
-
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/vp9transc") :tangle-mode (identity #o555)
-  <<transc-shared>>
-
-  vp9_opts_pass1="-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf ${CRF} -pass 1 -an -f null"
-  vp9_opts_pass2="-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf ${CRF} -pass 2 -map_metadata 0"
-  opus_opts="-c:a libopus -b:a ${KBITRATE_AUDIO}k -ac 2"
-
-  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass1} /dev/null \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${vp9_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
-#+end_src
-*** av1 transcoding
-
-- transcode video to av1
-  : $ av1transc video_orig.mkv video_av1.webm
-
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/av1transc") :tangle-mode (identity #o555)
-  <<transc-shared>>
-
-  av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf ${CRF}"
-  av1_opts_pass1="${av1_opts_common} -pass 1 -an -f null"
-  av1_opts_pass2="${av1_opts_common} -pass 2 -map_metadata 0"
-  opus_opts="-c:a libopus -b:a ${KBITRATE_AUDIO}k -ac 2"
-
-  mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}" \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass1} /dev/null \
-    && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
-#+end_src
-
-** Transcode Audio Files
-
-- usage
-  + encode bulk podcast files for 64kb/s (in Dired)
-    : $ nohup parallel opusencode "{}" "{.}".oga ::: *
-
-#+begin_src shell :tangle (expand-file-name ".local/bin/opusencode") :tangle-mode (identity #o555)
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  if [[ $# -ge 1 ]]; then
-    INPUT_VIDEO=$1
-    if [[ $# -eq 2 ]]; then
-      OUTPUT_VIDEO=$2
-    else
-      OUTPUT_VIDEO=$(basename "${INPUT_VIDEO}").oga
-    fi
-  fi
-
-  opus_opts="-c:a libopus -b:a 64k -ac 2"
-
-  ffmpeg -i "${INPUT_VIDEO}" ${opus_opts} "${OUTPUT_VIDEO}"
-#+end_src
-
-** DVD Packing
-
-#+begin_src scheme :noweb-ref guix-desktop
-  "handbrake"
-  "dvdbackup"
-  "libdvdnav"
-  "libdvdcss"
-#+end_src
-
-#+begin_src shell :tangle (expand-file-name ".local/bin/dvdpack") :tangle-mode (identity #o555)
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  if [ "${OPTIND}" = 1 ]; then
-    while getopts t: OPT
-    do
-      case ${OPT} in
-      t)
-        TITLE=${OPTARG}
-        ;;
-      esac
-    done
-  else
-    echo "No installed getopts-command." 1>&2
-    exit 1
-  fi
-  shift $((OPTIND - 1))
-
-  if [[ $# -ge 1 ]]; then
-    DVD_DIR=$1
-    if [[ $# -eq 2 ]]; then
-      DVD_PACK_VIDEO=$2
-    else
-      DVD_PACK_VIDEO=$(basename "${DVD_DIR}").mkv
-    fi
-  fi
-
-  if [ -v TITLE ]; then
-    title_opt="--title ${TITLE}"
-  else
-    title_opt='--main-feature'
-  fi
-
-  hb_opts="--x264-preset veryslow --quality 18 --aencoder copy ${title_opt} --markers --all-audio --all-subtitles"
-
-  HandBrakeCLI --input "${DVD_DIR}" --output "${DVD_PACK_VIDEO}" ${hb_opts}
-#+end_src
-** CD Ripping
-
-#+begin_src scheme :noweb-ref guix-desktop
-  "abcde"
-  "eyed3"
-  "lame"
-  "opus-tools"
-  "cdrtools"
-  "easytag"
-#+end_src
-
-*** abcde
-
-#+BEGIN_SRC conf :tangle (expand-file-name ".abcde.conf")
-  # .flac is only desired output format
-  OUTPUTTYPE="flac"
-  # or .flac and .opus (bitrate is 256 kbps) will be generated at the same time
-  # OUTPUTTYPE="flac,opus"
-  # OPUSENCOPTS='--bitrate 256'
-
-  # .flac files will be utterly compressed with verification
-  FLACOPTS="-V8"
-
-  MAXPROCS=4
-
-  OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
-#+END_SRC
-
-** Tutorial Video Creation
-:PROPERTIES:
-:CREATED:  [2022-08-15 Mon 20:13]
-:END:
-
-#+begin_src scheme :noweb-ref guix-creative
-  "slop"
-  "gimp"
-  "obs"
-  "kdenlive"
-  "audacity"
-#+end_src
-
-*** Screenkey
-:PROPERTIES:
-:CREATED:  [2023-03-19 Sun 16:43]
-:END:
-
-#+begin_src scheme :noweb-ref guix-creative
-  "python-screenkey"
-#+end_src
-
-#+begin_src json :tangle no :tangle (expand-file-name ".config/screenkey.json")  :tangle-mode (identity #o644)
-  {"no_systray": false, "timeout": 0.5, "recent_thr": 0.1, "compr_cnt": 3, "ignore": [], "position": "bottom", "persist": false, "font_desc": "Sans Bold", "font_size": "medium", "font_color": "white", "bg_color": "black", "opacity": 0.9, "key_mode": "composed", "bak_mode": "baked", "mods_mode": "emacs", "mods_only": false, "multiline": false, "vis_shift": true, "vis_space": true, "geometry": null, "screen": 0, "start_disabled": false, "mouse": false, "button_hide_duration": 2.0}
-#+end_src
-
-** Sync Git Repos Automatically
-:PROPERTIES:
-:CREATED:  [2022-09-26 Mon 16:43]
-:END:
-
-#+begin_src conf :noweb-ref cronjob-pc
-  0 */2 * * * /bin/bash -ci "ghq-sync >> $LOG_DIR/ghq-sync.log 2>&1"
-#+end_src
-
-#+begin_src shell :tangle (expand-file-name ".local/bin/ghq-sync") :shebang #!/usr/bin/env bash :tangle-mode (identity #o500)
-  ghq_repos=$(ghq list --full-path)
-  for repo_path in ${ghq_repos[@]}; do
-    cd ${repo_path} && \
-      (
-        git-sync check && git-sync
-      )
-  done
-#+end_src
-
-*** git-sync
-:PROPERTIES:
-:CREATED:  [2022-09-26 Mon 15:14]
-:END:
-
-[[https://github.com/simonthum/git-sync][git-sync]] enables to sync (stage, commit and pull/push) git repositories. I use it for my org-file repo in daily basis.
-
-#+begin_src gitconfig :noweb-ref git-config
-  [branch "main"]
-          syncCommitMsg = "on $(LC_TIME=en_GB.UTF-8 date) from $(uname -n)"
-#+end_src
-
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/git-sync") :tangle-mode (identity #o755)
-  #!/usr/bin/env bash
-  #
-  # git-sync
-  #
-  # synchronize tracking repositories
-  #
-  # 2012-20 by Simon Thum and contributors
-  # Licensed as: CC0
-  #
-  # This script intends to sync via git near-automatically
-  # in "tracking" repositories where a nice history is not
-  # crucial, but having one at all is.
-  #
-  # Unlike the myriad of scripts to do just that already available,
-  # it follows the KISS principle: It is small, requires nothing but
-  # git and bash, but does not even try to shield you from git.
-  #
-  # Mode sync (default)
-  #
-  # Sync will likely get from you from a dull normal git repo with trivial
-  # changes to an updated dull normal git repo equal to origin. No more,
-  # no less. The intent is to do everything that's needed to sync
-  # automatically, and resort to manual intervention as soon
-  # as something non-trivial occurs. It is designed to be safe
-  # in that it will likely refuse to do anything not known to
-  # be safe.
-  #
-  # Mode check
-  #
-  # Check only performs the basic checks to make sure the repository
-  # is in an orderly state to continue syncing, i.e. committing
-  # changes, pull etc. without losing any data. When check returns
-  # 0, sync can start immediately. This does not, however, indicate
-  # that syncing is at all likely to succeed.
-
-  # command used to auto-commit file modifications
-  DEFAULT_AUTOCOMMIT_CMD="git add -u ; git commit -m \"%message\";"
-
-  # command used to auto-commit all changes
-  ALL_AUTOCOMMIT_CMD="git add -A ; git commit -m \"%message\";"
-
-  # default commit message substituted into autocommit commands
-  DEFAULT_AUTOCOMMIT_MSG="changes from $(uname -n) on $(date)"
-
-
-  # AUTOCOMMIT_CMD="echo \"Please commit or stash pending changes\"; exit 1;"
-  # TODO mode for stash push & pop
-
-  print_usage() {
-      cat << EOF
-  usage: $0 [-h] [-n] [-s] [MODE]
-
-  Synchronize the current branch to a remote backup
-  MODE may be either "sync" (the default) or "check", to verify that the branch is ready to sync
-
-  OPTIONS:
-     -h      Show this message
-     -n      Commit new files even if branch.\$branch_name.syncNewFiles isn't set
-     -s      Sync the branch even if branch.\$branch_name.sync isn't set
-  EOF
-  }
-  sync_new_files_anyway="false"
-  sync_anyway="false"
-
-  while getopts "hns" opt ; do
-      case $opt in
-          h )
-              print_usage
-              exit 0
-              ;;
-          n )
-              sync_new_files_anyway="true"
-              ;;
-          s )
-              sync_anyway="true"
-              ;;
-      esac
-  done
-  shift $((OPTIND-1))
-
-  #
-  #    utility functions, some adapted from git bash completion
-  #
-
-  __log_msg()
-  {
-      echo git-sync: $1
-  }
-
-  # echo the git dir
-  __gitdir()
-  {
-          if [ "true" = "$(git rev-parse --is-inside-work-tree "$PWD" | head -1)" ]; then
-                  git rev-parse --git-dir "$PWD" 2>/dev/null
-          fi
-  }
-
-  # echos repo state
-  git_repo_state ()
-  {
-          local g="$(__gitdir)"
-          if [ -n "$g" ]; then
-                  if [ -f "$g/rebase-merge/interactive" ]; then
-                          echo "REBASE-i"
-                  elif [ -d "$g/rebase-merge" ]; then
-                          echo "REBASE-m"
-                  else
-                          if [ -d "$g/rebase-apply" ]; then
-                                  echo "AM/REBASE"
-                          elif [ -f "$g/MERGE_HEAD" ]; then
-                                  echo "MERGING"
-                          elif [ -f "$g/CHERRY_PICK_HEAD" ]; then
-                                  echo "CHERRY-PICKING"
-                          elif [ -f "$g/BISECT_LOG" ]; then
-                                  echo "BISECTING"
-                          fi
-                  fi
-                  if [ "true" = "$(git rev-parse --is-inside-git-dir 2>/dev/null)" ]; then
-                          if [ "true" = "$(git rev-parse --is-bare-repository 2>/dev/null)" ]; then
-                                  echo "|BARE"
-                          else
-                                  echo "|GIT_DIR"
-                          fi
-                  elif [ "true" = "$(git rev-parse --is-inside-work-tree 2>/dev/null)" ]; then
-                          git diff --no-ext-diff --quiet --exit-code || echo "|DIRTY"
-  #			if [ -n "${GIT_PS1_SHOWSTASHSTATE-}" ]; then
-  #			        git rev-parse --verify refs/stash >/dev/null 2>&1 && s="$"
-  #			fi
-  #
-  #			if [ -n "${GIT_PS1_SHOWUNTRACKEDFILES-}" ]; then
-  #			   if [ -n "$(git ls-files --others --exclude-standard)" ]; then
-  #			      u="%"
-  #			   fi
-  #			fi
-  #
-  #			if [ -n "${GIT_PS1_SHOWUPSTREAM-}" ]; then
-  #				__git_ps1_show_upstream
-  #			fi
-                  fi
-          else
-              echo "NOGIT"
-          fi
-  }
-
-  # check if we only have untouched, modified or (if configured) new files
-  check_initial_file_state()
-  {
-      local syncNew="$(git config --get --bool branch.$branch_name.syncNewFiles)"
-      if [[ "true" == "$syncNew" || "true" == "$sync_new_files_anyway" ]]; then
-          # allow for new files
-          if [ ! -z "$(git status --porcelain | grep -E '^[^ \?][^M\?] *')" ]; then
-              echo "NonNewOrModified"
-          fi
-      else
-          # also bail on new files
-          if [ ! -z "$(git status --porcelain | grep -E '^[^ ][^M] *')" ]; then
-              echo "NotOnlyModified"
-          fi
-      fi
-  }
-
-  # look for local changes
-  # used to decide if autocommit should be invoked
-  local_changes()
-  {
-      if [ ! -z "$(git status --porcelain | grep -E '^(\?\?|[MARC] |[ MARC][MD])*')" ]; then
-          echo "LocalChanges"
-      fi
-  }
-
-  # determine sync state of repository, i.e. how the remote relates to our HEAD
-  sync_state()
-  {
-      local count="$(git rev-list --count --left-right $remote_name/$branch_name...HEAD)"
-
-      case "$count" in
-          "") # no upstream
-              echo "noUpstream"
-              false
-              ;;
-          "0	0")
-              echo "equal"
-              true
-              ;;
-          "0	"*)
-              echo "ahead"
-              true
-              ;;
-          ,*"	0")
-              echo "behind"
-              true
-              ;;
-          ,*)
-              echo "diverged"
-              true
-              ;;
-      esac
-  }
-
-  # exit, issue warning if not in sync
-  exit_assuming_sync() {
-      if [ "equal" == "$(sync_state)" ] ; then
-          __log_msg "In sync, all fine."
-          exit 0;
-      else
-          __log_msg "Synchronization FAILED! You should definitely check your repository carefully!"
-          __log_msg "(Possibly a transient network problem? Please try again in that case.)"
-          exit 3
-      fi
-  }
-
-  #
-  #        Here git-sync actually starts
-  #
-
-  # first some sanity checks
-  rstate="$(git_repo_state)"
-  if [[ -z "$rstate" || "|DIRTY" = "$rstate" ]]; then
-      __log_msg "Preparing. Repo in $(__gitdir)"
-  elif [[ "NOGIT" = "$rstate" ]] ; then
-      __log_msg "No git repository detected. Exiting."
-      exit 128 # matches git's error code
-  else
-      __log_msg "Git repo state considered unsafe for sync: $(git_repo_state)"
-      exit 2
-  fi
-
-  # determine the current branch (thanks to stackoverflow)
-  branch_name=$(git symbolic-ref -q HEAD)
-  branch_name=${branch_name##refs/heads/}
-
-  if [ -z "$branch_name" ] ; then
-      __log_msg "Syncing is only possible on a branch."
-      git status
-      exit 2
-  fi
-
-  # while at it, determine the remote to operate on
-  remote_name=$(git config --get branch.$branch_name.pushRemote)
-  if [ -z "$remote_name" ] ; then
-      remote_name=$(git config --get remote.pushDefault)
-  fi
-  if [ -z "$remote_name" ] ; then
-      remote_name=$(git config --get branch.$branch_name.remote)
-  fi
-
-  if [ -z "$remote_name" ] ; then
-      __log_msg "the current branch does not have a configured remote."
-      echo
-      __log_msg "Please use"
-      echo
-      __log_msg "  git branch --set-upstream-to=[remote_name]/$branch_name"
-      echo
-      __log_msg "replacing [remote_name] with the name of your remote, i.e. - origin"
-      __log_msg "to set the remote tracking branch for git-sync to work"
-      exit 2
-  fi
-
-  # check if current branch is configured for sync
-  if [[ "true" != "$(git config --get --bool branch.$branch_name.sync)" && "true" != "$sync_anyway" ]] ; then
-      echo
-      __log_msg "Please use"
-      echo
-      __log_msg "  git config --bool branch.$branch_name.sync true"
-      echo
-      __log_msg "to enlist branch $branch_name for synchronization."
-      __log_msg "Branch $branch_name has to have a same-named remote branch"
-      __log_msg "for git-sync to work."
-      echo
-      __log_msg "(If you don't know what this means, you should change that"
-      __log_msg "before relying on this script. You have been warned.)"
-      echo
-      exit 1
-  fi
-
-  # determine mode
-  if [[ -z "$1" || "$1" == "sync" ]]; then
-      mode="sync"
-  elif [[ "check" == "$1" ]]; then
-      mode="check"
-  else
-      __log_msg "Mode $1 not recognized"
-      exit 100
-  fi
-
-  __log_msg "Mode $mode"
-
-  __log_msg "Using $remote_name/$branch_name"
-
-  # check for intentionally unhandled file states
-  if [ ! -z "$(check_initial_file_state)" ] ; then
-      __log_msg "There are changed files you should probably handle manually."
-      git status
-      exit 1
-  fi
-
-  # if in check mode, this is all we need to know
-  if [ $mode == "check" ] ; then
-      __log_msg "check OK; sync may start."
-      exit 0
-  fi
-
-  # check if we have to commit local changes, if yes, do so
-  if [ ! -z "$(local_changes)" ]; then
-      autocommit_cmd=""
-      config_autocommit_cmd="$(git config --get branch.$branch_name.autocommitscript)"
-
-      # discern the three ways to auto-commit
-      if [ ! -z "$config_autocommit_cmd" ]; then
-          autocommit_cmd="$config_autocommit_cmd"
-      elif [[ "true" == "$(git config --get --bool branch.$branch_name.syncNewFiles)" || "true" == "$sync_new_files_anyway" ]]; then
-          autocommit_cmd=${ALL_AUTOCOMMIT_CMD}
-      else
-          autocommit_cmd=${DEFAULT_AUTOCOMMIT_CMD}
-      fi
-
-      commit_msg="$(git config --get branch.$branch_name.syncCommitMsg)"
-      if [ "" == "$commit_msg" ]; then
-        commit_msg=${DEFAULT_AUTOCOMMIT_MSG}
-      fi
-      autocommit_cmd=$(echo "$autocommit_cmd" | sed "s/%message/$commit_msg/")
-
-      __log_msg "Committing local changes using ${autocommit_cmd}"
-      eval $autocommit_cmd
-
-      # after autocommit, we should be clean
-      rstate="$(git_repo_state)"
-      if [[ ! -z "$rstate" ]]; then
-          __log_msg "Auto-commit left uncommitted changes. Please add or remove them as desired and retry."
-          exit 1
-      fi
-  fi
-
-  # fetch remote to get to the current sync state
-  # TODO make fetching/pushing optional
-  __log_msg "Fetching from $remote_name/$branch_name"
-  git fetch $remote_name $branch_name
-  if [ $? != 0 ] ; then
-      __log_msg "git fetch $remote_name returned non-zero. Likely a network problem; exiting."
-      exit 3
-  fi
-
-  case "$(sync_state)" in
-  "noUpstream")
-          __log_msg "Strange state, you're on your own. Good luck."
-          exit 2
-          ;;
-  "equal")
-          exit_assuming_sync
-          ;;
-  "ahead")
-          __log_msg "Pushing changes..."
-          git push $remote_name $branch_name:$branch_name
-          if [ $? == 0 ]; then
-              exit_assuming_sync
-          else
-              __log_msg "git push returned non-zero. Likely a connection failure."
-              exit 3
-          fi
-          ;;
-  "behind")
-          __log_msg "We are behind, fast-forwarding..."
-          git merge --ff --ff-only $remote_name/$branch_name
-          if [ $? == 0 ]; then
-              exit_assuming_sync
-          else
-              __log_msg "git merge --ff --ff-only returned non-zero ($?). Exiting."
-              exit 2
-          fi
-          ;;
-  "diverged")
-          __log_msg "We have diverged. Trying to rebase..."
-          git rebase $remote_name/$branch_name
-          if [[ $? == 0 && -z "$(git_repo_state)" && "ahead" == "$(sync_state)" ]] ; then
-              __log_msg "Rebasing went fine, pushing..."
-              git push $remote_name $branch_name:$branch_name
-              exit_assuming_sync
-          else
-              __log_msg "Rebasing failed, likely there are conflicting changes. Resolve them and finish the rebase before repeating git-sync."
-              exit 1
-          fi
-          # TODO: save master, if rebasing fails, make a branch of old master
-          ;;
-  esac
 #+end_src
