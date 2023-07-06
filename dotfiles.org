@@ -2073,6 +2073,7 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
 
 #+begin_src emacs-lisp
   (customize-set-variable 'yank-pop-change-selection t)
+  (customize-set-variable 'delete-active-region 'kill)
 #+end_src
 
 ****** Undo
@@ -2110,6 +2111,7 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
   (use-package bookmark
     :bind ("C-x 5 B" . bookmark-jump-other-frame)
     :custom
+    (bookmark-save-flag 1)
     (bookmark-menu-confirm-deletion t)
     (bookmark-watch-bookmark-file 'silent))
 #+end_src
@@ -2244,7 +2246,8 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (customize-set-variable 'cycle-spacing-actions
                           '(delete-all-space just-one-space restore))
   ;; delsel
-  (customize-set-variable 'delete-selection-mode t) ; inserted text replaces the text in region
+  ;;; delete rather than insert the text in region if hit single char
+  (customize-set-variable 'delete-selection-mode t)
   ;; files
   (customize-set-variable 'mode-require-final-newline 'visit-save)
   (customize-set-variable 'make-backup-files nil)
@@ -3596,6 +3599,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
                  (if (= (user-uid) 0) "# " "$ "))))
     (eshell-prompt-regexp "[#$] ")
     (eshell-visual-subcommands '(("git" "log" "diff" "show")))
+    (eshell-scroll-to-bottom-on-input 'this)
     :config
     (setq eshell-path-env (getenv "PATH")))
 
