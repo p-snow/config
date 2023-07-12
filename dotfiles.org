@@ -1382,8 +1382,9 @@ Settings in this section are influenced a great deal by my personal preference. 
 #+begin_src emacs-lisp
   (cond
    ((string= window-system "x")
-    (setf x-alt-keysym  'alt
-          x-meta-keysym 'meta))
+    (setf x-meta-keysym 'meta
+          x-alt-keysym 'meta
+          x-super-keysym 'hyper))
    ((string= window-system "ns")
     ;; IME inline patch
     (setf mac-use-input-method-on-system nil)
@@ -6343,7 +6344,10 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
   (use-package free-keys
     :after my-invoke-command
     :bind (:map my/invoke-command-map
-                ("f" . free-keys)))
+                ("f" . free-keys))
+    :config
+    (setq free-keys-modifiers (append free-keys-modifiers
+                                      '("H"))))
 #+end_src
 
 ***** consult-recoll               :docs:convenience:
