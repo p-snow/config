@@ -3637,12 +3637,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :bind (("C-o C-s" . org-save-all-org-buffers)
            ("C-o i" . org-info-find-node)
            ("C-o &" . org-mark-ring-goto))
-    ;; :config
-    ;; (add-hook 'org-log-buffer-setup-hook
-    ;;           (lambda ()
-    ;;             (setq skk-dcomp-activate 'eolp)
-    ;;             (setq skk-dcomp-multiple-activate nil)))
-    )
+    :config
+    (bind-keys :map org-mode-map
+               ("C-c F" . org-next-block)
+               ("C-c B" . org-previous-block)))
 
   (defvar my/org-todo-keyword--urgent "UG"
     "TODO keyword acronym standing for 'UrGent'")
@@ -4045,55 +4043,21 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   ;; org speed command settings
   (customize-set-variable 'org-use-speed-commands
                           (lambda () (and (looking-at org-outline-regexp) (looking-back "^\**"))))
-  (customize-set-variable
-   'org-speed-commands
-   '(("Outline Navigation")
-     ("n" . (org-speed-move-safe 'org-next-visible-heading))
-     ("p" . (org-speed-move-safe 'org-previous-visible-heading))
-     ("f" . (org-speed-move-safe 'org-forward-heading-same-level))
-     ("b" . (org-speed-move-safe 'org-backward-heading-same-level))
-     ("F" . org-next-block)
-     ("B" . org-previous-block)
-     ("u" . (org-speed-move-safe 'outline-up-heading))
-     ("j" . org-goto)
-     ("Outline Visibility")
-     ("c" . org-ctrl-c-tab)
-     ("C" . org-shifttab)
-     (" " . org-display-outline-path)
-     ("N" . my/toggle-narrow-dwim)
-     ("z" . org-toggle-narrow-to-subtree)
-     ("=" . org-columns)
-     ("/" . org-sparse-tree)
-     ("Outline Structure Editing")
-     ("U" . org-metaup)
-     ("D" . org-metadown)
-     ("r" . org-metaright)
-     ("l" . org-metaleft)
-     ("R" . org-shiftmetaright)
-     ("L" . org-shiftmetaleft)
-     ("i" . (progn (forward-char 1) (call-interactively 'org-insert-heading-respect-content)))
-     ("^" . org-sort)
-     ("w" . org-refile)
-     ("a" . org-archive-subtree-default-with-confirmation)
-     ("@" . org-mark-subtree)
-     ("#" . org-toggle-comment)
-     ("Meta Data Editing")
-     ("t" . org-todo)
-     ("," . (org-priority))
-     ("0" . (org-priority ?\ ))
-     (":" . org-set-tags-command)
-     ("P" . org-set-property)
-     ("e" . org-set-effort)
-     ("E" . org-inc-effort)
-     ("s" . org-schedule)
-     ("d" . org-deadline)
-     ("Org Capture")
-     ("Misc")
-     ("$" . org-archive-subtree)
-     ("o" . org-open-at-point)
-     ("?" . org-speed-command-help)
-     ("<" . (org-agenda-set-restriction-lock 'subtree))
-     (">" . (org-agenda-remove-restriction-lock))))
+
+  (with-eval-after-load 'org-keys
+    (add-to-list 'org-speed-commands
+                 '("Additional")
+                 t)
+    (cl-labels ((os-set (key command)
+                  (assoc-delete-all key org-speed-commands)
+                  (add-to-list 'org-speed-commands
+                               (cons key command)
+                               t)))
+      (os-set "j" #'org-insert-heading)
+      (os-set "s" #'org-schedule)
+      (os-set "d" #'org-deadline)
+      (os-set "N" #'org-toggle-narrow-to-subtree)
+      (os-set "$" #'org-archive-subtree)))
 #+end_src
 
 ******* Org Edit Structure
@@ -8749,6 +8713,8 @@ Removing zero time clock log makes sense that you can exclude undesirable line. 
     "b" #'org-backward-element
     ">" #'org-next-link
     "<" #'org-previous-link
+    "F" #'org-next-block
+    "B" #'org-previous-block
     "M-f" #'org-next-block
     "M-b" #'org-previous-block
     "M-n" #'org-babel-next-src-block
@@ -8846,8 +8812,9 @@ These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea
              (org-clock-cancel)))
       (org-clock-in)))
 
-  (bind-keys ("C-o V" . my/org-clock-supersede))
-  (setf (map-elt org-speed-commands "V") #'my/org-clock-supersede)
+  (with-eval-after-load 'org-keys
+    (bind-keys ("C-o V" . my/org-clock-supersede))
+    (setf (map-elt org-speed-commands "V") #'my/org-clock-supersede))
 #+end_src
 
 ***** notify completion of timer for a task
