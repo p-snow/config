@@ -2774,10 +2774,6 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (add-to-list 'dired-compress-file-suffixes
                  '("\\.tar\\.7z\\'" "" "7z x -so %i | tar xf -")))
 
-  (use-package dired-async
-    :config
-    (dired-async-mode 1))
-
   (defun my/advice-dired-control-deletion (oldfun &rest r)
     "Enable file deleting functions to control deleting procedure
   whether files are going to be in trash box."
@@ -6008,6 +6004,22 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 **** sundry 3rd-party packages
 
 Packages below are out of categories above. Packages which have ARCHIVE tag is no longer in use. Keywords which package gives in its description are set to tag.
+
+***** async
+:PROPERTIES:
+:CREATED:  [2023-07-15 Sat 08:18]
+:END:
+
+#+begin_src scheme :noweb-ref guix-emacs
+  "emacs-async"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package dired-async
+    :after dired
+    :config
+    (dired-async-mode 1))
+#+end_src
 
 ***** visible-mark              :marking:faces:color:
 :PROPERTIES:
