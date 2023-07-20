@@ -3337,8 +3337,6 @@ Command in practice presumably looks like:
     (elfeed-enclosure-default-dir "~/Downloads/")
     (elfeed-save-multiple-enclosures-without-asking t)
     :config
-    (setf elfeed-search-print-entry-function
-          'my/elfeed-search-print-entry)
     (defalias 'elfeed-search-tag-all-unchecked
       (elfeed-expose #'elfeed-search-tag-all 'unchecked)
       "Add the `unchecked' tag to all selected entries.")
@@ -3380,34 +3378,6 @@ Command in practice presumably looks like:
                ("D=" . elfeed-search-show-media-duration))
     (add-to-list 'elfeed-search-face-alist '(unchecked elfeed-search-unchecked-title-face))
     (add-to-list 'elfeed-search-face-alist '(checked elfeed-search-checked-title-face)))
-
-  (defun my/elfeed-search-print-entry (entry)
-    "Print ENTRY to the buffer with my style."
-    (let* ((date (elfeed-search-format-date (elfeed-entry-date entry)))
-           (title (or (elfeed-meta entry :title) (elfeed-entry-title entry) ""))
-           (title-faces (elfeed-search--faces (elfeed-entry-tags entry)))
-           (feed (elfeed-entry-feed entry))
-           (feed-title
-            (when feed
-              (or (elfeed-meta feed :title) (elfeed-feed-title feed))))
-           (tags (mapcar #'symbol-name (elfeed-entry-tags entry)))
-           (tags-str (mapconcat
-                      (lambda (s) (propertize s 'face 'elfeed-search-tag-face))
-                      tags ","))
-           (title-width (- (window-width) 10 elfeed-search-trailing-width))
-           (title-column (elfeed-format-column
-                          title (elfeed-clamp
-                                 elfeed-search-title-min-width
-                                 title-width
-                                 elfeed-search-title-max-width)
-                          :left)))
-      (when feed-title
-        (insert (propertize (elfeed-format-column feed-title 6 :left)
-                            'face 'elfeed-search-feed-face) " "))
-      (insert (propertize title-column 'face title-faces 'kbd-help title) " ")
-      (insert (propertize date 'face 'elfeed-search-date-face) " ")
-      (when tags
-        (insert "(" tags-str ")"))))
 
   (defun elfeed-search-open-url ()
     "Visit the current entry in your browser using 'eww-browse-url'."
@@ -3453,6 +3423,72 @@ Command in practice presumably looks like:
            (url (or (caar (elfeed-entry-enclosures entry))
                     (elfeed-entry-link entry))))
       (show-media-duration url)))
+#+end_src
+
+***** elfeed-score
+:PROPERTIES:
+:CREATED:  [2023-07-20 Thu 09:26]
+:END:
+
+#+begin_src scheme :noweb-ref guix-emacs
+  "emacs-elfeed-score"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package elfeed-score
+    :after elfeed
+    :custom
+    (elfeed-score-serde-score-file
+     (expand-file-name "elfeed.score" user-emacs-directory-default))
+    (elfeed-score-rule-stats-file
+     (expand-file-name "elfeed.stats" user-emacs-directory))
+    (elfeed-score-score-format '("%d " 3 :right))
+    :config
+    (elfeed-score-enable)
+    (setq elfeed-search-sort-function #'my/elfeed-score-sort-descending)
+    (setq elfeed-search-print-entry-function #'my/elfeed-score-search-print-entry)
+    (define-key elfeed-search-mode-map "=" elfeed-score-map)
+    :preface
+    (defun my/elfeed-score-sort-descending (a b)
+      "Return non-nil if A should sort after B."
+      (let ((a-score (elfeed-score-scoring-get-score-from-entry a))
+            (b-score (elfeed-score-scoring-get-score-from-entry b)))
+        (if (< a-score b-score)
+            t
+          (let ((a-date (elfeed-entry-date a))
+                (b-date (elfeed-entry-date b)))
+            (and (eq a-score b-score) (> a-date b-date))))))
+    (defun my/elfeed-score-search-print-entry (entry)
+      "Print ENTRY to the buffer with my style."
+      (let* ((date (elfeed-search-format-date (elfeed-entry-date entry)))
+             (title (or (elfeed-meta entry :title) (elfeed-entry-title entry) ""))
+             (title-faces (elfeed-search--faces (elfeed-entry-tags entry)))
+             (feed (elfeed-entry-feed entry))
+             (feed-title
+              (when feed
+                (or (elfeed-meta feed :title) (elfeed-feed-title feed))))
+             (tags (mapcar #'symbol-name (elfeed-entry-tags entry)))
+             (tags-str (mapconcat
+                        (lambda (s) (propertize s 'face 'elfeed-search-tag-face))
+                        tags ","))
+             (title-width (- (window-width) 10 elfeed-search-trailing-width))
+             (title-column (elfeed-format-column
+                            title (elfeed-clamp
+                                   elfeed-search-title-min-width
+                                   title-width
+                                   elfeed-search-title-max-width)
+                            :left))
+             (score
+              (elfeed-score-format-score
+               (elfeed-score-scoring-get-score-from-entry entry))))
+        (insert score)
+        (when feed-title
+          (insert (propertize (elfeed-format-column feed-title 6 :left)
+                              'face 'elfeed-search-feed-face) " "))
+        (insert (propertize title-column 'face title-faces 'kbd-help title) " ")
+        (insert (propertize date 'face 'elfeed-search-date-face) " ")
+        (when tags
+          (insert "(" tags-str ")")))))
 #+end_src
 
 ***** elfeed-org
