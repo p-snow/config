@@ -915,6 +915,9 @@ GnuPG - ArchWiki]]
            held: Ctrl_R
            alone: KEY_ENTER
            alone_timeout_millis: 500
+     - name: RightAlt
+       remap:
+         Alt_R: Super_L
      - name: ThumbShift
        remap:
          Space:
@@ -5023,6 +5026,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
            ("M-s G" . consult-git-grep)
            ("M-s r" . consult-ripgrep)
            ("M-s l" . consult-line)
+           ("H-s" . consult-line)
            ("M-s L" . consult-line-multi)
            ("M-s m" . consult-multi-occur)
            ("M-s k" . consult-keep-lines)
@@ -6835,17 +6839,19 @@ Tree-sitter module for Elisp had been incorporated into Emacs core since Emacs 2
 
 #+begin_src emacs-lisp
   (use-package avy
+    :preface
+    (defun avy-action-embark (pt)
+      (unwind-protect
+          (save-excursion
+            (goto-char pt)
+            (embark-act))
+        (select-window
+         (cdr (ring-ref avy-ring 0))))
+      t)
     :config
-    (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark))
-
-  (defun avy-action-embark (pt)
-    (unwind-protect
-        (save-excursion
-          (goto-char pt)
-          (embark-act))
-      (select-window
-       (cdr (ring-ref avy-ring 0))))
-    t)
+    (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark)
+    (bind-keys ("M-g g" . avy-goto-line)
+               ("H-g" . avy-goto-line)))
 #+end_src
 
 ****** avy-migemo
@@ -6853,8 +6859,10 @@ Tree-sitter module for Elisp had been incorporated into Emacs core since Emacs 2
 #+begin_src emacs-lisp
   (use-package avy-migemo
     :ensure t
+    :after migemo
     :bind (("M-g M-a" . avy-migemo-goto-char-timer)
            ("M-g a" . avy-migemo-goto-char-timer)
+           ("H-a" . avy-migemo-goto-char-timer)
            :map isearch-mode-map
            ("M-a" . avy-migemo-isearch)))
 #+end_src
