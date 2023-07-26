@@ -7192,14 +7192,12 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
     :custom
     (global-undo-tree-mode t)
     (undo-tree-enable-undo-in-region t)
-    (undo-tree-auto-save-history nil)
     (undo-tree-limit 320000)
     (undo-tree-strong-limit 480000)
     (undo-tree-outer-limit 64000000)
     :config
-    (define-key undo-tree-map (kbd "C-?") nil)
-    (add-to-list 'undo-tree-history-directory-alist `("." . ,(expand-file-name "undo-tree" user-emacs-directory)))
-    (setq undo-tree-visualizer-buffer-name "*undo tree*")
+    (add-to-list 'undo-tree-history-directory-alist
+                 `("." . ,(expand-file-name "undo-tree" user-emacs-directory)))
     (add-to-list 'display-buffer-alist
                  `(,undo-tree-visualizer-buffer-name . (display-buffer-in-side-window
                                                         . ((side . right)
