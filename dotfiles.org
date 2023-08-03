@@ -2749,10 +2749,12 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     :config
     (with-eval-after-load 'open-file
       (setq dired-guess-shell-alist-user
-            (list `(,(regexp-opt (append my/open-file-media-extensions
-                                         my/open-file-compressed-media-extensions)
-                                 "\\.\\(")
-                    "mpv"))))
+            `((,(regexp-opt (append my/open-file-media-extensions
+                                    my/open-file-compressed-media-extensions)
+                            "\\.\\(")
+               "mpv")
+              (,(regexp-quote ".kdenlive") "kdenlive")
+              (,(regexp-quote ".xcf") "gimp"))))
     (advice-add #'dired-do-delete :around #'my/advice-dired-control-deletion)
     (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion)
     (put 'dired-find-alternate-file 'disabled nil))
