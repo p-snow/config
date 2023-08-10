@@ -909,15 +909,29 @@ GnuPG - ArchWiki]]
        remap:
          CapsLock: Ctrl_L
          Ctrl_L: CapsLock
-     - name: RightCtrl
+         Ctrl_R: Super_R
+     - name: Enter/Tab as Super
        remap:
          KEY_ENTER:
-           held: Ctrl_R
+           held: Super_L
            alone: KEY_ENTER
            alone_timeout_millis: 500
-     - name: RightAlt
+         KEY_TAB:
+           held: Super_L
+           alone: KEY_TAB
+           alone_timeout_millis: 500
+     - name: SingleQuote as RightCtrl mod
        remap:
-         Alt_R: Super_L
+         KEY_APOSTROPHE:
+           held: Ctrl_R
+           alone: KEY_APOSTROPHE
+           alone_timeout_millis: 500
+     - name: BackSlash as Super mod
+       remap:
+         KEY_BACKSLASH:
+           held: Super_R
+           alone: KEY_BACKSLASH
+           alone_timeout_millis: 500
      - name: ThumbShift
        remap:
          Space:
@@ -1408,15 +1422,15 @@ Settings in this section are influenced a great deal by my personal preference. 
   (global-set-key (kbd "C-c M-d") #'copy-from-above-command)
   (global-set-key (kbd "M-z") #'zap-up-to-char)
 
-  (global-set-key (kbd "C-M-o") #'open-line)
   (global-set-key (kbd "C-c k") #'kill-this-buffer)
   (global-set-key (kbd "C-M-<delete>") #'restart-emacs)
   (global-set-key (kbd "C-M-S-<delete>") #'save-buffers-kill-emacs)
 
-  ;; M-u for `universal-argument'
+  ;; M-u and H-u to `universal-argument' for usability
   (substitute-key-definition 'upcase-word
                              'universal-argument
                              global-map)
+  (global-set-key (kbd "H-u") 'universal-argument)
 
   (substitute-key-definition 'upcase-region
                              'upcase-dwim
@@ -1425,9 +1439,6 @@ Settings in this section are influenced a great deal by my personal preference. 
                              'downcase-dwim
                              global-map)
   (global-set-key (kbd "C-x C-c") #'capitalize-dwim)
-
-
-  (keymap-global-unset "C-o" 'remove)
 #+end_src
 
 - Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
@@ -1923,7 +1934,7 @@ Mouse needs to be unobtrusive in my Emacs experience.
 #+begin_src emacs-lisp
   (use-package battery
     :after my-invoke-command
-    :bind (:map my/invoke-command-map
+    :bind (:map my/launch-app-map
                 ("b" . battery)))
 #+end_src
 
@@ -2531,7 +2542,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+begin_src emacs-lisp
   (use-package net-utils
     :after my-invoke-command
-    :bind (:map my/invoke-command-map
+    :bind (:map my/launch-app-map
                 ("n d" . run-dig)
                 ("n i" . ifconfig)
                 ("n w" . iwconfig)
@@ -2727,7 +2738,6 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
                 ("E" . dired-create-empty-file)
                 ("Y" . dired-do-relsymlink)
                 ("e" . wdired-change-to-wdired-mode)
-                ("C-o" . nil)
                 ("o" . dired-open-file)
                 ("C-c C-o" . dired-open-file)
                 ("C-c C-s" . my/dired-share))
@@ -3599,7 +3609,6 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
                ("M-h" . vterm-send-meta-backspace)
                ("C-y" . vterm-yank)
                ("M-y" . vterm-yank-pop)
-               ("C-o" . nil)
                ("M-l" . nil)
                :map vterm-copy-mode-map
                ("C-j" . vterm-copy-mode-done))
@@ -3674,9 +3683,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org
     :mode ("\\.org$" . org-mode)
-    :bind (("C-o C-s" . org-save-all-org-buffers)
-           ("C-o i" . org-info-find-node)
-           ("C-o &" . org-mark-ring-goto))
+    :commands org-mode
     :config
     (bind-keys :map org-mode-map
                ("C-c F" . org-next-block)
@@ -3740,10 +3747,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-agenda
     :after org
-    :bind (("C-o a" . org-agenda)
-           :map org-agenda-mode-map
-           ("C-j" . org-agenda-switch-to)
-           ("M" . org-agenda-month-view))
+    :bind (:map my/org-global-map
+                ("a" . org-agenda)
+                :map org-agenda-mode-map
+                ("C-j" . org-agenda-switch-to)
+                ("M" . org-agenda-month-view))
     :hook
     (org-agenda-mode . (lambda ()
                          (delete-other-windows)
@@ -3954,7 +3962,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                 (org-clock-sum)
                 (org-clock-sum-today)))
             (org-agenda-files))))
-  (bind-keys ("C-o =" . org-clock-sum-all))
 
   (defun org-get-latest-clock-log-time (pom)
     "Get the latest clock log time stamp in org entry at POM as a time object.
@@ -3986,7 +3993,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-capture
     :after org
-    :bind ("C-o c" . org-capture)
+    :bind (:map my/org-global-map
+                ("c" . org-capture))
     :hook
     (org-capture-mode . delete-other-windows)
     :custom
@@ -4077,7 +4085,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (use-package org-indent
     :after org
     :bind (:map org-mode-map
-                ("C-o TAB" . org-indent-mode))
+                ("C-c C-M-i" . org-indent-mode))
     :hook (org-mode . org-indent-mode))
 
   ;; org speed command settings
@@ -4232,7 +4240,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
            (year (decoded-time-year d)))
       (find-file (file-name-concat org-directory "archive" (format "archive_%d.org" year)))
       (org-datetree-find-iso-week-create `(,month ,day ,year))))
-  (bind-keys ("C-o f" . my/org-archive-find--iso-datetree))
+  (with-eval-after-load 'my-org-global-map
+    (bind-keys :map my/org-global-map
+               ("D" . my/org-archive-find--iso-datetree)))
 #+end_src
 
 ******* Org Inline Tasks
@@ -4320,10 +4330,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-clock-ask-before-exiting nil)
     :config
     (org-clock-persistence-insinuate)
-    (bind-keys ("C-o j" . org-clock-goto)
-               ("C-o I" . org-clock-in)
-               ("C-o O" . org-clock-out)
-               ("C-o X" . org-clock-cancel))
+    (bind-keys :map my/org-global-map
+               ("j" . org-clock-goto)
+               ("I" . org-clock-in)
+               ("O" . org-clock-out)
+               ("X" . org-clock-cancel))
     (with-eval-after-load 'org-keys
       (dolist (elt '(("Clock Commands")
                      ("I" . org-clock-in)
@@ -4421,7 +4432,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package ol
-    :bind ("C-o s" . org-store-link)
+    :bind (:map my/org-global-map
+                ("s" . org-store-link))
     :config
     (org-link-set-parameters "src" :follow #'org-babel-ref-resolve)
     (org-link-set-parameters
@@ -4583,10 +4595,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-transclusion
     :after org
-    :bind (("C-o t a" . org-transclusion-add)
-           ("C-o t A" . org-transclusion-add-all)
-           ("C-o t n" . org-transclusion-make-from-link)
-           ("C-o t t" . org-transclusion-activate)))
+    :bind (:map my/org-global-map
+                ("t a" . org-transclusion-add)
+                ("t A" . org-transclusion-add-all)
+                ("t n" . org-transclusion-make-from-link)
+                ("t t" . org-transclusion-activate)))
 #+end_src
 
 ****** org-edna
@@ -4641,33 +4654,34 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-ql
     :after org
-    :bind (("C-o q q" . org-ql-search)
-           ("C-o q v" . org-ql-view))
+    :bind (:map my/org-global-map
+                ("q q" . org-ql-search)
+                ("q v" . org-ql-view))
     :custom
     (org-ql-search-directories-files-recursive t)
     :config
     (require 'org-ql-search)
     (org-ql-defpred (tags-expanded expanded-tags tags-x xtags) (&rest tags)
-      "Return non-nil if current heading has one or more of TAGS.
+                    "Return non-nil if current heading has one or more of TAGS.
   If TAGS contains a group tag, all tags in the group is used to match.
   Both inherited and local tags is tested."
-      :normalizers ((`(,predicate-names . ,tags)
-                     `(tags-expanded ,@tags)))
-      :body (apply #'org-ql--predicate-tags
-                   (seq-uniq (--mapcat (org-tags-expand it t)
-                                       tags))))
+                    :normalizers ((`(,predicate-names . ,tags)
+                                   `(tags-expanded ,@tags)))
+                    :body (apply #'org-ql--predicate-tags
+                                 (seq-uniq (--mapcat (org-tags-expand it t)
+                                                     tags))))
     (org-ql-defpred (category-inherited) (&rest categories)
-      "Return non-nil if current heading has CATEGORY.
+                    "Return non-nil if current heading has CATEGORY.
   Ancestors are looked up If current heading has no CATEGORY."
-      :body (when-let ((category (or (org-get-category (point))
-                                     (org-entry-get (point) "CATEGORY" t))))
-              (cl-typecase categories
-                (null t)
-                (otherwise (member category categories)))))
+                    :body (when-let ((category (or (org-get-category (point))
+                                                   (org-entry-get (point) "CATEGORY" t))))
+                            (cl-typecase categories
+                              (null t)
+                              (otherwise (member category categories)))))
     (with-eval-after-load 'org-expiry
       (org-ql-defpred expired ()
-        "Return non-nil if the entry is expired."
-        :body (org-expiry-expired-p))))
+                      "Return non-nil if the entry is expired."
+                      :body (org-expiry-expired-p))))
 #+end_src
 
 ****** org-contacts
@@ -4911,11 +4925,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
               'org-web-track-display-values)
         (when (require 'org-ql nil t)
           (org-ql-search
-            org-web-track-files
-            `(property ,org-web-track-url-property)
-            :super-groups '((:tag "book") (:tag "food")
-                            (:tag "tool") (:tag "supply"))
-            :buffer (current-buffer)))))
+           org-web-track-files
+           `(property ,org-web-track-url-property)
+           :super-groups '((:tag "book") (:tag "food")
+                           (:tag "tool") (:tag "supply"))
+           :buffer (current-buffer)))))
     (defun my/org-web-track-mail-chnages ()
       "docstring"
       (when-let* ((changes (org-web-track-update-all t))
@@ -4951,12 +4965,13 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                     eol)))
              '("~/org/agenda/" "~/org/notes/")))
     :config
-    (bind-keys ("C-o T q" . my/org-web-track-ql-view)
-               ("C-o T a" . org-web-track-agenda-view)
-               ("C-o T n" . org-web-track-setup)
-               ("C-o T u" . org-web-track-update)
-               ("C-o T U" . org-web-track-update-all)
-               ("C-o T i" . org-web-track-insert-value-change-table)))
+    (bind-keys :map my/org-global-map
+               ("T q" . my/org-web-track-ql-view)
+               ("T a" . org-web-track-agenda-view)
+               ("T n" . org-web-track-setup)
+               ("T u" . org-web-track-update)
+               ("T U" . org-web-track-update-all)
+               ("T i" . org-web-track-insert-value-change-table)))
 #+end_src
 
 **** Completion
@@ -5012,6 +5027,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp :noweb tangle
   (use-package consult
+    :after my-org-global-map
     :bind (("C-;" . consult-buffer)
            ("C-c m" . consult-mode-command)
            ("C-c r" . consult-recent-file)
@@ -5039,7 +5055,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
            ("M-s u" . consult-focus-lines)
            ("M-s i" . consult-info)
            ("C-x M-#" . consult-theme)
-           ("C-o g" . consult-org-agenda)
+           :map my/org-global-map
+           ("g" . consult-org-agenda)
            :map isearch-mode-map
            ("M-n" . consult-isearch-history)
            ("M-l" . consult-line)
@@ -6261,6 +6278,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
     :custom
     (engine/browser-function 'eww-browse-url)
     :config
+    (engine/set-keymap-prefix (kbd "H-?"))
     (engine-mode 1)
     (defengine google
       "https://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
@@ -6285,7 +6303,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
       :keybinding "m")
     (defengine eijiro
       "https://eow.alc.co.jp/search?q=%s"
-      :keybinding "j")
+      :keybinding "e")
     (defengine weblio
       "https://www.weblio.jp/content/%s"
       :keybinding "l")
@@ -6315,7 +6333,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
            ("C-x M-t k"   . tmr-remove)
            ("C-x M-t s"   . tmr-reschedule)
            ("C-x M-t l"   . tmr-tabulated-view)
-           :map my/invoke-command-map
+           :map my/launch-app-map
            ("t" . tmr)))
 #+end_src
 
@@ -6366,7 +6384,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 #+begin_src emacs-lisp
   (use-package free-keys
     :after my-invoke-command
-    :bind (:map my/invoke-command-map
+    :bind (:map my/launch-app-map
                 ("f" . free-keys))
     :config
     (setq free-keys-modifiers (append free-keys-modifiers
@@ -6467,7 +6485,7 @@ How to use detached.el
   (use-package guix
     :config
     (with-eval-after-load 'my-invoke-command
-      (bind-keys :map my/invoke-command-map
+      (bind-keys :map my/launch-app-map
                  ("x" . guix))))
 #+end_src
 
@@ -7278,7 +7296,7 @@ helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mod
     :ensure t
     :defer t
     :bind (:map engine-mode-prefixed-map
-                ("e" . my/define-word))
+                ("n" . my/define-word))
     :preface
     (defun my/define-word ()
       "docstring"
@@ -7826,7 +7844,7 @@ Major mode for manupulating password store file.
 #+begin_src emacs-lisp
   (use-package app-launcher
     :after my-invoke-command
-    :bind (:map my/invoke-command-map
+    :bind (:map my/launch-app-map
                 ("a" . app-launcher-run-app)))
 #+end_src
 
@@ -8453,12 +8471,12 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
   exit 0
 #+end_src
 
-***** wrap up command invocations in single keymap
+***** wrap up launch app commands in single keymap
 
 #+begin_src emacs-lisp
-  (global-set-key (kbd "M-o")
+  (global-set-key (kbd "H-l")
                   (define-keymap
-                    :prefix 'my/invoke-command-map
+                    :prefix 'my/launch-app-map
                     "e" #'eshell
                     "v" #'my/multi-vterm
                     "D" #'dired-jump
@@ -8662,6 +8680,22 @@ Suport successive deletion with C-h/M-h
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
 :END:
+***** keymap for global org commands
+:PROPERTIES:
+:CREATED:  [2023-08-08 Tue 14:42]
+:END:
+
+#+begin_src emacs-lisp
+  (global-set-key (kbd "H-o")
+                  (define-keymap
+                    :prefix 'my/org-global-map
+                    "S" #'org-save-all-org-buffers
+                    "i" #'org-info-find-node
+                    "l" #'org-mark-ring-goto))
+
+  (provide 'my-org-global-map)
+#+end_src
+
 ***** remove empty clock log unless manually clocked out
 :PROPERTIES:
 :CREATED:  [2023-06-06 Tue 10:23]
@@ -8874,8 +8908,10 @@ These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea
       (org-clock-in)))
 
   (with-eval-after-load 'org-keys
-    (bind-keys ("C-o V" . my/org-clock-supersede))
-    (setf (map-elt org-speed-commands "V") #'my/org-clock-supersede))
+    (with-eval-after-load 'my-org-global-map
+      (bind-keys :map my/org-global-map
+                 ("V" . my/org-clock-supersede))
+      (setf (map-elt org-speed-commands "V") #'my/org-clock-supersede)))
 #+end_src
 
 ***** notify completion of timer for a task
@@ -9011,7 +9047,8 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'org
-    (bind-keys ("C-o b i" . my/org-babel-lob-ingest-all))
+    (bind-keys :map my/org-global-map
+               ("b i" . my/org-babel-lob-ingest-all))
 
     (defvar my/org-babel-lob-ingest-files
       (seq-reduce (lambda (org-files dir)
@@ -10754,13 +10791,15 @@ My workflow for acquiring English words is:
 
 #+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
   (use-package org-drill-english
-    :bind (("C-o e e" . my/org-english-capture)
-           ("C-o e d" . my/org-english-drill)
-           ("C-o e D" . my/org-english-drill-resume)
-           ("C-o e c" . my/cloze-deletion-replace)
-           ("C-o e q" . my/org-english-search)
-           ("C-x ? j" . my/english-japanese-translate)
-           ("C-x ? p" . my/english-pronunciation))
+    :bind (:map my/org-global-map
+                ("e e" . my/org-english-capture)
+                ("e d" . my/org-english-drill)
+                ("e D" . my/org-english-drill-resume)
+                ("e c" . my/cloze-deletion-replace)
+                ("e q" . my/org-english-search)
+                :map engine-mode-prefixed-map
+                ("j" . my/english-japanese-translate)
+                ("p" . my/english-pronunciation))
     :config
     (with-eval-after-load 'denote
       (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
