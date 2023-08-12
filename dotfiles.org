@@ -6252,7 +6252,9 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 
 #+begin_src emacs-lisp :noweb tangle
   (use-package gptel
-    :bind (("C-x / c" . gptel))
+    :after engine-mode
+    :bind (:map engine-mode-prefixed-map
+                ("c" . gptel))
     :custom
     (gptel-api-key "<<openai-api-key()>>")
     (gptel-max-tokens 200)
