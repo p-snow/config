@@ -2637,7 +2637,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (skk-compare-jisyo-size-when-saving t)
     (skk-save-jisyo-instantly t)
     ;; jisyo file/directory
-    (skk-jisyo `(,(expand-file-name "jisyo" skk-dir) . utf-8))
+    (skk-jisyo `(,(expand-file-name "jisyo" skk-dotemacs-dir) . utf-8))
     (skk-backup-jisyo (expand-file-name "jisyo.bak" skk-dir))
     (skk-large-jisyo (expand-file-name "SKK-JISYO.L" skk-get-jisyo-directory))
     (skk-itaiji-jisyo (expand-file-name "SKK-JISYO.itaiji" skk-get-jisyo-directory))
@@ -12513,12 +12513,16 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 
 *** derive unique entries in user-jisyo
 
+#+begin_src conf :noweb yes :noweb-ref cronjob-pc
+  20 0 * * * /bin/bash -ci "skkdic_uniq.sh >> $LOG_DIR/skkdic_uniq.log 2>&1"
+#+end_src
+
 #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/skkdic_uniq.sh") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
   tmp_euc=$(mktemp)
   tmp_utf8=$(mktemp)
   skk_dir=<<share-dir()>>/skk
   skk_get_dir=${skk_dir}/get-jisyo
-  dic_orig=${skk_dir}/jisyo
+  dic_orig=${HOME}/.emacs.d/ddskk/jisyo
   dic_uniq=${skk_dir}/jisyo.uniq
 
   skkdic-expr2 ${skk_get_dir}/SKK-JISYO.* > ${tmp_euc}
