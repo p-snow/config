@@ -6286,7 +6286,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
     :custom
     (engine/browser-function 'eww-browse-url)
     :config
-    (engine/set-keymap-prefix (kbd "H-?"))
+    (engine/set-keymap-prefix (kbd "H-q"))
     (engine-mode 1)
     (defengine google
       "https://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
@@ -8484,7 +8484,7 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
 ***** wrap up launch app commands in single keymap
 
 #+begin_src emacs-lisp
-  (global-set-key (kbd "H-l")
+  (global-set-key (kbd "H-j")
                   (define-keymap
                     :prefix 'my/launch-app-map
                     "e" #'eshell
@@ -8492,7 +8492,6 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
                     "D" #'dired-jump
                     "w" #'eww
                     "m" #'mu4e
-                    "g" #'magit-status
                     "p" #'proced
                     "P" #'list-processes
                     "?" #'woman
@@ -8699,9 +8698,11 @@ Suport successive deletion with C-h/M-h
   (global-set-key (kbd "H-o")
                   (define-keymap
                     :prefix 'my/org-global-map
-                    "S" #'org-save-all-org-buffers
+                    "o" #'org-open-at-point
+                    "C-s" #'org-save-all-org-buffers
                     "i" #'org-info-find-node
-                    "l" #'org-mark-ring-goto))
+                    "l" #'org-mark-ring-goto
+                    "@" #'org-previous-link))
 
   (provide 'my-org-global-map)
 #+end_src
