@@ -903,65 +903,58 @@ GnuPG - ArchWiki]]
 #+end_src
 
 - config file
- #+begin_src yaml :tangle (expand-file-name ".config/xremap/config.yml")
-   modmap:
-     - name: CapsCtrlSwap
-       remap:
-         CapsLock: Ctrl_L
-         Ctrl_L: CapsLock
-         Ctrl_R: Super_R
-     - name: Enter/Tab as Super
-       remap:
-         KEY_ENTER:
-           held: Super_L
-           alone: KEY_ENTER
-           alone_timeout_millis: 500
-         KEY_TAB:
-           held: Super_L
-           alone: KEY_TAB
-           alone_timeout_millis: 500
-     - name: SingleQuote as RightCtrl mod
-       remap:
-         KEY_APOSTROPHE:
-           held: Ctrl_R
-           alone: KEY_APOSTROPHE
-           alone_timeout_millis: 500
-     - name: BackSlash as Super mod
-       remap:
-         KEY_BACKSLASH:
-           held: Super_R
-           alone: KEY_BACKSLASH
-           alone_timeout_millis: 500
-     - name: ThumbShift
-       remap:
-         Space:
-           held: Shift_L
-           alone: Space
-           alone_timeout_millis: 500
-     - name: ShiftParen
-       remap:
-         Shift_L:
-           held: Shift_L
-           alone: KEY_EQUAL
-           alone_timeout_millis: 300
-         Shift_R:
-           held: Shift_R
-           alone: KEY_MINUS
-           alone_timeout_millis: 300
-   keymap:
-     - name: asdf1234
-       exact_match: true
-       remap:
-         C-Shift-a: KEY_1
-         C-Shift-s: KEY_2
-         C-Shift-d: KEY_3
-         C-Shift-f: KEY_4
-         C-Shift-g: KEY_5
-         C-Shift-h: KEY_6
-         C-Shift-j: KEY_7
-         C-Shift-k: KEY_8
-         C-Shift-l: KEY_9
-         C-Shift-semicolon: KEY_0
+  #+begin_src yaml :tangle (expand-file-name ".config/xremap/config.yml")
+    modmap:
+      - name: CapsCtrlSwap
+        remap:
+          CapsLock: Ctrl_L
+          Ctrl_L: CapsLock
+          Ctrl_R: Super_R
+      - name: Enter/Quote as Hyper
+        remap:
+          KEY_ENTER:
+            held: Super_L
+            alone: KEY_ENTER
+            alone_timeout_millis: 500
+          KEY_APOSTROPHE:
+            held: Super_L
+            alone: KEY_APOSTROPHE
+            alone_timeout_millis: 500
+      - name: ThumbShift
+        remap:
+          Space:
+            held: Shift_L
+            alone: Space
+            alone_timeout_millis: 500
+      - name: Left/Right Shift to Equal/Minus
+        remap:
+          Shift_L:
+            held: Shift_L
+            alone: KEY_EQUAL
+            alone_timeout_millis: 300
+          Shift_R:
+            held: Shift_R
+            alone: KEY_MINUS
+            alone_timeout_millis: 300
+    keymap:
+      - name: M-u/H-u to C-u
+        exact_match: true
+        remap:
+          M-KEY_U: Ctrl-KEY_U
+          Super-KEY_U: Ctrl-KEY_U
+      - name: asdf1234
+        exact_match: true
+        remap:
+          C-Shift-a: KEY_1
+          C-Shift-s: KEY_2
+          C-Shift-d: KEY_3
+          C-Shift-f: KEY_4
+          C-Shift-g: KEY_5
+          C-Shift-h: KEY_6
+          C-Shift-j: KEY_7
+          C-Shift-k: KEY_8
+          C-Shift-l: KEY_9
+          C-Shift-semicolon: KEY_0
  #+end_src
 
 **** xremap systemd service
@@ -1425,12 +1418,6 @@ Settings in this section are influenced a great deal by my personal preference. 
   (global-set-key (kbd "C-c k") #'kill-this-buffer)
   (global-set-key (kbd "C-M-<delete>") #'restart-emacs)
   (global-set-key (kbd "C-M-S-<delete>") #'save-buffers-kill-emacs)
-
-  ;; M-u and H-u to `universal-argument' for usability
-  (substitute-key-definition 'upcase-word
-                             'universal-argument
-                             global-map)
-  (global-set-key (kbd "H-u") 'universal-argument)
 
   (substitute-key-definition 'upcase-region
                              'upcase-dwim
