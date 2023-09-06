@@ -8358,9 +8358,9 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
                           "wv*+wa/w"))))
       (format "%s" fmt-quality)))
 
-  (global-set-key (kbd "C-c D v") 'my/download-video)
-  (global-set-key (kbd "C-c D a") 'my/download-audio)
-  (global-set-key (kbd "C-c D =") 'my/show-media-duration)
+  (with-eval-after-load 'my-invoke-command
+    (keymap-set my/launch-app-map (kbd "d")
+                #'my/download-video))
 #+end_src
 
 ***** text to speech
