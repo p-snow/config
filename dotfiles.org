@@ -2294,7 +2294,15 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (use-package epa
     :after epg
     :bind (("C-x : l" . epa-list-keys)
-           ("C-x : L" . epa-list-secret-keys))
+           ("C-x : L" . epa-list-secret-keys)
+           :map dired-mode-map
+           (": E" . my/epa-dired-do-encrypt-armor))
+    :preface
+    (defun my/epa-dired-do-encrypt-armor ()
+      "Encrypt mark files in ASCII armored format."
+      (interactive)
+      (let ((epa-armor t))
+        (epa-dired-do-encrypt)))
     :config
     (setq epa-file-encrypt-to "<<email()>>"))
 #+end_src
