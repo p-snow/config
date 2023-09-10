@@ -8051,6 +8051,52 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 :CREATED:  [2023-01-20 Fri 10:59]
 :END:
 
+***** operate the number at point
+:PROPERTIES:
+:CREATED:  [2023-09-06 Wed 21:53]
+:END:
+
+[[https://www.emacswiki.org/emacs/IncrementNumber][EmacsWiki: Increment Number]]
+
+#+begin_src emacs-lisp
+  (defmacro my/operate-number (operation)
+    `(save-excursion
+       (save-restriction
+         (when (use-region-p)
+           (narrow-to-region (region-beginning) (region-end)))
+         (skip-chars-backward "0-9")
+         (skip-chars-forward "0")
+         (or (looking-at "[0-9]+")
+             (error "No number at point"))
+         (replace-match (number-to-string
+                         (apply ,operation (list (string-to-number (match-string 0)))))))))
+
+  (defun my/increment-number-at-point ()
+    "Increment the number at point.
+
+  If there is a region which embrace a number, that number will be
+  incremented instead."
+    (interactive)
+    (my/operate-number #'1+))
+
+  (defun my/decrement-number-at-point ()
+    "Decrement the number at point.
+
+  If there is a region which embrace a number, that number will be
+  decremented instead."
+    (interactive)
+    (my/operate-number #'1-))
+
+  (global-set-key (kbd "C-x <up>") #'my/increment-number-at-point)
+  (global-set-key (kbd "C-x <down>") #'my/decrement-number-at-point)
+  (defvar-keymap my/operate-number-repeat-map
+    :doc "Keymap to repeat operating a number."
+    :repeat (:enter (my/increment-number-at-point
+                     my/decrement-number-at-point))
+    "<up>" #'my/increment-number-at-point
+    "<down>" #'my/decrement-number-at-point)
+#+end_src
+
 ***** sudo editing
 :PROPERTIES:
 :CREATED:  [2023-01-19 Thu 11:58]
