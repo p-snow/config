@@ -7227,7 +7227,12 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
   d <<share-dir()>>/emacs/undo-tree 0755 - - 3w
 #+end_src
 
-#+begin_src emacs-lisp
+#+name: undo-tree-hist-dir
+#+begin_src emacs-lisp :eval no-export
+  (expand-file-name "undo-tree" user-emacs-directory)
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
   (use-package undo-tree
     :diminish undo-tree-mode
     :init
@@ -7240,7 +7245,7 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
     (undo-tree-outer-limit 64000000)
     :config
     (add-to-list 'undo-tree-history-directory-alist
-                 `("." . ,(expand-file-name "undo-tree" user-emacs-directory)))
+                 '("." . "<<undo-tree-hist-dir()>>"))
     (add-to-list 'display-buffer-alist
                  `(,undo-tree-visualizer-buffer-name . (display-buffer-in-side-window
                                                         . ((side . right)
@@ -11521,9 +11526,10 @@ Provide a function to Build a clock table summing up time by tag.
 
   . ~/.bashrc
 
-  [[ -d $(dirname <<plocate-db()>>) ]] \
-   || mkdir -p $(dirnmae <<plocate-db()>>) \
-     && $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> -e <<open-file-dir()>> -e <<trash-dir()>> -o <<plocate-db()>>
+  mkdir -p $(dirname <<plocate-db()>>) && \
+    $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> -e <<open-file-dir()>> -o <<plocate-db()>> \
+                                                 -e "<<trash-dir()>>" \
+                                                 -e "<<undo-tree-hist-dir()>>"
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-pc
