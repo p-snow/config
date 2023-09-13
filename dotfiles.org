@@ -8656,6 +8656,28 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 :CREATED:  [2022-10-14 Fri 17:43]
 :END:
 
+****** dired subdir repeat map
+:PROPERTIES:
+:CREATED:  [2023-09-13 Wed 11:06]
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'dired
+    (defvar-keymap my/dired-subdir-map
+      :doc "Keymap to repeat commands on dired-subdir."
+      :repeat (:enter (dired-next-subdir
+                       dired-prev-subdir
+                       dired-goto-subdir)
+                      :exit (dired-kill-subdir
+                             dired-open-subdir))
+      "n" #'dired-next-subdir
+      "p" #'dired-prev-subdir
+      "k" #'dired-kill-subdir
+      "g" #'dired-goto-subdir
+      "TAB" #'dired-hide-subdir
+      "RET" #'dired-open-subdir))
+#+end_src
+
 ****** visual cycling repeat map
 :PROPERTIES:
 :CREATED:  [2023-06-20 Tue 11:31]
