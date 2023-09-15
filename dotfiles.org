@@ -7116,10 +7116,12 @@ Handy commands
                       . ((window-height . 5))))))
 #+end_src
 
-***** twittering-mode                   :web:twitter:
+***** twittering-mode           :web:twitter:ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-06-11 Sun 18:37]
 :END:
+
+Twitter API is no longer available thanks to the tyrant.
 
 useful tips:
 - invoke twittering-toggle-show-replied-statuses on "in reply to" state to show replied messages
@@ -7131,16 +7133,16 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
   ("https://github.com/hayamiz/twittering-mode/releases.atom" soft_update)
 #+end_src
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-  ;; "emacs-twittering-mode"
+#+begin_src scheme :tangle no
+  "emacs-twittering-mode"
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb no
   (defvar my/twittering-resource-dir
     (expand-file-name "twmode" user-emacs-directory))
 
   (use-package twittering-mode
-    :ensure t
+    :disabled t
     :delight " TW"
     :commands twit
     :hook
