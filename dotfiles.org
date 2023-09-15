@@ -1630,6 +1630,7 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
     (auto-revert-verbose nil)
     (global-auto-revert-non-file-buffers t)
     (auto-revert-interval 3)
+    (auto-revert-check-vc-info t)
     (global-auto-revert-mode t))
 #+end_src
 
@@ -1720,6 +1721,15 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 ***** Environment
 
 ****** Frames
+******* Fringe
+:PROPERTIES:
+:CREATED:  [2023-09-15 Fri 08:53]
+:END:
+
+#+begin_src emacs-lisp
+  (setq-default indicate-buffer-boundaries 'left)
+#+end_src
+
 ******* Two Column
 :PROPERTIES:
 :CREATED:  [2023-09-07 Thu 10:45]
@@ -1767,6 +1777,7 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
   (customize-set-variable 'text-scale-mode-step 1.0625)
   (customize-set-variable 'highlight-nonselected-windows t)
   (customize-set-variable 'truncate-lines t)
+  (customize-set-variable 'x-underline-at-descent-line nil)
   ;; avoid to break at whitespace in Japanese
   (customize-set-variable 'word-wrap-by-category t)
   ;; suppress curved quotes in docstring (for emacs25)
@@ -1825,7 +1836,8 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
   (define-key minibuffer-mode-map
     (kbd "C-h") #'delete-backward-char)
   (define-key minibuffer-mode-map
-    (kbd "M-h") #'backward-kill-word)
+              (kbd "M-h") #'backward-kill-word)
+  (keymap-set minibuffer-mode-map "TAB" 'minibuffer-complete)
 
   (customize-set-variable 'history-length 300)
   (customize-set-variable 'history-delete-duplicates t)
@@ -1834,7 +1846,8 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
   (customize-set-variable 'read-file-name-completion-ignore-case t)
   (customize-set-variable 'read-minibuffer-restore-windows t)
   (customize-set-variable 'minibuffer-default-prompt-format " [%s]")
-  (customize-set-variable 'completion-cycle-threshold 3)
+  (customize-set-variable 'completion-cycle-threshold 1)
+  (customize-set-variable 'completions-detailed t)
 
   (add-hook 'minibuffer-setup-hook 'my/minibuffer-setup-function)
   (defun my/minibuffer-setup-function ()
@@ -1923,6 +1936,10 @@ Mouse needs to be unobtrusive in my Emacs experience.
     (mouse-1-click-follows-link nil)
     (mouse-highlight nil)
     (mouse-wheel-mode nil))
+
+  (use-package pixel-scroll
+    :custom
+    (pixel-scroll-precision-mode t))
 #+end_src
 
 ****** Hardware
@@ -4143,12 +4160,14 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-special-ctrl-k t)
     (org-ctrl-k-protect-subtree t)
     :config
-    (setq org-structure-template-alist
-          (append org-structure-template-alist
-                  '(("sh" . "src shell")
-                    ("tx" . "src text")
-                    ("el" . "src emacs-lisp")
-                    ("py" . "src python"))))
+    (mapc (lambda (temp-cons)
+            (if-let ((place (assoc (car temp-cons) org-structure-template-alist)))
+                (setf (cdr (assoc (car temp-cons) org-structure-template-alist)) (cdr temp-cons))
+              (add-to-list 'org-structure-template-alist temp-cons t)))
+          '(("sh" . "src shell")
+            ("tx" . "src text")
+            ("el" . "src emacs-lisp")
+            ("py" . "src python")))
     (setq org-src-lang-modes
           (append org-src-lang-modes
                   '(("json" . json-ts)
