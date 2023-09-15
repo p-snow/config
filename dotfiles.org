@@ -4473,14 +4473,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :bind (:map my/org-global-map
                 ("s" . org-store-link))
     :config
-    (org-link-set-parameters "src" :follow #'org-babel-ref-resolve)
-    (org-link-set-parameters
-     "sudo"
-     (lambda (cmd)
-       "Run CMD with sudo."
-       (shell-command
-        (concat "echo " (shell-quote-argument (read-passwd "Password? "))
-                " | sudo -S " cmd)))))
+    (org-link-set-parameters "src" :follow #'org-babel-ref-resolve))
 #+end_src
 
 ******* Org Follow Link
