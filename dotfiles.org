@@ -13962,7 +13962,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
   else
     output_cand=$(basename "${INPUT_VIDEO}").webm
   fi
-  if [ -e ${output_cand} ]; then
+  if [ -e "${output_cand}" ]; then
     OUTPUT_VIDEO=${output_cand%.*}_$(date +%Y%m%d_%H%M).webm
   else
     OUTPUT_VIDEO="${output_cand}"
@@ -13976,7 +13976,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 - transcode video to vp9
   : $ vp9transc -c 32 video_orig.mkv video_vp9.webm
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/vp9transc") :tangle-mode (identity #o555)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/vp9transc") :tangle-mode (identity #o755)
   <<transc-shared>>
 
   vp9_opts_pass1="-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf ${CRF} -pass 1 -an -f null"
