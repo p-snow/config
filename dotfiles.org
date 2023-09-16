@@ -1,6 +1,6 @@
 #+TITLE: My Configuration Collection
 #+PROPERTY: tangle-dest       ~/dotfiles
-#+PROPERTY: header-args       :mkdirp yes
+#+PROPERTY: header-args       :mkdirp yes :comments both
 #+PROPERTY: header-args:bash  :shebang "#!/usr/bin/env bash\nset -euo pipefail\n"
 
 #+STARTUP: overview
@@ -903,7 +903,7 @@ GnuPG - ArchWiki]]
 #+end_src
 
 - config file
-  #+begin_src yaml :tangle (expand-file-name ".config/xremap/config.yml")
+  #+begin_src yaml :tangle (expand-file-name ".config/xremap/config.yml") :comments no
     modmap:
       - name: CapsCtrlSwap
         remap:
@@ -4420,6 +4420,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                 (python     . t)
                                 (scheme     . t)
                                 (lua        . t)
+                                (yaml       . t)
                                 (ledger     . t)
                                 (gnuplot    . t)
                                 (dot        . t)
@@ -11737,7 +11738,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 [[https://magit.vc/manual/magit/How-to-show-diffs-for-gpg_002dencrypted-files_003f.html][This page]] show you how to get diffs of gpg files in Magit.
 
-#+BEGIN_SRC gitconfig :noweb tangle :tangle (expand-file-name ".config/git/config")
+#+BEGIN_SRC gitconfig :noweb tangle :tangle (expand-file-name ".config/git/config") :comments no
   [core]
           excludesfile = <<home-dir()>>/.config/git/info/ignore
           attributesfile = <<home-dir()>>/.config/git/info/attributes
@@ -11797,7 +11798,7 @@ Provide a function to Build a clock table summing up time by tag.
   #+END_SRC
 *** git attributes
 
-#+BEGIN_SRC gitattributes :tangle (expand-file-name ".config/git/info/attributes")
+#+BEGIN_SRC gitattributes :tangle (expand-file-name ".config/git/info/attributes") :comments no
   ,*.c diff=cpp
   ,*.h diff=cpp
   ,*.cpp diff=cpp
@@ -12319,7 +12320,7 @@ Provide a function to Build a clock table summing up time by tag.
     # ? stop                                # stop playback (quit or enter idle mode)
   #+end_src
 - scripts
-  #+begin_src lua :tangle (expand-file-name ".config/mpv/scripts/delete_file.lua")
+  #+begin_src lua :tangle (expand-file-name ".config/mpv/scripts/delete_file.lua") :comments no
     local utils = require "mp.utils"
 
     del_list = {}
@@ -12440,7 +12441,7 @@ aspell - interactive spell checker
 #+end_src
 
 - config for English
-  #+begin_src json :tangle (expand-file-name ".textlintrc")
+  #+begin_src json :tangle (expand-file-name ".textlintrc") :comments no
     {
       "rules": {
         "ginger": true,
@@ -12450,7 +12451,7 @@ aspell - interactive spell checker
   #+end_src
 
 - config for Japanese
-  #+begin_src json :tangle (expand-file-name ".config/textlint/textlintrc_ja")
+  #+begin_src json :tangle (expand-file-name ".config/textlint/textlintrc_ja") :comments no
     {
         "rules": {
             "preset-ja-technical-writing": {
@@ -14123,7 +14124,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
   "python-screenkey"
 #+end_src
 
-#+begin_src json :tangle no :tangle (expand-file-name ".config/screenkey.json")  :tangle-mode (identity #o644)
+#+begin_src json :tangle no :tangle (expand-file-name ".config/screenkey.json")  :tangle-mode (identity #o644) :comments no
   {
     "timeout": 0.8,
     "key_mode": "composed",
