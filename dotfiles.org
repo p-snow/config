@@ -4927,7 +4927,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
              [.a-price .a-offscreen]
              [div:availability span]) ; availability
             (,(regexp-quote "www.yodobashi.com/product")
-             [:js_scl_unitPrice]) ; price
+             [:js_scl_unitPrice])
+            (,(regexp-quote "kakaku.com/item")
+             [.priceTxt])
             (,(regexp-quote "store.steampowered.com")
              "pup 'div[class=\"discount_final_price\"] json{}' | jq -re .[0].text")
             ("www.googleapis.com/youtube/v3/channels"
