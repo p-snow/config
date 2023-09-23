@@ -3063,9 +3063,7 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 #+end_src
 
 ***** extract_headings
-#+begin_src python :tangle (expand-file-name ".local/bin/extract_headings") :tangle-mode (identity #o755)
-  #!/usr/bin/env python3
-
+#+begin_src python :tangle (expand-file-name ".local/bin/extract_headings") :tangle-mode (identity #o755) :shebang #!/usr/bin/env python3
   # This script extract most probable page heading.
 
   import sys
@@ -9096,9 +9094,7 @@ These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea
   "mpg321"
 #+end_src
 
-#+begin_src shell :tangle (expand-file-name ".local/bin/volget") :tangle-mode (identity #o755)
-  #!/usr/bin/env bash
-
+#+begin_src shell :tangle (expand-file-name ".local/bin/volget") :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
   pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(($SINK + 1 )) | tail -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,'
 #+end_src
 
@@ -11622,9 +11618,7 @@ Provide a function to Build a clock table summing up time by tag.
   export LOCATE_PATH=<<plocate-db()>>
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/updatedb-home") :tangle-mode (identity #o755)
-  #!/usr/bin/env bash
-
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/updatedb-home") :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
   . ~/.bashrc
 
   mkdir -p $(dirname <<plocate-db()>>) && \
@@ -13990,7 +13984,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 - transcode video to vp9
   : $ vp9transc -c 32 video_orig.mkv video_vp9.webm
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/vp9transc") :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/vp9transc") :tangle-mode (identity #o755) :comments no
   <<transc-shared>>
 
   vp9_opts_pass1="-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf ${CRF} -pass 1 -an -f null"
@@ -14006,7 +14000,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 - transcode video to av1
   : $ av1transc video_orig.mkv video_av1.webm
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/av1transc") :tangle-mode (identity #o555)
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/av1transc") :tangle-mode (identity #o555) :comments no
   <<transc-shared>>
 
   av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf ${CRF}"
@@ -14025,8 +14019,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
   + encode bulk podcast files for 64kb/s (in Dired)
     : $ nohup parallel opusencode "{}" "{.}".oga ::: *
 
-#+begin_src shell :tangle (expand-file-name ".local/bin/opusencode") :tangle-mode (identity #o555)
-  #!/usr/bin/env bash
+#+begin_src shell :tangle (expand-file-name ".local/bin/opusencode") :tangle-mode (identity #o555) :shebang #!/usr/bin/env bash
   set -euo pipefail
 
   if [[ $# -ge 1 ]]; then
@@ -14052,8 +14045,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
   "libdvdcss"
 #+end_src
 
-#+begin_src shell :tangle (expand-file-name ".local/bin/dvdpack") :tangle-mode (identity #o555)
-  #!/usr/bin/env bash
+#+begin_src shell :tangle (expand-file-name ".local/bin/dvdpack") :tangle-mode (identity #o555) :shebang #!/usr/bin/env bash
   set -euo pipefail
 
   if [ "${OPTIND}" = 1 ]; then
@@ -14182,8 +14174,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
           syncCommitMsg = "on $(LC_TIME=en_GB.UTF-8 date) from $(uname -n)"
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/git-sync") :tangle-mode (identity #o755)
-  #!/usr/bin/env bash
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/git-sync") :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
   #
   # git-sync
   #
@@ -14765,9 +14756,7 @@ These scripts (declutter_xxx) keep things decluttered.
   #+end_src
 
 - MySQL
-  #+begin_src shell :tangle (expand-file-name ".local/bin/mysql_backup")
-    #!/usr/bin/env bash
-
+  #+begin_src shell :tangle (expand-file-name ".local/bin/mysql_backup") :shebang #!/usr/bin/env bash
     BACKUP_DIR=~/data/share/backups/mysql
     RAW_SQL="$(date +%Y%m%d_%H%M)_backup.sql"
     TAR_SQL="${RAW_SQL}.txz"
@@ -14899,9 +14888,7 @@ Utility ruby program for manipulating image, audio and video file.
   "dvd+rw-tools"
 #+end_src
 
-#+begin_src ruby :tangle (expand-file-name ".local/bin/mediautil")
-  #!/usr/bin/env ruby
-
+#+begin_src ruby :tangle (expand-file-name ".local/bin/mediautil") :shebang #!/usr/bin/env ruby
   require 'thor'
   require 'open3'
   require 'fileutils'
@@ -15752,9 +15739,7 @@ Utility ruby program for manipulating image, audio and video file.
 
 Personal script for encoding family pictures and movies.
 
-#+begin_src ruby :tangle (expand-file-name ".local/bin/genalbum")
-  #!/usr/bin/env ruby
-
+#+begin_src ruby :tangle (expand-file-name ".local/bin/genalbum") :shebang #!/usr/bin/env ruby
   require 'fileutils'
   require 'time'
   require 'exifr'
@@ -15991,9 +15976,7 @@ Exec command in background
 
 ** sendmail.py
 Utility for sendind email programatically
-#+begin_src python :noweb tangle :tangle (expand-file-name ".local/bin/sendmail.py")
-  #!/usr/bin/env python3
-
+#+begin_src python :noweb tangle :tangle (expand-file-name ".local/bin/sendmail.py") :shebang #!/usr/bin/env python3
   import sys
   import argparse
   import subprocess
@@ -16279,9 +16262,7 @@ Stripping rules are:
 - <rb> tag for delimiter will be stripped
 - <rtc> tree for semantic word will be removed
 
-#+begin_src python :tangle (expand-file-name ".local/bin/strip_ruby") :tangle-mode (identity #o755)
-  #!/usr/bin/env python3
-
+#+begin_src python :tangle (expand-file-name ".local/bin/strip_ruby") :tangle-mode (identity #o755) :shebang #!/usr/bin/env python3
   import sys
   import lxml.html as html
 
