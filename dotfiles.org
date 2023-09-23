@@ -2760,17 +2760,14 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+begin_src emacs-lisp
   (use-package dired
     :bind (:map dired-mode-map
-                ;; workaround against dired-find-file for cdr
-                ("C-j" . (lambda ()
-                           (interactive)
-                           (call-interactively #'dired-find-file)))
+                ("C-j" . dired-find-file)
                 ("^" . dired-up-directory)
                 ("(" . dired-hide-details-mode)
                 (")" . dired-hide-details-mode)
                 ("E" . dired-create-empty-file)
                 ("Y" . dired-do-relsymlink)
                 ("e" . wdired-change-to-wdired-mode)
-                ("o" . dired-open-file)
+                ("RET" . dired-open-file)
                 ("C-c C-o" . dired-open-file)
                 ("C-c C-s" . my/dired-share))
     :hook (dired-mode . dired-hide-details-mode)
@@ -4479,6 +4476,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (customize-set-variable 'org-link-elisp-confirm-function nil)
+  (customize-set-variable 'org-return-follows-link t)
   (with-eval-after-load 'ol
     (setf (alist-get 'file org-link-frame-setup) 'find-file))
 #+end_src
