@@ -1161,9 +1161,9 @@ Early init file defines fundamental variables used from both normal Emacs sessio
 
 #+begin_src emacs-lisp :noweb tangle
   (setf user-emacs-directory
-        (expand-file-name "emacs" "<<share-dir()>>"))
+        (file-name-as-directory (expand-file-name "emacs" "<<share-dir()>>")))
   (setf user-emacs-directory-default
-        (expand-file-name (file-name-as-directory "~/.emacs.d")))
+        (file-name-as-directory (expand-file-name (file-name-as-directory "~/.emacs.d"))))
 
   (defvar my/user-lisp-dir
     (expand-file-name "elisp" "<<emacs-dir()>>")
@@ -1232,7 +1232,7 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 
   (customize-set-variable 'use-package-compute-statistics t)
   (customize-set-variable 'use-package-verbose nil)
-  (with-eval-after-load 'my-invoke-command
+  (with-eval-after-load 'my-launch-app
     (keymap-set my/invoke-list-command-map (kbd "u")
                 #'use-package-report))
 #+end_src
@@ -1556,7 +1556,7 @@ Caveat: There are some face definitions which use an extra large font since I am
   (use-package face
     :no-require t
     :hook
-    ((eww-mode twittering-mode nov-mode mu4e-view-mode elfeed-show-mode)
+    ((eww-mode mastodon-mode nov-mode mu4e-view-mode elfeed-show-mode)
      . (lambda ()
          (buffer-face-set
           (or (ignore-errors (check-face 'my/reading-face))
@@ -1954,7 +1954,7 @@ Mouse needs to be unobtrusive in my Emacs experience.
 
 #+begin_src emacs-lisp
   (use-package battery
-    :after my-invoke-command
+    :after my-launch-app
     :bind (:map my/launch-app-map
                 ("b" . battery)))
 #+end_src
@@ -2497,7 +2497,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
      (expand-file-name "package-quickstart.el"
                        user-emacs-directory-default))
     :config
-    (with-eval-after-load 'my-invoke-command
+    (with-eval-after-load 'my-launch-app
       (keymap-set my/invoke-list-command-map (kbd "p")
                   #'list-packages)))
 #+end_src
@@ -2570,7 +2570,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp
   (use-package net-utils
-    :after my-invoke-command
+    :after my-launch-app
     :bind (:map my/launch-app-map
                 ("n d" . run-dig)
                 ("n i" . ifconfig)
@@ -2948,7 +2948,7 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 
   (use-package eww
     :commands eww
-    :after my-invoke-command
+    :after my-launch-app
     :bind (:map my/invoke-list-command-map
                 ("B" . eww-list-bookmarks))
     :custom
@@ -6101,6 +6101,26 @@ This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-scr
 
 Packages below are out of categories above. Packages which have ARCHIVE tag is no longer in use. Keywords which package gives in its description are set to tag.
 
+***** mastodon
+:PROPERTIES:
+:CREATED:  [2023-09-24 Sun 02:23]
+:END:
+
+#+begin_src scheme :noweb-ref guix-emacs
+  "emacs-mastodon"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package mastodon
+    :after my-launch-app
+    :bind (:map my/launch-app-map
+                ("@" . mastodon))
+    :hook (mastodon-mode . visual-line-mode)
+    :custom
+    (mastodon-active-user "p_snow")
+    (mastodon-instance-url "https://emacs.ch"))
+#+end_src
+
 ***** bookmark+
 :PROPERTIES:
 :CREATED:  [2023-09-17 Sun 14:58]
@@ -6419,7 +6439,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 
 #+begin_src emacs-lisp
   (use-package tmr
-    :after my-invoke-command
+    :after my-launch-app
     :bind (("C-x M-t t"   . tmr)
            ("C-x M-t M-t" . tmr)
            ("C-x M-t x"   . tmr-cancel)
@@ -6476,7 +6496,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 
 #+begin_src emacs-lisp
   (use-package free-keys
-    :after my-invoke-command
+    :after my-launch-app
     :bind (:map my/launch-app-map
                 ("f" . free-keys))
     :config
@@ -6556,7 +6576,7 @@ How to use detached.el
     (org-link-set-parameters "shell" :follow #'my/org-link--open-shell-detached))
 
   (use-package detached-list
-    :after my-invoke-command
+    :after my-launch-app
     :config
     (bind-keys :map my/invoke-list-command-map
                ("d" . detached-list-sessions))
@@ -6577,7 +6597,7 @@ How to use detached.el
 #+begin_src emacs-lisp
   (use-package guix
     :config
-    (with-eval-after-load 'my-invoke-command
+    (with-eval-after-load 'my-launch-app
       (bind-keys :map my/launch-app-map
                  ("x" . guix))))
 #+end_src
@@ -7943,7 +7963,7 @@ Major mode for manupulating password store file.
 
 #+begin_src emacs-lisp
   (use-package app-launcher
-    :after my-invoke-command
+    :after my-launch-app
     :bind (:map my/launch-app-map
                 ("a" . app-launcher-run-app)))
 #+end_src
@@ -8510,7 +8530,7 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
                           "wv*+wa/w"))))
       (format "%s" fmt-quality)))
 
-  (with-eval-after-load 'my-invoke-command
+  (with-eval-after-load 'my-launch-app
     (keymap-set my/launch-app-map (kbd "d")
                 #'my/download-video))
 #+end_src
@@ -8636,7 +8656,7 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
                     "l" (define-keymap
                           :prefix 'my/invoke-list-command-map)))
 
-  (provide 'my-invoke-command)
+  (provide 'my-launch-app)
 #+end_src
 
 ***** show the day in calendar
