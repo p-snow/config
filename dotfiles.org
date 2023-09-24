@@ -4955,11 +4955,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
               'org-web-track-display-values)
         (when (require 'org-ql nil t)
           (org-ql-search
-           org-web-track-files
-           `(property ,org-web-track-url-property)
-           :super-groups '((:tag "book") (:tag "food")
-                           (:tag "tool") (:tag "supply"))
-           :buffer (current-buffer)))))
+            org-web-track-files
+            `(property ,org-web-track-url-property)
+            :super-groups '((:tag "book") (:tag "food")
+                            (:tag "tool") (:tag "supply"))
+            :buffer (current-buffer)))))
     (defun my/org-web-track-mail-chnages ()
       "docstring"
       (when-let* ((changes (org-web-track-update-all t))
@@ -4992,6 +4992,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                (directory-files dir t
                                 (rx bol
                                     (1+ any) ".org"
+                                    (opt ".gpg")
                                     eol)))
              '("~/org/agenda/" "~/org/notes/")))
     :config
