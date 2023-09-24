@@ -8868,6 +8868,24 @@ Suport successive deletion with C-h/M-h
     "M-h" #'my/backward-kill-word-dwim)
 #+end_src
 
+***** mark and open a file in one go in Dired
+:PROPERTIES:
+:CREATED:  [2023-09-25 Mon 08:14]
+:END:
+
+#+begin_src emacs-lisp
+  (defun my/dired-mark-and-open-file ()
+    "Mark file and open it in one go."
+    (interactive)
+    (save-excursion
+      (dired-mark 1))
+    (dired-open-file))
+
+  (with-eval-after-load 'dired
+    (keymap-set dired-mode-map "M-RET"
+                #'my/dired-mark-and-open-file))
+#+end_src
+
 **** additional org tweaks
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
