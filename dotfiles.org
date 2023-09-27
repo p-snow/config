@@ -212,6 +212,7 @@ initialization script for a linuxmint account
      "sshfs"
      "grep"
      "ripgrep"
+     "aspell"
      "less"
      "gnupg"
      "pwgen"
@@ -2379,19 +2380,18 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 ***** Applications
 
-****** Ispell
+****** Ispell/FlySpell
 
 #+begin_src emacs-lisp
-  (use-package flyspell
-    :diminish "fs"
+  (use-package ispell
     :if (executable-find "aspell")
-    :bind (("C-c $ c" . flyspell-buffer)
-           ("C-c $ n" . flyspell-goto-next-error)
-           ("C-c $ ." . flyspell-auto-correct-word))
+    :hook ((text-mode . flyspell-mode)
+           (prog-mode . flyspell-prog-mode))
     :custom
     (ispell-program-name "aspell")
     (flyspell-issue-message-flag nil)
     :config
+    (require 'flyspell)
     ;; avoid checking for Japanese characters
     (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
     (setq-default ispell-extra-args '("--sug-mode=ultra"
