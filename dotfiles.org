@@ -1600,7 +1600,9 @@ Caveat: There are some face definitions which use an extra large font since I am
 :END:
 
 #+begin_src emacs-lisp
+  (setq auto-window-vscroll nil)
   (setq-default bidi-display-reordering nil)
+  (setq bidi-inhibit-bpa t)
 #+end_src
 
 **** Custom Variables
@@ -1772,6 +1774,15 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
   (customize-set-variable 'blink-cursor-mode t)
 #+end_src
 
+******* Scrolling
+:PROPERTIES:
+:CREATED:  [2023-09-28 Thu 00:14]
+:END:
+
+#+begin_src emacs-lisp
+  (customize-set-variable 'fast-but-imprecise-scrolling t)
+#+end_src
+
 ****** Display
 
 #+begin_src emacs-lisp
@@ -1791,7 +1802,9 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 
 #+begin_src emacs-lisp
   (customize-set-variable 'scroll-step 1)
+  (customize-set-variable 'scroll-conservatively 101)
   (customize-set-variable 'next-screen-context-lines 2)
+  (customize-set-variable 'scroll-preserve-screen-position t)
   ;; display buffer
   (customize-set-variable 'display-buffer-base-action
                           '((display-buffer-same-window
@@ -2114,6 +2127,7 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
 #+begin_src emacs-lisp
   (customize-set-variable 'yank-pop-change-selection t)
   (customize-set-variable 'delete-active-region 'kill)
+  (customize-set-variable 'kill-do-not-save-duplicates t)
 #+end_src
 
 ****** Undo
@@ -2154,6 +2168,15 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
     (bookmark-save-flag 1)
     (bookmark-menu-confirm-deletion t)
     (bookmark-watch-bookmark-file 'silent))
+#+end_src
+
+****** Paragraph
+:PROPERTIES:
+:CREATED:  [2023-09-28 Thu 00:23]
+:END:
+
+#+begin_src emacs-lisp
+  (customize-set-variable 'bidi-paragraph-direction 'left-to-right)
 #+end_src
 
 ***** Multimedia
