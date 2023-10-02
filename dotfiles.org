@@ -2410,7 +2410,9 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+begin_src emacs-lisp
   (use-package ispell
     :if (executable-find "aspell")
-    :hook ((text-mode . flyspell-mode)
+    :hook ((text-mode . (lambda ()
+                          (unless (derived-mode-p 'org-mode)
+                            (flyspell-mode 1))))
            (prog-mode . flyspell-prog-mode))
     :custom
     (ispell-program-name "aspell")
