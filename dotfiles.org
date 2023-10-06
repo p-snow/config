@@ -6187,6 +6187,12 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
       (if (use-region-p)
           (chatgpt-shell-prompt-compose)
         (chatgpt-shell)))
+    (defun my/openai-key ()
+      "Return my openai key."
+      (or (cdr (assoc "API key" (auth-source-pass-parse-entry "openai.com")))
+          (let ((sec (plist-get (car (auth-source-search :host "openai.com")) :secret)))
+            (if (functionp sec)
+                (funcall sec) sec))))
     :bind (:map engine-mode-prefixed-map
                 ("c c" . my/chatgpt-shell-dwim)
                 ("c C" . chatgpt-shell-prompt)
@@ -6198,12 +6204,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
                 :map chatgpt-shell-mode-map
                 ("C-M-g" . chatgpt-shell-clear-buffer))
     :custom
-    ((chatgpt-shell-openai-key
-      (lambda ()
-        (or (cdr (assoc "API key" (auth-source-pass-parse-entry "openai.com")))
-            (let ((sec (plist-get (car (auth-source-search :host "openai.com")) :secret)))
-              (if (functionp sec)
-                  (funcall sec) sec)))))
+    ((chatgpt-shell-openai-key 'my/openai-key)
      (chatgpt-shell-system-prompt 3)
      (chatgpt-shell-model-temperature 0.6)))
 
@@ -6211,6 +6212,11 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
     :after ob-core
     :config
     (ob-chatgpt-shell-setup))
+
+  (use-package dall-e-shell
+    :commands dall-e-shell
+    :custom
+    (dall-e-shell-openai-key 'my/openai-key))
 #+end_src
 
 ***** async
