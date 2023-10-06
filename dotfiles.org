@@ -4715,30 +4715,31 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                 ("q q" . org-ql-search)
                 ("q v" . org-ql-view))
     :custom
+    (org-ql-search-directories-files-regexp "\\.org\\(?:\\.gpg\\)?$")
     (org-ql-search-directories-files-recursive t)
     :config
     (require 'org-ql-search)
     (org-ql-defpred (tags-expanded expanded-tags tags-x xtags) (&rest tags)
-                    "Return non-nil if current heading has one or more of TAGS.
+      "Return non-nil if current heading has one or more of TAGS.
   If TAGS contains a group tag, all tags in the group is used to match.
   Both inherited and local tags is tested."
-                    :normalizers ((`(,predicate-names . ,tags)
-                                   `(tags-expanded ,@tags)))
-                    :body (apply #'org-ql--predicate-tags
-                                 (seq-uniq (--mapcat (org-tags-expand it t)
-                                                     tags))))
+      :normalizers ((`(,predicate-names . ,tags)
+                     `(tags-expanded ,@tags)))
+      :body (apply #'org-ql--predicate-tags
+                   (seq-uniq (--mapcat (org-tags-expand it t)
+                                       tags))))
     (org-ql-defpred (category-inherited) (&rest categories)
-                    "Return non-nil if current heading has CATEGORY.
+      "Return non-nil if current heading has CATEGORY.
   Ancestors are looked up If current heading has no CATEGORY."
-                    :body (when-let ((category (or (org-get-category (point))
-                                                   (org-entry-get (point) "CATEGORY" t))))
-                            (cl-typecase categories
-                              (null t)
-                              (otherwise (member category categories)))))
+      :body (when-let ((category (or (org-get-category (point))
+                                     (org-entry-get (point) "CATEGORY" t))))
+              (cl-typecase categories
+                (null t)
+                (otherwise (member category categories)))))
     (with-eval-after-load 'org-expiry
       (org-ql-defpred expired ()
-                      "Return non-nil if the entry is expired."
-                      :body (org-expiry-expired-p))))
+        "Return non-nil if the entry is expired."
+        :body (org-expiry-expired-p))))
 #+end_src
 
 ****** org-contacts
