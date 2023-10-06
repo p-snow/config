@@ -360,6 +360,12 @@ This script accepts a space-separated list of manifest file names (without exten
     fi
   done
 #+end_src
+
+- Automating Script
+  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
+    0 2 * * * /bin/bash -ci "update-channels && activate-profiles && guix gc -d 2m -F 20G >> $LOG_DIR/guix-update.log 2>&1"
+  #+end_src
+
 *** Updating Channels
 
 This script makes it easy to update all channels to the latest commit based on an original channel file.
@@ -371,9 +377,10 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
 : guix pull -C ~/.config/guix/channels.scm
 
 #+begin_src sh :tangle (expand-file-name ".local/bin/update-channels") :shebang #!/bin/sh :tangle-mode (identity #o755)
-  guix pull --channels=$HOME/.config/guix/base-channels.scm
-  guix describe --format=channels > ~/.config/guix/channels.scm
+  guix pull --channels=$HOME/.config/guix/base-channels.scm \
+    && guix describe --format=channels > ~/.config/guix/channels.scm
 #+end_src
+
 * System Constituents
 :PROPERTIES:
 :CREATED:  [2022-09-13 Tue 16:14]
