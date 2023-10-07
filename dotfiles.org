@@ -8312,6 +8312,17 @@ Suport successive deletion with C-h/M-h
 :CREATED:  [2023-01-20 Fri 10:59]
 :END:
 
+***** prune old .eln files at shut down
+:PROPERTIES:
+:CREATED:  [2023-10-06 Fri 23:11]
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'comp
+    (add-hook 'kill-emacs-hook
+              #'native-compile-prune-cache))
+#+end_src
+
 ***** operate the number at point
 :PROPERTIES:
 :CREATED:  [2023-09-06 Wed 21:53]
