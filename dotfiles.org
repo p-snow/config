@@ -1423,6 +1423,7 @@ Settings in this section are influenced a great deal by my personal preference. 
   (global-set-key (kbd "M-z") #'zap-up-to-char)
 
   (global-set-key (kbd "C-c k") #'kill-this-buffer)
+  (global-set-key (kbd "C-x M-r") #'rename-visited-file)
   (global-set-key (kbd "C-M-<delete>") #'restart-emacs)
   (global-set-key (kbd "C-M-S-<delete>") #'save-buffers-kill-emacs)
 
@@ -1440,6 +1441,11 @@ Settings in this section are influenced a great deal by my personal preference. 
     (substitute-key-definition 'list-buffers
                                'ibuffer
                                global-map)
+  #+end_src
+
+- bind handy find functions like 'find-library to C-x L
+  #+begin_src emacs-lisp
+    (find-function-setup-keys)
   #+end_src
 
 ***** Unleash Disabled Commands
@@ -1476,39 +1482,6 @@ Settings in this section are influenced a great deal by my personal preference. 
   (set-terminal-coding-system 'utf-8-unix)
   (set-keyboard-coding-system 'utf-8-unix)
   (setq locale-coding-system 'utf-8-unix)
-#+end_src
-***** States at Startup
-
-#+begin_src emacs-lisp
-  ;; distractions are not welcome
-  (tool-bar-mode -1)
-  (menu-bar-mode -1)
-  (scroll-bar-mode -1)
-  (tooltip-mode -1)
-
-  ;; the more obtrusive a fringe, the preferable it is if discernable
-  (set-fringe-mode 15)
-
-  ;; do not use visual bell
-  (customize-set-variable 'visible-bell nil)
-
-  ;; these are annoying
-  (setf initial-scratch-message "")
-  (setf inhibit-startup-screen t)
-
-  ;; launch in full screen at start-up
-  (use-package emacs
-    :no-require t
-    :hook
-    (after-init . my/frame-fullscreen)
-    :init
-    (add-to-list 'after-make-frame-functions
-                 #'my/frame-fullscreen))
-
-  (defun my/frame-fullscreen (&optional frame)
-    "Display FRAME in full screen mode."
-    (when (member (window-system) '(x ns w32))
-      (set-frame-parameter frame 'fullscreen 'fullboth)))
 #+end_src
 ***** Fontsets
 
@@ -1730,13 +1703,31 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 
 ***** Environment
 
+****** Initialization
+:PROPERTIES:
+:CREATED:  [2023-10-08 Sun 22:24]
+:END:
+
+#+begin_src emacs-lisp
+  (setopt initial-scratch-message "")
+  (setopt inhibit-startup-screen t)
+#+end_src
+
 ****** Frames
+
+#+begin_src emacs-lisp
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+#+end_src
+
 ******* Fringe
 :PROPERTIES:
 :CREATED:  [2023-09-15 Fri 08:53]
 :END:
 
 #+begin_src emacs-lisp
+  (set-fringe-mode 15)
   (setq-default indicate-buffer-boundaries 'left)
 #+end_src
 
@@ -1793,6 +1784,9 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
 ****** Display
 
 #+begin_src emacs-lisp
+  ;; do not use visual bell
+  (setopt visible-bell nil)
+
   (customize-set-variable 'text-scale-mode-step 1.0625)
   (customize-set-variable 'highlight-nonselected-windows t)
   (customize-set-variable 'truncate-lines t)
@@ -1801,6 +1795,8 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
   (customize-set-variable 'word-wrap-by-category t)
   ;; suppress curved quotes in docstring (for emacs25)
   (customize-set-variable 'text-quoting-style 'straight)
+  ;; resize frame size responding to font size
+  (setopt global-text-scale-adjust-resizes-frames t)
 #+end_src
 
 ****** Windows
@@ -1963,6 +1959,16 @@ Mouse needs to be unobtrusive in my Emacs experience.
     (pixel-scroll-precision-mode t))
 #+end_src
 
+******* Tool Tips
+:PROPERTIES:
+:CREATED:  [2023-10-08 Sun 22:14]
+:END:
+
+#+begin_src emacs-lisp
+  (tooltip-mode -1)
+  (setq x-gtk-use-system-tooltips nil)
+#+end_src
+
 ****** Hardware
 :PROPERTIES:
 :CREATED:  [2023-03-18 Sat 14:00]
@@ -2106,6 +2112,11 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 #+end_src
 
 ***** Editing
+
+#+begin_src emacs-lisp
+  ;; the point will be at the beginning of duplicated lines
+  (setopt duplicate-line-final-position 1)
+#+end_src
 
 ****** Indent
 
@@ -6017,12 +6028,13 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
 #+end_src
 
 ***** executable
-This customization is based on [[https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/][this advice]]
+
+[[https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/][The post]] says it is useful to set executable bit if the saved file seems to be script.
 
 #+begin_src emacs-lisp
-  (use-package executable
-    :hook (after-save
-           . executable-make-buffer-file-executable-if-script-p))
+  (with-eval-after-load 'executable
+    (add-hook 'after-save-hook
+              'executable-make-buffer-file-executable-if-script-p))
 #+end_src
 
 ***** paren
@@ -8325,6 +8337,26 @@ Suport successive deletion with C-h/M-h
 :CREATED:  [2023-01-20 Fri 10:59]
 :END:
 
+***** frame is spawn in fullscreen mode
+:PROPERTIES:
+:CREATED:  [2023-10-08 Sun 22:29]
+:END:
+
+#+begin_src emacs-lisp
+  ;; launch in full screen at start-up
+  (use-package emacs
+    :no-require t
+    :preface
+    (defun my/frame-fullscreen (&optional frame)
+      "Display FRAME in full screen mode."
+      (when (member (window-system) '(x ns w32))
+        (set-frame-parameter frame 'fullscreen 'fullboth)))
+    :hook
+    (after-init . my/frame-fullscreen)
+    :init
+    (add-to-list 'after-make-frame-functions
+                 #'my/frame-fullscreen))
+#+end_src
 ***** prune old .eln files at shut down
 :PROPERTIES:
 :CREATED:  [2023-10-06 Fri 23:11]
@@ -8402,7 +8434,7 @@ Suport successive deletion with C-h/M-h
                            (ido-read-file-name "Find file(as root): ")))
       (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
-  (global-set-key (kbd "C-x C-r") #'my/sudo-edit)
+  (global-set-key (kbd "C-x C-#") #'my/sudo-edit)
 #+end_src
 
 ***** power management
