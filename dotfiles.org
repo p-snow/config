@@ -212,7 +212,6 @@ initialization script for a linuxmint account
      "sshfs"
      "grep"
      "ripgrep"
-     "aspell"
      "less"
      "gnupg"
      "pwgen"
@@ -2414,32 +2413,47 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 ***** Applications
 
 ****** Ispell/FlySpell
+:PROPERTIES:
+:CREATED:  [2023-10-07 Sat 10:40]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+  "aspell"
+  "aspell-dict-en"
+#+end_src
 
 #+begin_src emacs-lisp
   (use-package ispell
     :if (executable-find "aspell")
-    :hook ((text-mode . (lambda ()
-                          (unless (derived-mode-p 'org-mode)
-                            (flyspell-mode 1))))
-           (prog-mode . flyspell-prog-mode))
     :custom
     (ispell-program-name "aspell")
-    (flyspell-issue-message-flag nil)
     :config
-    (require 'flyspell)
     ;; avoid checking for Japanese characters
     (add-to-list 'ispell-skip-region-alist '("[^\000-\377]+"))
     (setq-default ispell-extra-args '("--sug-mode=ultra"
                                       "--lang=en_US"))
-    (when (string-match-p "--camel-case"
-                          (shell-command-to-string (concat ispell-program-name " --help")))
-      (push "--camel-case" ispell-extra-args))
-    (bind-keys :map flyspell-mode-map
-               ("C-,"   . nil)
-               ("C-."   . nil)
-               ("C-;"   . nil)
-               ("C-c $" . nil)
-               ("C-M-i" . nil)))
+    (let ((arg "--camel-case"))
+      (and (string-match-p arg
+                           (shell-command-to-string (concat ispell-program-name " --help")))
+           (push arg ispell-extra-args))))
+
+  (use-package flyspell
+    :after ispell
+    :hook ((text-mode . (lambda ()
+                          (unless (derived-mode-p 'org-mode)
+                            (flyspell-mode 1))))
+           (prog-mode . flyspell-prog-mode))
+    :preface (setq flyspell-mode-map nil)
+    :bind (:map flyspell-mode-map
+                :prefix "C-$"
+                :prefix-map my/flyspell-mode-map
+                :prefix-docstring "Keymap for Flyspell"
+                ("n" . flyspell-goto-next-error)
+                ("C-$" . flyspell-auto-correct-word)
+                ("C-" . flyspell-auto-correct-previous-word)
+                ("$" . flyspell-correct-word-before-point))
+    :custom
+    (flyspell-issue-message-flag nil))
 #+end_src
 
 ****** News
@@ -5490,7 +5504,6 @@ language grammar for toml
   (defun my/prog-mode-hook-function ()
     (hl-line-mode -1)
     (hs-minor-mode -1)
-    (flyspell-prog-mode)
     (display-fill-column-indicator-mode 1)
     (prettify-symbols-mode 1))
 #+end_src
