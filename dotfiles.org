@@ -1881,7 +1881,7 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
 
 #+begin_src emacs-lisp
   (use-package savehist
-    :defer 1
+    :defer 4
     :custom
     (savehist-save-minibuffer-history t)
     (savehist-additional-variables '(kill-ring register-alist))
@@ -2014,8 +2014,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
 
 #+begin_src emacs-lisp
   (use-package hippie-exp
-    :config
-    (global-set-key [remap dabbrev-expand] 'hippie-expand))
+    :bind ([remap dabbrev-expand] . hippie-expand))
 #+end_src
 
 ****** Hl Line
@@ -2353,6 +2352,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp
   (use-package epg
+    :defer t
     :custom
     (epg-pinentry-mode 'loopback))
 #+end_src
@@ -2366,7 +2366,6 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp :noweb tangle
   (use-package epa
-    :after epg
     :bind (("C-x : l" . epa-list-keys)
            ("C-x : L" . epa-list-secret-keys)
            :map dired-mode-map
@@ -2547,7 +2546,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp
   (use-package midnight
-    :defer 60
+    :defer t
     :custom
     (midnight-mode t)
     ;; set timer at 2:30 a.m.
@@ -2867,6 +2866,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (put 'dired-find-alternate-file 'disabled nil))
 
   (use-package dired-x
+    :after dired
     :custom
     ;; hide ., .. and all dotfiles starting with .
     (dired-omit-files (rx (seq string-start
@@ -2878,6 +2878,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
                ("." . dired-omit-mode)))
 
   (use-package dired-aux
+    :after dired
     :config
     (setq dired-compress-files-alist
           (append dired-compress-files-alist
@@ -3266,6 +3267,10 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 
 #+begin_src emacs-lisp
   (use-package git-annex
+    :commands (git-annex-dired-add-files
+               git-annex-dired-get-files
+               git-annex-dired-drop-files
+               git-annex-dired-edit-files)
     :custom-face
     (git-annex-dired-annexed-available ((t (:foreground "green yellow"))))
     (git-annex-dired-annexed-unavailable ((t (:foreground "red3")))))
@@ -3775,7 +3780,17 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org
     :mode ("\\.org$" . org-mode)
-    :commands org-mode
+    :init
+    (defvar my/org-initialized nil
+      "Indicator showing whether any org file had opened.")
+    (defvar my/org-mode-init-hook nil
+      "One-off hook run when first org file open.")
+    :hook
+    (org-mode . (lambda ()
+                  (unless my/org-initialized
+                    (setq my/org-initialized t)
+                    (run-hooks 'my/org-mode-init-hook)
+                    (provide 'my/org-mode-init))))
     :config
     (bind-keys :map org-mode-map
                ("C-c F" . org-next-block)
@@ -4404,6 +4419,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-habit
     :after org
+    :defer 8
     :custom
     (org-habit-graph-column 32)
     (org-habit-preceding-days 14)
@@ -4459,7 +4475,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package ob-core
-    :after ob-core
+    :after org
     :hook (org-babel-after-execute . org-display-inline-images)
     :init
     (setq org-babel-python-command (executable-find "python3"))
@@ -4479,7 +4495,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                 (python     . t)
                                 (scheme     . t)
                                 (lua        . t)
-                                (yaml       . t)
                                 (ledger     . t)
                                 (gnuplot    . t)
                                 (dot        . t)
@@ -4745,7 +4760,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-ql
-    :after org
+    :after (org my-org-global-map)
     :bind (:map my/org-global-map
                 ("q q" . org-ql-search)
                 ("q v" . org-ql-view))
@@ -4892,11 +4907,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
   (use-package org-clock-convenience
     :ensure t
-    :after org
-    :config
-    (bind-keys :map org-agenda-mode-map
-               ("@"   . org-clock-convenience-fill-gap)
-               ("C-@" . org-clock-convenience-fill-gap-both)))
+    :after org-agenda
+    :bind
+    (:map org-agenda-mode-map
+          ("@"   . org-clock-convenience-fill-gap)
+          ("C-@" . org-clock-convenience-fill-gap-both)))
 #+end_src
 
 ****** org-reveal
@@ -4913,7 +4928,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-expiry
-    :after org
+    :after my/org-mode-init
     :custom
     (org-expiry-inactive-timestamps t)
     (org-expiry-handler-function 'org-expiry-archive-subtree)
@@ -4973,9 +4988,17 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-web-track
-    :after (org org-agenda)
+    :after (org org-agenda my-org-global-map)
+    :defer 20
     :load-path ("~/data/ghq/github.com/p-snow/org-web-track")
-    :init
+    :bind (:map my/org-global-map
+                ("T q" . my/org-web-track-ql-view)
+                ("T a" . org-web-track-agenda-view)
+                ("T n" . org-web-track-setup)
+                ("T u" . org-web-track-update)
+                ("T U" . org-web-track-update-all)
+                ("T i" . org-web-track-insert-value-change-table))
+    :config
     (setq org-web-track-selector-alist
           `((,(rx "www.amazon.co.jp"
                   (+ anychar)
@@ -5005,7 +5028,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                (assoc-default 'rates json)))))
             ("map.kaldi.co.jp/kaldi"
              "pup 'div[class=\"shop_bnr news\"] ul li text{}' | xargs echo -n")))
-    (with-eval-after-load 'midnight
+    (when (require 'midnight nil t)
       (add-hook 'midnight-hook
                 'my/org-web-track-mail-chnages))
     :preface
@@ -5020,11 +5043,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
               'org-web-track-display-values)
         (when (require 'org-ql nil t)
           (org-ql-search
-            org-web-track-files
-            `(property ,org-web-track-url-property)
-            :super-groups '((:tag "book") (:tag "food")
-                            (:tag "tool") (:tag "supply"))
-            :buffer (current-buffer)))))
+           org-web-track-files
+           `(property ,org-web-track-url-property)
+           :super-groups '((:tag "book") (:tag "food")
+                           (:tag "tool") (:tag "supply"))
+           :buffer (current-buffer)))))
     (defun my/org-web-track-mail-chnages ()
       "docstring"
       (when-let* ((changes (org-web-track-update-all t))
@@ -5059,15 +5082,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                     (1+ any) ".org"
                                     (opt ".gpg")
                                     eol)))
-             '("~/org/agenda/" "~/org/notes/")))
-    :config
-    (bind-keys :map my/org-global-map
-               ("T q" . my/org-web-track-ql-view)
-               ("T a" . org-web-track-agenda-view)
-               ("T n" . org-web-track-setup)
-               ("T u" . org-web-track-update)
-               ("T U" . org-web-track-update-all)
-               ("T i" . org-web-track-insert-value-change-table)))
+             '("~/org/agenda/" "~/org/notes/"))))
 #+end_src
 
 **** Completion
@@ -5600,6 +5615,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 #+begin_src emacs-lisp
   (use-package cc-mode
+    :defer 10
     :custom
     (c-tab-always-indent t)
     (c-auto-align-backslashes nil)
@@ -5862,6 +5878,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
     (my/add-dash-docsets-hook 'js2-mode-hook '("JavaScript")))
 
   (use-package js
+    :defer 10
     :delight " JS"
     :custom
     (js-indent-level 2))
@@ -6046,14 +6063,16 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
               'executable-make-buffer-file-executable-if-script-p))
 #+end_src
 
-***** paren
+***** Paren Showing
 
 #+begin_src emacs-lisp
-  (require 'paren)
-
-  (customize-set-variable 'show-paren-style 'parenthesis)
-  (customize-set-variable 'show-paren-delay 0.25)
-  (customize-set-variable 'show-paren-mode nil)
+  (use-package paren
+    :hook (prog-mode . show-paren-local-mode)
+    :custom
+    (show-paren-style 'parenthesis)
+    (show-paren-delay 0.25)
+    (show-paren-mode nil)
+    (show-paren-context-when-offscreen t))
 #+end_src
 
 ***** project
@@ -6200,6 +6219,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 
 #+begin_src emacs-lisp
   (use-package bookmark+
+    :defer 11
     :after bookmark)
 #+end_src
 
@@ -6215,6 +6235,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 #+begin_src emacs-lisp
   (use-package chatgpt-shell
     :after engine-mode
+    :defer 7
     :preface
     (defun my/chatgpt-shell-dwim ()
       "docstring"
@@ -6244,7 +6265,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
      (chatgpt-shell-model-temperature 0.6)))
 
   (use-package ob-chatgpt-shell
-    :after ob-core
+    :after (chatgpt-shell ob-core)
     :config
     (ob-chatgpt-shell-setup))
 
@@ -6651,9 +6672,9 @@ How to use detached.el
 
   (use-package detached-list
     :after my-launch-app
+    :bind (:map my/invoke-list-command-map
+                ("d" . detached-list-sessions))
     :config
-    (bind-keys :map my/invoke-list-command-map
-               ("d" . detached-list-sessions))
     (bind-keys :map detached-list-mode-map
                ("C-m" . detached-list-open-session)
                ("C-j" . detached-list-open-session)))
@@ -6670,6 +6691,7 @@ How to use detached.el
 
 #+begin_src emacs-lisp
   (use-package guix
+    :commands guix
     :config
     (with-eval-after-load 'my-launch-app
       (bind-keys :map my/launch-app-map
@@ -7101,8 +7123,7 @@ Handy commands
                 ("M-s" . nil)
                 ("C-M-;" . paredit-comment-dwim)
                 ("M-;" . nil))
-    :hook (((emacs-lisp-mode scheme-mode) . enable-paredit-mode)
-           (paredit-mode . show-paren-local-mode)))
+    :hook (((emacs-lisp-mode scheme-mode) . enable-paredit-mode)))
 #+end_src
 
 - workaround
@@ -8052,6 +8073,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 
 #+begin_src emacs-lisp
   (use-package tldr
+    :commands tldr
     :custom
     (tldr-use-word-at-point t))
 #+end_src
@@ -8255,6 +8277,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 
 #+begin_src emacs-lisp
   (use-package emacs
+    :no-require t
     :bind-keymap
     ("H-y" . my/cycle-visual-repeat-map)
     :preface
@@ -8473,6 +8496,7 @@ It's confortable to read long material such as web page , epub file or email wit
 
 #+begin_src emacs-lisp
   (use-package emacs
+    :no-require t
     :bind (("C-c z" . my/lazy-view-enter)
            ("H-z" . my/lazy-view-enter))
     :hook ((help-mode Info-mode eww-mode nov-mode mu4e-view-mode woman-mode)
