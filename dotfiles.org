@@ -2387,11 +2387,9 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp
   (use-package server
+    :hook (after-init . server-start)
     :custom
-    (server-client-instructions t)
-    :config
-    (unless (server-running-p)
-      (server-start)))
+    (server-client-instructions t))
 #+end_src
 
 ****** Processes
@@ -2436,6 +2434,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp :noweb yes
   (use-package locate
+    :commands locate
     :custom
     (locate-command "plocate")
     (locate-make-command-line #'my/plocate-make-command-line)
@@ -3691,6 +3690,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
 
 #+begin_src emacs-lisp
   (use-package term
+    :disabled t
     :delight
     (term-mode " TR")
     :config
@@ -5010,8 +5010,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-web-track
-    :after (org org-agenda my-org-global-map)
-    :defer 20
+    :after (my-org-global-map my/org-mode-init)
     :load-path ("~/data/ghq/github.com/p-snow/org-web-track")
     :bind (:map my/org-global-map
                 ("T q" . my/org-web-track-ql-view)
@@ -5813,6 +5812,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 #+begin_src emacs-lisp
   (use-package inf-ruby
+    :after ruby
     :config
     (setq inf-ruby-default-implementation "pry")
     (add-to-list 'inf-ruby-implementations '("pry" . "pry"))
@@ -5946,10 +5946,11 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package plantuml-mode
-    :delight " UM"
+  (use-package plantuml
+    :mode "\\.plu$"
     :custom
-    (plantuml-jar-path "/usr/share/plantuml/plantuml.jar")
+    (plantuml-jar-path "~/.guix-extra-profiles/emacs/emacs/share/java/plantuml.jar")
+    (plantuml-exec-mode 'jar)
     :config
     (my/add-dash-docsets-hook 'plantuml-mode-hook '("PlantUML")))
 #+end_src
@@ -7934,6 +7935,7 @@ Major mode for manupulating password store file.
                    ("TAB" . yas-insert-snippet))
     :hook
     ((prog-mode text-mode) . yas-minor-mode)
+    (after-init . yas-reload-all)
     :init
     (setq yas-snippet-dirs
           (list (expand-file-name "snippets" user-emacs-directory-default)))
@@ -7941,8 +7943,7 @@ Major mode for manupulating password store file.
     (yas-triggers-in-field t)
     (yas-wrap-around-region t)
     :config
-    (require 'yasnippet-snippets)
-    (yas-reload-all nil))
+    (require 'yasnippet-snippets))
 #+end_src
 
 ***** auto-yasnippet
@@ -7989,12 +7990,12 @@ Major mode for manupulating password store file.
     (yankpad-file (denote-get-path-by-id "20230605T175742")))
 #+end_src
 
-***** pdf-tools                    :multimedia:files:
+***** pdf-tools            :multimedia:files:ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-06-11 Sun 18:41]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
+#+begin_src scheme :tangle no
   "emacs-pdf-tools"
 #+end_src
 
@@ -8808,8 +8809,6 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
 ***** text to speech
 
 #+begin_src emacs-lisp :noweb tangle
-  (require 'festival)
-
   (defcustom my/say-maximum-duration 30
     "Maximum speech duration in second for `my/say'.")
   (defvar my/say--timer nil "Timer used to cancel speech process.")
@@ -8828,7 +8827,8 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
     (interactive (list (if (region-active-p)
                            (buffer-substring (region-beginning) (region-end))
                          (buffer-string))))
-    (let ((my/say-lang 'en))
+    (when-let ((fest (require 'festival nil t))
+               (my/say-lang 'en))
       (if (string-match-p
            (format "\\`[%s]+\\'" "[:ascii:]’“”–") string)
           ;; festival-say-string is unusable if region is active
@@ -8857,7 +8857,8 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
   (defun my/say-cancel ()
     "Cancel speech process that has started by `my/say'."
     (interactive)
-    (and my/say--timer
+    (and (require 'festival nil t)
+         my/say--timer
          (progn (cancel-timer my/say--timer)
                 (setq my/say--timer nil)))
     (if (and festival-process
@@ -11808,7 +11809,6 @@ Provide a function to Build a clock table summing up time by tag.
 
   mkdir -p $(dirname <<plocate-db()>>) && \
     $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> -e <<open-file-dir()>> -o <<plocate-db()>> \
-                                                 -e "<<trash-dir()>>" \
                                                  -e "<<undo-tree-hist-dir()>>"
 #+end_src
 
@@ -12942,10 +12942,12 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 
   #+begin_src emacs-lisp :noweb-ref additional-elisp
     (use-package festival
+      :defer t
       :config
       (say-minor-mode 1)
       (setq festival-tmp-file (make-temp-file "festival-")))
   #+end_src
+
 ** Open JTalk
 :PROPERTIES:
 :ID:       ce99b0cf-dd07-4b9e-86b3-b492a8cfb354
