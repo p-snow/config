@@ -1213,9 +1213,11 @@ Early init file defines fundamental variables used from both normal Emacs sessio
   (add-to-list 'package-archives
                '("melpa" . "https://melpa.org/packages/")
                t)
-  (customize-set-variable 'package-enable-at-startup t)
-  (customize-set-variable 'package-user-dir
-                          (expand-file-name "elpa" user-emacs-directory-default))
+  (setopt package-enable-at-startup t)
+  (setopt package-user-dir
+          (expand-file-name "elpa" user-emacs-directory-default))
+
+  (require 'package-vc)
 #+end_src
 
 ***** load cl-lib
@@ -1881,10 +1883,11 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
 
 #+begin_src emacs-lisp
   (use-package savehist
-    :defer 4
+    :defer 1
     :custom
     (savehist-save-minibuffer-history t)
-    (savehist-additional-variables '(kill-ring register-alist))
+    (savehist-additional-variables '((kill-ring . 1000)
+                                     (register-alist . 200)))
     (savehist-autosave-interval 90)
     :config
     (savehist-mode 1))
@@ -2398,10 +2401,12 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp
   (use-package proced
-    :no-require t
+    :commands proced
     :custom
     (proced-auto-update-flag t)
-    (proced-auto-update-interval 3))
+    (proced-auto-update-interval 3)
+    (proced-show-remote-processes t)
+    (proced-show-remote-processes t))
 #+end_src
 
 ****** Browse Url
@@ -2413,6 +2418,18 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     :custom
     (browse-url-new-window-flag t)
     (browse-url-secondary-browser-function 'browse-url-firefox))
+#+end_src
+
+******* Webjump
+:PROPERTIES:
+:CREATED:  [2023-10-10 Tue 19:01]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package webjump
+    :commands webjump
+    :custom
+    (webjump-use-internal-browser t))
 #+end_src
 
 ****** locate
@@ -2986,11 +3003,15 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 
 #+begin_src emacs-lisp
   (use-package find-dired
-    :bind (("M-s d f" . find-dired)
-           ("M-s d F" . find-lisp-find-dired)
-           ("M-s d g" . find-grep-dired)
-           ("M-s d n" . find-name-dired)
-           ("M-s d d" . find-lisp-find-dired-subdirectories))
+    :bind (:prefix "M-s d"
+                   :prefix-map my/find-dired-map
+                   :prefix-docstring "Keymap for FInd Dired"
+                   ("f" . find-dired)
+                   ("F" . find-lisp-find-dired)
+                   ("g" . find-grep-dired)
+                   ("n" . find-name-dired)
+                   ("d" . find-lisp-find-dired-subdirectories)
+                   ("!" . find-dired-with-command))
     :custom
     (find-grep-options "-n -H --no-heading -q")
     (find-ls-option '("-print0 | xargs -0 ls -ldN" . "-ldN")))
@@ -3004,13 +3025,13 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'shr
-    (customize-set-variable 'shr-width 10000)
-    (customize-set-variable 'shr-use-fonts nil)
-    (customize-set-variable 'shr-image-animate t)
-    (customize-set-variable 'shr-use-colors nil)
-    (customize-set-variable 'shr-max-image-proportion 0.4)
+    (setopt shr-width 10000)
+    (setopt shr-use-fonts nil)
+    (setopt shr-image-animate t)
+    (setopt shr-use-colors nil)
+    (setopt shr-max-image-proportion 0.4)
     ;; never use cookies
-    (customize-set-variable 'shr-cookie-policy nil))
+    (setopt shr-cookie-policy nil))
 
   (use-package eww
     :commands eww
@@ -3022,6 +3043,7 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
     (eww-header-line-format nil)
     (eww-browse-url-new-window-is-tab nil)
     (eww-auto-rename-buffer 'title)
+    (eww-buffer-name-length 20)
     (eww-bookmarks-directory (expand-file-name "eww"
                                                user-emacs-directory-default))
     :config
@@ -6079,6 +6101,8 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
 
 #+begin_src emacs-lisp
   (use-package project
+    :custom
+    (project-kill-buffers-display-buffer-list t)
     :config
     (add-to-list 'project-switch-commands
                  '(project-dired "Dired root"))
