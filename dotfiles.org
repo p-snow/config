@@ -5011,14 +5011,14 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (use-package org-web-track
     :after (my-org-global-map my/org-mode-init)
     :load-path ("~/data/ghq/github.com/p-snow/org-web-track")
-    :bind (:map my/org-global-map
-                ("T q" . my/org-web-track-ql-view)
-                ("T a" . org-web-track-agenda-view)
-                ("T n" . org-web-track-setup)
-                ("T u" . org-web-track-update)
-                ("T U" . org-web-track-update-all)
-                ("T i" . org-web-track-insert-value-change-table))
     :config
+    (bind-keys :map my/org-global-map
+               ("T q" . my/org-web-track-ql-view)
+               ("T a" . org-web-track-agenda-view)
+               ("T n" . org-web-track-setup)
+               ("T u" . org-web-track-update)
+               ("T U" . org-web-track-update-all)
+               ("T i" . org-web-track-insert-value-change-table))
     (setq org-web-track-selector-alist
           `((,(rx "www.amazon.co.jp"
                   (+ anychar)
@@ -5063,11 +5063,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
               'org-web-track-display-values)
         (when (require 'org-ql nil t)
           (org-ql-search
-           org-web-track-files
-           `(property ,org-web-track-url-property)
-           :super-groups '((:tag "book") (:tag "food")
-                           (:tag "tool") (:tag "supply"))
-           :buffer (current-buffer)))))
+            org-web-track-files
+            `(property ,org-web-track-url-property)
+            :super-groups '((:tag "book") (:tag "food")
+                            (:tag "tool") (:tag "supply"))
+            :buffer (current-buffer)))))
     (defun my/org-web-track-mail-chnages ()
       "docstring"
       (when-let* ((changes (org-web-track-update-all t))
