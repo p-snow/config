@@ -3637,7 +3637,7 @@ Command in practice presumably looks like:
 
 #+begin_src emacs-lisp
   (use-package elfeed-org
-    :after (elfeed org)
+    :after (elfeed org denote)
     :custom
     (rmh-elfeed-org-ignore-tag "ARCHIVE")
     (rmh-elfeed-org-auto-ignore-invalid-feeds nil)
@@ -4821,7 +4821,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-contacts
-    :after org
+    :after (org denote)
     :commands (org-contacts-anniversaries)
     :init
     (setq org-contacts-files
@@ -6895,7 +6895,7 @@ Typical file downloading workflow:
 
 #+begin_src emacs-lisp
   (use-package denote
-    :after org
+    :after my/org-mode-init
     :custom
     (denote-directory (expand-file-name "~/org/notes"))
     :config
@@ -9608,7 +9608,9 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
 :END:
 
 #+begin_src emacs-lisp
-  (with-eval-after-load 'org-ql-view
+  (use-package org-ql-view
+    :after (org-ql denote)
+    :config
     (push `("Someday tasks"
             :buffers-files
             ,(append
