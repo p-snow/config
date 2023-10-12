@@ -3995,7 +3995,10 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                               ((org-ql-block-header "Today's common event")))
          (org-ql-search-block '(and (done)
                                     (closed :on today))
-                              ((org-ql-block-header "Completed tasks on today"))))
+                              ((org-ql-block-header "Completed tasks on today")))
+         (org-ql-search-block '(and (habit)
+                                    (last-repeat 0))
+                              ((org-ql-block-header "Completed habits on today"))))
         ((org-agenda-sorting-strategy
           '(todo-state-up priority-down deadline-up))))
        ("n" "This Week's agenda"
@@ -4786,8 +4789,28 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :custom
     (org-ql-search-directories-files-regexp "\\.org\\(?:\\.gpg\\)?$")
     (org-ql-search-directories-files-recursive t)
+    :preface
+    (defconst org-last-repeat-time-regexp
+      "\\(?::LAST_REPEAT: *\\[\\([^]]+\\)]\\)"
+      "Matches the LAST_REPEAT property together with a time stamp.")
     :config
     (require 'org-ql-search)
+    (org-ql-defpred last-repeat (&key from to _on)
+      "Return non-nil if current entry was repeated in given period.
+  Without arguments, return non-nil if entry has LAST_REPEAT property."
+      :normalizers ((`(,predicate-names ,(and num-days (pred numberp)))
+                     (let* ((from-day (* -1 num-days))
+                            (rest (list :from from-day)))
+                       (org-ql--normalize-from-to-on
+                         `(last-repeat :from ,from))))
+                    (`(,predicate-names . ,rest)
+                     (org-ql--normalize-from-to-on
+                       `(last-repeat :from ,from :to ,to))))
+      :preambles ((`(,predicate-names . ,_)
+                   ;;  Predicate still needs testing.
+                   (list :regexp org-last-repeat-time-regexp :query query)))
+      :body
+      (org-ql--predicate-ts :from from :to to :regexp org-last-repeat-time-regexp :match-group 1))
     (org-ql-defpred (tags-expanded expanded-tags tags-x xtags) (&rest tags)
       "Return non-nil if current heading has one or more of TAGS.
   If TAGS contains a group tag, all tags in the group is used to match.
