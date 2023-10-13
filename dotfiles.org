@@ -45,6 +45,12 @@
   echo "${XDG_DATA_HOME}/Trash"
 #+end_src
 
+delete file which lives longer than 1 week in trash directory.
+
+#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+  d <<trash-dir()>>/files 0700 - - 1w
+#+end_src
+
 ** Email
 #+name: email
 #+begin_src bash
@@ -658,7 +664,6 @@ You may need to enable systemd-tmpfiles service for user
 #+end_src
 
 #+begin_src conf :noweb tangle :tangle (expand-file-name ".config/user-tmpfiles.d/cleanup.conf")
-  d <<trash-dir()>>/files 0700 - - 1w
   d <<home-dir()>>/tmp 0755 - - 5d
   d <<home-dir()>>/Downloads 0755 - - 4w
   <<tmpfiles-cleanup>>
@@ -1622,27 +1627,36 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 
 ****** Auto Save
 
-System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save][auto saving mechanism]] come to the rescue.
+[[info:emacs#Auto Save][Auto Save mode]] saves the file you are editing periodically, whereas [[help:auto-save-visited-mode][auto-save-visited-mode]] saves all  open buffers in Emacs session.
 
-#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-  d <<share-dir()>>/emacs/auto-save-list 0755 - - 2w
+#+name: emacs-auto-save-dir
+#+begin_src elisp :eval no-export
+  (let ((auto-save-dir (file-name-concat user-emacs-directory
+                                         "auto-save")))
+    (unless (file-directory-p auto-save-dir)
+      (make-directory auto-save-dir))
+    auto-save-dir)
 #+end_src
 
-#+begin_src emacs-lisp
-  (customize-set-variable 'auto-save-interval 200)
-  (customize-set-variable 'auto-save-timeout 25)
-  (customize-set-variable 'auto-save-default nil)
-  (customize-set-variable 'auto-save-list-file-prefix
-                          (file-name-concat user-emacs-directory "auto-save-list/.saves-"))
+#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+  d <<emacs-auto-save-dir()>> 0775 - - 2w
+#+end_src
 
-  (customize-set-variable 'auto-save-visited-mode t)
-  (customize-set-variable 'auto-save-visited-interval 20)
+#+begin_src emacs-lisp :noweb tangle
+  (setopt auto-save-default t)
+  (setopt auto-save-interval 200)
+  (setopt auto-save-timeout 25)
+  (setopt auto-save-file-name-transforms
+          '((".*" "<<emacs-auto-save-dir()>>" t)))
+  (setopt delete-auto-save-files t)
+  (setopt kill-buffer-delete-auto-save-files t)
+
+  (setopt auto-save-visited-mode t)
+  (setopt auto-save-visited-interval 20)
   (put 'auto-save-visited-mode 'disabled nil)
 
-  (customize-set-variable 'delete-by-moving-to-trash t)
-  (customize-set-variable 'delete-auto-save-files t)
-  (customize-set-variable 'kill-buffer-delete-auto-save-files t)
-  (customize-set-variable 'save-some-buffers-default-predicate 'save-some-buffers-root)
+  (setopt delete-by-moving-to-trash t)
+  (setopt save-some-buffers-default-predicate 'save-some-buffers-root)
 #+end_src
 
 ****** Uniquify
@@ -1702,6 +1716,18 @@ System crashing jeopardizes our precious text data. Emacs [[info:emacs#Auto Save
   (add-to-list 'safe-local-eval-forms
                '(add-hook 'magit-mode-hook
                           #'my/compile-default-command nil t))
+#+end_src
+
+****** Backup
+:PROPERTIES:
+:CREATED:  [2023-10-13 Fri 09:53]
+:END:
+
+I no longer use backup functionality. Even if I reinstate it, backing up by copying must be rational.
+
+#+begin_src emacs-lisp
+  (setopt make-backup-files nil)
+  (setopt backup-by-copying t)
 #+end_src
 
 ***** Environment
@@ -2148,9 +2174,10 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
 ****** Killing
 
 #+begin_src emacs-lisp
-  (customize-set-variable 'yank-pop-change-selection t)
-  (customize-set-variable 'delete-active-region 'kill)
-  (customize-set-variable 'kill-do-not-save-duplicates t)
+  (setopt yank-pop-change-selection t)
+  (setopt delete-active-region 'kill)
+  (setopt kill-do-not-save-duplicates t)
+  (setopt kill-whole-line t)
 #+end_src
 
 ****** Undo
@@ -2335,7 +2362,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 ***** Editing Basics
 
 #+begin_src emacs-lisp
-  (customize-set-variable 'seft-mark-command-repeat-pop t)
+  (customize-set-variable 'set-mark-command-repeat-pop t)
   (customize-set-variable 'mark-ring-max 32)
   (customize-set-variable 'next-line-add-newlines nil)
   (customize-set-variable 'cycle-spacing-actions
@@ -2345,7 +2372,6 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (customize-set-variable 'delete-selection-mode t)
   ;; files
   (customize-set-variable 'mode-require-final-newline 'visit-save)
-  (customize-set-variable 'make-backup-files nil)
   (customize-set-variable 'delete-auto-save-files t)
   (customize-set-variable 'enable-remote-dir-locals t)
 #+end_src
