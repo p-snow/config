@@ -71,12 +71,20 @@ delete file which lives longer than 1 week in trash directory.
 ** Utility Functions
 :PROPERTIES:
 :CREATED:  [2023-02-15 Wed 19:50]
+:ID:       6757cb6b-289c-4b4d-8c47-76b03681cdfe
 :END:
 
-#+name: which
-#+begin_src bash :var filename=""
-  which ${filename}
-#+end_src
+- which: return absolute path for file using which command
+  #+name: which
+  #+begin_src bash :var filename=""
+    which ${filename}
+  #+end_src
+- random: return random number between 0 and max
+  #+name: random
+  #+header: :var max=10
+  #+begin_src emacs-lisp
+    (calc-eval (format "random(%d)" (1+ max)))
+  #+end_src
 
 * Linux Distributions
 :PROPERTIES:
@@ -369,7 +377,7 @@ This script accepts a space-separated list of manifest file names (without exten
 
 - Automating Script
   #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-    0 2 * * * /bin/bash -ci "update-channels && activate-profiles && guix gc -d 2m -F 20G >> $LOG_DIR/guix-update.log 2>&1"
+    <<random(max=59)>> <<night-time(lag=4)>> * * * /bin/bash -ci "update-channels && activate-profiles && guix gc -d 2m -F 20G >> $LOG_DIR/guix-update.log 2>&1"
   #+end_src
 
 *** Updating Channels
@@ -676,7 +684,14 @@ You may need to enable systemd-tmpfiles service for user
   crontab <<home-dir()>>/.config/crontab/pc
 #+end_src
 
-#+begin_src conf :noweb yes :tangle (expand-file-name ".config/crontab/pc")
+#+name: night-time
+#+header: :var lag=0 bedin-time=23
+#+begin_src emacs-lisp :eval no-export
+  (% (+ bedin-time lag)
+     24)
+#+end_src
+
+#+begin_src conf :noweb tangle :tangle (expand-file-name ".config/crontab/pc")
   MAILTO="<<email()>>"
 
   BIN_DIR="<<home-dir()>>/bin"
@@ -2592,8 +2607,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     :defer t
     :custom
     (midnight-mode t)
-    ;; set timer at 2:30 a.m.
-    (midnight-delay "02:30am"))
+    (midnight-delay "05:30am"))
 #+end_src
 
 ****** Package
@@ -11878,7 +11892,7 @@ Provide a function to Build a clock table summing up time by tag.
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-  30 4 * * * /bin/bash -ci "updatedb-home >> $LOG_DIR/updatedb-home.log 2>&1"
+  <<random(max=59)>> <<night-time(lag=3)>> * * * /bin/bash -ci "updatedb-home >> $LOG_DIR/updatedb-home.log 2>&1"
 #+end_src
 
 ** OpenSSH
