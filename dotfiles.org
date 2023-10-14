@@ -260,6 +260,8 @@ initialization script for a linuxmint account
      "ddrescue"
      "sqlite"
      "libarchive"
+     "imagemagick"
+     "pngquant"
      "ffmpeg"
      "dav1d"
      "jq"
@@ -286,8 +288,6 @@ initialization script for a linuxmint account
 #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/desktop.scm")
   (specifications->manifest
    '("font-adobe-source-han-sans"
-     "imagemagick"
-     "pngquant"
      "pulseaudio"
      "gparted"
      "vlc"
@@ -298,19 +298,22 @@ initialization script for a linuxmint account
      "kdeconnect"
      "dia"
      "inkscape"
+     "krita"
      <<guix-desktop>>))
 #+end_src
 
-**** guix creative profile
+**** guix creative profile                   :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-10-14 Sat 13:39]
+:END:
 
-#+begin_src shell :noweb yes :noweb-ref bashrc
+#+begin_src shell :noweb yes
   export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_DIRS}
 #+end_src
 
-#+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/creative.scm")
+#+begin_src scheme :noweb yes :tangle no
   (specifications->manifest
-   '("krita"
-     <<guix-creative>>))
+   '(<<guix-creative>>))
 #+end_src
 
 **** guix emacs profile
@@ -14378,7 +14381,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 :CREATED:  [2022-08-15 Mon 20:13]
 :END:
 
-#+begin_src scheme :noweb-ref guix-creative
+#+begin_src scheme :noweb-ref guix-desktop
   "slop"
   "gimp"
   "obs"
@@ -14391,7 +14394,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 :CREATED:  [2023-03-19 Sun 16:43]
 :END:
 
-#+begin_src scheme :noweb-ref guix-creative
+#+begin_src scheme :noweb-ref guix-desktop
   "python-screenkey"
 #+end_src
 
