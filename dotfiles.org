@@ -51,40 +51,30 @@ delete file which lives longer than 1 week in trash directory.
   d <<trash-dir()>>/files 0700 - - 1w
 #+end_src
 
-** Email
+#+begin_src shell :noweb yes :noweb-ref updatedb-opt
+  -e "<<trash-dir()>>" \
+#+end_src
+
+** Email Address
+
 #+name: email
 #+begin_src bash
   echo -n "${EMAIL}"
 #+end_src
 
-+ account name
-  #+name: account
-  #+begin_src shell :eval no-export
-    echo -n "${EMAIL}" | cut -d'@' -f1
-  #+end_src
-+ network name
-  #+name: my-domain
-  #+begin_src shell :eval no-export
-    echo -n "${EMAIL}" | cut -d'@' -f2
-  #+end_src
+*** my account name
 
-** Utility Functions
-:PROPERTIES:
-:CREATED:  [2023-02-15 Wed 19:50]
-:ID:       6757cb6b-289c-4b4d-8c47-76b03681cdfe
-:END:
+#+name: account
+#+begin_src shell :eval no-export
+  echo -n "${EMAIL}" | cut -d'@' -f1
+#+end_src
 
-- which: return absolute path for file using which command
-  #+name: which
-  #+begin_src bash :var filename=""
-    which ${filename}
-  #+end_src
-- random: return random number between 0 and max
-  #+name: random
-  #+header: :var max=10
-  #+begin_src emacs-lisp
-    (calc-eval (format "random(%d)" (1+ max)))
-  #+end_src
+*** my network name
+
+#+name: my-domain
+#+begin_src shell :eval no-export
+  echo -n "${EMAIL}" | cut -d'@' -f2
+#+end_src
 
 * Linux Distributions
 :PROPERTIES:
@@ -380,7 +370,7 @@ This script accepts a space-separated list of manifest file names (without exten
 
 - Automating Script
   #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-    <<random(max=59)>> <<night-time(lag=4)>> * * * /bin/bash -ci "update-channels && activate-profiles && guix gc -d 2m -F 20G >> $LOG_DIR/guix-update.log 2>&1"
+    <<hash-to-num(s="upch",max_n=59)>> <<night-time(lag=4)>> * * * /bin/bash -ci "update-channels && activate-profiles && guix gc -d 2m -F 20G >> $LOG_DIR/guix-update.log 2>&1"
   #+end_src
 
 *** Updating Channels
@@ -7523,7 +7513,7 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
   (expand-file-name "undo-tree" user-emacs-directory)
 #+end_src
 
-#+begin_src shell :noweb yes :noweb-ref updatedb-opt
+#+begin_src shell :noweb yes :noweb-ref updatedb-opt :tangle no
   -e "<<undo-tree-hist-dir()>>" \
 #+end_src
 
@@ -11898,7 +11888,7 @@ Provide a function to Build a clock table summing up time by tag.
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-  <<random(max=59)>> <<night-time(lag=3)>> * * * /bin/bash -ci "updatedb-home >> $LOG_DIR/updatedb-home.log 2>&1"
+  <<hash-to-num(s="updb",max_n=59)>> <<night-time(lag=3)>> * * * /bin/bash -ci "updatedb-home >> $LOG_DIR/updatedb-home.log 2>&1"
 #+end_src
 
 ** OpenSSH
@@ -14828,10 +14818,44 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
           ;;
   esac
 #+end_src
-* Utility Scripts
+* Utility Functions/Scripts
 :PROPERTIES:
 :header-args+: :tangle-mode (identity #o755)
 :END:
+** which path
+
+return absolute path for file using which command
+
+#+name: which
+#+begin_src bash :var filename=""
+  which ${filename}
+#+end_src
+
+** hash to number
+:PROPERTIES:
+:CREATED:  [2023-10-15 Sun 18:41]
+:END:
+
+return a number between 0 and max by hashing given string
+
+#+name: hash-to-num
+#+header: :var s="str" max_n=10
+#+begin_src python
+  import hashlib
+
+  sha256 = hashlib.sha256(s.encode("utf-8"))
+  return int(sha256.hexdigest(), 16) % (max_n + 1)
+#+end_src
+
+** random number
+
+return random number between 0 and max
+
+#+name: random
+#+header: :var max=10
+#+begin_src emacs-lisp
+  (calc-eval (format "random(%d)" (1+ max)))
+#+end_src
 
 ** Declutters                                  :ARCHIVE:
 

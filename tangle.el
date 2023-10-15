@@ -4,11 +4,15 @@
 
 (remove-hook 'org-babel-pre-tangle-hook
              'save-buffer)
+(setopt org-babel-python-command (executable-find "python3"))
+(setopt org-babel-load-languages '((emacs-lisp . t)
+                                   (python     . t)))
 
 (let* ((org-files (directory-files "./" nil "\\.org$"))
        (org-confirm-babel-evaluate nil)
        (python-indent-guess-indent-offset nil)
-       (org-id-locations-file nil))
+       (org-id-locations-file nil)
+       )
   (mapc (lambda (org-file)
           (org-babel-lob-ingest org-file))
         org-files)
