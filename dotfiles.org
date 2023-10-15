@@ -7519,8 +7519,12 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
 #+end_src
 
 #+name: undo-tree-hist-dir
-#+begin_src emacs-lisp :eval no-export
+#+begin_src emacs-lisp :tangle no :eval no-export
   (expand-file-name "undo-tree" user-emacs-directory)
+#+end_src
+
+#+begin_src shell :noweb yes :noweb-ref updatedb-opt
+  -e "<<undo-tree-hist-dir()>>" \
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle
@@ -11885,13 +11889,12 @@ Provide a function to Build a clock table summing up time by tag.
   export LOCATE_PATH=<<plocate-db()>>
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/updatedb-home") :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/updatedb-home") :tangle-mode (identity #o555) :shebang #!/usr/bin/env bash
   . ~/.bashrc
 
   mkdir -p $(dirname <<plocate-db()>>) && \
     $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> -e <<open-file-dir()>> -o <<plocate-db()>> \
-                                                 -e "<<trash-dir()>>" \
-                                                 -e "<<undo-tree-hist-dir()>>"
+                                                 <<updatedb-opt>>
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-pc
