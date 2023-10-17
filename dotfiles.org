@@ -5116,13 +5116,14 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
               'org-web-track-display-values)
         (when (require 'org-ql nil t)
           (org-ql-search
-           org-web-track-files
-           `(property ,org-web-track-url-property)
-           :super-groups '((:tag "book") (:tag "food")
-                           (:tag "tool") (:tag "supply"))
-           :buffer (current-buffer)))))
+            org-web-track-files
+            `(property ,org-web-track-url-property)
+            :super-groups '((:tag "book") (:tag "food")
+                            (:tag "tool") (:tag "supply"))
+            :buffer (current-buffer)))))
     (defun my/org-web-track-mail-chnages ()
-      "docstring"
+      "Update all web tracking items in `org-web-track-files'
+   and send an email if any of them has changed its value."
       (when-let* ((changes (org-web-track-update-all))
                   (mail-msg (mapconcat
                              (lambda (chg)
@@ -5130,7 +5131,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                  (let ((org-trust-scanner-tags t)
                                        (track-value
                                         (org-entry-get-multivalued-property (point)
-                                                                            org-web-track-update-property)))
+                                                                            org-web-track-prev-property)))
                                    (format "%s\n\t%s\n"
                                            (substring-no-properties
                                             (org-get-heading t t t t))
