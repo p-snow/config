@@ -256,6 +256,7 @@ initialization script for a linuxmint account
      "dav1d"
      "jq"
      "pup"
+     "htmlq"
      "binutils"
      "make"
      "llvm"
@@ -5089,7 +5090,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
             (,(regexp-quote "kakaku.com/item")
              [.priceTxt])
             (,(regexp-quote "store.steampowered.com")
-             "pup 'div[class=\"discount_final_price\"] json{}' | jq -re .[0].text")
+             "htmlq --text 'div.game_purchase_action:nth-child(4) > div:nth-child(1) > div:nth-child(1)'")
             ("www.googleapis.com/youtube/v3/channels"
              (lambda (json)
                (assoc-default 'subscriberCount
