@@ -5214,7 +5214,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :bind (("C-;" . consult-buffer)
            ("C-c m" . consult-mode-command)
            ("C-c r" . consult-recent-file)
-           ("C-c g" . consult-outline)
+           ("C-c h" . consult-outline)
            ("C-x M-:" . consult-complex-command)
            ("M-y" . consult-yank-pop)
            ("C-M-y" . consult-yank-from-kill-ring)
@@ -5239,7 +5239,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
            ("M-s i" . consult-info)
            ("C-x M-#" . consult-theme)
            :map my/org-global-map
-           ("g" . consult-org-agenda)
+           ("h" . consult-org-agenda)
            :map isearch-mode-map
            ("C-M-n" . consult-isearch-history)
            ("M-l" . consult-line)
@@ -5267,28 +5267,26 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     :config
     (with-eval-after-load 'org
       (bind-keys :map org-mode-map
-                 ("C-c h" . consult-org-heading))))
+                 ("C-c H" . consult-org-heading))))
 
   (defun project-root-function ()
     (when-let (project (project-current))
       (car (project-roots project))))
 #+end_src
 
-****** consult-dir                         :ARCHIVE:
+****** consult-dir
 :PROPERTIES:
 :CREATED:  [2022-12-27 Tue 17:01]
 :END:
 
-# #+begin_src scheme :tangle no :noweb-ref guix-emacs
-#   "emacs-consult-dir"
-# #+end_src
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+  "emacs-consult-dir"
+#+end_src
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package consult-dir
-    :bind (("C-x C-d" . consult-dir)
-           :map vertico-map
-           ("C-x C-d" . consult-dir)
-           ("C-x C-j" . consult-dir-jump-file)))
+    :after consult
+    :bind ("H-d" . consult-dir))
 #+end_src
 
 ****** affe
@@ -9109,6 +9107,33 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
 :END:
+***** search org headings under the directory with consult
+:PROPERTIES:
+:CREATED:  [2023-10-20 Fri 20:14]
+:END:
+
+#+begin_src emacs-lisp
+  (defun my/consult-org-under (dir)
+    "Search org heading from all org files under DIR."
+    (interactive "sDir: ")
+    (when-let* ((dir-fixed (replace-regexp-in-string "\\(?:^/~\\)" "~"
+                                                     dir))
+                (dir-expanded (expand-file-name dir-fixed))
+                (org-agenda-files
+                 (and (file-directory-p dir-expanded)
+                      (directory-files-recursively dir-expanded
+                                                   "\\(?:\\.org\\(?:\\.gpg\\)?$\\)"))))
+      (consult-org-agenda)))
+
+  (with-eval-after-load 'embark
+    (keymap-set embark-file-map "H"
+                #'my/consult-org-under))
+
+  (with-eval-after-load 'my-org-global-map
+    (keymap-set my/org-global-map "H"
+                #'my/consult-org-under))
+#+end_src
+
 ***** keymap for global org commands
 :PROPERTIES:
 :CREATED:  [2023-08-08 Tue 14:42]
