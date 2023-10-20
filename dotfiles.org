@@ -5117,12 +5117,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
         (setq org-columns-modify-value-for-display-function
               'org-web-track-display-values)
         (when (require 'org-ql nil t)
-          (org-ql-search
-            org-web-track-files
-            `(property ,org-web-track-url-property)
-            :super-groups '((:tag "book") (:tag "food")
-                            (:tag "tool") (:tag "supply"))
-            :buffer (current-buffer)))))
+          (org-ql-search org-web-track-files
+                         `(property ,org-web-track-url-property)
+                         :super-groups '((:tag "book") (:tag "food")
+                                         (:tag "tool") (:tag "supply"))
+                         :buffer (current-buffer)))))
     (defun my/org-web-track-mail-chnages ()
       "Update all web tracking items in `org-web-track-files'
    and send an email if any of them has changed its value."
@@ -5142,7 +5141,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                              changes)))
         ;; you need to set SMTP info to smtpmail-xxx variables
         (let ((message-kill-buffer-on-exit t))
-          (message-mail user-mail-address "Web Track Results")
+          (message-mail user-mail-address "Web Tracking Notification")
           (message-goto-body)
           (insert mail-msg)
           (message-send-and-exit))))
@@ -5153,11 +5152,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (org-web-track-update-column-width 30)
     (org-web-track-files
      (mapcan (lambda (dir)
-               (directory-files dir t
-                                (rx bol
-                                    (1+ any) ".org"
-                                    (opt ".gpg")
-                                    eol)))
+               (directory-files dir t "^.+\\.org\\(?:\\.gpg\\)?$"))
              '("~/org/agenda/" "~/org/notes/"))))
 #+end_src
 
