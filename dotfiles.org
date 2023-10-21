@@ -8463,26 +8463,23 @@ Suport successive deletion with C-h/M-h
 :CREATED:  [2023-01-20 Fri 10:59]
 :END:
 
-***** frame is spawn in fullscreen mode
+***** frame maximization
 :PROPERTIES:
 :CREATED:  [2023-10-08 Sun 22:29]
 :END:
 
+Every frame will be spawn in maximized and initial frame will be full screen at Emacs start-up time.
+
 #+begin_src emacs-lisp
-  ;; launch in full screen at start-up
-  (use-package emacs
-    :no-require t
-    :preface
-    (defun my/frame-fullscreen (&optional frame)
-      "Display FRAME in full screen mode."
-      (when (member (window-system) '(x ns w32))
-        (set-frame-parameter frame 'fullscreen 'fullboth)))
-    :hook
-    (after-init . my/frame-fullscreen)
+  (use-package frame
+    :if (member (window-system) '(x ns w32))
     :init
     (add-to-list 'after-make-frame-functions
-                 #'my/frame-fullscreen))
+                 (lambda (frame) (set-frame-parameter frame 'fullscreen 'maximized)))
+    :hook
+    (after-init . (lambda () (set-frame-parameter nil 'fullscreen 'fullboth))))
 #+end_src
+
 ***** prune old .eln files at shut down
 :PROPERTIES:
 :CREATED:  [2023-10-06 Fri 23:11]
