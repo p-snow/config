@@ -4489,7 +4489,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-clock
-    :after org
+    :after (org my-org-global-map)
     :custom
     (org-clock-into-drawer "CLOCK")
     (org-clock-out-when-done t)
@@ -4603,6 +4603,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package ol
+    :after my-org-global-map
     :bind (:map my/org-global-map
                 ("s" . org-store-link))
     :config
