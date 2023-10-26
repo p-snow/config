@@ -2422,7 +2422,12 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp
   (use-package server
-    :hook (after-init . server-start)
+    :preface
+    (defun my/server-start ()
+      "Start Emacs server only if not running."
+      (unless (server-running-p)
+        (server-start)))
+    :hook (after-init . my/server-start)
     :custom
     (server-client-instructions t))
 #+end_src
