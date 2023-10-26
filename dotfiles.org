@@ -1348,9 +1348,10 @@ init.el devote itself to call for remaining config files.
 :END:
 
 #+begin_src emacs-lisp  :tangle (expand-file-name ".emacs.d/elisp/user-init.el")
-  (dolist (file (directory-files-recursively my/user-config-dir
-                                             (rx (seq ".el" eol))))
-    (funcall #'load-file file))
+  (let ((load-match "\\.el$"))
+    (mapc #'load-file
+          (append (directory-files my/user-config-dir t load-match)
+                  (directory-files (file-name-concat my/user-config-dir "tangled") t load-match))))
 
   (provide 'user-init)
 
