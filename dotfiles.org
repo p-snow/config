@@ -1207,19 +1207,6 @@ Early init file defines fundamental variables used from both normal Emacs sessio
   (push my/user-package-dir load-path)
 #+end_src
 
-***** custom file
-:PROPERTIES:
-:CREATED:  [2023-01-10 Tue 18:48]
-:END:
-
-#+begin_src emacs-lisp
-  (customize-set-variable 'custom-file
-                          (expand-file-name "custom.el" user-emacs-directory-default))
-
-  (when (file-readable-p custom-file)
-    (load custom-file))
-#+end_src
-
 ***** package.el
 
 #+begin_src emacs-lisp
@@ -1330,6 +1317,19 @@ use-package depends on following packages internally
 #+end_src
 
 **** loading sequence
+
+***** custom file
+:PROPERTIES:
+:CREATED:  [2023-01-10 Tue 18:48]
+:END:
+
+#+begin_src emacs-lisp
+  (customize-set-variable 'custom-file
+                          (expand-file-name "custom.el" user-emacs-directory-default))
+
+  (when (file-readable-p custom-file)
+    (load custom-file))
+#+end_src
 
 ***** init.el
 :PROPERTIES:
