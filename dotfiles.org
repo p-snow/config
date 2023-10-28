@@ -1,6 +1,7 @@
 #+TITLE: My Configuration Collection
 #+PROPERTY: tangle-dest       ~/dotfiles
 #+PROPERTY: header-args       :mkdirp yes :comments both
+#+PROPERTY: header-args:emacs-lisp :tangle-mode o444
 #+PROPERTY: header-args:bash  :shebang "#!/usr/bin/env bash\nset -euo pipefail\n"
 
 #+STARTUP: overview
@@ -483,7 +484,7 @@ install available fonts by rescanning font directories
 #+end_src
 
 - bash profile
-  #+BEGIN_SRC shell :tangle (expand-file-name ".bash_profile")
+  #+BEGIN_SRC shell :tangle (expand-file-name ".bash_profile") :comments no
     #!/usr/bin/env bash
 
     if [ -f ~/.bashrc ]; then
@@ -491,9 +492,7 @@ install available fonts by rescanning font directories
     fi
   #+END_SRC
 - bashrc
-  #+BEGIN_SRC shell :noweb yes :tangle (expand-file-name ".bashrc")
-    #!/usr/bin/env bash
-
+  #+BEGIN_SRC bash :noweb yes :tangle (expand-file-name ".bashrc") :comments no :shebang ""
     if [ -f ~/.bashrc.secret ]; then
        source ~/.bashrc.secret
     fi
@@ -4649,7 +4648,38 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                 (dot        . t)
                                 (plantuml   . t)
                                 (lilypond   . t)))
-    (org-confirm-babel-evaluate nil))
+    (org-confirm-babel-evaluate nil)
+    :config
+    (setf org-babel-default-header-args
+          (append org-babel-default-header-args
+                  '((:mkdirp . t)
+                    (:comments . "both")))))
+
+  (use-package ob-shell
+    :after ob-core
+    :config
+    (add-to-list 'org-babel-default-header-args:bash
+                 '(:shebang . "#!/usr/bin/env bash\nset -euo pipefail\n")))
+
+  (use-package ob-emacs-lisp
+    :after ob-core
+    :config
+    (add-to-list 'org-babel-default-header-args:emacs-lisp
+                 `(:tangle-mode . ,(identity #o444))))
+#+end_src
+
+******* Org Babel Tangle
+:PROPERTIES:
+:CREATED:  [2023-10-29 Sun 11:23]
+:END:
+
+org-babel-tangle-default-file-mode does not seems to be in effect. I set org-babel-default-header-args:<lang> instead as a wordaround.
+
+#+begin_src emacs-lisp
+  (use-package ob-tangle
+    :after ob-core
+    :custom
+    (org-babel-tangle-default-file-mode (identity #o444)))
 #+end_src
 
 ****** Org ID
@@ -8281,7 +8311,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 
 *** further extension
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "my-ext-config.el" my/user-config-dir)
+:header-args+: :tangle (expand-file-name "my-config.el" my/user-config-dir)
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
@@ -13053,8 +13083,6 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 
 #+name: skk-jisyo-path
 #+begin_src shell :noweb tangle :tangle no
-  source ~/.bashrc
-
   echo "${GUIX_EXTRA_PROFILES}/base/base/share/skk/"
 #+end_src
 
