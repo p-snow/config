@@ -5117,18 +5117,19 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 :CREATED:  [2023-01-06 Fri 13:43]
 :END:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-web-track.el" my/user-config-dir)
   (use-package org-web-track
-    :after (my-org-global-map my/org-mode-init)
+    :after my/org-mode-init
     :load-path ("~/data/ghq/github.com/p-snow/org-web-track")
     :config
-    (bind-keys :map my/org-global-map
-               ("T q" . my/org-web-track-ql-view)
-               ("T a" . org-web-track-agenda-view)
-               ("T n" . org-web-track-setup)
-               ("T u" . org-web-track-update)
-               ("T U" . org-web-track-update-all)
-               ("T i" . org-web-track-insert-value-change-table))
+    (with-eval-after-load 'my-org-global-map
+      (bind-keys :map my/org-global-map
+                 ("T q" . my/org-web-track-ql-view)
+                 ("T a" . org-web-track-agenda-view)
+                 ("T n" . org-web-track-setup)
+                 ("T u" . org-web-track-update)
+                 ("T U" . org-web-track-update-all)
+                 ("T i" . org-web-track-insert-value-change-table)))
     (setq org-web-track-selector-alist
           `((,(rx "www.amazon.co.jp"
                   (+ anychar)
@@ -5158,9 +5159,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                (assoc-default 'rates json)))))
             ("map.kaldi.co.jp/kaldi"
              "pup 'div[class=\"shop_bnr news\"] ul li text{}' | xargs echo -n")))
-    (when (require 'midnight nil t)
-      (add-hook 'midnight-hook
-                'my/org-web-track-mail-chnages))
     :preface
     (defun my/org-web-track-ql-view ()
       "Open Org Agenda view with tracking items which hold TRACK_URL property."
@@ -5177,7 +5175,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                          :super-groups '((:tag "book") (:tag "food")
                                          (:tag "tool") (:tag "supply"))
                          :buffer (current-buffer)))))
-    (defun my/org-web-track-mail-chnages ()
+    (defun my/org-web-track-update-all-and-notify ()
       "Update all web tracking items in `org-web-track-files'
    and send an email if any of them has changed its value."
       (when-let* ((changes (org-web-track-update-all))
@@ -8381,14 +8379,14 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 :CREATED:  [2023-01-28 Sat 15:56]
 :END:
 
-***** ddskk corsor color malfunction in Emacs 28
+***** ddskk corsor color malfunction in Emacs 28 and later
 :PROPERTIES:
 :CREATED:  [2023-01-28 Sat 15:57]
 :END:
 
 [[https://github.com/skk-dev/ddskk/issues/190][Cursor colour no longer changes to match hiragana/katakana mode. · Issue #190 · skk-dev/ddskk · GitHub]]
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" user-emacs-directory-default)
   (require 'facemenu)
 #+end_src
 
