@@ -16,6 +16,8 @@
 
 *** share directory
 
+My share directory is where my variable data stay.
+
 #+name: share-dir
 #+begin_src shell :eval no-export
   echo "${HOME}/data/share"
@@ -55,21 +57,57 @@ delete file which lives longer than 1 week in trash directory.
   -e "<<trash-dir()>>" \
 #+end_src
 
-** Email Address
+** Email Settings
+:PROPERTIES:
+:CREATED:  [2023-10-28 Sat 11:57]
+:END:
 
-#+name: email
-#+begin_src bash
-  echo -n "${EMAIL}"
-#+end_src
+*** Smtp Server Host (supposed to define 'smtp-host') :crypt:
+:PROPERTIES:
+:CREATED:  [2023-10-28 Sat 12:01]
+:END:
 
-*** my account name
+-----BEGIN PGP MESSAGE-----
+
+hQEMA9uWvE5LJ2ejAQf8DR/r9k5aYhIE3pIvhTI1ikZR9YYxoDYHpowO+mIlEscS
+XjQ5o3I1ZvpYz5hmEU7N/+c3NtkeuHauqveG5rExSjziZA66lHqlfuftXYRIbDCk
+ho1WUBZ/PviwvEntxb8mmJGfkUVYY7T6lo2mnJlC/5yQnQKYZRGCD8VuH4bKKIra
+J8QHUgfr+dEeyBcdHcJYP8vIPkE2OF6e9XptNLYXApKfdGQzATE8uKXw1TtGYigP
+pIguPI+/t7oY5zPVhdrcCPKQG7imfgPOS5B47C7a+LEDINq49y0EJIxi37wATEnJ
+PPnHWRA/kQHI3i0Xvq1QnZK0KmRvPPEw+BgkzeVbLNJ+AXeRlveQvzDWfSJOrgCN
+x1leQ2HZuf5whTQgEiSEsADxU0QNyZzU9yIvYbQR9LidFYEgLs4SknXkfY29Qo3V
+Xw5S+pNGGe8vA7CK8FbGS8+4kFiQA73O2BMkmawaLVah1Nb+mOCzfkxTM3h8oxzO
+vz7VQ28qvvrH9vKNlqXv
+=hkcg
+-----END PGP MESSAGE-----
+
+*** My Email Address (supposed to define 'email') :crypt:
+:PROPERTIES:
+:CREATED:  [2023-10-28 Sat 19:41]
+:END:
+
+-----BEGIN PGP MESSAGE-----
+
+hQEMA9uWvE5LJ2ejAQf/UQO2ORN9Gm98Q8y5ruZzTigXfS7wUwGmh5T9KwmMXat2
+kbDS4y6Ipfv8fNKbgRKP3JNmDW+lHmEQEcNM40f/EDuSY6EeIT3TUHC9MHT8k+6p
+Zmy2LOlYQsKsilcI5EJw/hlrKyErJAplEVvcKOhWyIg5XRRRMOMRP1YNYx+x4+J5
+KT8u1IsMH2zMe8oubsXFoHqPxZDKmVVVuHZObLQG+Fe/hWg9lpCb5Hk7QfcLAj01
+F/waEJ5j4T2WkXNxeC7O+TzkE7eaX/zjJsHNN3BhhShuzNmNVtZZ9h5ca0CsSrKH
+Qt3aoAfUQjiDcR7+hE+CuWJwlYHRQfLp9zH3dV8pA9KBAYkFxdwI55rBKprA9ROt
+TsgquPweZLll0t3rnKXqPetbxc+LNMGLBUkOSRZQVqPHml7DdKiBoTM9KkQRU5c8
+JndG/nezzLYEYfW2C33VH6ZWtmDXuNIIAKHO7J65rrX/RtX1H48A6rwAfyMeog5K
+4TgmWcngvArMI1W7N34SinWf
+=AHjv
+-----END PGP MESSAGE-----
+
+*** My Account Name
 
 #+name: account
 #+begin_src shell :eval no-export
   echo -n "${EMAIL}" | cut -d'@' -f1
 #+end_src
 
-*** my network name
+*** My Domain Name
 
 #+name: my-domain
 #+begin_src shell :eval no-export
@@ -460,6 +498,7 @@ install available fonts by rescanning font directories
        source ~/.bashrc.secret
     fi
 
+    export EMAIL=<<email>>
     export VIEWER=less
 
     USER_PATHS=(
@@ -2409,7 +2448,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
       (let ((epa-armor t))
         (epa-dired-do-encrypt)))
     :config
-    (setq epa-file-encrypt-to "<<email()>>"))
+    (setq epa-file-encrypt-to "<<email>>"))
 #+end_src
 
 ****** Server
@@ -4631,18 +4670,18 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-crypt
-    :after org
-    :bind (:map org-mode-map
-                ("C-c M-: e" . org-encrypt-entry)
-                ("C-c M-: E" . org-encrypt-entries)
-                ("C-c M-: d" . org-decrypt-entry)
-                ("C-c M-: D" . org-decrypt-entries))
+    :after my/org-mode-init
     :custom
     (org-crypt-key user-mail-address)
     :config
+    (bind-keys :map org-mode-map
+               ("C-c M-: e" . org-encrypt-entry)
+               ("C-c M-: E" . org-encrypt-entries)
+               ("C-c M-: d" . org-decrypt-entry)
+               ("C-c M-: D" . org-decrypt-entries))
+    (org-crypt-use-before-save-magic)
     (add-to-list 'org-tags-exclude-from-inheritance
-                 org-crypt-tag-matcher)
-    (org-crypt-use-before-save-magic))
+                 org-crypt-tag-matcher))
 #+end_src
 
 ****** Org Attach
@@ -16228,8 +16267,8 @@ Exec command in background
 #+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/nhp")
   #!/usr/bin/env bash
 
-  readonly MAIL_FROM="<<email()>>"
-  readonly MAIL_TO="<<email()>>"
+  readonly MAIL_FROM="<<email>>"
+  readonly MAIL_TO="<<email>>"
 
   function usage() {
     cat <<_EOT_
@@ -16367,7 +16406,7 @@ Utility for sendind email programatically
   def sendmail(mail_to, mail_from, subject, message):
       smtp_host = 'smtp.<<my-domain()>>'
       smtp_port = '465'
-      smtp_user = '<<email()>>'.split(sep='@')[0]
+      smtp_user = '<<email>>'.split(sep='@')[0]
       smtp_pass = subprocess.run(["pass {}:{}/{} | head -1".format(smtp_host, smtp_port, smtp_user)], stdout=subprocess.PIPE, shell=True).stdout.decode().strip()
 
       mime_msg = MIMEText(message)
