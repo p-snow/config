@@ -2481,6 +2481,63 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 ***** Applications
 
+****** Mail
+:PROPERTIES:
+:CREATED:  [2023-10-28 Sat 11:54]
+:END:
+
+******* Smtpmail
+:PROPERTIES:
+:CREATED:  [2023-10-28 Sat 11:54]
+:END:
+
+#+begin_src emacs-lisp :noweb tangle
+  (use-package smtpmail
+    :after mu4e
+    :init
+    (setq smtpmail-default-smtp-server "<<smtp-host>>")
+    :custom
+    (smtpmail-smtp-service 465)
+    (smtpmail-smtp-user user-mail-address)
+    (smtpmail-stream-type 'ssl)
+    (smtpmail-mail-address user-mail-address))
+#+end_src
+
+******* Message
+:PROPERTIES:
+:CREATED:  [2023-10-28 Sat 17:23]
+:END:
+
+******** Message Mail
+:PROPERTIES:
+:CREATED:  [2023-10-28 Sat 17:24]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package message
+    :after (dired mu4e)
+    :custom
+    (message-send-mail-function 'smtpmail-send-it))
+#+end_src
+
+******* Mime Security
+:PROPERTIES:
+:CREATED:  [2023-10-28 Sat 17:50]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package mm-encode
+    :after mu4e
+    :custom
+    (mm-sign-option nil))
+
+  (use-package mml-sec
+    :after (mu4e dired)
+    :custom
+    (mml-secure-openpgp-sign-with-sender t)
+    (mml-default-sign-method 'pgpmime))
+#+end_src
+
 ****** Ispell/FlySpell
 :PROPERTIES:
 :CREATED:  [2023-10-07 Sat 10:40]
@@ -3390,10 +3447,6 @@ Command in practice presumably looks like:
                                            (shell-command-on-region (point-min) (point-max) "nkf -w -Lu" (current-buffer) t)
                                            (or (buffer-string) "")))
                               (mu4e-shr2text msg)))
-    (message-send-mail-function 'smtpmail-send-it)
-    (mm-sign-option nil)
-    (mml-secure-openpgp-sign-with-sender t)
-    (mml-default-sign-method 'pgpmime)
     :config
     (bind-keys :map mu4e-headers-mode-map
                ("C-j" . mu4e-headers-view-message)
