@@ -134,10 +134,20 @@ initialization script for a ubuntu account
   <<ubuntu-setup>>
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/apt-install") :shebang #!/bin/sh :tangle-mode (identity #o755)
+*** Apt Package Manager
+:PROPERTIES:
+:CREATED:  [2023-11-01 Wed 12:11]
+:END:
+
+- apt-managed packages
+  #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/apt-install") :shebang #!/bin/sh :tangle-mode (identity #o755)
   sudo apt-get install -y \
        <<apt-pkg>>
-#+end_src
+  #+end_src
+- update apt packages every midnight
+  #+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
+    pwsudo apt update && pwsudo apt upgrade --yes
+  #+end_src
 
 ** Linux Mint (Cinnamon DE)
 :PROPERTIES:
@@ -154,8 +164,8 @@ initialization script for a linuxmint account
 #+end_src
 
 - Back-up Cinnamon Desktop Configuration
-  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-    30 1 */2 * * env bash -ci "dconf dump /org/cinnamon/ > ~/.config/linuxmint/cinnamon.conf"
+  #+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
+    dconf dump /org/cinnamon/ > ~/.config/linuxmint/cinnamon.conf
   #+end_src
 
   To thaw backed up config
@@ -409,8 +419,13 @@ This script accepts a space-separated list of manifest file names (without exten
 #+end_src
 
 - Automating Script
-  #+begin_src conf :noweb yes :noweb-ref cronjob-pc
-    <<hash-to-num(s="upch",max_n=59)>> <<night-time(lag=4)>> * * * /bin/bash -ci "update-channels && activate-profiles && guix gc -d 2m -F 20G >> $LOG_DIR/guix-update.log 2>&1"
+  Update packages in base profile every midnight
+  #+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
+    update-channels && activate-profiles base && guix gc -d 2m -F 20G
+  #+end_src
+  Update packages in desktop and emacs profile every weekend
+  #+begin_src shell :eval no :tangle no :noweb-ref weekend-batch
+    update-channels && activate-profiles desktop emacs && guix gc -d 2m -F 20G
   #+end_src
 
 *** Updating Channels
@@ -716,15 +731,8 @@ You may need to enable systemd-tmpfiles service for user
   crontab <<home-dir()>>/.config/crontab/pc
 #+end_src
 
-#+name: night-time
-#+header: :var lag=0 bedin-time=23
-#+begin_src emacs-lisp :eval no-export
-  (% (+ bedin-time lag)
-     24)
-#+end_src
-
 #+begin_src conf :noweb tangle :tangle (expand-file-name ".config/crontab/pc")
-  MAILTO="<<email()>>"
+  MAILTO="<<email>>"
 
   BIN_DIR="<<home-dir()>>/bin"
   LOG_DIR="<<home-dir()>>/.local/state/log"
@@ -5276,6 +5284,39 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
      (mapcan (lambda (dir)
                (directory-files dir t "^.+\\.org\\(?:\\.gpg\\)?$"))
              '("~/org/agenda/" "~/org/notes/"))))
+#+end_src
+
+******* batch tracking
+:PROPERTIES:
+:CREATED:  [2023-10-30 Mon 21:05]
+:END:
+
+#+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
+  export DISPLAY=:0 && \
+    emacs -Q \
+          -l ~/.emacs.d/early-init.el \
+          -l ~/.emacs.d/elisp/config/my-org-web-track.el \
+          -l ~/.emacs.d/elisp/config/batch/org-web-track-mail.el \
+          -f my/org-web-track-mail
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "batch/org-web-track-mail.el" my/user-config-dir)
+  (provide 'my/org-mode-init)
+
+  (custom-set-variables
+   '(message-send-mail-function 'smtpmail-send-it)
+   '(smtpmail-smtp-server "<<smtp-host>>")
+   '(smtpmail-smtp-service 465)
+   '(smtpmail-smtp-user user-mail-address)
+   '(smtpmail-stream-type 'ssl)
+   '(smtpmail-mail-address user-mail-address)
+   '(message-send-mail-function 'smtpmail-send-it))
+
+  (defun my/org-web-track-mail ()
+    "Update `org-web-track' items along with sending email and immediate exit."
+    (my/org-web-track-update-all-and-notify)
+    (org-save-all-org-buffers)
+    (save-buffers-kill-emacs t))
 #+end_src
 
 **** Completion
@@ -12064,8 +12105,8 @@ Provide a function to Build a clock table summing up time by tag.
                                                  <<updatedb-opt>>
 #+end_src
 
-#+begin_src conf :noweb yes :noweb-ref cronjob-pc
-  <<hash-to-num(s="updb",max_n=59)>> <<night-time(lag=3)>> * * * /bin/bash -ci "updatedb-home >> $LOG_DIR/updatedb-home.log 2>&1"
+#+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
+  updatedb-home
 #+end_src
 
 ** OpenSSH
@@ -13115,8 +13156,8 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 
 *** derive unique entries in user-jisyo
 
-#+begin_src conf :noweb yes :noweb-ref cronjob-pc
-  20 0 * * * /bin/bash -ci "skkdic_uniq.sh >> $LOG_DIR/skkdic_uniq.log 2>&1"
+#+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
+  skkdic_uniq.sh
 #+end_src
 
 #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/skkdic_uniq.sh") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
@@ -14334,10 +14375,36 @@ Extendable version manager
 
 * Stuffs for Dedicated Tasks
 
-** Midnight Batch Processing
+** Batch Processing
 :PROPERTIES:
 :CREATED:  [2023-10-30 Mon 20:29]
 :END:
+
+*** Midnight Batch
+:PROPERTIES:
+:CREATED:  [2023-10-31 Tue 14:03]
+:END:
+
+#+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/midnight.sh")
+  <<midnight-batch>>
+#+end_src
+
+#+begin_src conf :noweb yes :noweb-ref cronjob-pc
+  0 4 * * * /bin/bash -ci midnight.sh
+#+end_src
+
+*** Weekend Batch
+:PROPERTIES:
+:CREATED:  [2023-10-31 Tue 14:03]
+:END:
+
+#+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/weekend.sh")
+  <<weekend-batch>>
+#+end_src
+
+#+begin_src conf :noweb yes :noweb-ref cronjob-pc
+  30 2 * * 6 /bin/bash -ci weekend.sh
+#+end_src
 
 ** Transcode Video Files
 :PROPERTIES:
