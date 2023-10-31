@@ -101,11 +101,11 @@ JndG/nezzLYEYfW2C33VH6ZWtmDXuNIIAKHO7J65rrX/RtX1H48A6rwAfyMeog5K
 =AHjv
 -----END PGP MESSAGE-----
 
-*** My Account Name
+*** My Login Name
 
-#+name: account
-#+begin_src shell :eval no-export
-  echo -n "${EMAIL}" | cut -d'@' -f1
+#+name: login-name
+#+begin_src emacs-lisp :eval no-export
+  user-login-name
 #+end_src
 
 *** My Domain Name
@@ -726,18 +726,23 @@ You may need to enable systemd-tmpfiles service for user
 
 ** Vixie Cron
 
-#+begin_src conf :noweb yes :noweb-ref ubuntu-setup :tangle no
+A script to reinitialize a set of cron jobs
+#+begin_src bash :eval no :comments no :noweb tangle :tangle (expand-file-name ".local/bin/cron-reinit.sh")
   crontab -r
-  crontab <<home-dir()>>/.config/crontab/pc
+  crontab <<home-dir()>>/.config/crontab/<<login-name()>>
 #+end_src
 
-#+begin_src conf :noweb tangle :tangle (expand-file-name ".config/crontab/pc")
+#+begin_src conf :noweb yes :noweb-ref ubuntu-setup :tangle no
+  cron-reinit.sh
+#+end_src
+
+#+begin_src conf :noweb tangle :tangle (expand-file-name user-login-name ".config/crontab") :tangle-mode o444
   MAILTO="<<email>>"
 
   BIN_DIR="<<home-dir()>>/bin"
   LOG_DIR="<<home-dir()>>/.local/state/log"
 
-  <<cronjob-pc>>
+  <<cronjob-user>>
 #+end_src
 
 ** Btrfs
@@ -787,7 +792,7 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
   pwsudo btrbk --config "${BTRBK_CONF}" run
 #+end_src
 
-#+begin_src conf :noweb yes :noweb-ref cronjob-pc
+#+begin_src conf :noweb yes :noweb-ref cronjob-user
   ,*/15 * * * * /bin/bash -ci "btrbk_home >> $LOG_DIR/btrbk_home.log 2>&1"
 #+end_src
 
@@ -14389,7 +14394,7 @@ Extendable version manager
   <<midnight-batch>>
 #+end_src
 
-#+begin_src conf :noweb yes :noweb-ref cronjob-pc
+#+begin_src conf :noweb yes :noweb-ref cronjob-user
   0 4 * * * /bin/bash -ci midnight.sh
 #+end_src
 
@@ -14402,7 +14407,7 @@ Extendable version manager
   <<weekend-batch>>
 #+end_src
 
-#+begin_src conf :noweb yes :noweb-ref cronjob-pc
+#+begin_src conf :noweb yes :noweb-ref cronjob-user
   30 2 * * 6 /bin/bash -ci weekend.sh
 #+end_src
 
@@ -14654,7 +14659,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 :CREATED:  [2022-09-26 Mon 16:43]
 :END:
 
-#+begin_src conf :noweb-ref cronjob-pc
+#+begin_src conf :noweb-ref cronjob-user
   0 */2 * * * /bin/bash -ci "ghq-sync >> $LOG_DIR/ghq-sync.log 2>&1"
 #+end_src
 
