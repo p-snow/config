@@ -1,6 +1,5 @@
 (require 'org)
 (require 'ob-shell)
-(require 'password-store)
 
 (remove-hook 'org-babel-pre-tangle-hook
              'save-buffer)
