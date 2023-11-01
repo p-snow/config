@@ -4925,17 +4925,23 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   "emacs-org-ql"
 #+end_src
 
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/alphapapa/org-ql/releases.atom" soft_update)
-#+end_src
-
 #+begin_src emacs-lisp
   (use-package org-ql
     :after (org my-org-global-map)
     :bind (:map my/org-global-map
                 ("q q" . org-ql-search)
                 ("q v" . org-ql-view)
+                ("q f f" . org-ql-find)
+                ("q f F" . org-ql-find-in-org-directory)
+                ("q f a" . org-ql-find-in-agenda)
+                ("q f n" . my/org-ql-find-in-notes)
                 ("q /" . org-ql-sparse-tree))
+    :preface
+    (with-eval-after-load 'denote
+      (defun my/org-ql-find-in-notes ()
+        "Call 'org-ql-find' on 'denote-all-files'."
+        (interactive)
+        (org-ql-find (denote-all-files))))
     :custom
     (org-ql-search-directories-files-regexp "\\.org\\(?:\\.gpg\\)?$")
     (org-ql-search-directories-files-recursive t)
