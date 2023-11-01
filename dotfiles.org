@@ -10185,14 +10185,14 @@ The hook functions, which is commented out, provoke malfunction failing to creat
       (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil)))))
 #+end_src
 
-***** show sparse tree for the entry at point
+***** show outline path for the entry at point
 :PROPERTIES:
 :CREATED:  [2023-11-01 Wed 14:48]
 :END:
 
 #+begin_src emacs-lisp
-  (defun my/org-sparse-tree-at-point ()
-    "Show sparse tree for the entry at point."
+  (defun my/org-show-outline-path ()
+    "Show sparse tree for the entry at point to represent outline path."
     (interactive)
     (save-excursion
       (cl-labels ((lookup-parent ()
@@ -10207,9 +10207,9 @@ The hook functions, which is commented out, provoke malfunction failing to creat
                                                 (lookup-parent)
                                                 " "))))))
 
-  (with-eval-after-load 'org-ql
+  (with-eval-after-load 'my/org-mode-init
     (keymap-set org-mode-map "C-c M-/"
-                #'my/org-sparse-tree-at-point))
+                #'my/org-show-outline-path))
 #+end_src
 
 **** elisp snippets from external
