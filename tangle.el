@@ -1,17 +1,15 @@
 (require 'org)
+(require 'ob-core)
 (require 'ob-shell)
 
+(load-file (expand-file-name "./org-babel-config.el"))
 (remove-hook 'org-babel-pre-tangle-hook
              'save-buffer)
-(setopt org-babel-python-command (executable-find "python3"))
-(setopt org-babel-load-languages '((emacs-lisp . t)
-                                   (python     . t)))
 
-(let* ((org-files (directory-files "./" nil "\\.org$"))
-       (org-confirm-babel-evaluate nil)
+(let* ((current-dir (expand-file-name "."))
+       (org-files (directory-files current-dir nil "\\.org$"))
        (python-indent-guess-indent-offset nil)
-       (org-id-locations-file nil)
-       (org-babel-noweb-error-all-langs t))
+       (org-id-locations-file nil))
   (mapc (lambda (org-file)
           (org-babel-lob-ingest org-file))
         org-files)
