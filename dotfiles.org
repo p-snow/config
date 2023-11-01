@@ -4934,7 +4934,8 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
     :after (org my-org-global-map)
     :bind (:map my/org-global-map
                 ("q q" . org-ql-search)
-                ("q v" . org-ql-view))
+                ("q v" . org-ql-view)
+                ("q /" . org-ql-sparse-tree))
     :custom
     (org-ql-search-directories-files-regexp "\\.org\\(?:\\.gpg\\)?$")
     (org-ql-search-directories-files-recursive t)
@@ -10176,6 +10177,33 @@ The hook functions, which is commented out, provoke malfunction failing to creat
     (when-let ((ts-bound (org-in-regexp (org-re-timestamp 'all)))
                (ts (buffer-substring (car ts-bound) (cdr ts-bound))))
       (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil)))))
+#+end_src
+
+***** show sparse tree for the entry at point
+:PROPERTIES:
+:CREATED:  [2023-11-01 Wed 14:48]
+:END:
+
+#+begin_src emacs-lisp
+  (defun my/org-sparse-tree-at-point ()
+    "Show sparse tree for the entry at point."
+    (interactive)
+    (save-excursion
+      (cl-labels ((lookup-parent ()
+                    (let* ((heading (substring-no-properties
+                                     (org-get-heading t t t t)))
+                           (h-li (list heading)))
+                      (if (org-up-heading-safe)
+                          (append (lookup-parent) h-li)
+                        h-li))))
+        (org-ql-sparse-tree (message "(olps %s)"
+                                     (mapconcat (lambda (str) (format "\"%s\"" str))
+                                                (lookup-parent)
+                                                " "))))))
+
+  (with-eval-after-load 'org-ql
+    (keymap-set org-mode-map "C-c M-/"
+                #'my/org-sparse-tree-at-point))
 #+end_src
 
 **** elisp snippets from external
