@@ -2700,12 +2700,12 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 :CREATED:  [2023-06-08 Thu 18:20]
 :END:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
   (use-package midnight
     :defer t
     :custom
     (midnight-mode t)
-    (midnight-delay "04:30am"))
+    (midnight-delay "<<midnight-hour>>:10"))
 #+end_src
 
 ****** Package
@@ -14433,25 +14433,38 @@ Extendable version manager
 :CREATED:  [2023-10-31 Tue 14:03]
 :END:
 
-#+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/midnight.sh")
-  <<midnight-batch>>
-#+end_src
+- when to dispatch midnight batch
+  #+name: midnight-hour
+  #+begin_src text
+    4
+  #+end_src
 
-#+begin_src conf :noweb yes :noweb-ref cronjob-user
-  2 4 * * 0-5 /bin/bash -ci midnight.sh
-#+end_src
+- midnight.sh: midnight batch script
+  #+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/midnight.sh")
+    <<midnight-batch>>
+  #+end_src
+
+- cron job for midnight.sh
+  #+begin_src conf :noweb yes :noweb-ref cronjob-user
+    2 <<midnight-hour>> * * 0-5 /bin/bash -ci midnight.sh
+  #+end_src
 
 *** Weekend Batch
 :PROPERTIES:
 :CREATED:  [2023-10-31 Tue 14:03]
 :END:
 
+#+name: weekend-day
+#+begin_src text
+  6
+#+end_src
+
 #+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/weekend.sh")
   <<weekend-batch>>
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-  2 4 * * 6 /bin/bash -ci "midnight.sh; weekend.sh"
+  2 <<midnight-hour>> * * <<weekend-day>> /bin/bash -ci "midnight.sh; weekend.sh"
 #+end_src
 
 ** Transcode Video Files
@@ -15113,7 +15126,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
           ;;
   esac
 #+end_src
-** Low Power Computing During The Night
+** System Sleep During The Night
 :PROPERTIES:
 :CREATED:  [2023-11-01 Wed 16:45]
 :END:
@@ -15125,9 +15138,9 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 #+begin_src bash :eval no :noweb tangle :tangle (expand-file-name ".local/bin/syssleep-after.sh")
   date_str=$(
     if [[ $(date +%H) -lt 4 ]]; then
-      date -d "today 4am" +"%Y-%m-%d %H:%M"
+      date -d "today <<midnight-hour>>" +"%Y-%m-%d %H:%M"
     else
-      date -d "tomorrow 4am" +"%Y-%m-%d %H:%M"
+      date -d "tomorrow <<midnight-hour>>" +"%Y-%m-%d %H:%M"
     fi
   )
 
