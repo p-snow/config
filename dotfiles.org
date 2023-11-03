@@ -4437,94 +4437,12 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 ******* Org Archive
 
 #+begin_src emacs-lisp
-  (customize-set-variable 'org-archive-default-command 'org-toggle-archive-tag)
-  (customize-set-variable 'org-cycle-open-archived-trees t)
+  (use-package org-archive
+    :defer t
+    :custom
+    (org-archive-default-command 'org-toggle-archive-tag))
 
-  (with-eval-after-load 'org-archive
-    (advice-add #'org-archive-subtree :around
-                #'my/org-archive-subtree--iso-datetree))
-
-  (defun my/org-archive-subtree--iso-datetree (oldfun &rest r)
-    "Move the current subtree to the archive.
-
-  If archiving location is datetree, it supposed to be iso week tree."
-    (interactive)
-    (when (member (org-get-todo-state)
-                  `(,my/org-todo-keyword--urgent ,my/org-todo-keyword--todo ,my/org-todo-keyword--next ,my/org-todo-keyword--in-action))
-      (org-todo my/org-done-keyword--cancel))
-    (when (string= (org-get-todo-state)
-                   my/org-todo-keyword--someday)
-      (org-toggle-tag "review" 'on))
-    (let* ((todo-state (org-get-todo-state))
-           (closed-time (org-entry-get nil "CLOSED" t))
-           (org-archive-location
-            (cond
-             ((member todo-state
-                      `(nil ,my/org-done-keyword--done ,my/org-done-keyword--cancel))
-              (format "%s::datetree/"
-                      (file-name-concat org-directory "archive"
-                                        (format "archive_%s.org"
-                                                (if closed-time
-                                                    (nth 5
-                                                         (parse-time-string
-                                                          (substring closed-time 1 -1)))
-                                                  (format-time-string "%Y"))))))
-             ((member todo-state
-                      `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
-              (format "%s::* suspended tasks"
-                      (denote-get-path-by-id "20230605T180351"))))))
-      (when (stringp org-archive-location)
-        (and (require 'org-relate nil t)
-             (org-relate-interrelate))
-        (advice-add #'org-datetree-find-date-create :override
-                    #'org-datetree-find-iso-week-create)
-        (apply oldfun r)
-        (advice-remove #'org-datetree-find-date-create
-                       #'org-datetree-find-iso-week-create))))
-
-  (with-eval-after-load 'org-ql-view
-    (push '("Archive entries" .
-            (lambda ()
-              "Search for matched entries in archive files.
-  User is supposed to select 'org-agenda-files as buffers-files in `org-ql-search' command."
-              (interactive)
-              (let ((org-agenda-files (file-expand-wildcards (file-name-concat org-directory "archive" "archive_*.org"))))
-                (call-interactively 'org-ql-search))))
-          org-ql-views))
-
-  (with-eval-after-load 'org-agenda
-    (define-key org-agenda-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
-
-  (with-eval-after-load 'calendar
-    (define-key calendar-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
-
-  ;;;###autoload
-  (defun my/org-archive-find--iso-datetree (date)
-    "Find and visit the location of DATE in archivee file.
-
-  DATE must be a string representing the date to find and parsable with `format-time-string'.
-
-  If called interactively, it prompt the user to select the date to find."
-    (interactive
-     (cond
-      ((eq major-mode 'calendar-mode)
-       (list (calendar-date-string (calendar-cursor-to-date))))
-      ((eq major-mode 'org-agenda-mode)
-       (let* ((day (or (get-text-property (min (1- (point-max)) (point)) 'day)
-                       (user-error "Don't know which date to open in calendar")))
-              (date (calendar-gregorian-from-absolute day)))
-         (list (calendar-date-string date))))
-      (t (let ((date-select (org-read-date)))
-           (list date-select)))))
-    (let* ((d (parse-time-string date))
-           (day (decoded-time-day d))
-           (month (decoded-time-month d))
-           (year (decoded-time-year d)))
-      (find-file (file-name-concat org-directory "archive" (format "archive_%d.org" year)))
-      (org-datetree-find-iso-week-create `(,month ,day ,year))))
-  (with-eval-after-load 'my-org-global-map
-    (bind-keys :map my/org-global-map
-               ("D" . my/org-archive-find--iso-datetree)))
+  (setopt org-cycle-open-archived-trees t)
 #+end_src
 
 ******* Org Inline Tasks
@@ -9331,33 +9249,6 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
 :END:
-***** search org headings under the directory with consult
-:PROPERTIES:
-:CREATED:  [2023-10-20 Fri 20:14]
-:END:
-
-#+begin_src emacs-lisp
-  (defun my/consult-org-under (dir)
-    "Search org heading from all org files under DIR."
-    (interactive "sDir: ")
-    (when-let* ((dir-fixed (replace-regexp-in-string "\\(?:^/~\\)" "~"
-                                                     dir))
-                (dir-expanded (expand-file-name dir-fixed))
-                (org-agenda-files
-                 (and (file-directory-p dir-expanded)
-                      (directory-files-recursively dir-expanded
-                                                   "\\(?:\\.org\\(?:\\.gpg\\)?$\\)"))))
-      (consult-org-agenda)))
-
-  (with-eval-after-load 'embark
-    (keymap-set embark-file-map "H"
-                #'my/consult-org-under))
-
-  (with-eval-after-load 'my-org-global-map
-    (keymap-set my/org-global-map "H"
-                #'my/consult-org-under))
-#+end_src
-
 ***** keymap for global org commands
 :PROPERTIES:
 :CREATED:  [2023-08-08 Tue 14:42]
@@ -10214,6 +10105,140 @@ The hook functions, which is commented out, provoke malfunction failing to creat
   (with-eval-after-load 'my/org-mode-init
     (keymap-set org-mode-map "C-c M-/"
                 #'my/org-show-outline-path))
+#+end_src
+
+***** use ISO week tree instead of Y/M/D tree
+:PROPERTIES:
+:CREATED:  [2023-11-03 Fri 15:03]
+:END:
+
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org-archive
+    (advice-add #'org-archive-subtree :around
+                #'my/org-archive-subtree--iso-datetree))
+
+  (defun my/org-archive-subtree--iso-datetree (oldfun &rest r)
+    "Move the current subtree to the archive.
+
+  If archiving location is datetree, it supposed to be iso week tree."
+    (interactive)
+    (when (member (org-get-todo-state)
+                  `(,my/org-todo-keyword--urgent ,my/org-todo-keyword--todo ,my/org-todo-keyword--next ,my/org-todo-keyword--in-action))
+      (org-todo my/org-done-keyword--cancel))
+    (when (string= (org-get-todo-state)
+                   my/org-todo-keyword--someday)
+      (org-toggle-tag "review" 'on))
+    (let* ((todo-state (org-get-todo-state))
+           (closed-time (org-entry-get nil "CLOSED" t))
+           (org-archive-location
+            (cond
+             ((member todo-state
+                      `(nil ,my/org-done-keyword--done ,my/org-done-keyword--cancel))
+              (format "%s::datetree/"
+                      (file-name-concat org-directory "archive"
+                                        (format "archive_%s.org"
+                                                (if closed-time
+                                                    (nth 5
+                                                         (parse-time-string
+                                                          (substring closed-time 1 -1)))
+                                                  (format-time-string "%Y"))))))
+             ((member todo-state
+                      `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
+              (format "%s::* suspended tasks"
+                      (denote-get-path-by-id "20230605T180351"))))))
+      (when (stringp org-archive-location)
+        (and (require 'org-relate nil t)
+             (org-relate-interrelate))
+        (advice-add #'org-datetree-find-date-create :override
+                    #'org-datetree-find-iso-week-create)
+        (apply oldfun r)
+        (advice-remove #'org-datetree-find-date-create
+                       #'org-datetree-find-iso-week-create))))
+
+  (with-eval-after-load 'org-agenda
+    (define-key org-agenda-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
+
+  (with-eval-after-load 'calendar
+    (define-key calendar-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
+
+  ;;;###autoload
+  (defun my/org-archive-find--iso-datetree (date)
+    "Find and visit the location of DATE in archivee file.
+
+  DATE must be a string representing the date to find and parsable with `format-time-string'.
+
+  If called interactively, it prompt the user to select the date to find."
+    (interactive
+     (cond
+      ((eq major-mode 'calendar-mode)
+       (list (calendar-date-string (calendar-cursor-to-date))))
+      ((eq major-mode 'org-agenda-mode)
+       (let* ((day (or (get-text-property (min (1- (point-max)) (point)) 'day)
+                       (user-error "Don't know which date to open in calendar")))
+              (date (calendar-gregorian-from-absolute day)))
+         (list (calendar-date-string date))))
+      (t (let ((date-select (org-read-date)))
+           (list date-select)))))
+    (let* ((d (parse-time-string date))
+           (day (decoded-time-day d))
+           (month (decoded-time-month d))
+           (year (decoded-time-year d)))
+      (find-file (file-name-concat org-directory "archive" (format "archive_%d.org" year)))
+      (org-datetree-find-iso-week-create `(,month ,day ,year))))
+
+  (with-eval-after-load 'my-org-global-map
+    (bind-keys :map my/org-global-map
+               ("D" . my/org-archive-find--iso-datetree)))
+#+end_src
+
+***** search org entry under 'default-directory'
+:PROPERTIES:
+:CREATED:  [2023-10-20 Fri 20:14]
+:END:
+
+#+begin_src emacs-lisp
+  (defmacro with-org-files-under (&rest body)
+    "Eval `BODY' with providing org file list from `default-directory'."
+    (declare (indent defun))
+    `(let ((org-files (directory-files-recursively
+                       default-directory
+                       "\\(?:\\.org\\(?:\\.gpg\\)?$\\)")))
+       ,@body))
+
+  (defun my/consult-org-heading-under ()
+    "Invoke `consult-org-heading' with all org files under `default-directory'."
+    (interactive)
+    (with-org-files-under
+      (let ((org-agenda-files org-files))
+        (consult-org-agenda))))
+
+  (with-eval-after-load 'embark
+    (keymap-set embark-file-map "H"
+                (lambda (dir) (interactive "sDir: ")
+                  (let ((default-directory dir))
+                    (my/consult-org-heading-under)))))
+
+  (with-eval-after-load 'my-org-global-map
+    (keymap-set my/org-global-map "H"
+                #'my/consult-org-heading-under))
+
+  (defun my/org-ql-search-under ()
+    "Invoke `org-ql-search' with all org files under `default-directory'."
+    (interactive)
+    (with-org-files-under
+      (let ((org-agenda-files org-files)
+            (query (read-string "Query: ")))
+        (org-ql-search (org-agenda-files) query))))
+
+  (with-eval-after-load 'embark
+    (keymap-set embark-file-map "Q"
+                (lambda (dir) (interactive "sDir: ")
+                  (let ((default-directory dir))
+                    (my/org-ql-search-under)))))
+
+  (with-eval-after-load 'my-org-global-map
+    (keymap-set my/org-global-map "Q"
+                #'my/org-ql-search-under))
 #+end_src
 
 **** elisp snippets from external
