@@ -4050,7 +4050,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                 (search   . " ")))
     (org-agenda-custom-commands
      `(("a" "Week-agenda"
-        agenda "")
+        agenda ""
+        ((org-agenda-skip-function #'my/org-agenda-skip-on-hold-task)))
        ("l" "Log entries in a week"
         agenda ""
         ((org-agenda-span (if (equal current-prefix-arg '(4))
@@ -4161,7 +4162,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                                ,my/org-done-keyword--done
                                                ,my/org-done-keyword--cancel
                                                ,my/org-done-keyword--pending))
-                                    (not (tags "web"))
+                                    (not (or (tags "web")
+                                             (and (scheduled) (tags "review"))))
                                     (not (habit)))
                               ((org-ql-block-header "Scheduled/Deadlined this week")))
          (org-ql-search-block `(and (and (ts-active :from 0 :to 6)
@@ -9783,6 +9785,8 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
 :CREATED:  [2022-12-12 Mon 09:18]
 :END:
 
+On-hold tasks are encouraged to review and they prohibited to appear in agenda views.
+
 #+begin_src emacs-lisp
   (defun my/org-on-hold-task-review (resume-p)
     "Start or resume (if RESUME-P is non-nil) a session for reviewing tasks."
@@ -9797,6 +9801,14 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
         (and (require 'cl nil t)
              (org-drill nil (format "TODO=\"%s\"" my/org-todo-keyword--someday)
                         resume-p)))))
+
+  (defun my/org-agenda-skip-on-hold-task ()
+    "Skip entries which hold schedule time and review tag in agenda view."
+    (let ((tags (org-get-tags)))
+      (if (and (member "review" (org-get-tags))
+               (org-get-scheduled-time (point)))
+          (progn (outline-next-heading) (point))
+        nil)))
 #+end_src
 
 ****** list suspended tasks
