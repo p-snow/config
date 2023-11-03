@@ -8558,7 +8558,7 @@ Suport successive deletion with C-h/M-h
 :CREATED:  [2023-10-30 Mon 21:39]
 :END:
 
-elfeed-update will run at every midnight time and if Emacs idle time elapse 1.8 hours.
+elfeed-update will run at every midnight time.
 
 #+begin_src emacs-lisp
   (defun my/elfeed-update ()
@@ -8569,10 +8569,6 @@ elfeed-update will run at every midnight time and if Emacs idle time elapse 1.8 
     (elfeed-update))
 
   (add-hook 'midnight-hook #'my/elfeed-update)
-
-  (run-with-idle-timer (* 1.8 60 60)
-                       t
-                       #'my/elfeed-update)
 #+end_src
 
 ***** literate configuration (this file)
