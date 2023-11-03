@@ -3972,18 +3972,18 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (defvar my/org-todo-keyword--in-action "IA"
     "TODO keyword acronym standing for 'In Action")
   (put 'my/org-todo-keyword--in-action 'char ?i)
-  (defvar my/org-todo-keyword--someday "SD"
-    "TODO keyword acronym standing for 'SomeDay'")
-  (put 'my/org-todo-keyword--someday 'char ?s)
+  (defvar my/org-todo-keyword--someday "OH"
+    "TODO keyword acronym standing for 'On Hold'")
+  (put 'my/org-todo-keyword--someday 'char ?h)
   (defvar my/org-done-keyword--done "DN"
     "DONE keyword acronym standing for 'DoNe'")
   (put 'my/org-done-keyword--done 'char ?d)
   (defvar my/org-done-keyword--cancel "CX"
     "DONE keyword acronym standing for 'Cancel'")
   (put 'my/org-done-keyword--cancel 'char ?x)
-  (defvar my/org-done-keyword--pending "PD"
-    "DONE keyword acronym standing for 'PenDing'")
-  (put 'my/org-done-keyword--pending 'char ?p)
+  (defvar my/org-done-keyword--pending "LG"
+    "DONE keyword acronym standing for 'Let Go'")
+  (put 'my/org-done-keyword--pending 'char ?l)
 
   (defvar my/org-project-tag "project" "A tag for projects")
 #+end_src
@@ -9862,13 +9862,13 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
                              (show-media-duration url))))
 #+end_src
 
-***** manage subordinate tasks
+***** manage on-hold tasks
 :PROPERTIES:
 :CREATED:  [2022-12-12 Mon 09:14]
 :END:
 
-- subordinate task lifecycle
-  #+HEADER: :file ./subordinate_task_lifecycle.png
+- task lifecycle
+  #+HEADER: :file ./task_lifecycle.png
   #+begin_src dot :tangle no
     digraph{
             "web browsing" [shape = hexagon];
@@ -9893,7 +9893,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
 :END:
 
 #+begin_src emacs-lisp
-  (defun my/org-subordinate-task-review (resume-p)
+  (defun my/org-on-hold-task-review (resume-p)
     "Start or resume (if RESUME-P is non-nil) a session for reviewing tasks."
     (interactive "P")
     (progn
@@ -9904,7 +9904,8 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             (org-drill-hide-item-headings-p nil)
             (org-startup-indented nil))
         (and (require 'cl nil t)
-             (org-drill nil "TODO=\"SD\"" resume-p)))))
+             (org-drill nil (format "TODO=\"%s\"" my/org-todo-keyword--someday)
+                        resume-p)))))
 #+end_src
 
 ****** list suspended tasks
@@ -9914,30 +9915,21 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
 
 #+begin_src emacs-lisp
   (use-package org-ql-view
-    :after (org-ql denote)
+    :after (org-ql org-agenda)
     :config
-    (push `("Someday tasks"
-            :buffers-files
-            ,(append
-              (org-agenda-files)
-              (list (denote-get-path-by-id "20230605T180351")))
+    (push `("On-Hold tasks"
+            :buffers-files ,(org-agenda-files)
             :query (todo ,my/org-todo-keyword--someday)
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
             :sort (priority date))
           org-ql-views)
-    (push `("Review tasks"
-            :buffers-files
-            ,(append
-              (org-agenda-files)
-              (list (denote-get-path-by-id "20230605T180351")))
+    (push `("Review on-hold tasks"
+            :buffers-files ,(org-agenda-files)
             :query (todo ,my/org-todo-keyword--someday)
             :sort (scheduled))
           org-ql-views)
-    (push `("Pending tasks"
-            :buffers-files
-            ,(append
-              (org-agenda-files)
-              (list (denote-get-path-by-id "20230605T180351")))
+    (push `("Let-go tasks"
+            :buffers-files ,(org-agenda-files)
             :query (todo ,my/org-done-keyword--pending)
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
             :sort (scheduled priority date))
@@ -10312,7 +10304,8 @@ This section mainly for elisp code associated with some other programs.
       (when-let* ((pos (with-current-buffer (find-file-noselect save-file)
                          (save-excursion
                            (if (and (member "web" tags)
-                                    (not (member todo '("DN" "PD"))))
+                                    (not (member todo `(,my/org-done-keyword--done
+                                                        ,my/org-done-keyword--pending))))
                                (org-find-exact-headline-in-buffer "untouched items")
                              (org-datetree-find-iso-week-create `(,(ts-month ts)
                                                                   ,(ts-day ts)
