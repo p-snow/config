@@ -4564,12 +4564,12 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-refile
-    :after org
+    :after (org denote)
     :commands (org-refile)
     :custom
     (org-refile-targets
      `((org-agenda-files :tag . ,my/org-project-tag)
-       (,(directory-files-recursively org-directory "\\.org$") :tag . "refile")))  )
+       (,(append (org-agenda-files) (denote-all-files)) :tag . "refile"))))
 #+end_src
 
 ****** Org Time
