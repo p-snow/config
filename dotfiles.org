@@ -55,6 +55,16 @@ delete file which lives longer than 1 week in trash directory.
   -e "<<trash-dir()>>" \
 #+end_src
 
+*** log file directory
+:PROPERTIES:
+:CREATED:  [2023-11-03 Fri 08:56]
+:END:
+
+#+name: log-dir
+#+begin_src shell :eval no-export
+  echo "${XDG_STATE_HOME}/log"
+#+end_src
+
 ** Email Settings
 :PROPERTIES:
 :CREATED:  [2023-10-28 Sat 11:57]
@@ -739,7 +749,7 @@ A script to reinitialize a set of cron jobs
   MAILTO="<<email>>"
 
   BIN_DIR="<<home-dir()>>/bin"
-  LOG_DIR="<<home-dir()>>/.local/state/log"
+  LOG_DIR="<<log-dir()>>"
 
   <<cronjob-user>>
 #+end_src
@@ -792,7 +802,7 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-  ,*/15 * * * * /bin/bash -ci "btrbk_home >> $LOG_DIR/btrbk_home.log 2>&1"
+  ,*/15 * * * * <<which(filename="bash")>> -ci "btrbk_home >> $LOG_DIR/btrbk_home.log 2>&1"
 #+end_src
 
 *** snapshots management                      :ARCHIVE:
@@ -14446,7 +14456,7 @@ Extendable version manager
 
 - cron job for midnight.sh
   #+begin_src conf :noweb yes :noweb-ref cronjob-user
-    2 <<midnight-hour>> * * 0-5 /bin/bash -ci midnight.sh
+    2 <<midnight-hour>> * * 0-5 <<which(filename="bash")>> -ci "midnight.sh"
   #+end_src
 
 *** Weekend Batch
@@ -14464,7 +14474,7 @@ Extendable version manager
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-  2 <<midnight-hour>> * * <<weekend-day>> /bin/bash -ci "midnight.sh; weekend.sh"
+  2 <<midnight-hour>> * * <<weekend-day>> <<which(filename="bash")>> -ci "midnight.sh; weekend.sh"
 #+end_src
 
 ** Transcode Video Files
@@ -14715,8 +14725,8 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 :CREATED:  [2022-09-26 Mon 16:43]
 :END:
 
-#+begin_src conf :noweb-ref cronjob-user
-  0 */2 * * * /bin/bash -ci "ghq-sync >> $LOG_DIR/ghq-sync.log 2>&1"
+#+begin_src conf :noweb yes :noweb-ref cronjob-user
+  0 */2 * * * <<which(filename="bash")>> -ci "ghq-sync >> $LOG_DIR/ghq-sync.log 2>&1"
 #+end_src
 
 #+begin_src shell :tangle (expand-file-name ".local/bin/ghq-sync") :shebang #!/usr/bin/env bash :tangle-mode (identity #o500)
