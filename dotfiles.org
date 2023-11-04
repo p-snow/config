@@ -12221,8 +12221,8 @@ Provide a function to Build a clock table summing up time by tag.
                                                  <<updatedb-opt>>
 #+end_src
 
-#+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
-  updatedb-home
+#+begin_src conf :noweb yes :noweb-ref cronjob-user
+  ,*/20 * * * * <<which(filename="bash")>> -ci "updatedb-home"
 #+end_src
 
 ** OpenSSH
