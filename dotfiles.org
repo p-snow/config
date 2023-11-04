@@ -4920,6 +4920,23 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
       (org-ql-defpred expired ()
         "Return non-nil if the entry is expired."
         :body (org-expiry-expired-p))))
+
+  (use-package org-ql-view
+    :after (org-ql org-agenda)
+    :config
+    (push `("Tasks on Web/Book"
+            :buffers-files org-agenda-files
+            :query (and (or (tags "web")
+                            (tags "book"))
+                        (not (or (done) (todo ,my/org-todo-keyword--someday))))
+            :super-groups ((:auto-tags))
+            :sort (priority date))
+          org-ql-views)
+    (push `("Habits"
+            :buffers-files org-agenda-files
+            :query (habit)
+            :sort (todo scheduled))
+          org-ql-views))
 #+end_src
 
 ****** org-contacts
@@ -9776,7 +9793,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
     }
   #+end_src
 
-****** review tasks (reevaluate)
+****** review tasks
 :PROPERTIES:
 :CREATED:  [2022-12-12 Mon 09:18]
 :END:
@@ -9807,7 +9824,14 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
         (and (require 'cl nil t)
              (org-drill nil (format "TODO=\"%s\"" my/org-todo-keyword--someday)
                         resume-p)))))
+#+end_src
 
+****** skip showing on-hold tasks in agenda view
+:PROPERTIES:
+:CREATED:  [2023-11-04 Sat 12:17]
+:END:
+
+#+begin_src emacs-lisp
   (defun my/org-agenda-skip-on-hold-task ()
     "Skip entries which hold schedule time and review tag in agenda view."
     (let ((tags (org-get-tags)))
@@ -9817,22 +9841,20 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
         nil)))
 #+end_src
 
-****** list suspended tasks
+****** show on-hold/leg-go task list
 :PROPERTIES:
 :CREATED:  [2022-09-15 Thu 22:06]
 :END:
 
 #+begin_src emacs-lisp
-  (use-package org-ql-view
-    :after (org-ql org-agenda)
-    :config
+  (with-eval-after-load 'org-ql-view
     (push `("On-Hold tasks"
             :buffers-files ,(org-agenda-files)
             :query (todo ,my/org-todo-keyword--someday)
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
             :sort (priority date))
           org-ql-views)
-    (push `("Review on-hold tasks"
+    (push `("Review: on-hold tasks"
             :buffers-files ,(org-agenda-files)
             :query (todo ,my/org-todo-keyword--someday)
             :sort (scheduled))
@@ -9842,23 +9864,10 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
             :query (todo ,my/org-done-keyword--pending)
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
             :sort (scheduled priority date))
-          org-ql-views)
-    (push `("Tasks on Web/Book"
-            :buffers-files org-agenda-files
-            :query (and (or (tags "web")
-                            (tags "book"))
-                        (not (done)))
-            :super-groups ((:auto-tags))
-            :sort (priority date))
-          org-ql-views)
-    (push `("Habits"
-            :buffers-files org-agenda-files
-            :query (habit)
-            :sort (todo scheduled))
           org-ql-views))
 #+end_src
 
-****** immediate archiving someday task
+****** immediate re-refile on-hold task
 
 #+begin_src emacs-lisp
   (with-eval-after-load 'org-refile
@@ -10130,6 +10139,8 @@ The hook functions, which is commented out, provoke malfunction failing to creat
 :CREATED:  [2023-11-03 Fri 15:03]
 :END:
 
+Following code is also responsible for deterministic archive location.
+
 #+begin_src emacs-lisp
   (with-eval-after-load 'org-archive
     (advice-add #'org-archive-subtree :around
@@ -10160,10 +10171,12 @@ The hook functions, which is commented out, provoke malfunction failing to creat
                                                          (parse-time-string
                                                           (substring closed-time 1 -1)))
                                                   (format-time-string "%Y"))))))
-             ((member todo-state
-                      `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
-              (format "%s::* suspended tasks"
-                      (denote-get-path-by-id "20230605T180351"))))))
+             ((string= todo-state my/org-todo-keyword--someday)
+              (format "%s::* on-hold tasks"
+                      (expand-file-name "agenda/on-holds.org" org-directory)))
+             ((string= todo-state my/org-done-keyword--pending)
+              (format "%s::* let go tasks"
+                      (expand-file-name "archive/agenda/let-goes.org" org-directory))))))
       (when (stringp org-archive-location)
         (and (require 'org-relate nil t)
              (org-relate-interrelate))
