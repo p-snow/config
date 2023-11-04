@@ -6446,14 +6446,17 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
                 :map chatgpt-shell-mode-map
                 ("C-M-g" . chatgpt-shell-clear-buffer))
     :custom
-    ((chatgpt-shell-openai-key 'my/openai-key)
-     (chatgpt-shell-system-prompt 3)
-     (chatgpt-shell-model-temperature 0.6)))
+    (chatgpt-shell-openai-key 'my/openai-key)
+    (chatgpt-shell-system-prompt 3)
+    (chatgpt-shell-model-temperature 0.6))
 
   (use-package ob-chatgpt-shell
     :after (chatgpt-shell ob-core)
     :config
-    (ob-chatgpt-shell-setup))
+    (ob-chatgpt-shell-setup)
+    (add-to-list 'org-structure-template-alist
+                 '("ch" . "src chatgpt-shell")
+                 t))
 
   (use-package dall-e-shell
     :commands dall-e-shell
