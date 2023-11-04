@@ -4845,7 +4845,8 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   (use-package org-drill
     :commands (org-drill org-drill-tree)
     :custom
-    (org-drill-spaced-repetition-algorithm 'sm5))
+    (org-drill-spaced-repetition-algorithm 'sm5)
+    (org-drill-add-random-noise-to-intervals-p t))
 #+end_src
 
 ****** org-ql
@@ -9792,6 +9793,16 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
             (org-drill-question-tag "review")
             (org-drill-maximum-items-per-session 40)
             (org-drill-hide-item-headings-p nil)
+            ;; drill session regulations
+            (org-drill-maximum-duration 12)
+            (org-drill-maximum-items-per-session 30)
+            ;; Spaced repetition algorithm
+            (org-drill-spaced-repetition-algorithm 'sm5)
+            (org-drill-sm5-initial-interval 14.0)
+            ;; Random variation of repetition intervals
+            (org-drill-add-random-noise-to-intervals-p t)
+            ;; Adjusting item difficulty globally
+            (org-drill-learn-fraction 0.37)
             (org-startup-indented nil))
         (and (require 'cl nil t)
              (org-drill nil (format "TODO=\"%s\"" my/org-todo-keyword--someday)
@@ -11725,17 +11736,25 @@ My workflow for acquiring English words is:
     "Evaluate BODY with config for Org-Drill for english words review."
     `(progn
        (org-id-goto "de0983a7-9d1a-4ef8-b882-148c401e862d")
-       (let ((org-drill-scope 'tree)
+       (let (;; imperative settings
+             (org-drill-scope 'tree)
              (org-drill-question-tag "drill")
+             (org-drill-hide-item-headings-p t)
+             ;; drill session regulations
              (org-drill-maximum-duration 25)
              (org-drill-maximum-items-per-session 50)
-             (org-drill-hide-item-headings-p t)
-             (org-drill-sm5-initial-interval 7.0)
-             (org-drill-add-random-noise-to-intervals-p t)
-             (org-drill-adjust-intervals-for-early-and-late-repetitions-p t)
+             ;; Definition of old and overdue items
+             (org-drill-overdue-interval-factor 1.4) ; more permissive for overdue than 1.2 (default)
              (org-drill-days-before-old 15)
-             (org-drill-learn-fraction 0.53)
-             (org-drill-overdue-interval-factor 1.4)
+             ;; Spaced repetition algorithm
+             (org-drill-spaced-repetition-algorithm 'sm5)
+             (org-drill-sm5-initial-interval 7.0) ; initial step is 7 day
+             ;; Random variation of repetition intervals
+             (org-drill-add-random-noise-to-intervals-p t)
+             ;; Adjustment for early or late review of items
+             (org-drill-adjust-intervals-for-early-and-late-repetitions-p t)
+             ;; Adjusting item difficulty globally
+             (org-drill-learn-fraction 0.43) ; intend not to reschedule drastically forward in 10th+ interval
              (org-startup-indented nil))
          (org-indent-mode -1)
          (visual-line-mode 1)
