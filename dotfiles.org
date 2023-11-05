@@ -3805,7 +3805,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
                     <<elfeed-feeds>>))))
 #+end_src
 
-**** Terminal emulators (Shells)
+**** Terminal Emulators
 
 #+begin_src emacs-lisp
   (setf shell-command-switch "-c")
@@ -3923,7 +3923,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
         (alert msg :buffer buffer :severity 'urgent))))
 #+end_src
 
-**** Org-mode
+**** Org Mode
 :PROPERTIES:
 :CREATED:  [2023-01-24 Tue 16:02]
 :header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
@@ -10287,7 +10287,12 @@ Following code is also responsible for deterministic archive location.
                 #'my/org-ql-search-under))
 #+end_src
 
-**** elisp snippets from external
+**** yasnippet snippets
+:PROPERTIES:
+:CREATED:  [2023-11-05 Sun 18:42]
+:END:
+
+**** elisp code corresponding to external app
 :PROPERTIES:
 :CREATED:  [2023-01-20 Fri 10:59]
 :END:
@@ -10295,7 +10300,7 @@ Following code is also responsible for deterministic archive location.
 This section mainly for elisp code associated with some other programs.
 
 #+begin_src emacs-lisp :noweb yes
-  <<elisp-snip>>
+  <<elisp-code>>
 #+end_src
 
 **** obsolete features                       :ARCHIVE:
@@ -13362,7 +13367,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
   #+end_src
 - festival.el
 
-  #+begin_src emacs-lisp :noweb-ref elisp-snip
+  #+begin_src emacs-lisp :noweb-ref elisp-code
     (use-package festival
       :defer t
       :config
@@ -14061,7 +14066,7 @@ you are required to locate that package where emacs can search.
   "lilypond"
 #+end_src
 
-#+begin_src emacs-lisp :noweb-ref elisp-snip
+#+begin_src emacs-lisp :noweb-ref elisp-code
   (use-package lilypond-mode
     :delight (LilyPond-mode " LP")
     :mode ("\\.ly$" . LilyPond-mode)
@@ -14082,7 +14087,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
   "emacs-graphviz-dot-mode"
 #+end_src
 
-#+begin_src emacs-lisp :noweb-ref elisp-snip
+#+begin_src emacs-lisp :noweb-ref elisp-code
   (use-package graphviz-dot-mode
     :after eglot
     :custom
