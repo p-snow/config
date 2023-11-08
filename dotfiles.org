@@ -3368,28 +3368,37 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
   "emacs-magit"
 #+end_src
 
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/magit/magit/releases.atom" soft_update)
-#+end_src
-
 #+begin_src emacs-lisp
   (use-package magit
     :commands (magit magit-status)
-    :bind (("C-x M" . magit-status)
-           :map magit-status-mode-map
-           ("C-j" . magit-visit-thing)
-           ("/"   . magit-file-checkout)
-           (";"   . magit-list-repositories)
-           :map magit-log-mode-map
-           ("C-j" . magit-visit-thing)
-           :map magit-repolist-mode-map
-           ("C-j" . magit-repolist-status))
-    :delight ((magit-status-mode " MG")
-              (magit-revision-mode " MG"))
+    :bind ("C-x M" . magit-status)
+    :config
+    (bind-keys :map magit-status-mode-map
+               ("/" . magit-file-checkout)
+               (";" . magit-list-repositories)))
+#+end_src
+
+***** Magit Essentials
+:PROPERTIES:
+:CREATED:  [2023-11-08 Wed 14:07]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package magit-repos
+    :after magit
     :custom
-    (magit-repository-directories '(("~/git" . 1)))
-    (magit-wip-merge-branch t)
-    (magit-log-show-refname-after-summary t)
+    (magit-repository-directories '(("~/git" . 1))))
+#+end_src
+
+***** Magit Revision
+:PROPERTIES:
+:CREATED:  [2023-11-08 Wed 14:13]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package magit-diff
+    :after magit
+    :custom
     ;; %GG denotes signature key info botained by --show-signature option in git log command
     (magit-revision-headers-format
      (mapconcat #'identity
@@ -3401,62 +3410,29 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
                 "\n")))
 #+end_src
 
-***** git-modes
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-  "emacs-git-modes"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package git-modes)
-#+end_src
-
-***** orgit
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-  "emacs-orgit"
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package orgit
-    :after (magit org)
-    :custom
-    (orgit-remote "github"))
-#+end_src
-
-***** git-annex
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-  "emacs-git-annex"
-#+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/jwiegley/git-annex-el/releases.atom" soft_update)
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package git-annex
-    :after dired
-    :custom-face
-    (git-annex-dired-annexed-available ((t (:foreground "green yellow"))))
-    (git-annex-dired-annexed-unavailable ((t (:foreground "red3")))))
-#+end_src
-
-***** magit-annex                           :ARCHIVE:
+***** Magit Log
 :PROPERTIES:
-:CREATED:  [2022-12-24 Sat 15:47]
+:CREATED:  [2023-11-08 Wed 14:15]
 :END:
 
-# #+begin_src scheme :tangle no :noweb-ref guix-emacs
-#   "emacs-magit-annex"
-# #+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-  ("https://github.com/magit/magit-annex/releases.atom" soft_update)
+#+begin_src emacs-lisp
+  (use-package magit-log
+    :after magit
+    :custom
+    (magit-log-show-refname-after-summary t))
 #+end_src
 
-#+begin_src emacs-lisp :tangle no
-  (use-package magit-annex)
+***** Magit Wip
+:PROPERTIES:
+:CREATED:  [2023-11-08 Wed 13:59]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package magit-wip
+    :after magit
+    :custom
+    (magit-wip-mode t)
+    (magit-wip-merge-branch t))
 #+end_src
 
 **** Mu4e
@@ -6393,6 +6369,60 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
 **** sundry 3rd-party packages
 
 Packages below are out of categories above. Packages which have ARCHIVE tag is no longer in use. Keywords which package gives in its description are set to tag.
+
+***** git-modes
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+  "emacs-git-modes"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package git-modes)
+#+end_src
+
+***** git-annex
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+  "emacs-git-annex"
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
+  ("https://github.com/jwiegley/git-annex-el/releases.atom" soft_update)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package git-annex
+    :after dired
+    :custom-face
+    (git-annex-dired-annexed-available ((t (:foreground "green yellow"))))
+    (git-annex-dired-annexed-unavailable ((t (:foreground "red3")))))
+#+end_src
+
+***** magit-annex                           :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2022-12-24 Sat 15:47]
+:END:
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+#   "emacs-magit-annex"
+# #+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (use-package magit-annex)
+#+end_src
+
+***** orgit
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+  "emacs-orgit"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package orgit
+    :after org
+    :custom
+    (orgit-remote "github"))
+#+end_src
 
 ***** suggest
 :PROPERTIES:
