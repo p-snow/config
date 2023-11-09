@@ -8407,14 +8407,12 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
                         completion-at-point-functions)))
     :custom
     (tempel-path (file-name-concat user-emacs-directory-default "templates/*.eld"))
-    (tempel-trigger-prefix "<")
     :config
     (bind-keys :map tempel-map
                ("TAB" . tempel-next)
                ("M-TAB" . tempel-previous)
                ("C->" . tempel-next)
-               ("C-<" . tempel-previous))
-    (global-tempel-abbrev-mode))
+               ("C-<" . tempel-previous)))
 
   (use-package tempel-collection
     :ensure t
@@ -10490,16 +10488,34 @@ Following code is also responsible for deterministic archive location.
 :END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref org-template
-  (test "- diary" n>
-        "#+begin_src text" n> "#+end_src" n
-        "- clocktable" n>
-        "#+begin: clocktable-by-tag :maxlevel 3 :wstart 1 "
-        ":block " (p "year") "-" (p "month") "-" (p "day") n>
-        "#+end:" n
-        "- agenda" n>
-        "#+begin_example" n
-        (p "agenda") n>
-        "#+end_example")
+  (journal "- diary" n>
+           "#+begin_src text" n> "#+end_src" n
+           "- clocktable" n>
+           "#+begin: clocktable-by-tag :maxlevel 3 :wstart 1 "
+           ":block " (p "year") "-" (p "month") "-" (p "day") n>
+           "#+end:" n
+           "- agenda" n>
+           "#+begin_example" n
+           (p "agenda") n>
+           "#+end_example")
+#+end_src
+
+***** week subtree template
+:PROPERTIES:
+:CREATED:  [2023-11-09 Thu 16:36]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref org-template
+  (nw & "- mission [/]" n
+      "- clocktable" n>
+      "#+begin: clocktable-by-tag :maxlevel 3 "
+      ":block " (p "year") "-W" (p "isoweek") " :wstart 1" n>
+      "#+end:" n
+      "- meta-projects" n>
+      "#+begin: clocktable :maxlevel 3 :scope agenda "
+      ":block " (p "year") "-W" (p "isoweek")
+      " :wstart 1 :narrow 40! :tcolumns 3 :formula %" n>
+      "#+end:")
 #+end_src
 
 **** elisp code corresponding to external app
