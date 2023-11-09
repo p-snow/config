@@ -4306,7 +4306,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 
 #+begin_src emacs-lisp
   (use-package org-capture
-    :after org
+    :after (org my-org-global-map)
     :bind (:map my/org-global-map
                 ("c" . org-capture))
     :hook
@@ -8384,7 +8384,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 #+begin_src emacs-lisp
   (require 'burly)
 #+end_src
-***** tempel
+***** tempel              :wp:tools:languages:abbrev:
 :PROPERTIES:
 :CREATED:  [2023-11-07 Tue 16:07]
 :END:
@@ -8417,6 +8417,19 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
   (use-package tempel-collection
     :ensure t
     :after tempel)
+#+end_src
+***** literate calc mode       :tools:languages:calc:
+:PROPERTIES:
+:CREATED:  [2023-11-09 Thu 21:35]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+  "emacs-literate-calc-mode"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package literate-calc-mode
+    :bind ("C-c M-=" . literate-calc-mode))
 #+end_src
 
 *** further extension
@@ -10414,7 +10427,7 @@ Following code is also responsible for deterministic archive location.
                 #'my/org-ql-search-under))
 #+end_src
 
-**** tempel templates in modes
+**** my tempel templates in modes
 :PROPERTIES:
 :CREATED:  [2023-11-07 Tue 20:02]
 :header-args:emacs-lisp: :eval no
