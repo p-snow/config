@@ -7719,6 +7719,8 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
     (undo-tree-strong-limit 480000)
     (undo-tree-outer-limit 64000000)
     :config
+    (bind-keys :map undo-tree-map
+               ("M-_" . nil))
     (add-to-list 'undo-tree-history-directory-alist
                  '("." . "<<undo-tree-hist-dir()>>"))
     (add-to-list 'display-buffer-alist
@@ -8189,6 +8191,7 @@ Major mode for manupulating password store file.
 
 #+begin_src emacs-lisp
   (use-package yasnippet
+    :disabled t
     :bind (:prefix "C-c y"
                    :prefix-map my/yas-map
                    :prefix-docstring "Keymap for YASnippet family."
@@ -8220,6 +8223,7 @@ Major mode for manupulating password store file.
 
 #+begin_src emacs-lisp
   (use-package auto-yasnippet
+    :disabled t
     :after yasnippet
     :init
     (setq aya-persist-snippets-dir
@@ -8379,6 +8383,42 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 
 #+begin_src emacs-lisp
   (require 'burly)
+#+end_src
+***** tempel
+:PROPERTIES:
+:CREATED:  [2023-11-07 Tue 16:07]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+  "emacs-tempel"
+  ;; "emacs-tempel-collection"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package tempel
+    :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
+           ("M-_" . tempel-insert))
+    :hook
+    ((conf-mode prog-mode text-mode minibuffer-mode) . tempel-setup-capf)
+    :preface
+    (defun tempel-setup-capf ()
+      (setq-local completion-at-point-functions
+                  (cons #'tempel-expand
+                        completion-at-point-functions)))
+    :custom
+    (tempel-path (file-name-concat user-emacs-directory-default "templates/*.eld"))
+    (tempel-trigger-prefix "<")
+    :config
+    (bind-keys :map tempel-map
+               ("TAB" . tempel-next)
+               ("M-TAB" . tempel-previous)
+               ("C->" . tempel-next)
+               ("C-<" . tempel-previous))
+    (global-tempel-abbrev-mode))
+
+  (use-package tempel-collection
+    :ensure t
+    :after tempel)
 #+end_src
 
 *** further extension
@@ -10376,10 +10416,91 @@ Following code is also responsible for deterministic archive location.
                 #'my/org-ql-search-under))
 #+end_src
 
-**** yasnippet snippets
+**** tempel templates in modes
 :PROPERTIES:
-:CREATED:  [2023-11-05 Sun 18:42]
+:CREATED:  [2023-11-07 Tue 20:02]
+:header-args:emacs-lisp: :eval no
 :END:
+***** text-mode templates
+:PROPERTIES:
+:CREATED:  [2023-11-09 Thu 14:33]
+:END:
+
+#+header: :shebang "text-mode"
+#+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/text.eld")
+  (cm "update on " (my/insert-time-stamp '(4))
+      " at " (system-name)
+      " by " (user-full-name))
+#+end_src
+
+***** org-mode templates
+:PROPERTIES:
+:CREATED:  [2023-11-07 Tue 20:02]
+:END:
+
+#+header: :shebang "org-mode"
+#+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/org.eld")
+  (call & "#+call: " (p "name" name) "(" (s var) "=\"" (s value) "\")")
+
+  <<org-template>>
+#+end_src
+
+***** minibuffer-mode templates
+:PROPERTIES:
+:CREATED:  [2023-11-07 Tue 20:18]
+:END:
+
+#+header: :shebang "minibuffer-mode"
+#+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/minibuffer.eld")
+  (gxs "guix search " (p "regexp"))
+
+  <<minibuffer-template>>
+#+end_src
+
+**** shell command string builders
+:PROPERTIES:
+:CREATED:  [2023-11-07 Tue 21:20]
+:END:
+***** system sleep
+:PROPERTIES:
+:CREATED:  [2023-11-07 Tue 21:25]
+:END:
+
+#+begin_src emacs-lisp
+  (defun my/command-system-sleep (&optional sleep-delay wake-at)
+    ""
+    (interactive (list (read-number "Delay before sleep in sec: ")
+                       (read-number "Wake at: ")))
+    (format "sleep %s && pwsudo rtcwake -m mem -s %s"
+            sleep-delay wake-at))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
+  (slp (call-interactively 'my/command-system-sleep))
+#+end_src
+
+**** org contents templates
+:PROPERTIES:
+:CREATED:  [2023-11-08 Wed 21:44]
+:END:
+
+***** journal entry template
+:PROPERTIES:
+:CREATED:  [2023-11-08 Wed 21:45]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref org-template
+  (test "- diary" n>
+        "#+begin_src text" n> "#+end_src" n
+        "- clocktable" n>
+        "#+begin: clocktable-by-tag :maxlevel 3 :wstart 1 "
+        ":block " (p "year") "-" (p "month") "-" (p "day") n>
+        "#+end:" n
+        "- agenda" n>
+        "#+begin_example" n
+        (p "agenda") n>
+        "#+end_example")
+#+end_src
 
 **** elisp code corresponding to external app
 :PROPERTIES:
