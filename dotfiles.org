@@ -11099,14 +11099,7 @@ It is implemented using abbrev mechanism since functionality of file: link type 
     "Return an abbreviated lfile link from RAW-LINK.
 
   RAW-LINK is supposed to be a file link type with a path and the path is
-  converted by `file-name-nondirectory' unless PATH-CONV-FN is supplied.
-  If called interactively, abbreviated string will be printed and added to
-  `kill-ring'.
-  If region is active, selected file link will be replaced with
-  the abbreviated lfile link."
-    (interactive (list (if (region-active-p)
-                           (buffer-substring (region-beginning) (region-end))
-                         (read-string "Link: "))))
+  converted by `file-name-nondirectory' unless PATH-CONV-FN is supplied."
     (let* ((link (with-temp-buffer
                    (let ((org-inhibit-startup nil))
                      (insert raw-link)
@@ -11125,13 +11118,7 @@ It is implemented using abbrev mechanism since functionality of file: link type 
                          ((stringp type)
                           raw-link)
                          (t nil))))
-      (if (interactive-p)
-          (if (region-active-p)
-              (replace-region-contents (region-beginning)
-                                       (region-end)
-                                       (lambda () abbrev-link))
-            (kill-new (message abbrev-link)))
-        abbrev-link)))
+      abbrev-link))
 
   (with-eval-after-load 'org
     (org-link-set-parameters "lfile"
