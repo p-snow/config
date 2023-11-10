@@ -8779,6 +8779,12 @@ I'd share this babel config between literate configuration and main Emacs sessio
   (with-eval-after-load 'ob-emacs-lisp
     (add-to-list 'org-babel-default-header-args:emacs-lisp
                  `(:tangle-mode . ,(identity #o444))))
+
+  (with-eval-after-load 'ob-python
+    (setf org-babel-default-header-args:python
+          (append org-babel-default-header-args:python
+                  `((:tangle-mode . ,(identity #o555))
+                    (:shebang . "#!/usr/bin/env python3")))))
 #+end_src
 
 ***** frame maximization
@@ -10478,12 +10484,14 @@ Following code is also responsible for deterministic archive location.
 :END:
 
 #+begin_src emacs-lisp
-  (defun my/command-system-sleep (&optional sleep-delay wake-at)
-    ""
-    (interactive (list (read-number "Delay before sleep in sec: ")
-                       (read-number "Wake at: ")))
-    (format "sleep %s && pwsudo rtcwake -m mem -s %s"
-            sleep-delay wake-at))
+  (defun my/command-system-sleep (&optional delay wake-at)
+    "Return a shell command string to sleep system until WAKE-AT with DELAY time."
+    (interactive (list (read-string "Delay before sleep: ")
+                       (read-string "Wake time: ")))
+    (string-trim-right
+     (format "sleep %s && pwsudo rtcwake -m mem -l -t %s"
+             delay
+             (shell-command-to-string (format "date +%%s -d '%s'" wake-at)))))
 #+end_src
 
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template

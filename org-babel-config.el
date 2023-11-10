@@ -18,3 +18,9 @@
 (with-eval-after-load 'ob-emacs-lisp
   (add-to-list 'org-babel-default-header-args:emacs-lisp
                `(:tangle-mode . ,(identity #o444))))
+
+(with-eval-after-load 'ob-python
+  (setf org-babel-default-header-args:python
+        (append org-babel-default-header-args:python
+                `((:tangle-mode . ,(identity #o555))
+                  (:shebang . "#!/usr/bin/env python3")))))
