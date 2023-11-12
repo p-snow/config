@@ -3643,9 +3643,8 @@ Command in practice presumably looks like:
                         (elfeed-search-tag-all (intern (format-time-string "%Y%m%d")))))
                ("R" . elfeed-search-untag-all-checked)
                ("d" . elfeed-search-untag-all-unread)
-               ("Dv" . elfeed-search-download-video)
-               ("Da" . elfeed-search-download-audio)
-               ("D=" . elfeed-search-show-media-duration))
+               ("D" . elfeed-search-download-media)
+               ("_" . elfeed-search-show-media-duration))
     (add-to-list 'elfeed-search-face-alist '(unchecked elfeed-search-unchecked-title-face))
     (add-to-list 'elfeed-search-face-alist '(checked elfeed-search-checked-title-face)))
 
@@ -3660,7 +3659,7 @@ Command in practice presumably looks like:
     (unless (use-region-p) (forward-line -1))
     (elfeed-search-browse-url))
 
-  (defun elfeed-search-download-video ()
+  (defun elfeed-search-download-media ()
     "Downlaod video file."
     (interactive)
     (let ((entries (elfeed-search-selected)))
@@ -3668,20 +3667,8 @@ Command in practice presumably looks like:
                when (or (caar (elfeed-entry-enclosures entry))
                         (elfeed-entry-link entry))
                do (let ((title (elfeed-entry-title entry)))
-                    (my/download-video it title)))
-      (mapc #'elfeed-search-update-entry entries)
-      (unless (or elfeed-search-remain-on-entry (use-region-p))
-        (forward-line))))
-
-  (defun elfeed-search-download-audio ()
-    "Download audio file."
-    (interactive)
-    (let ((entries (elfeed-search-selected)))
-      (cl-loop for entry in entries
-               when (or (caar (elfeed-entry-enclosures entry))
-                        (elfeed-entry-link entry))
-               do (let ((title (elfeed-entry-title entry)))
-                    (my/download-audio it title)))
+                    (detached-shell-command
+                     (my/command-download-media it title))))
       (mapc #'elfeed-search-update-entry entries)
       (unless (or elfeed-search-remain-on-entry (use-region-p))
         (forward-line))))
@@ -3692,7 +3679,10 @@ Command in practice presumably looks like:
     (let* ((entry (elfeed-search-selected :single))
            (url (or (caar (elfeed-entry-enclosures entry))
                     (elfeed-entry-link entry))))
-      (show-media-duration url)))
+      (princ
+       (string-trim
+        (shell-command-to-string
+         (my/command-media-duration url))))))
 #+end_src
 
 ***** elfeed-score
@@ -6491,7 +6481,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 
 #+begin_src emacs-lisp
   (use-package bookmark+
-    :defer 11
+    :defer 2
     :after bookmark)
 #+end_src
 
@@ -8447,7 +8437,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
     "Wrap`define-key' to provide documentation."
     (set 'sym (make-symbol (documentation def)))
     (fset sym def)
-    (define-key keymap key sym))
+    (keymap-set keymap key sym))
 #+end_src
 
 ***** miscellaneous functions/commands
@@ -8518,12 +8508,12 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
          string)
       t))
 
-  (defun my/file-name-validate (string)
-    "Replace / with ⧸ in `STRING' so that it can be used as an file name in Linux file system."
+  (defun my/file-name-legitimate (filename)
+    "Replace / with ⧸ in `FILENAME' so that it can be used as an file name in Linux file system."
     (concat (seq-mapcat (lambda (char)
                           (string-replace "/" "⧸"
                                           (string char)))
-                        string)))
+                        filename)))
 #+end_src
 
 ***** org link at point map
@@ -9069,7 +9059,10 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
       (switch-to-buffer-other-window buffer)))
 #+end_src
 
-***** download media file
+***** download media file                   :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-11-12 Sun 18:17]
+:END:
 
 #+begin_src emacs-lisp :noweb tangle
   (defvar my/download-video-dir
@@ -9141,7 +9134,7 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
                            (or (and filename
                                     (format "%s.%s"
                                             (shell-quote-argument
-                                             (my/file-name-validate filename))
+                                             (my/file-name-legitimate filename))
                                             (file-name-extension url)))
                                (file-name-nondirectory
                                 (car (url-path-and-query
@@ -9297,7 +9290,7 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
                     :prefix 'my/launch-app-map
                     "e" #'eshell
                     "v" #'my/multi-vterm
-                    "D" #'dired-jump
+                    "d" #'dired-jump
                     "w" #'eww
                     "m" #'mu4e
                     "p" #'proced
@@ -9862,7 +9855,7 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
       (org-add-log-setup 'state new-heading old-heading 'state)))
 #+end_src
 
-***** download media files in org
+***** download media files in org           :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 10:43]
 :END:
@@ -10485,6 +10478,60 @@ Following code is also responsible for deterministic archive location.
 
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
   (slp (call-interactively 'my/command-system-sleep))
+#+end_src
+
+***** download video/audio
+:PROPERTIES:
+:CREATED:  [2023-11-10 Fri 20:57]
+:END:
+
+command builders
+#+begin_src emacs-lisp :noweb tangle
+  (defun my/command-download-media (&optional url filename)
+    "Return a shell command string to download media whose name is FILENAME from URL using yt-dlp."
+    (interactive (list (read-string "Download URL: ")))
+    (format "yt-dlp %s"
+            (string-join
+             (delq nil
+                   (list (format "-P '%s'" (file-name-concat "<<media-dir()>>" "downloads"))
+                         (and filename
+                              (format "-o '%s.%%(ext)s'" (my/file-name-legitimate filename)))
+                         (format "'%s'" url)))
+             " ")))
+
+  (with-eval-after-load 'embark
+    (lambda-key embark-url-map "D"
+                (lambda (url)
+                  "Download media file at URL."
+                  (detached-shell-command
+                   (my/command-download-media url)))))
+
+  (with-eval-after-load 'my-launch-app
+    (lambda-key my/launch-app-map "D"
+                (lambda (url)
+                  "Download media file at URL."
+                  (interactive (list (let ((cb-txt (substring-no-properties (x-get-clipboard))))
+                                       (if (string-match-p url-handler-regexp cb-txt)
+                                           cb-txt
+                                         (read-string "URL: ")))))
+                  (detached-shell-command
+                   (my/command-download-media url)))))
+
+  (defun my/command-media-duration (&optional url)
+    "Return a shell command string to get duration of media file at URL."
+    (interactive (list (read-string "Download URL: ")))
+    (format "yt-dlp %s"
+            (string-join
+             (delq nil
+                   (list "--get-duration"
+                         (format "'%s'" url)))
+             " ")))
+#+end_src
+
+tempel templates in minibuffer-mode
+#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
+  (mdl (call-interactively 'my/command-download-media))
+  (m= (call-interactively 'my/command-media-duration))
 #+end_src
 
 **** org contents templates
