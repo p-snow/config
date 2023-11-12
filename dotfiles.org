@@ -306,6 +306,7 @@ initialization script for a linuxmint account
      "jq"
      "pup"
      "htmlq"
+     "util-linux"
      "binutils"
      "make"
      "llvm"
@@ -2721,7 +2722,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     :defer t
     :custom
     (midnight-mode t)
-    (midnight-delay "<<midnight-hour>>:10"))
+    (midnight-delay "<<midnight-hour>>:03"))
 #+end_src
 
 ****** Package
@@ -10465,15 +10466,23 @@ Following code is also responsible for deterministic archive location.
 :CREATED:  [2023-11-07 Tue 21:25]
 :END:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
   (defun my/command-system-sleep (&optional delay wake-at)
     "Return a shell command string to sleep system until WAKE-AT with DELAY time."
     (interactive (list (read-string "Delay before sleep: ")
                        (read-string "Wake time: ")))
     (string-trim-right
-     (format "sleep %s && pwsudo rtcwake -m mem -l -t %s"
-             delay
-             (shell-command-to-string (format "date +%%s -d '%s'" wake-at)))))
+     (let ((mid-h <<midnight-hour>>)
+           (ct (current-time)))
+       (format "sleep %s && pwsudo rtcwake -v -m mem -l --date '%s'"
+               (or (and (stringp delay) delay)
+                   "0")
+               (string-trim
+                (shell-command-to-string (format "date +'%%Y-%%m-%%d %%H:%%M' -d '%s'"
+                                                 (or (and (stringp wake-at) (length> wake-at 0) wake-at)
+                                                     (concat (when (>= (nth 2 (decode-time ct)) mid-h)
+                                                               "tomorrow ")
+                                                             (format "%02d:00" mid-h))))))))))
 #+end_src
 
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
@@ -15488,31 +15497,6 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
           ;;
   esac
 #+end_src
-** System Sleep During The Night
-:PROPERTIES:
-:CREATED:  [2023-11-01 Wed 16:45]
-:END:
-
-#+begin_src scheme :tangle no :noweb-ref guix-base
-  "util-linux"
-#+end_src
-
-#+begin_src bash :eval no :noweb tangle :tangle (expand-file-name ".local/bin/syssleep-after.sh")
-  date_str=$(
-    if [[ $(date +%H) -lt 4 ]]; then
-      date -d "today <<midnight-hour>>" +"%Y-%m-%d %H:%M"
-    else
-      date -d "tomorrow <<midnight-hour>>" +"%Y-%m-%d %H:%M"
-    fi
-  )
-
-  if [ -v 1 ]; then
-    sleep $1 && pwsudo rtcwake -m mem --date ${date_str}
-  else
-    pwsudo rtcwake -m mem --date ${date_str}
-  fi
-#+end_src
-
 * Babel Utility Functions
 :PROPERTIES:
 :header-args+: :tangle-mode (identity #o755)
