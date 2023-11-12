@@ -18,21 +18,14 @@ My share directory is where my variable data stay.
 
 #+name: share-dir
 #+begin_src shell :eval no-export
-  echo "${HOME}/data/share"
+  realpath "${HOME}/data/share"
 #+end_src
 
-*** video directory
+*** media directory
 
-#+name: video-dir
-#+begin_src shell :eval no-export
-  echo "${HOME}/data/videos"
-#+end_src
-
-*** audio directory
-
-#+name: audio-dir
-#+begin_src shell :eval no-export
-  echo "${HOME}/data/audios"
+#+name: media-dir
+#+begin_src shell :noweb yes :eval no-export
+  realpath "<<home-dir()>>/data/media"
 #+end_src
 
 *** trash directory
@@ -7060,9 +7053,7 @@ Typical file downloading workflow:
   (use-package mentor
     :commands mentor
     :custom
-    (mentor-rtorrent-download-directory
-     (expand-file-name "data/media/torrent"
-                       "<<home-dir()>>"))
+    (mentor-rtorrent-download-directory "<<torrent-dir()>>")
     (mentor-rtorrent-keep-session t)
     (mentor-rtorrent-external-rpc "<<rtorrent-sock()>>"))
 #+end_src
@@ -9084,7 +9075,7 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
 
 #+begin_src emacs-lisp :noweb tangle
   (defvar my/download-video-dir
-    (file-name-concat "<<video-dir()>>" "downloads")
+    (file-name-concat "<<media-dir()>>" "downloads")
     "Directory where downloaded video locate.")
 
   (defun my/download-video (url &optional filename playlistp)
@@ -9131,7 +9122,7 @@ lookup functions yield to [[id:db630173-d371-45de-a78e-bcc57cb9d50c][engine-mode
                    yt-url))))))
 
   (defvar my/download-audio-dir
-    (file-name-concat "<<audio-dir()>>" "downloads")
+    (file-name-concat "<<media-dir()>>" "downloads")
     "Directory where downloaded audio locate.")
 
   (defun my/download-audio (url &optional filename)
@@ -9665,7 +9656,7 @@ These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea
   pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(($SINK + 1 )) | tail -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,'
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
   (with-eval-after-load 'org-timer
     (add-hook 'org-timer-done-hook
               'my/org-task-timer-finish))
@@ -9681,7 +9672,7 @@ These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea
              (alert "Timer Done!" :style 'alarm))
         (alert "Timer Done!" :style 'fringe :mode 'org-mode :buffer (org-clocking-buffer) :severity 'trivial))))
 
-  (defvar alarm-sound (expand-file-name "~/data/media/music/levelup.mp3"))
+  (defvar alarm-sound (file-name-concat "<<media-dir()>>" "levelup.mp3"))
 
   (with-eval-after-load 'alert
     (alert-define-style 'alarm
@@ -14443,7 +14434,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
       <source>
       </source>
       <target>
-        <path><<home-dir()>>/data/media/libvirt/images</path>
+        <path><<share-dir()>>/libvirt/images</path>
         <permissions>
           <mode>0711</mode>
           <owner>0</owner>
@@ -14507,6 +14498,11 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
   systemctl --user start rtorrent.service
 #+end_src
 
+#+name: torrent-dir
+#+begin_src shell :noweb yes :eval no-export
+  realpath "<<share-dir()>>/torrent"
+#+end_src
+
 #+begin_src conf :noweb tangle :tangle (expand-file-name ".config/systemd/user/rtorrent.service")
   [Unit]
   Description=rTorrent
@@ -14514,7 +14510,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 
   [Service]
   Type=simple
-  WorkingDirectory=<<home-dir()>>/data/media/torrent
+  WorkingDirectory=<<torrent-dir()>>
   ExecStart=<<which(filename="rtorrent")>> -o system.daemon.set=true
   Restart=on-failure
   RestartSec=3
