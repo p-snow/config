@@ -8662,7 +8662,7 @@ Suport successive deletion with C-h/M-h
     (if (eq major-mode 'org-mode)
         (org-delete-char 1)
       (delete-char 1)))
-  (defun my/delete-cackward-char-dwim ()
+  (defun my/delete-backward-char-dwim ()
     (interactive)
     (if (eq major-mode 'org-mode)
         (org-delete-backward-char 1)
@@ -8685,11 +8685,11 @@ Suport successive deletion with C-h/M-h
                      kill-word
                      jaword-kill
                      my/delete-char-dwim
-                     my/delete-cackward-char-dwim
+                     my/delete-backward-char-dwim
                      my/kill-word-dwim
                      my/backward-kill-word-dwim))
     "C-d" #'my/delete-char-dwim
-    "C-h" #'my/delete-cackward-char-dwim
+    "C-h" #'my/delete-backward-char-dwim
     "M-d" #'my/kill-word-dwim
     "M-h" #'my/backward-kill-word-dwim)
 #+end_src
