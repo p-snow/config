@@ -10467,22 +10467,34 @@ Following code is also responsible for deterministic archive location.
 :END:
 
 #+begin_src emacs-lisp :noweb tangle
-  (defun my/command-system-sleep (&optional delay wake-at)
+  (defvar my/pre-command-history nil
+    "History list for pre commands that will be executed before sleep.")
+
+  (defun my/command-system-sleep (&optional delay wake-at pre-command)
     "Return a shell command string to sleep system until WAKE-AT with DELAY time."
     (interactive (list (read-string "Delay before sleep: ")
-                       (read-string "Wake time: ")))
+                       (read-string "Wake time: ")
+                       (read-string "Pre command: " nil 'my/pre-command-history)))
     (string-trim-right
      (let ((mid-h <<midnight-hour>>)
            (ct (current-time)))
-       (format "sleep %s && pwsudo rtcwake -v -m mem -l --date '%s'"
-               (or (and (stringp delay) delay)
-                   "0")
-               (string-trim
-                (shell-command-to-string (format "date +'%%Y-%%m-%%d %%H:%%M' -d '%s'"
-                                                 (or (and (stringp wake-at) (length> wake-at 0) wake-at)
-                                                     (concat (when (>= (nth 2 (decode-time ct)) mid-h)
-                                                               "tomorrow ")
-                                                             (format "%02d:00" mid-h))))))))))
+       (string-join
+        (delq nil
+              (list
+               (and (stringp delay)
+                    (length> delay 0)
+                    (format "sleep %s" delay))
+               (and (stringp pre-command)
+                    (length> pre-command 0)
+                    pre-command)
+               (format "pwsudo rtcwake -v -m mem -l --date '%s'"
+                       (string-trim
+                        (shell-command-to-string (format "date +'%%Y-%%m-%%d %%H:%%M' -d '%s'"
+                                                         (or (and (stringp wake-at) (length> wake-at 0) wake-at)
+                                                             (concat (when (>= (nth 2 (decode-time ct)) mid-h)
+                                                                       "tomorrow ")
+                                                                     (format "%02d:00" mid-h)))))))))
+        " && "))))
 #+end_src
 
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
@@ -10541,6 +10553,25 @@ tempel templates in minibuffer-mode
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
   (mdl (call-interactively 'my/command-download-media))
   (m= (call-interactively 'my/command-media-duration))
+#+end_src
+
+***** opus transcoder
+:PROPERTIES:
+:CREATED:  [2023-11-12 Sun 22:00]
+:END:
+
+#+begin_src emacs-lisp
+  (defun my/command-transcode-opus (&optional file)
+    "Return a shell command string to transcode FILE to opus audio file.."
+    (interactive (list (if (eq minibuffer-history-variable 'dired-shell-command-history)
+                           "*"
+                         (read-file-name "File: "))))
+    (format "parallel ffmpeg -i '{}' -c:a libopus -b:a 64k -ac 2 '{.}'.oga ::: %s"
+            file))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
+  (opus (call-interactively 'my/command-transcode-opus))
 #+end_src
 
 **** org contents templates
@@ -14951,7 +14982,10 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
     && ffmpeg -i "../${INPUT_VIDEO}" ${av1_opts_pass2} ${opus_opts} "../${OUTPUT_VIDEO}"
 #+end_src
 
-** Transcode Audio Files
+** Transcode Audio Files                       :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-11-13 Mon 18:05]
+:END:
 
 - usage
   + encode bulk podcast files for 64kb/s (in Dired)
