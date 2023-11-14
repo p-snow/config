@@ -1241,6 +1241,9 @@ Early init file defines fundamental variables used from both normal Emacs sessio
   (setf user-emacs-directory-default
         (file-name-as-directory (expand-file-name (file-name-as-directory "~/.emacs.d"))))
 
+  (defvar my/user-dot-emacs-dir
+    (expand-file-name "<<emacs-dir()>>")
+    "Original .emacs.d directory.")
   (defvar my/user-lisp-dir
     (expand-file-name "elisp" "<<emacs-dir()>>")
     "Directory beneath which user Emacs config files are placed.")
@@ -8387,7 +8390,8 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
                   (cons #'tempel-expand
                         completion-at-point-functions)))
     :custom
-    (tempel-path (file-name-concat user-emacs-directory-default "templates/*.eld"))
+    (tempel-path (list (file-name-concat user-emacs-directory-default "templates/*.eld")
+                       (file-name-concat user-emacs-directory-default "templates/private/*.eld")))
     :config
     (bind-keys :map tempel-map
                ("TAB" . tempel-next)
