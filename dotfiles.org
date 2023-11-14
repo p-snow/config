@@ -10476,10 +10476,10 @@ Following code is also responsible for deterministic archive location.
   (defvar my/pre-command-history nil
     "History list for pre commands that will be executed before sleep.")
 
-  (defun my/command-system-sleep (&optional delay wake-at pre-command)
+  (defun my/command-system-sleep (&optional wake-at delay pre-command)
     "Return a shell command string to sleep system until WAKE-AT with DELAY time."
-    (interactive (list (read-string "Delay before sleep: ")
-                       (read-string "Wake time: ")
+    (interactive (list (read-string "Wake time: ")
+                       (read-string "Delay before sleep: ")
                        (read-string "Pre command: " nil 'my/pre-command-history)))
     (string-trim-right
      (let ((mid-h <<midnight-hour>>)
