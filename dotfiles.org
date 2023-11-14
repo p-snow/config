@@ -5579,7 +5579,6 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
                 :prefix-map my/cape-map
                 :prefix-docstring "Keymap for cape commands."
                 ("C-M-i" . completion-at-point)
-                ("t" . complete-tag)
                 ("d" . cape-dabbrev)
                 ("h" . cape-history)
                 ("f" . cape-file)
@@ -8394,7 +8393,10 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
                ("TAB" . tempel-next)
                ("M-TAB" . tempel-previous)
                ("C->" . tempel-next)
-               ("C-<" . tempel-previous)))
+               ("C-<" . tempel-previous))
+    (with-eval-after-load 'cape
+      (bind-keys :map my/cape-map
+                 ("t" . tempel-expand))))
 
   (use-package tempel-collection
     :ensure t
@@ -10428,9 +10430,9 @@ Following code is also responsible for deterministic archive location.
 
 #+header: :shebang "text-mode"
 #+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/text.eld")
-  (cm "update on " (my/insert-time-stamp '(4))
-      " at " (system-name)
-      " by " (user-full-name))
+  (gma "update on " (my/insert-time-stamp '(4))
+       " at " (system-name)
+       " by " (user-full-name))
 #+end_src
 
 ***** org-mode templates
