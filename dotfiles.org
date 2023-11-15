@@ -3672,7 +3672,10 @@ Command in practice presumably looks like:
                         (elfeed-entry-link entry))
                do (let ((title (elfeed-entry-title entry)))
                     (detached-shell-command
-                     (my/command-download-media it title))))
+                     ;; FIXME: double-quote(") seems not to be processed in `detached-shell-command'
+                     (replace-regexp-in-string
+                      "\\\"" "\\\\\""
+                      (my/command-download-media it title)))))
       (mapc #'elfeed-search-update-entry entries)
       (unless (or elfeed-search-remain-on-entry (use-region-p))
         (forward-line))))
@@ -10526,7 +10529,8 @@ command builders
              (delq nil
                    (list (format "-P '%s'" (file-name-concat "<<media-dir()>>" "downloads"))
                          (and filename
-                              (format "-o '%s.%%(ext)s'" (my/file-name-legitimate filename)))
+                              (format "-o '%s.%%\(ext\)s'"
+                                      (my/file-name-legitimate filename)))
                          (format "'%s'" url)))
              " ")))
 
