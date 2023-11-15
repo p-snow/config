@@ -10454,6 +10454,7 @@ Following code is also responsible for deterministic archive location.
 #+header: :shebang "org-mode"
 #+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/org.eld")
   (call & "#+call: " (p "name" name) "(" (s var) "=\"" (s value) "\")")
+  (/ "[/]" (org-update-statistics-cookies nil))
 
   <<org-template>>
 #+end_src
@@ -10468,6 +10469,17 @@ Following code is also responsible for deterministic archive location.
   (gxs "guix search " (p "regexp"))
 
   <<minibuffer-template>>
+#+end_src
+
+***** emacs-lisp-mode templates
+:PROPERTIES:
+:CREATED:  [2023-11-15 Wed 12:26]
+:END:
+
+#+header: :shebang "emacs-lisp-mode"
+#+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/emacs-lisp.eld")
+  (bk "(bind-keys " (p (format ":map ")) n>
+      "(\"" p "\" . " p "))")
 #+end_src
 
 **** shell command string builders
