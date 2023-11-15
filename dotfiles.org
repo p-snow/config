@@ -4868,7 +4868,11 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 
 #+begin_src emacs-lisp
   (use-package org-drill
+    :after org
     :commands (org-drill org-drill-tree)
+    :init
+    (bind-keys :map org-mode-map
+               ("C-c D" . org-drill-tree))
     :custom
     (org-drill-spaced-repetition-algorithm 'sm5)
     (org-drill-add-random-noise-to-intervals-p t))
