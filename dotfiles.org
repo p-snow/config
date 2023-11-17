@@ -424,6 +424,7 @@ This script accepts a space-separated list of manifest file names (without exten
 - Automating Script
   Update packages in base profile every midnight
   #+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
+    pwsudo guix pull && pwsudo systemctl restart guix-daemon.service
     update-channels && activate-profiles base && guix gc -d 2m -F 20G
   #+end_src
   Update packages in desktop and emacs profile every weekend
@@ -17064,7 +17065,7 @@ Nifty script that executes command with elevating privilege using password from 
   _hostname=$(hostname)
 
   if pass show "${_hostname}/${_userid}" >/dev/null 2>&1; then
-    pass show "${_hostname}/${_userid}" | head -1 | sudo -sES -p "" "PATH=$PATH" "$@"
+    pass show "${_hostname}/${_userid}" | head -1 | sudo -iS -p "" "PATH=$PATH" "$@"
   else
     sudo -sE "PATH=$PATH" "$@"
   fi
