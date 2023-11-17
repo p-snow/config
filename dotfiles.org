@@ -145,8 +145,8 @@ initialization script for a ubuntu account
        <<apt-pkg>>
   #+end_src
 - update apt packages every midnight
-  #+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
-    pwsudo apt update && pwsudo apt upgrade --yes
+  #+begin_src shell :eval no :tangle no :noweb-ref system-batch
+    apt update && apt upgrade --yes
   #+end_src
 
 ** Linux Mint (Cinnamon DE)
@@ -266,7 +266,6 @@ initialization script for a linuxmint account
      "grep"
      "ripgrep"
      "less"
-     "gnupg"
      "pwgen"
      "file"
      "nkf"
@@ -424,8 +423,10 @@ This script accepts a space-separated list of manifest file names (without exten
 - Automating Script
   Update packages in base profile every midnight
   #+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
-    pwsudo guix pull && pwsudo systemctl restart guix-daemon.service
     update-channels && activate-profiles base && guix gc -d 2m -F 20G
+  #+end_src
+  #+begin_src shell :eval no :tangle no :noweb-ref system-batch
+    guix pull && systemctl restart guix-daemon.service
   #+end_src
   Update packages in desktop and emacs profile every weekend
   #+begin_src shell :eval no :tangle no :noweb-ref weekend-batch
@@ -789,14 +790,14 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 
 **** snapshot/backup script
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/btrbk_home") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
-  BTRBK_CONF=~/.config/btrbk/btrbk.conf
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/btrbk_home")
+  BTRBK_CONF=<<home-dir()>>/.config/btrbk/btrbk.conf
 
-  pwsudo btrbk --config "${BTRBK_CONF}" run
+  <<which(filename="btrbk")>> --config "${BTRBK_CONF}" run
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-  ,*/15 * * * * <<which(filename="bash")>> -ci "btrbk_home >> $LOG_DIR/btrbk_home.log 2>&1"
+  ,*/15 * * * * <<which(filename="bash")>> -ci "which btrbk_home | xargs pwsudo >> $LOG_DIR/btrbk_home.log 2>&1"
 #+end_src
 
 *** snapshots management                      :ARCHIVE:
@@ -928,6 +929,11 @@ A structure described below is expected under all devices.
 ** GnuPG (gpg)
 [[https://wiki.archlinux.org/title/GnuPG][
 GnuPG - ArchWiki]]
+
+I've chosen to use gpg/gpg-agent and pass on Ubuntu system since pass (password-store) spouts a warning saying there's gpg version mismatch persistently.
+#+begin_src scheme :noweb-ref guix-base
+  ;; "gnupg"
+#+end_src
 
 - gpg config
   #+begin_src conf :noweb tangle :tangle (expand-file-name ".gnupg/gpg.conf")
@@ -8769,6 +8775,8 @@ I'd share this babel config between literate configuration and main Emacs sessio
                     (:comments . "both")))))
 
   (with-eval-after-load 'ob-shell
+    (add-to-list 'org-babel-default-header-args:shell
+                 '(:shebang . "#!/bin/sh"))
     (add-to-list 'org-babel-default-header-args:bash
                  '(:shebang . "#!/usr/bin/env bash\nset -euo pipefail\n")))
 
@@ -12837,8 +12845,9 @@ Provide a function to Build a clock table summing up time by tag.
 
 [[https://www.passwordstore.org/][Pass]] is a simple password manager.
 
+I've chosen to use gpg/gpg-agent and pass on Ubuntu system since pass (password-store) spouts a warning saying there's gpg version mismatch persistently.
 #+begin_src scheme :noweb-ref guix-base
-  "password-store"
+  ;; "password-store"
 #+end_src
 
 #+begin_src conf :tangle (expand-file-name ".config/pass-git-helper/git-pass-mapping.ini")
@@ -14875,7 +14884,7 @@ Extendable version manager
 
 - cron job for midnight.sh
   #+begin_src conf :noweb yes :noweb-ref cronjob-user
-    2 <<midnight-hour>> * * 0-5 <<which(filename="bash")>> -ci "midnight.sh"
+    2 <<midnight-hour>> * * <<weekdays()>> <<which(filename="bash")>> -ci "midnight.sh"
   #+end_src
 
 *** Weekend Batch
@@ -14884,8 +14893,18 @@ Extendable version manager
 :END:
 
 #+name: weekend-day
-#+begin_src text
+#+begin_src text :noweb yes
   6
+#+end_src
+
+#+name: weekdays
+#+begin_src emacs-lisp :noweb yes
+  (let ((days nil)
+        (weekend <<weekend-day>>))
+    (dotimes (day 7)
+      (unless (= day weekend)
+        (add-to-list 'days (number-to-string day) t)))
+    (string-join days ","))
 #+end_src
 
 #+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/weekend.sh")
@@ -14893,7 +14912,16 @@ Extendable version manager
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-  2 <<midnight-hour>> * * <<weekend-day>> <<which(filename="bash")>> -ci "midnight.sh; weekend.sh"
+  2 <<midnight-hour>> * * <<weekend-day>> <<which(filename="bash")>> -ci "which system.sh | xargs pwsudo; midnight.sh; weekend.sh"
+#+end_src
+
+*** System Batch
+:PROPERTIES:
+:CREATED:  [2023-11-17 Fri 17:17]
+:END:
+
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/system.sh")
+  <<system-batch>>
 #+end_src
 
 ** Transcode Video Files
@@ -17060,15 +17088,15 @@ Utility for sendind email programatically
 
 Nifty script that executes command with elevating privilege using password from pass command.
 
-#+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/pwsudo")
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/pwsudo")
   _userid=$(whoami)
   _hostname=$(hostname)
 
-  if pass show "${_hostname}/${_userid}" >/dev/null 2>&1; then
-    pass show "${_hostname}/${_userid}" | head -1 | sudo -iS -p "" "PATH=$PATH" "$@"
-  else
-    sudo -sE "PATH=$PATH" "$@"
-  fi
+  pas=$(pass show "${_hostname}/${_userid}" 2>/dev/null) \
+    && ( echo "${pas}" | head -1 | sudo -iS -p "" "$@" ) \
+    || sudo -iS "$@"
+
+  exit $?
 #+end_src
 
 ** gitsync                                     :ARCHIVE:

@@ -12,6 +12,8 @@
                   (:comments . "both")))))
 
 (with-eval-after-load 'ob-shell
+  (add-to-list 'org-babel-default-header-args:shell
+               '(:shebang . "#!/bin/sh"))
   (add-to-list 'org-babel-default-header-args:bash
                '(:shebang . "#!/usr/bin/env bash\nset -euo pipefail\n")))
 
