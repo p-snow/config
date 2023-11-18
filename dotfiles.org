@@ -2340,6 +2340,24 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
     (xref-show-definitions-function 'xref-show-definitions-completing-read))
 #+end_src
 
+******* Ediff
+:PROPERTIES:
+:CREATED:  [2023-11-19 Sun 06:17]
+:END:
+
+******** Ediff Window
+:PROPERTIES:
+:CREATED:  [2023-11-19 Sun 06:17]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package ediff
+    :commands ediff-files
+    :custom
+    (ediff-window-setup-function 'ediff-setup-windows-plain)
+    (ediff-split-window-function 'split-window-horizontally))
+#+end_src
+
 ***** Development
 
 ****** Internal
@@ -6310,15 +6328,6 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
 :PROPERTIES:
 :CREATED:  [2022-08-03 Wed 21:10]
 :END:
-***** ediff
-
-#+begin_src emacs-lisp
-  (use-package ediff
-    :commands ediff-files
-    :custom
-    (ediff-window-setup-function 'ediff-setup-windows-default)
-    (ediff-split-window-function 'split-window-horizontally))
-#+end_src
 ***** vc-hooks
 
 #+begin_src emacs-lisp
