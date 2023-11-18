@@ -3679,10 +3679,7 @@ Command in practice presumably looks like:
                         (elfeed-entry-link entry))
                do (let ((title (elfeed-entry-title entry)))
                     (detached-shell-command
-                     ;; FIXME: double-quote(") seems not to be processed in `detached-shell-command'
-                     (replace-regexp-in-string
-                      "\\\"" "\\\\\""
-                      (my/command-download-media it title)))))
+                     (my/command-download-media it title))))
       (mapc #'elfeed-search-update-entry entries)
       (unless (or elfeed-search-remain-on-entry (use-region-p))
         (forward-line))))
@@ -8543,11 +8540,14 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
       t))
 
   (defun my/file-name-legitimate (filename)
-    "Replace / with ⧸ in `FILENAME' so that it can be used as an file name in Linux file system."
-    (concat (seq-mapcat (lambda (char)
-                          (string-replace "/" "⧸"
-                                          (string char)))
-                        filename)))
+    "Substitute legitimate file name for `FILENAME' so as not to have any special charactors."
+    (seq-reduce (lambda (takeover replace)
+                  (replace-regexp-in-string
+                   (car replace) (cdr replace) takeover))
+                '(("/" . "／")
+                  ("\"" . "❞")
+                  ("'" . "❜"))
+                filename))
 #+end_src
 
 ***** org link at point map
