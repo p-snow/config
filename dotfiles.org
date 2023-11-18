@@ -212,7 +212,7 @@ initialization script for a linuxmint account
   export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
 
 
-  if [ -n "$GUIX_ENVIRONMENT" ]; then
+  if [ -v GUIX_ENVIRONMENT ]; then
       if [[ $PS1 =~ (.*)"\\$" ]]; then
           PS1="${BASH_REMATCH[1]} [env]\\\$ "
       fi
@@ -790,14 +790,14 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 
 **** snapshot/backup script
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/btrbk_home")
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/btrbkhome")
   BTRBK_CONF=<<home-dir()>>/.config/btrbk/btrbk.conf
 
   <<which(filename="btrbk")>> --config "${BTRBK_CONF}" run
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-  ,*/15 * * * * <<which(filename="bash")>> -ci "which btrbk_home | xargs pwsudo >> $LOG_DIR/btrbk_home.log 2>&1"
+  ,*/15 * * * * <<which(filename="pwsudo")>> <<which(filename="btrbkhome")>>
 #+end_src
 
 *** snapshots management                      :ARCHIVE:
@@ -13637,7 +13637,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 #+end_src
 
 #+name: skk-jisyo-path
-#+begin_src shell :noweb tangle :tangle no
+#+begin_src bash :noweb tangle :tangle no
   . ${HOME}/.bashrc
 
   echo "${GUIX_EXTRA_PROFILES}/base/base/share/skk/"
@@ -14794,7 +14794,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 #+begin_src shell :noweb yes :noweb-ref bashrc
   NODE_PATH="<<npm-prefix()>>/lib/node_modules:${NODE_PATH}"
   PATH="<<npm-prefix()>>/bin:${PATH}"
-  MANPATH="<<npm-prefix()>>/share/man:${MANPATH}"
+  MANPATH="<<npm-prefix()>>/share/man"
 #+end_src
 
 #+begin_src shell :noweb yes :tangle (expand-file-name ".npmrc")
@@ -17106,8 +17106,8 @@ Nifty script that executes command with elevating privilege using password from 
   _hostname=$(hostname)
 
   pas=$(pass show "${_hostname}/${_userid}" 2>/dev/null) \
-    && ( echo "${pas}" | head -1 | sudo -iS -p "" "$@" ) \
-    || sudo -iS "$@"
+    && ( echo "${pas}" | head -1 | sudo -sES -p "" "$@" ) \
+    || sudo -sES "$@"
 
   exit $?
 #+end_src
