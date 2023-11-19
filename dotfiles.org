@@ -10486,6 +10486,7 @@ Following code is also responsible for deterministic archive location.
 #+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/org.eld")
   (call & "#+call: " (p "name" name) "(" (s var) "=\"" (s value) "\")")
   (/ "[/]" (org-update-statistics-cookies nil))
+  (tsm p " :: " (with-temp-buffer (org-insert-time-stamp (current-time) t t)))
 
   <<org-template>>
 #+end_src
@@ -10511,6 +10512,16 @@ Following code is also responsible for deterministic archive location.
 #+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/emacs-lisp.eld")
   (bk "(bind-keys " (p (format ":map "))
       "(\"" p "\" . " p "))")
+#+end_src
+
+***** sh-base-mode templates
+:PROPERTIES:
+:CREATED:  [2023-11-17 Fri 19:23]
+:END:
+
+#+header: :shebang "sh-base-mode"
+#+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/sh-base.eld")
+  (rf "${" p "}")
 #+end_src
 
 **** shell command string builders
@@ -10670,6 +10681,18 @@ tempel templates in minibuffer-mode
       ":block " (p "year") "-W" (p "isoweek")
       " :wstart 1 :narrow 40! :tcolumns 3 :formula %" n>
       "#+end:")
+#+end_src
+
+***** blog post
+:PROPERTIES:
+:CREATED:  [2023-11-16 Thu 19:58]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref org-template
+  (blog & (org-insert-heading-after-current)
+        (p "blog title: " title t) (insert title)
+        (prog1 nil (org-schedule nil (current-time)))
+        (org-entry-put (point) "EXPORT_FILE_NAME" (format-time-string "%Y%m%d_%H%M")))
 #+end_src
 
 **** elisp code corresponding to external app
