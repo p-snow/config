@@ -9964,10 +9964,10 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
             elfeed -> task [label = "watch later"];
             "web browsing" -> someday [label = "read someday"];
             task -> someday [label = "expired"];
-            someday -> task [label = "review (active)"];
+            someday -> task [label = "drill (active)"];
             task -> pending [label = "abandoned"];
             subgraph cluster_0 {
-                    someday -> someday [label = "review (inactive)"];
+                    someday -> someday [label = "drill (inactive)"];
                     pending;
                     label = "somedays.org";
             }
@@ -10021,7 +10021,7 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
           (progn (outline-next-heading) (point))
         nil)))
 
-  (defvar my/org-review-tag "review"
+  (defvar my/org-review-tag "drill"
     "Tag name set for tasks which is encourged to review.")
 
   (with-eval-after-load 'org-agenda
