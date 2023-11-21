@@ -3960,6 +3960,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
       "Indicator showing whether any org file had opened.")
     (defvar my/org-mode-init-hook nil
       "One-off hook run when first org file open.")
+    (setq org-directory "~/org")
     :hook
     (org-mode . (lambda ()
                   (unless my/org-initialized
@@ -4030,12 +4031,13 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (use-package org
     :no-require t
     :defer t
-    :custom
-    (org-agenda-inhibit-startup t)
-    :config
+    :init
     (setq org-agenda-files
           (list (file-name-as-directory
-                 (file-name-concat org-directory "agenda")))))
+                 (expand-file-name
+                  (file-name-concat org-directory "agenda")))))
+    :custom
+    (org-agenda-inhibit-startup t))
 
   (use-package org-agenda
     :commands org-agenda
