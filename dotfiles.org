@@ -4199,8 +4199,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                                     ,my/org-done-keyword--pending))
                                          (not (tags "web"))
                                          (not (habit))
-                                         (not (and (todo ,my/org-todo-keyword--someday)
-                                                   (tags ,my/org-review-tag))))
+                                         (not (todo ,my/org-todo-keyword--someday)))
                                    ((org-ql-block-header "Scheduled/Deadlined on today")))
               (org-ql-search-block `(and (habit)
                                          (or (todo ,my/org-todo-keyword--todo)
@@ -4212,8 +4211,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
               (org-ql-search-block `(and (ts-active :on today)
                                          (not (or (todo ,my/org-todo-keyword--in-action)
                                                   (habit) (done)))
-                                         (not (and (todo ,my/org-todo-keyword--someday)
-                                                   (tags ,my/org-review-tag))))
+                                         (not (todo ,my/org-todo-keyword--someday)))
                                    ((org-ql-block-header "Today's common event")))
               (org-ql-search-block '(and (done)
                                          (closed :on today))
@@ -4238,8 +4236,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                                                     ,my/org-done-keyword--cancel
                                                     ,my/org-done-keyword--pending))
                                          (not (tags "web"))
-                                         (not (and (todo ,my/org-todo-keyword--someday)
-                                                   (tags ,my/org-review-tag)))
+                                         (not (todo ,my/org-todo-keyword--someday))
                                          (not (habit)))
                                    ((org-ql-block-header "Scheduled/Deadlined this week")))
               (org-ql-search-block `(and (and (ts-active :from 0 :to 6)
@@ -4899,8 +4896,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
     (bind-keys :map org-mode-map
                ("C-c D" . org-drill-tree))
     :custom
-    (org-drill-spaced-repetition-algorithm 'sm5)
-    (org-drill-add-random-noise-to-intervals-p t))
+    (org-drill-spaced-repetition-algorithm 'sm5))
 #+end_src
 
 ****** org-ql
@@ -9994,6 +9990,7 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
             ;; drill session regulations
             (org-drill-maximum-duration 12)
             (org-drill-maximum-items-per-session 30)
+            (org-drill-item-count-includes-failed-items-p t)
             ;; Spaced repetition algorithm
             (org-drill-spaced-repetition-algorithm 'sm5)
             (org-drill-sm5-initial-interval 14.0)
@@ -10013,6 +10010,9 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
 :END:
 
 #+begin_src emacs-lisp
+  (defvar my/org-review-tag "review"
+    "Tag name set for tasks which is encourged to review.")
+
   (defun my/org-agenda-skip-on-hold-task ()
     "Skip entries which hold schedule time and review tag in agenda view."
     (let ((tags (org-get-tags)))
@@ -10020,9 +10020,6 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
                (org-get-scheduled-time (point)))
           (progn (outline-next-heading) (point))
         nil)))
-
-  (defvar my/org-review-tag "drill"
-    "Tag name set for tasks which is encourged to review.")
 
   (with-eval-after-load 'org-agenda
     (setopt org-agenda-skip-function-global
