@@ -9878,15 +9878,17 @@ Memo file (memo.org) is useful for jotting down fragmented pieces of text, code 
 :CREATED:  [2023-01-27 Fri 10:55]
 :END:
 
+[[https://www.p-snow.org/posts/20231121_1858/][I wrote a blog post]] for this topic.
+
 #+begin_src emacs-lisp
   (with-eval-after-load 'org
     (bind-keys :map org-mode-map
-               ("C-c C-% h" . my/org-replace-heading)))
+               ("C-c C-% h" . my/org-change-heading)))
 
-  (defun my/org-replace-heading ()
-    "Replace a heading string of the org entry at point.
+  (defun my/org-change-heading ()
+    "CHange the heading of the entry at `point'.
 
-  Replacement info with new and old heading will be described in logbook."
+  The previous name will be stored along with the execution date."
     (interactive)
     (let* ((old-heading (org-get-heading t t t t))
            (new-heading (read-string "Heading: " old-heading)))
