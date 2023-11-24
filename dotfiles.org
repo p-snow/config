@@ -10162,112 +10162,84 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
              (org-todo my/org-done-keyword--done)))))
 #+end_src
 
-***** tidy up org entry by removing old blobs
+***** flush old clock logs and state changes
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 14:51]
+:END:
+:LOGBOOK:
+- State "flush old clock logs and state changes" from "purge old clock logs and state changes" [2023-11-23 Thu 15:10]
+- State "purge old clock logs and state changes" from "tidy up org entry by removing old blobs" [2023-11-23 Thu 15:01]
 :END:
 
 The hook functions, which is commented out, provoke malfunction failing to create todo state change logs which is necessary for habit graph.
 
-#+begin_src emacs-lisp
-  ;; (with-eval-after-load 'org-clock
-  ;;   (add-hook 'org-clock-out-hook
-  ;;             (lambda ()
-  ;;               (funcall #'my/org-remove-old-clock-logs 4 5)))
-  ;;   (add-hook 'org-clock-cancel-hook
-  ;;             (lambda ()
-  ;;               (funcall #'my/org-remove-old-clock-logs 4 5))))
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-flush-blobs.el" my/user-config-dir)
+  (defvar my/org-flush-blobs-old-timestamp-in-day 60
+    "Flush blobs with timestamps that are earlier than this number of days.")
 
-  ;; (with-eval-after-load 'org
-  ;;   (add-hook 'org-after-todo-state-change-hook
-  ;;             (lambda ()
-  ;;               (and (org-is-habit-p)
-  ;;                    (string= org-state
-  ;;                             my/org-done-keyword--done)
-  ;;                    (funcall #'my/org-remove-old-state-changes 12)))))
+  (defvar my/org-flush-blobs-clock-log t
+    "Whether `my/org-flush-blobs' flushes old clock logs.")
 
-  (defvar my/org-remove-old-blobs-from 21
-    "Number of weeks on which state change logs to remove for `my/org-remove-old-state-changes'.")
+  (defvar my/org-flush-blobs-state-change t
+    "Whether `my/org-flush-blobs' flushes old todo state changes.")
 
-  (defun my/org-agenda-remove-old-clock-logs ()
-    "Call `my/org-remove-old-clock-logs' from agenda view."
-    (interactive)
-    (or (eq major-mode 'org-agenda-mode) (user-error "Not in agenda"))
-    (org-agenda-check-type t 'agenda 'todo 'tags 'search)
-    (org-agenda-check-no-diary)
-    (org-agenda-maybe-loop
-     #'my/org-agenda-remove-old-clock-logs nil nil nil
-     (let* ((marker (or (org-get-at-bol 'org-marker)
-                        (org-agenda-error)))
-            (buffer (marker-buffer marker))
-            (pos (marker-position marker)))
-       (set-marker-insertion-type marker t)
-       (org-with-remote-undo buffer
-         (with-current-buffer buffer
-           (widen)
-           (goto-char pos)
-           (funcall-interactively
-            #'my/org-remove-old-clock-logs))))))
-
-  (defun my/org-remove-old-clock-logs ()
-    "Remove all clocking entries but last `my/org-remove-old-blobs-from'."
+  (defun my/org-flush-blobs ()
+    "Flush old blob."
     (interactive)
     (org-save-outline-visibility t
+      (org-show-all)
       (save-excursion
-        (org-back-to-heading t)
-        (org-show-all)
-        (when-let* ((drawer (re-search-forward org-clock-drawer-start-re (save-excursion (org-end-of-subtree)) t))
-                    (case-fold-search t)
-                    (re org-clock-line-re)
-                    (end-mkr (set-marker (mark-marker) (save-excursion (re-search-forward org-clock-drawer-end-re (save-excursion (org-end-of-subtree)) nil))))
-                    (count 0))
-          (while (re-search-forward re (marker-position end-mkr) t)
-            (skip-chars-forward " \t\r")
-            (looking-at org-tr-regexp-both)
-            (if (>= count my/org-remove-old-blobs-from)
-                (kill-whole-line)
-              (setq count (1+ count)))))
-        (org-clock-remove-empty-clock-drawer))))
-
-  (defun my/org-agenda-remove-old-state-changes ()
-    "Call `my/org-remove-old-state-changes' from agenda view."
-    (interactive)
-    (or (eq major-mode 'org-agenda-mode) (user-error "Not in agenda"))
-    (org-agenda-check-type t 'agenda 'todo 'tags 'search)
-    (org-agenda-check-no-diary)
-    (org-agenda-maybe-loop
-     #'my/org-agenda-remove-old-state-changes nil nil nil
-     (let* ((marker (or (org-get-at-bol 'org-marker)
-                        (org-agenda-error)))
-            (buffer (marker-buffer marker))
-            (pos (marker-position marker)))
-       (set-marker-insertion-type marker t)
-       (org-with-remote-undo buffer
-         (with-current-buffer buffer
-           (widen)
-           (goto-char pos)
-           (funcall-interactively
-            #'my/org-remove-old-state-changes))))))
-
-  (defun my/org-remove-old-state-changes ()
-    "Remove all state change entries but last my/org-remove-old-blobs-from."
-    (interactive)
-    (org-save-outline-visibility t
-      (save-excursion
-        (org-back-to-heading t)
-        (org-show-all)
-        (when-let* ((drawer-end (save-excursion (re-search-forward org-logbook-drawer-re
-                                                                   (save-excursion (org-end-of-subtree)) t)))
-                    (case-fold-search t)
-                    (re (concat (rx "- State \"" (= 2 alnum) "\"" (+ any)) org-ts-regexp-inactive))
-                    (end-mkr (set-marker (mark-marker) drawer-end))
-                    (count 0))
-          (goto-char (match-beginning 0))
-          (while (re-search-forward re (marker-position end-mkr) t)
-            (if (>= count my/org-remove-old-blobs-from)
-                (kill-whole-line)
-              (setq count (1+ count))))))))
+        (let ((case-fold-search t)
+              (next-heading (save-excursion
+                              (org-next-visible-heading 1)
+                              (point-marker))))
+          (mapc (lambda (re)
+                  (org-back-to-heading t)
+                  (while-let ((ts-time (and (re-search-forward re (marker-position next-heading) t)
+                                            (encode-time (parse-time-string (match-string 1))))))
+                    (when (time-less-p ts-time
+                                       (time-subtract (current-time) (days-to-time my/org-flush-blobs-old-timestamp-in-day)))
+                      (kill-whole-line))))
+                (append (and my/org-flush-blobs-clock-log
+                             (list org-tr-regexp-both))
+                        (and my/org-flush-blobs-state-change
+                             (list (concat (rx "- State " "\"" (>= 1 upper) "\"" (+ space)
+                                               "from " (opt "\"" (>= 1 upper) "\"") (+ space))
+                                           org-ts-regexp-inactive)))))
+          (when (featurep 'org-clock)
+            (org-clock-remove-empty-clock-drawer))))))
 #+end_src
+
+****** batch blob flushing
+:PROPERTIES:
+:CREATED:  [2023-10-30 Mon 21:05]
+:END:
+
+#+begin_src shell :eval no :tangle no :noweb-ref weekend-batch
+  export DISPLAY=:0 && \
+    emacs -Q \
+          -l ~/.emacs.d/early-init.el \
+          -l ~/.emacs.d/elisp/config/my-org-flush-blobs.el \
+          -l ~/.emacs.d/elisp/config/batch/org-flush-blobs.el \
+          -f my/org-flush-blobs-in-habits
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "batch/org-flush-blobs.el" my/user-config-dir)
+  (require 'org-habit)
+  (require 'org-clock)
+
+  (setq org-agenda-files '("~/org/agenda/"))
+
+  (defun my/org-flush-blobs-in-habits ()
+    "Flush old blobs for habit tasks in `org-agenda-files'."
+    (org-map-entries (lambda () (when (org-is-habit-p)
+                              (my/org-flush-blobs)))
+                     nil
+                     'agenda)
+    (org-save-all-org-buffers)
+    (save-buffers-kill-emacs t))
+#+end_src
+
 
 ***** pad non clocking time
 :PROPERTIES:
