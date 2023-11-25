@@ -10048,13 +10048,15 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
 #+begin_src emacs-lisp
   (with-eval-after-load 'org-ql-view
     (push `("On-Hold tasks"
-            :buffers-files ,(org-agenda-files)
+            :buffers-files ,(list (file-name-concat org-directory
+                                                    "agenda/on-holds.org"))
             :query (todo ,my/org-todo-keyword--someday)
             :super-groups ((:auto-property "ARCHIVE_OLPATH"))
             :sort (priority date))
           org-ql-views)
     (push `("Review: on-hold tasks"
-            :buffers-files ,(org-agenda-files)
+            :buffers-files ,(list (file-name-concat org-directory
+                                                    "agenda/on-holds.org"))
             :query (todo ,my/org-todo-keyword--someday)
             :sort (scheduled))
           org-ql-views)
