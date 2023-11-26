@@ -10572,7 +10572,7 @@ Following code is also responsible for deterministic archive location.
 
 command builders
 #+begin_src emacs-lisp :noweb tangle
-  (defun my/command-download-media (&optional url filename play)
+  (defun my/command-download-media (&optional url filename play audio)
     "Return a shell command string to download media whose name is FILENAME from URL using yt-dlp."
     (interactive (list (read-string "Download URL: ")))
     (format "yt-dlp %s"
@@ -10583,6 +10583,7 @@ command builders
                               (format "-o '%s.%%\(ext\)s'"
                                       (my/file-name-legitimate filename)))
                          (and play "--exec 'mpv {}; rm -f {}'")
+                         (and audio "-x --embed-thumbnail")
                          (format "'%s'" url)))
              " ")))
 
