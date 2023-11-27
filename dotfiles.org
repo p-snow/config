@@ -5070,11 +5070,15 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   "emacs-org-mime"
 #+end_src
 
-':defer t' directive is added since org-mime functionalities are supposed to be called only from my/org-subtree-send-email.
-
 #+begin_src emacs-lisp
   (use-package org-mime
-    :defer t)
+    :after org
+    :commands (org-mime-org-subtree-htmlize)
+    :bind (:map org-mode-map
+                ("C-c M-M" . org-mime-org-subtree-htmlize))
+    :custom
+    (org-mime-use-property-inheritance t)
+    (org-mime-export-ascii t))
 #+end_src
 
 ****** org-web-tools
@@ -10090,43 +10094,30 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
 ***** send org subtree via email
 
 #+begin_src emacs-lisp
-  (require 'text-mail)
-
   (with-eval-after-load 'org-keys
+    (bind-keys :map org-mode-map
+               ("C-c M" . my/org-subtree-send-email))
     (add-to-list 'org-speed-commands
                  '("M" . my/org-subtree-send-email)
                  t))
 
-  (defun my/org-subtree-send-email (&optional arg)
-    "Send a html email extracted from current org entry.
-
-  Given a `\\[universal-argument]' prefix `ARG', send an ascii email instead."
-    (interactive "P")
-    (cond
-     ((equal arg '(4))
-      (call-interactively #'my/org-subtree-send-email-ascii))
-     (t
-      (let ((org-mime-use-property-inheritance t))
-        (and (require 'org-mime nil t)
-             (call-interactively #'org-mime-org-subtree-htmlize))))))
-
-  (defun my/org-subtree-send-email-ascii ()
-    "Send a mail whose contents converted from current org entry.
-
-  Format of mail contents is plain text."
+  (defun my/org-subtree-send-email ()
+    "Send an email containing the contents of the subtree at the entry at point."
     (interactive)
-    (let ((heading (org-get-heading t t t t))
-          (org-export-show-temporary-export-buffer nil)
-          (export-buf-name "*Org ASCII Export*")
-          (org-export-with-toc nil)
-          (org-export-with-author nil))
-      (org-ascii-export-as-ascii nil t t t)
-      (mail-send-string (or (org-entry-get (point) "MAIL_TO" t)
-                            (read-string "MAIL_TO: "))
-                        heading
-                        (with-current-buffer export-buf-name
-                          (buffer-string)))
-      (kill-buffer export-buf-name)))
+    (org-save-outline-visibility t
+      (save-excursion
+        (org-fold-show-all)
+        (let* ((heading (org-get-heading t t t t))
+               (org-export-with-toc nil)
+               (org-export-with-author nil)
+               (org-export-show-temporary-export-buffer nil)
+               (message-kill-buffer-on-exit t)
+               (exp-buf (org-ascii-export-as-ascii nil t t t)))
+          (message-mail (cdr (assoc "username" (auth-source-pass-parse-entry "www.zoho.com")))
+                        heading)
+          (message-goto-body)
+          (insert (with-current-buffer exp-buf (buffer-string)))
+          (message-send-and-exit)))))
 #+end_src
 ***** clean up after the task has chenged to DONE
 :PROPERTIES:
@@ -11909,9 +11900,12 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
   (provide 'org-password-store)
 #+end_src
 
-**** text-mail
+**** text-mail                               :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-11-27 Mon 14:11]
+:END:
 
-#+begin_src emacs-lisp :tangle (expand-file-name "text-mail.el" my/user-package-dir)
+#+begin_src emacs-lisp :tangle no
   (require 'message)
 
   (defun mail-send-string (mailto subject body)
