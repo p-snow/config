@@ -3697,7 +3697,7 @@ Command in practice presumably looks like:
                         (elfeed-entry-link entry))
                do (let ((title (elfeed-entry-title entry)))
                     (detached-shell-command
-                     (my/command-download-media it title))))
+                     (my/command-download-media it :filename title))))
       (mapc #'elfeed-search-update-entry entries)
       (unless (or elfeed-search-remain-on-entry (use-region-p))
         (forward-line))))
@@ -3711,7 +3711,7 @@ Command in practice presumably looks like:
       (princ
        (string-trim
         (shell-command-to-string
-         (my/command-media-duration url))))))
+         (my/command-download-media url :duration t))))))
 #+end_src
 
 ***** elfeed-score
@@ -10573,18 +10573,25 @@ Following code is also responsible for deterministic archive location.
 
 command builders
 #+begin_src emacs-lisp :noweb tangle
-  (defun my/command-download-media (&optional url filename play audio)
-    "Return a shell command string to download media whose name is FILENAME from URL using yt-dlp."
-    (interactive (list (read-string "Download URL: ")))
+  (cl-defun my/command-download-media (url &key filename audio play duration)
+    "Return a shell command string to download media file from URL using yt-dlp.
+
+  If :FILENAME offered, the name of downloaded file will be its value.
+  If :AUDIO offered, audio file will be extracted from downloaded video file and
+   set thumbnail.
+  if :PLAY offered, the file will be played right after downloading.
+  If :DURATION offered, return media duration instead."
     (format "yt-dlp %s"
             (string-join
              (delq nil
                    (list (format "-P '%s'" (file-name-concat "<<media-dir()>>" "downloads"))
+                         "--embed-chapters"
                          (and filename
                               (format "-o '%s.%%\(ext\)s'"
                                       (my/file-name-legitimate filename)))
                          (and play "--exec 'mpv {}'")
                          (and audio "-x --embed-thumbnail")
+                         (and duration "--get-duration")
                          (format "'%s'" url)))
              " ")))
 
@@ -10604,23 +10611,19 @@ command builders
                                            cb-txt
                                          (read-string "URL: ")))))
                   (detached-shell-command
-                   (my/command-download-media url nil (if current-prefix-arg t nil))))))
-
-  (defun my/command-media-duration (&optional url)
-    "Return a shell command string to get duration of media file at URL."
-    (interactive (list (read-string "Download URL: ")))
-    (format "yt-dlp %s"
-            (string-join
-             (delq nil
-                   (list "--get-duration"
-                         (format "'%s'" url)))
-             " ")))
+                   (apply 'my/command-download-media
+                          url
+                          (when current-prefix-arg '(:play t)))))))
 #+end_src
 
 tempel templates in minibuffer-mode
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
-  (mdl (call-interactively 'my/command-download-media))
-  (m= (call-interactively 'my/command-media-duration))
+  (download-video (p "URL: " url t)
+                  (my/command-download-media url))
+  (download-audio (p "URL: " url t)
+                  (my/command-download-media url :audio t))
+  (media-durationa (p "URL: " url t)
+                   (my/command-download-media url :duration t))
 #+end_src
 
 ***** opus transcoder
