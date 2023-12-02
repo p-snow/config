@@ -1793,8 +1793,8 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 ****** Find File
 
 #+begin_src emacs-lisp
-  (customize-set-variable
-   'revert-buffer-quick-short-answers t)
+  (setopt large-file-warning-threshold 30000000)
+  (setopt revert-buffer-quick-short-answers t)
 #+end_src
 
 ****** Backup
@@ -4062,14 +4062,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                          (org-agenda-to-appt t '((category "appt")))))
     :custom
     (org-agenda-use-tag-inheritance nil)
-    (org-agenda-text-search-extra-files
-     (mapcan (lambda (dir)
-               (directory-files (org-file-name-concat org-directory
-                                                      dir)
-                                t
-                                ".+\\(?:\\.org\\(?:\\.gpg\\)?\\)$"
-                                ))
-             '("archive" "notes")))
     :config
     (bind-keys :map org-agenda-mode-map
                ("C-j" . org-agenda-switch-to)
@@ -4198,9 +4190,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
             ("i" "Today's agenda"
              ((todo "Today's agenda"
                     ((org-agenda-sorting-strategy '(priority-up))))
-              (org-ql-search-block `(heading ,(format-time-string "%Y-%m-%d %A"))
-                                   ((org-agenda-files `(,(file-name-concat org-directory "archive" (format-time-string "archive_%Y.org"))))
-                                    (org-ql-block-header "Today in datetree archive")))
               (org-ql-search-block `(or (todo ,my/org-todo-keyword--urgent)
                                         (todo ,my/org-todo-keyword--in-action))
                                    ((org-ql-block-header "Today's task")))
@@ -4292,7 +4281,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
             ("H" "show all habits"
              ((org-ql-search-block '(habit)
                                    ((org-ql-block-header "All Habits"))))
-
              ((org-agenda-sorting-strategy '(scheduled-up)))))))
 #+end_src
 
@@ -10437,6 +10425,24 @@ Following code is also responsible for deterministic archive location.
   (with-eval-after-load 'my-org-global-map
     (keymap-set my/org-global-map "Q"
                 #'my/org-ql-search-under))
+#+end_src
+
+***** open large org files insidiously
+:PROPERTIES:
+:CREATED:  [2023-11-28 Tue 07:38]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package open-large-org-file
+    :no-require t
+    :after (org denote)
+    :config
+    (run-with-idle-timer 25 nil
+                         (lambda ()
+                           "Open large org files."
+                           (mapc #'find-file-noselect
+                                 (list (denote-get-path-by-id "20230605T170959")
+                                       (file-name-concat org-directory (format-time-string "archive/archive_%Y.org")))))))
 #+end_src
 
 **** my tempel templates in modes
