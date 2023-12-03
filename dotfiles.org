@@ -1781,15 +1781,8 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
     :config
     (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
     (add-to-list 'tramp-remote-path "~/bin"))
-
-  (defun sudo ()
-    "Use TRAMP to `sudo' the current buffer"
-    (interactive)
-    (when buffer-file-name
-      (find-alternate-file
-       (concat "/sudo:root@localhost:"
-               buffer-file-name))))
 #+end_src
+
 ****** Find File
 
 #+begin_src emacs-lisp
@@ -8891,27 +8884,23 @@ Every frame will be spawn in maximized and initial frame will be full screen at 
     "<down>" #'my/decrement-number-at-point)
 #+end_src
 
-***** sudo editing
+***** edit local file as root (sudo)
 :PROPERTIES:
 :CREATED:  [2023-01-19 Thu 11:58]
 :END:
 
-[[help:my/sudo-edit][my/sudo-edit]] is a helper command when I need to edit with sudo privilege inspired by [[https://emacsredux.com/blog/2013/04/21/edit-files-as-root/][this blog post]].
+my/sudo-edit-local-file is inspired by [[https://emacsredux.com/blog/2013/04/21/edit-files-as-root/][this thisblog post]].
 
 #+begin_src emacs-lisp
-  (defun my/sudo-edit (&optional arg)
-    "Edit currently visited file as root.
+  (defun my/sudo-edit-local-file ()
+    "Reopen the current buffer file with root privileges."
+    (interactive)
+    (when (file-exists-p buffer-file-name)
+      (find-alternate-file
+       (concat "/sudo:root@localhost:"
+               buffer-file-name))))
 
-  With a prefix ARG prompt for a file to visit.
-  Will also prompt for a file to visit if current
-  buffer is not visiting a file."
-    (interactive "P")
-    (if (or arg (not buffer-file-name))
-        (find-file (concat "/sudo:root@localhost:"
-                           (ido-read-file-name "Find file(as root): ")))
-      (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
-
-  (global-set-key (kbd "C-x C-#") #'my/sudo-edit)
+  (global-set-key (kbd "C-x C-#") #'my/sudo-edit-local-file)
 #+end_src
 
 ***** power management
