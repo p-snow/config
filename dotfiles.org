@@ -3212,7 +3212,9 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
     :commands eww
     :after my-launch-app
     :bind (:map my/invoke-list-command-map
-                ("B" . eww-list-bookmarks))
+                ("B" . eww-list-bookmarks)
+                :map my/launch-app-map
+                ("W" . eww-switch-to-buffer))
     :custom
     ;; set enough large column number to prevent from inserting line break
     (eww-header-line-format nil)
