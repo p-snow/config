@@ -12,6 +12,22 @@
   echo "${HOME}"
 #+end_src
 
+*** document directory
+:PROPERTIES:
+:CREATED:  [2023-12-06 Wed 12:43]
+:END:
+
+#+name: doc-dir
+#+begin_src emacs-lisp :eval no-export :noweb yes
+  (let* ((sep "-")
+         (node (split-string "<<laptop-node()>>" sep)))
+    (expand-file-name
+     (file-name-concat "~/"
+                       (string-join (list (concat (car node) "doc") (cadr node))
+                                    sep)
+                       "doc/")))
+#+end_src
+
 *** share directory
 
 My share directory is where my variable data stay.
@@ -113,6 +129,21 @@ y3bLp9UlGFAAUsqmvw1EP0nmtONIX+9SZDL3B08OV6OdtmmINKNAR/8rkDZN8o0d
 #+name: my-domain
 #+begin_src shell :eval no-export
   echo -n "${EMAIL}" | cut -d'@' -f2
+#+end_src
+
+** Machines
+:PROPERTIES:
+:CREATED:  [2023-12-06 Wed 12:39]
+:END:
+
+*** Primary Laptop
+:PROPERTIES:
+:CREATED:  [2023-12-06 Wed 12:39]
+:END:
+
+#+name: laptop-node
+#+begin_src shell :eval no-export
+  uname -n
 #+end_src
 
 * Linux Distributions
@@ -783,7 +814,7 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 
   snapshot_dir snapshots
   volume /mnt/home
-    target /mnt/ex02/pc01
+    target /mnt/exbak/<<laptop-node()>>
     subvolume home
 #+end_src
 
@@ -1198,9 +1229,6 @@ I've chosen to use gpg/gpg-agent and pass on Ubuntu system since pass (password-
 #+end_src
 
 * Application Configurations
-:PROPERTIES:
-:header-args+: :tangle-mode (identity #o444)
-:END:
 
 #+name: user-bin-dir
 #+begin_src emacs-lisp :noweb yes :var dot-home=(org-entry-get nil "tangle-dest" t)
@@ -8797,6 +8825,8 @@ I'd share this babel config between literate configuration and main Emacs sessio
   (with-eval-after-load 'ob-shell
     (add-to-list 'org-babel-default-header-args:shell
                  '(:shebang . "#!/bin/sh"))
+    (add-to-list 'org-babel-default-header-args:shell
+                 `(:tangle-mode . ,(identity #o555)))
     (add-to-list 'org-babel-default-header-args:bash
                  '(:shebang . "#!/usr/bin/env bash\nset -euo pipefail\n")))
 
@@ -12853,6 +12883,26 @@ Provide a function to Build a clock table summing up time by tag.
           directory = /mnt/ns01/doc
 #+end_src
 
+*** sync annex repos
+:PROPERTIES:
+:CREATED:  [2023-12-06 Wed 16:59]
+:ID:       e9524731-4acc-4f4c-bc61-0226990a654a
+:END:
+
+#+begin_src conf :noweb yes :noweb-ref cronjob-user
+  <<random(max=59)>> * * * * <<which(filename="sync-annex-doc")>>
+#+end_src
+
+#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/sync-annex-doc")
+  (cd /mnt/exdoc/doc/ 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
+  (cd /mnt/vt-m/doc/ 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
+  (cd /mnt/vt-h/doc/ 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
+  (cd /mnt/vt-j/doc/ 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
+  (cd <<doc-dir()>> 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync)
+
+  (cd /mnt/exdoc/doc/ 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync)
+#+end_src
+
 ** ghq
 
 [[https://github.com/x-motemen/ghq][ghq]] is management system for remote git repositories.
@@ -14721,9 +14771,9 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 #+end_src
 
 #+begin_src conf :noweb tangle :tangle (expand-file-name ".recoll/recoll.conf")
-  topdirs = ~/doc-pc01/doc ~/data
+  topdirs = <<doc-dir()>> ~/data
 
-  [~/doc-pc01/doc/]
+  [<<doc-dir()>>]
   followLinks = 1
 
   skippedNames = .git
