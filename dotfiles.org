@@ -278,6 +278,7 @@ initialization script for a linuxmint account
 
 #+begin_src shell :noweb yes :noweb-ref bashrc
   export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/base/base/share:${XDG_DATA_DIRS}
+  export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/base/base/share/man
 #+end_src
 
 #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/base.scm")
@@ -341,6 +342,7 @@ initialization script for a linuxmint account
      "llvm"
      "cmake"
      "libtool"
+     "pkgconf"
      "texinfo"
      "shellcheck"
      "global"
@@ -355,6 +357,7 @@ initialization script for a linuxmint account
 
 #+begin_src shell :noweb yes :noweb-ref bashrc
   export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/desktop/desktop/share:${XDG_DATA_DIRS}
+  export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/desktop/desktop/share/man
 #+end_src
 
 #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/desktop.scm")
@@ -392,6 +395,7 @@ initialization script for a linuxmint account
 
 #+begin_src shell :noweb yes :noweb-ref bashrc
   export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/emacs/emacs/share:${XDG_DATA_DIRS}
+  export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/emacs/emacs/share/man
 #+end_src
 
 #+begin_src scheme :noweb yes :noweb-prefix no :tangle (expand-file-name ".config/guix/manifests/emacs.scm")
@@ -2656,11 +2660,6 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 :PROPERTIES:
 :CREATED:  [2023-10-07 Sat 10:40]
 :END:
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-  "aspell"
-  "aspell-dict-en"
-#+end_src
 
 #+begin_src emacs-lisp
   (use-package ispell
@@ -8473,6 +8472,28 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 
 #+begin_src emacs-lisp
   (use-package git-link)
+#+end_src
+
+***** jinx
+:PROPERTIES:
+:CREATED:  [2023-12-07 Thu 12:22]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+  "emacs-jinx"
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package jinx
+    :bind (("M-$" . jinx-correct)
+           ("C-M-$" . jinx-languages))
+    :hook (org-src-mode . (lambda ()
+                            (when (derived-mode-p 'text-mode)
+                              (jinx-mode 1))))
+    :config
+    (bind-keys :map jinx-mode-map
+               ("M-n" . jinx-next)
+               ("M-p" . jinx-previous)))
 #+end_src
 
 *** further extension
@@ -14818,6 +14839,35 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
   WantedBy=graphical-session.target
 #+end_src
 
+** Enchant
+:PROPERTIES:
+:CREATED:  [2023-12-07 Thu 15:53]
+:END:
+
+[[https://abiword.github.io/enchant/src/enchant.html][ENCHANT]] offers efficient spell checking mechanism by using checker in order.
+
+#+begin_src scheme :noweb-ref guix-base
+  "enchant"
+  "hunspell"
+  "nuspell"
+  "aspell"
+  "aspell-dict-en"
+#+end_src
+
+#+begin_src shell :noweb yes :noweb-ref bashrc
+  export ENCHANT_CONFIG_DIR=<<home-dir()>>/.config/enchant
+#+end_src
+
+#+begin_src conf :comments no :noweb tangle :tangle (expand-file-name ".config/enchant/enchant.ordering")
+  ,*:hunspell,nuspell,aspell
+  en:hunspell,nuspell,aspell
+  en_US:hunspell,nuspell,aspell
+#+end_src
+
+#+begin_src text :comments no :noweb tangle :tangle (expand-file-name ".config/enchant/en_US.dic")
+  TempEL
+#+end_src
+
 * Development Infrastructures
 :PROPERTIES:
 :CREATED:  [2022-08-04 Thu 14:55]
@@ -14880,7 +14930,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 #+begin_src shell :noweb yes :noweb-ref bashrc
   NODE_PATH="<<npm-prefix()>>/lib/node_modules:${NODE_PATH}"
   PATH="<<npm-prefix()>>/bin:${PATH}"
-  MANPATH="<<npm-prefix()>>/share/man"
+  MANPATH="<<npm-prefix()>>/share/man:${MANPATH}"
 #+end_src
 
 #+begin_src shell :noweb yes :tangle (expand-file-name ".npmrc")
