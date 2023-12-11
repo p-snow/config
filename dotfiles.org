@@ -10522,7 +10522,9 @@ Following code is also responsible for deterministic archive location.
 
 #+header: :shebang "minibuffer-mode"
 #+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/minibuffer.eld")
-  (gxs "guix search " (p "regexp"))
+  (guix-search "guix search " (p "regexp"))
+  (version (p "regexp") " --version")
+  (2byte-curly-bracket-regexp "\\(?:｛\\(?:\\cH\\| \\)+｝\\)")
 
   <<minibuffer-template>>
 #+end_src
