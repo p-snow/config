@@ -10523,10 +10523,12 @@ Following code is also responsible for deterministic archive location.
 #+header: :shebang "minibuffer-mode"
 #+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/minibuffer.eld")
   (guix-search "guix search " (p "regexp"))
-  (version (p "regexp") " --version")
-  (2byte-curly-bracket-regexp "\\(?:｛\\(?:\\cH\\| \\)+｝\\)")
+  (version (p "command") " --version")
+  (curly-bracket-japanese-regexp
+   (rx (parened ?｛ (+ (or " "
+                           (category japanese-hiragana-two-byte))))))
 
-  <<minibuffer-template>>
+   <<minibuffer-template>>
 #+end_src
 
 ***** emacs-lisp-mode templates
@@ -11249,6 +11251,26 @@ This section mainly for elisp code associated with some other programs.
               #'my/view-file-filter-org-link-store-props)
 
   (provide 'my/view-file)
+#+end_src
+
+**** my RX definitions
+:PROPERTIES:
+:CREATED:  [2023-12-12 Tue 11:25]
+:END:
+
+My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax table since  working buffer with RX in re-builder is reb-lisp-mode which does not hold same syntax table with target-buffer.
+
+#+begin_src emacs-lisp
+  (defun parened-rx (paren-open-char element)
+    `(seq ,paren-open-char
+          (group ,element)
+          ,(matching-paren paren-open-char)))
+
+  (rx-define parened (paren-open-char element)
+    (eval (with-syntax-table (if (derived-mode-p 'reb-lisp-mode)
+                                 (with-current-buffer reb-target-buffer (syntax-table))
+                               (syntax-table))
+            (parened-rx paren-open-char 'element))))
 #+end_src
 
 *** would-be packages
