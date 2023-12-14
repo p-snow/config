@@ -16,6 +16,6 @@
   (dolist (org-file org-files)
     (unless (member org-file '("README.org" "index.org"))
       (with-current-buffer (find-file-noselect org-file)
-        (let ((default-directory (org-entry-get nil "tangle-dest" t)))
+        (let ((default-directory (org-entry-get nil "tangle-root" t)))
           (org-decrypt-entries)
           (org-babel-tangle))))))
