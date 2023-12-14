@@ -2028,8 +2028,8 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
 [[https://christiantietze.de/posts/2022/12/use-file-open-dialog-for-file-actions/][This blog post]] demonstrates for emacsers who have disabled file pickers and dialog boxes to adversely use them temporalily.
 
 #+begin_src emacs-lisp
-  (customize-set-variable 'use-short-answers t)
-  (customize-set-variable 'use-file-dialog nil)
+  (setopt use-short-answers t)
+  (setopt use-file-dialog nil)
 #+end_src
 
 ****** Mode Line
@@ -6312,7 +6312,7 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
   (use-package paren
     :hook (prog-mode . show-paren-local-mode)
     :custom
-    (show-paren-style 'expression)
+    (show-paren-style 'mixed)
     (show-paren-delay 0.2)
     (show-paren-mode nil)
     (show-paren-context-when-offscreen t))
@@ -14873,6 +14873,8 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 #+begin_src scheme :noweb-ref guix-base
   "enchant"
   "hunspell"
+  "hunspell-dict-en"
+  "hunspell-dict-en-us"
   "nuspell"
   "aspell"
   "aspell-dict-en"
