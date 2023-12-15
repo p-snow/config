@@ -458,7 +458,7 @@ This script accepts a space-separated list of manifest file names (without exten
     update-channels && activate-profiles base && guix gc -d 2m -F 20G
   #+end_src
   #+begin_src shell :eval no :tangle no :noweb-ref system-batch
-    guix pull && systemctl restart guix-daemon.service
+    sudo -i guix pull && systemctl restart guix-daemon.service
   #+end_src
   Update packages in desktop and emacs profile every weekend
   #+begin_src shell :eval no :tangle no :noweb-ref weekend-batch
@@ -10611,7 +10611,7 @@ Following code is also responsible for deterministic archive location.
                (and (stringp pre-command)
                     (length> pre-command 0)
                     pre-command)
-               (format "pwsudo rtcwake -v -m mem -l --date '%s'"
+               (format "pwsudo rtcwake -v -m mem -l --date '%s';"
                        (string-trim
                         (shell-command-to-string (format "date +'%%Y-%%m-%%d %%H:%%M' -d '%s'"
                                                          (or (and (stringp wake-at) (length> wake-at 0) wake-at)
@@ -10622,7 +10622,9 @@ Following code is also responsible for deterministic archive location.
 #+end_src
 
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
-  (slp (call-interactively 'my/command-system-sleep))
+  (system-sleep (call-interactively 'my/command-system-sleep))
+  (weekday-job "midnight.sh;")
+  (weekend-job "which system.sh | xargs pwsudo; midnight.sh; weekend.sh;")
 #+end_src
 
 ***** download video/audio
@@ -15067,37 +15069,13 @@ Extendable version manager
     <<midnight-batch>>
   #+end_src
 
-- cron job for midnight.sh
-  #+begin_src conf :noweb yes :noweb-ref cronjob-user
-    2 <<midnight-hour>> * * <<weekdays()>> <<which(filename="bash")>> -ci "midnight.sh"
-  #+end_src
-
 *** Weekend Batch
 :PROPERTIES:
 :CREATED:  [2023-10-31 Tue 14:03]
 :END:
 
-#+name: weekend-day
-#+begin_src text :noweb yes
-  6
-#+end_src
-
-#+name: weekdays
-#+begin_src emacs-lisp :noweb yes
-  (let ((days nil)
-        (weekend <<weekend-day>>))
-    (dotimes (day 7)
-      (unless (= day weekend)
-        (add-to-list 'days (number-to-string day) t)))
-    (string-join days ","))
-#+end_src
-
 #+begin_src bash :noweb tangle :tangle (expand-file-name "weekend.sh" tangle/local-bin-dir)
   <<weekend-batch>>
-#+end_src
-
-#+begin_src conf :noweb yes :noweb-ref cronjob-user
-  2 <<midnight-hour>> * * <<weekend-day>> <<which(filename="bash")>> -ci "which system.sh | xargs pwsudo; midnight.sh; weekend.sh"
 #+end_src
 
 *** System Batch
