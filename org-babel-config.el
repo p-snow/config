@@ -17,6 +17,8 @@
   (add-to-list 'org-babel-default-header-args:shell
                `(:tangle-mode . ,(identity #o555)))
   (add-to-list 'org-babel-default-header-args:bash
+               `(:tangle-mode . ,(identity #o555)))
+  (add-to-list 'org-babel-default-header-args:bash
                '(:shebang . "#!/usr/bin/env bash\nset -euo pipefail\n")))
 
 (with-eval-after-load 'ob-emacs-lisp
@@ -28,3 +30,9 @@
         (append org-babel-default-header-args:python
                 `((:tangle-mode . ,(identity #o555))
                   (:shebang . "#!/usr/bin/env python3")))))
+
+(with-eval-after-load 'ob-ruby
+  (setf org-babel-default-header-args:ruby
+        (append org-babel-default-header-args:ruby
+                `((:tangle-mode . ,(identity #o555))
+                  (:shebang . "#!/usr/bin/env ruby")))))

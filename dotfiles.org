@@ -1,5 +1,4 @@
 #+TITLE: My Configuration Collection
-#+PROPERTY: tangle-root       ~/dotfiles
 #+STARTUP: overview
 
 * Personal Information
@@ -156,7 +155,7 @@ y3bLp9UlGFAAUsqmvw1EP0nmtONIX+9SZDL3B08OV6OdtmmINKNAR/8rkDZN8o0d
 
 initialization script for a ubuntu account
 
-#+begin_src shell :noweb tangle :noweb-sep "\n\n" :tangle (expand-file-name ".local/bin/initialize-ubuntu-desktop") :shebang #!/bin/bash :tangle-mode (identity #o755)
+#+begin_src bash :noweb tangle :noweb-sep "\n\n" :tangle (expand-file-name "initialize-ubuntu-desktop" tangle/local-bin-dir)
   apt-install
   npm-install
   start-systemd-services
@@ -170,9 +169,9 @@ initialization script for a ubuntu account
 :END:
 
 - apt-managed packages
-  #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/apt-install") :shebang #!/bin/sh :tangle-mode (identity #o755)
-  sudo apt-get install -y \
-       <<apt-pkg>>
+  #+begin_src shell :noweb tangle :tangle (expand-file-name "apt-install" tangle/local-bin-dir)
+    sudo apt-get install -y \
+         <<apt-pkg>>
   #+end_src
 - update apt packages every midnight
   #+begin_src shell :eval no :tangle no :noweb-ref system-batch
@@ -187,7 +186,7 @@ initialization script for a ubuntu account
 
 initialization script for a linuxmint account
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/initialize-linuxmint-desktop") :shebang #!/bin/sh :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-file-name "initialize-linuxmint-desktop" tangle/local-bin-dir)
   initialize-ubuntu-desktop
 
   <<linuxmint-setup>>
@@ -414,7 +413,7 @@ This script accepts a space-separated list of manifest file names (without exten
 
 : activate-profiles base emacs
 
-#+begin_src sh :tangle :tangle (expand-file-name ".local/bin/activate-profiles") :shebang #!/bin/sh :tangle-mode (identity #o755)
+#+begin_src shell :tangle (expand-file-name "activate-profiles" tangle/local-bin-dir)
   GREEN='\033[1;32m'
   RED='\033[1;30m'
   NC='\033[0m'
@@ -476,7 +475,7 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
 
 : guix pull -C ~/.config/guix/channels.scm
 
-#+begin_src sh :tangle (expand-file-name ".local/bin/update-channels") :shebang #!/bin/sh :tangle-mode (identity #o755)
+#+begin_src shell :tangle (expand-file-name "update-channels" tangle/local-bin-dir)
   guix pull --channels=$HOME/.config/guix/base-channels.scm \
     && guix describe --format=channels > ~/.config/guix/channels.scm
 #+end_src
@@ -736,7 +735,7 @@ install available fonts by rescanning font directories
   #+END_SRC
 ** Systemd
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/start-systemd-services") :shebang #!/bin/sh :tangle-mode (identity #o755)
+#+begin_src shell :noweb tangle :tangle (expand-file-name "start-systemd-services" tangle/local-bin-dir)
   cd ~/.config/systemd/system/ && \
     for sys_service in $(ls ./*); do
       sudo cp -f ${sys_service} /etc/systemd/system
@@ -765,7 +764,7 @@ You may need to enable systemd-tmpfiles service for user
 ** Vixie Cron
 
 A script to reinitialize a set of cron jobs
-#+begin_src bash :eval no :comments no :noweb tangle :tangle (expand-file-name ".local/bin/cron-reinit.sh")
+#+begin_src bash :eval no :comments no :noweb tangle :tangle (expand-file-name "cron-reinit.sh" tangle/local-bin-dir)
   crontab <<home-dir()>>/.config/crontab/<<login-name()>>
 #+end_src
 
@@ -823,7 +822,7 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 
 **** snapshot/backup script
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/btrbkhome")
+#+begin_src shell :noweb tangle :tangle (expand-file-name "btrbkhome" tangle/local-bin-dir)
   BTRBK_CONF=<<home-dir()>>/.config/btrbk/btrbk.conf
 
   <<which(filename="btrbk")>> --config "${BTRBK_CONF}" run
@@ -1234,8 +1233,8 @@ I've chosen to use gpg/gpg-agent and pass on Ubuntu system since pass (password-
 * Application Configurations
 
 #+name: user-bin-dir
-#+begin_src emacs-lisp :noweb yes :var dot-home=(org-entry-get nil "tangle-root" t)
-  (expand-file-name ".local/bin" dot-home)
+#+begin_src emacs-lisp :noweb yes
+  (expand-file-name "~/.local/bin")
 #+end_src
 
 ** GNU Emacs
@@ -1253,13 +1252,13 @@ I've chosen to use gpg/gpg-agent and pass on Ubuntu system since pass (password-
 #+end_src
 
 #+name: emacs-dir
-#+begin_src emacs-lisp :noweb yes :var dot-home=(org-entry-get nil "tangle-root" t)
-  (expand-file-name ".emacs.d" dot-home)
+#+begin_src emacs-lisp :noweb yes
+  (expand-file-name "~/.emacs.d")
 #+end_src
 
 *** general configuration
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "my-config.el" my/user-config-dir)
+:header-args+: :tangle (expand-file-name ".emacs.d/elisp/config/my-config.el")
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
@@ -3351,7 +3350,8 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 #+end_src
 
 ***** extract_headings
-#+begin_src python :tangle (expand-file-name ".local/bin/extract_headings") :tangle-mode (identity #o755) :shebang #!/usr/bin/env python3
+
+#+begin_src python :tangle (expand-file-name "extract_headings" tangle/local-bin-dir)
   # This script extract most probable page heading.
 
   import sys
@@ -3968,7 +3968,7 @@ Packages managed by other than guix (i.e. straight.el or apt) are encouraged to 
 **** Org Mode
 :PROPERTIES:
 :CREATED:  [2023-01-24 Tue 16:02]
-:header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
+:header-args+: :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
 :END:
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
@@ -5207,7 +5207,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 :CREATED:  [2023-01-06 Fri 13:43]
 :END:
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-web-track.el" my/user-config-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-web-track.el" tangle/emacs-config-dir)
   (use-package org-web-track
     :after my/org-mode-init
     :load-path ("~/data/ghq/github.com/p-snow/org-web-track")
@@ -5313,7 +5313,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
           -f my/org-web-track-mail
 #+end_src
 
-#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "batch/org-web-track-mail.el" my/user-config-dir)
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "batch/org-web-track-mail.el" tangle/emacs-config-dir)
   (provide 'my/org-mode-init)
 
   (custom-set-variables
@@ -7140,7 +7140,7 @@ Typical file downloading workflow:
     :bind ("M-s M-d" . consult-dash))
 #+end_src
 
-#+begin_src emacs-lisp :tangle (expand-file-name "00-my-early-config.el" my/user-config-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "00-my-early-config.el" tangle/emacs-config-dir)
   (defmacro my/add-dash-docsets-hook (hook docsets)
     `(add-hook ,hook
                (lambda ()
@@ -8497,14 +8497,14 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 
 *** further extension
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "my-config.el" my/user-config-dir)
+:header-args+: :tangle (expand-file-name ".emacs.d/elisp/config/my-config.el")
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
 **** utility macros/functions
 :PROPERTIES:
 :CREATED:  [2023-01-19 Thu 16:56]
-:header-args+: :tangle (expand-file-name "00-my-early-config.el" my/user-config-dir)
+:header-args+: :tangle (expand-file-name "00-my-early-config.el" tangle/emacs-config-dir)
 :END:
 
 ***** lambda key
@@ -8848,6 +8848,8 @@ I'd share this babel config between literate configuration and main Emacs sessio
     (add-to-list 'org-babel-default-header-args:shell
                  `(:tangle-mode . ,(identity #o555)))
     (add-to-list 'org-babel-default-header-args:bash
+                 `(:tangle-mode . ,(identity #o555)))
+    (add-to-list 'org-babel-default-header-args:bash
                  '(:shebang . "#!/usr/bin/env bash\nset -euo pipefail\n")))
 
   (with-eval-after-load 'ob-emacs-lisp
@@ -8859,6 +8861,12 @@ I'd share this babel config between literate configuration and main Emacs sessio
           (append org-babel-default-header-args:python
                   `((:tangle-mode . ,(identity #o555))
                     (:shebang . "#!/usr/bin/env python3")))))
+
+  (with-eval-after-load 'ob-ruby
+    (setf org-babel-default-header-args:ruby
+          (append org-babel-default-header-args:ruby
+                  `((:tangle-mode . ,(identity #o555))
+                    (:shebang . "#!/usr/bin/env ruby")))))
 #+end_src
 
 ***** frame maximization
@@ -9487,7 +9495,7 @@ Great idea using re-builder when query-replace-regexp borrowed from [[https://ka
 
 **** additional org tweaks
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
+:header-args+: :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
 :END:
 ***** keymap for global org commands
 :PROPERTIES:
@@ -9732,7 +9740,7 @@ These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea
   "mpg321"
 #+end_src
 
-#+begin_src shell :tangle (expand-file-name ".local/bin/volget") :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
+#+begin_src bash :tangle (expand-file-name "volget" tangle/local-bin-dir)
   pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(($SINK + 1 )) | tail -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,'
 #+end_src
 
@@ -10198,7 +10206,7 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
 
 The hook functions, which is commented out, provoke malfunction failing to create todo state change logs which is necessary for habit graph.
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-flush-blobs.el" my/user-config-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-flush-blobs.el" tangle/emacs-config-dir)
   (defvar my/org-flush-blobs-old-timestamp-in-day 60
     "Flush blobs with timestamps that are earlier than this number of days.")
 
@@ -10249,7 +10257,7 @@ The hook functions, which is commented out, provoke malfunction failing to creat
           -f my/org-flush-blobs-in-habits
 #+end_src
 
-#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "batch/org-flush-blobs.el" my/user-config-dir)
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "batch/org-flush-blobs.el" tangle/emacs-config-dir)
   (require 'org-habit)
   (require 'org-clock)
 
@@ -11285,11 +11293,11 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 lfile is an extended org link type for files in local machine. It is inspired by [[https://karl-voit.at/2022/02/10/lfile/][Kerl Voit's implementation]].
 It is implemented using abbrev mechanism since functionality of file: link type such as inline image or exporting can be easily imparted.
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
   (require 'lfile)
 #+end_src
 
-#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "lfile.el" my/user-package-dir)
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "lfile.el" tangle/emacs-sitelisp-dir)
   (require 'ol)
   (require 'org-element)
 
@@ -11533,11 +11541,11 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
   d <<open-file-dir()>> 0755 - - 14d
 #+end_src
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
   (require 'open-file)
 #+end_src
 
-#+begin_src emacs-lisp :tangle (expand-file-name "open-file.el" my/user-package-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "open-file.el" tangle/emacs-sitelisp-dir)
   ;; general functions
 
   (defvar my/open-file-dir
@@ -11846,7 +11854,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
 :CREATED:  [2023-01-27 Fri 17:48]
 :END:
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
   (use-package org-password-store
     :after org
     :bind (:map org-mode-map
@@ -11861,7 +11869,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                 ("C-c p k" . my/password-store-remove)))
 #+end_src
 
-#+begin_src emacs-lisp :tangle (expand-file-name "org-password-store.el" my/user-package-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "org-password-store.el" tangle/emacs-sitelisp-dir)
   (require 'password-store)
 
   (defcustom my/org-password-store-property "PASSWORD_STORE"
@@ -12019,7 +12027,7 @@ My workflow for acquiring English words is:
 2. Review my English word list with my/org-english-drill everyday
    - Org-drill ask questions to level up my vocabulary
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
   (use-package org-drill-english
     :bind (:map my/org-global-map
                 ("e e" . my/org-english-capture)
@@ -12035,7 +12043,7 @@ My workflow for acquiring English words is:
       (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
 #+end_src
 
-#+begin_src emacs-lisp  :tangle (expand-file-name "org-drill-english.el" my/user-package-dir) :comments no
+#+begin_src emacs-lisp  :tangle (expand-file-name "org-drill-english.el" tangle/emacs-sitelisp-dir) :comments no
   ;; -*- lexical-binding: t -*-
 
   (require 'define-word)
@@ -12372,7 +12380,7 @@ test code
 
 **** org-relate
 
-#+begin_src emacs-lisp :tangle (expand-file-name "org-relate.el" my/user-package-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "org-relate.el" tangle/emacs-sitelisp-dir)
   (require 'thingatpt)
   (require 'org-ql-search)
 
@@ -12530,12 +12538,12 @@ test code
 
 Provide a function to Build a clock table summing up time by tag.
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" my/user-config-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
   (with-eval-after-load 'org
     (require 'org-clocktable-by-tag))
 #+end_src
 
-#+begin_src emacs-lisp :tangle (expand-file-name "org-clocktable-by-tag.el" my/user-package-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "org-clocktable-by-tag.el" tangle/emacs-sitelisp-dir)
   (require 'org-table)
   (require 'org-clock)
 
@@ -12599,7 +12607,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 **** weather
 
-#+begin_src emacs-lisp :tangle (expand-file-name "weather.el" my/user-package-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "weather.el" tangle/emacs-sitelisp-dir)
   ;; 気象庁配信の天気情報を加工して表示
 
   (require 'request)
@@ -12698,7 +12706,7 @@ Provide a function to Build a clock table summing up time by tag.
   export LOCATE_PATH=<<plocate-db()>>
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/updatedb-home") :tangle-mode (identity #o555) :shebang #!/usr/bin/env bash
+#+begin_src bash :noweb tangle :tangle (expand-file-name "updatedb-home" tangle/local-bin-dir)
   . ~/.bashrc
 
   mkdir -p $(dirname <<plocate-db()>>) && \
@@ -12948,7 +12956,7 @@ Provide a function to Build a clock table summing up time by tag.
   <<random(max=59)>> * * * * <<which(filename="sync-annex-doc")>>
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/sync-annex-doc")
+#+begin_src shell :noweb tangle :tangle (expand-file-name "sync-annex-doc" tangle/local-bin-dir)
   (cd /mnt/exdoc/doc/ 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
   (cd /mnt/vt-m/doc/ 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
   (cd /mnt/vt-h/doc/ 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
@@ -13784,7 +13792,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
   skkdic_uniq.sh
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/skkdic_uniq.sh") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+#+begin_src bash :noweb tangle :tangle (expand-file-name "skkdic_uniq.sh" tangle/local-bin-dir)
   tmp_euc=$(mktemp)
   tmp_utf8=$(mktemp)
   skk_dir=<<share-dir()>>/skk
@@ -13831,7 +13839,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
     download-festival-voices
   #+end_src
 
-  #+begin_src shell :tangle (expand-file-name ".local/bin/download-festival-voices") :shebang #!/usr/bin/env bash :tangle-mode (identity #o755)
+  #+begin_src bash :tangle (expand-file-name "download-festival-voices" tangle/local-bin-dir)
     work_dir=~/.local/share/festival
     voices=(
       cmu_us_aew_cg
@@ -13884,7 +13892,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
     download-hts-voices
   #+end_src
 
-  #+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/download-hts-voices") :tangle-mode (identity #o755)
+  #+begin_src bash :noweb tangle :tangle (expand-file-name "download-hts-voices" tangle/local-bin-dir)
     data_dir=<<hts-voice-dir()>>
     hts_workdir=/tmp
     hts_fname=MMDAgent_Example-1.8.zip
@@ -14967,7 +14975,7 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
     mkdir -pv <<npm-prefix()>>
   #+end_src
 - install npm packages
-  #+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/npm-install") :shebang #!/bin/sh :tangle-mode (identity #o755)
+  #+begin_src shell :noweb tangle :tangle (expand-file-name "npm-install" tangle/local-bin-dir)
     npm install -g <<npm-pkg>>
   #+end_src
 
@@ -15052,7 +15060,7 @@ Extendable version manager
   #+end_src
 
 - midnight.sh: midnight batch script
-  #+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/midnight.sh")
+  #+begin_src bash :noweb tangle :tangle (expand-file-name "midnight.sh" tangle/local-bin-dir)
     <<midnight-batch>>
   #+end_src
 
@@ -15081,7 +15089,7 @@ Extendable version manager
     (string-join days ","))
 #+end_src
 
-#+begin_src bash :noweb tangle :tangle (expand-file-name ".local/bin/weekend.sh")
+#+begin_src bash :noweb tangle :tangle (expand-file-name "weekend.sh" tangle/local-bin-dir)
   <<weekend-batch>>
 #+end_src
 
@@ -15094,7 +15102,7 @@ Extendable version manager
 :CREATED:  [2023-11-17 Fri 17:17]
 :END:
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/system.sh")
+#+begin_src shell :noweb tangle :tangle (expand-file-name "system.sh" tangle/local-bin-dir)
   <<system-batch>>
 #+end_src
 
@@ -15182,7 +15190,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 - transcode video to vp9
   : $ vp9transc -c 32 video_orig.mkv video_vp9.webm
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/vp9transc") :tangle-mode (identity #o755) :comments no
+#+begin_src shell :noweb tangle :tangle (expand-file-name "vp9transc" tangle/local-bin-dir) :comments no
   <<transc-shared>>
 
   vp9_opts_pass1="-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 -crf ${CRF} -pass 1 -an -f null"
@@ -15198,7 +15206,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
 - transcode video to av1
   : $ av1transc video_orig.mkv video_av1.webm
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/av1transc") :tangle-mode (identity #o555) :comments no
+#+begin_src shell :noweb tangle :tangle (expand-file-name "av1transc" tangle/local-bin-dir) :comments no
   <<transc-shared>>
 
   av1_opts_common="-c:v libaom-av1 -cpu-used 2 -row-mt 1 -threads $(nproc) -b:v 0 -crf ${CRF}"
@@ -15220,7 +15228,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
   + encode bulk podcast files for 64kb/s (in Dired)
     : $ nohup parallel opusencode "{}" "{.}".oga ::: *
 
-#+begin_src shell :tangle (expand-file-name ".local/bin/opusencode") :tangle-mode (identity #o555) :shebang #!/usr/bin/env bash
+#+begin_src bash :tangle (expand-file-name "opusencode" tangle/local-bin-dir)
   set -euo pipefail
 
   if [[ $# -ge 1 ]]; then
@@ -15246,7 +15254,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
   "libdvdcss"
 #+end_src
 
-#+begin_src shell :tangle (expand-file-name ".local/bin/dvdpack") :tangle-mode (identity #o555) :shebang #!/usr/bin/env bash
+#+begin_src bash :tangle (expand-file-name "dvdpack" tangle/local-bin-dir)
   set -euo pipefail
 
   if [ "${OPTIND}" = 1 ]; then
@@ -15353,7 +15361,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
   0 */2 * * * <<which(filename="bash")>> -ci "ghq-sync >> $LOG_DIR/ghq-sync.log 2>&1"
 #+end_src
 
-#+begin_src shell :tangle (expand-file-name ".local/bin/ghq-sync") :shebang #!/usr/bin/env bash :tangle-mode (identity #o500)
+#+begin_src bash :tangle (expand-file-name "ghq-sync" tangle/local-bin-dir)
   ghq_repos=$(ghq list --full-path github.com/p-snow)
   for repo_path in ${ghq_repos[@]}; do
     cd ${repo_path} && \
@@ -15375,7 +15383,7 @@ Transcoding my local video files with open codec, like VP9 and AV1, is effective
           syncCommitMsg = "on $(LC_TIME=en_GB.UTF-8 date) from $(uname -n)"
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/git-sync") :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
+#+begin_src bash :noweb tangle :tangle (expand-file-name "git-sync" tangle/local-bin-dir)
   #
   # git-sync
   #
@@ -16128,7 +16136,7 @@ Utility ruby program for manipulating image, audio and video file.
   "dvd+rw-tools"
 #+end_src
 
-#+begin_src ruby :tangle (expand-file-name ".local/bin/mediautil") :shebang #!/usr/bin/env ruby
+#+begin_src ruby :tangle (expand-file-name "mediautil" tangle/local-bin-dir)
   require 'thor'
   require 'open3'
   require 'fileutils'
@@ -16979,7 +16987,7 @@ Utility ruby program for manipulating image, audio and video file.
 
 Personal script for encoding family pictures and movies.
 
-#+begin_src ruby :tangle (expand-file-name ".local/bin/genalbum") :shebang #!/usr/bin/env ruby
+#+begin_src ruby :tangle (expand-file-name "genalbum" tangle/local-bin-dir)
   require 'fileutils'
   require 'time'
   require 'exifr'
@@ -17216,7 +17224,7 @@ Exec command in background
 
 ** sendmail.py
 Utility for sendind email programatically
-#+begin_src python :noweb tangle :tangle (expand-file-name ".local/bin/sendmail.py") :shebang #!/usr/bin/env python3
+#+begin_src python :noweb tangle :tangle (expand-file-name "sendmail.py" tangle/local-bin-dir)
   import sys
   import argparse
   import subprocess
@@ -17262,7 +17270,7 @@ Utility for sendind email programatically
 
 Nifty script that executes command with elevating privilege using password from pass command.
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name ".local/bin/pwsudo")
+#+begin_src shell :noweb tangle :tangle (expand-file-name "pwsudo" tangle/local-bin-dir)
   _userid=$(whoami)
   _hostname=$(hostname)
 
@@ -17464,7 +17472,7 @@ Nifty script that executes command with elevating privilege using password from 
 ** filetype-cli                                :ARCHIVE:
 Wrapper script for [[* filetype][filetype.rb]].
 
-#+begin_src ruby :tangle (expand-file-name ".local/bin/filetype-cli") :tangle-mode (identity #o755)
+#+begin_src ruby :tangle (expand-file-name "filetype-cli" tangle/local-bin-dir)
   #!/usr/bin/env ruby
 
   require 'thor'
@@ -17502,7 +17510,7 @@ Stripping rules are:
 - <rb> tag for delimiter will be stripped
 - <rtc> tree for semantic word will be removed
 
-#+begin_src python :tangle (expand-file-name ".local/bin/strip_ruby") :tangle-mode (identity #o755) :shebang #!/usr/bin/env python3
+#+begin_src python :tangle (expand-file-name "strip_ruby" tangle/local-bin-dir)
   import sys
   import lxml.html as html
 
