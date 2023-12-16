@@ -11278,9 +11278,12 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
           ,(matching-paren paren-open-char)))
 
   (rx-define parened (paren-open-char element)
-    (eval (with-syntax-table (if (derived-mode-p 'reb-lisp-mode)
-                                 (with-current-buffer reb-target-buffer (syntax-table))
-                               (syntax-table))
+    (eval (with-syntax-table (cond
+                              ((derived-mode-p 'reb-lisp-mode)
+                               (with-current-buffer reb-target-buffer (syntax-table)))
+                              ((derived-mode-p 'minibuffer-mode)
+                               (with-current-buffer (other-buffer) (syntax-table)))
+                              (t (syntax-table)))
             (parened-rx paren-open-char 'element))))
 #+end_src
 
