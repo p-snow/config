@@ -8522,7 +8522,10 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
     (keymap-set keymap key sym))
 #+end_src
 
-***** miscellaneous functions/commands
+***** copy line number in kill ring
+:PROPERTIES:
+:CREATED:  [2023-12-16 Sat 12:07]
+:END:
 
 #+begin_src emacs-lisp
   (defun my/copy-line-number ()
@@ -8532,7 +8535,47 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
       (message "Line number: %s" line-number)
       (kill-new line-number)))
   (global-set-key (kbd "C-M-S-w") 'my/copy-line-number)
+#+end_src
 
+***** expand shorthand time string
+:PROPERTIES:
+:CREATED:  [2023-12-16 Sat 11:40]
+:END:
+
+#+begin_src emacs-lisp
+  (defun my/expand-shorthand-time (time-string)
+    "Expand shorthand expressions in TIME-STRING."
+    (let ((case-fold-search nil))
+      (rx-let ((follow-digit (char)
+                             (: (group (+ digit)) (* space) char
+                                (group (or eol (not alpha))))))
+        (seq-reduce (lambda (result element)
+                      (replace-regexp-in-string (car element) (cadr element) result))
+                    `((,(rx (follow-digit "y")) "\\1year\\2")
+                      (,(rx (follow-digit "M")) "\\1month\\2")
+                      (,(rx (follow-digit "w")) "\\1week\\2")
+                      (,(rx (follow-digit "d")) "\\1day\\2")
+                      (,(rx (follow-digit "h")) "\\1hour\\2")
+                      (,(rx (follow-digit "m")) "\\1minute\\2")
+                      (,(rx (follow-digit "s")) "\\1second\\2"))
+                    time-string))))
+#+end_src
+
+unit test
+#+begin_src emacs-lisp :tangle no
+  (ert-deftest test/expand-shorthand-time ()
+    "Tests the output string of `my/expand-shorthand-time'."
+    (should (string= (my/expand-shorthand-time "1m")
+                     "1minute"))
+    (should (string= (my/expand-shorthand-time "1m 20s")
+                     "1minute 20second"))
+    (should (string= (my/expand-shorthand-time " 2h10m ")
+                     " 2hour10minute ")))
+#+end_src
+
+***** miscellaneous functions/commands
+
+#+begin_src emacs-lisp
   (defun my/insert-time-stamp (&optional arg)
     "Insert date string with format derived in deterministic way with ARG."
     (interactive "P")
@@ -10616,7 +10659,8 @@ Following code is also responsible for deterministic archive location.
                (format "pwsudo rtcwake -v -m mem -l --date '%s';"
                        (string-trim
                         (shell-command-to-string (format "date +'%%Y-%%m-%%d %%H:%%M' -d '%s'"
-                                                         (or (and (stringp wake-at) (length> wake-at 0) wake-at)
+                                                         (or (and (stringp wake-at) (length> wake-at 0)
+                                                                  (my/expand-shorthand-time wake-at))
                                                              (concat (when (>= (nth 2 (decode-time ct)) mid-h)
                                                                        "tomorrow ")
                                                                      (format "%02d:00" mid-h)))))))))
