@@ -8797,7 +8797,9 @@ elfeed-update will run at every midnight time.
     (interactive)
     (elfeed)
     (elfeed-db-compact)
-    (elfeed-update))
+    (elfeed-update)
+    (when (eq major-mode 'elfeed-search-mode)
+      (elfeed-kill-buffer)))
 
   (add-hook 'midnight-hook #'my/elfeed-update)
 #+end_src
