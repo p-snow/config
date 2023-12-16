@@ -10366,16 +10366,19 @@ The hook functions, which is commented out, provoke malfunction failing to creat
     (interactive)
     (save-excursion
       (cl-labels ((lookup-parent ()
-                    (let* ((heading (substring-no-properties
-                                     (org-get-heading t t t t)))
+                    (let* ((heading-raw (substring-no-properties
+                                         (org-get-heading t t t t)))
+                           (heading (if (string-match org-link-bracket-re heading-raw)
+                                        (match-string 2 heading-raw)
+                                      heading-raw))
                            (h-li (list heading)))
                       (if (org-up-heading-safe)
                           (append (lookup-parent) h-li)
                         h-li))))
-        (org-ql-sparse-tree (message "(olps %s)"
-                                     (mapconcat (lambda (str) (format "\"%s\"" str))
-                                                (lookup-parent)
-                                                " "))))))
+        (org-ql-sparse-tree (format "(olps %s)"
+                                    (mapconcat (lambda (str) (format "\"%s\"" str))
+                                               (lookup-parent)
+                                               " "))))))
 
   (with-eval-after-load 'my/org-mode-init
     (keymap-set org-mode-map "C-c M-/"
