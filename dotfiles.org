@@ -452,6 +452,11 @@ This script accepts a space-separated list of manifest file names (without exten
   done
 #+end_src
 
+#+name: template-activate-profiles
+#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
+  (activate-profiles "activate-profiles " (p "profiles"))
+#+end_src
+
 - Automating Script
   Update packages in base profile every midnight
   #+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
@@ -10581,7 +10586,7 @@ Following code is also responsible for deterministic archive location.
 
 #+header: :shebang "minibuffer-mode"
 #+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/minibuffer.eld")
-  (guix-search "guix search " (p "regexp"))
+  (guix-search "guix search " (p (my/region-string-trans-buffer)))
   (version (p "command") " --version")
   (curly-bracket-japanese-regexp
    (rx (parened ?｛ (+ (or " "
@@ -10777,7 +10782,7 @@ tempel templates in minibuffer-mode
               "")))
 #+end_src
 
-#+name: tempel-pandoc
+#+name: template-pandoc
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
   (pandoc (funcall-interactively 'my/pandoc
                                  (if (eq minibuffer-history-variable 'dired-shell-command-history)
@@ -10788,6 +10793,23 @@ tempel templates in minibuffer-mode
 #+NAME: guix-base-pandoc
 #+begin_src scheme :noweb-ref guix-base
   "weasyprint"
+#+end_src
+
+***** region text
+:PROPERTIES:
+:CREATED:  [2023-12-17 Sun 16:11]
+:END:
+
+#+NAME: elisp-region-text
+#+begin_src emacs-lisp
+  (defun my/region-string-trans-buffer ()
+    "Return region string in some buffer where region is active."
+    (cl-some (lambda (buf)
+               (with-current-buffer buf
+                 (when (region-active-p)
+                   (buffer-substring-no-properties (region-beginning)
+                                                   (region-end)))))
+             (list (current-buffer) (other-buffer nil t))))
 #+end_src
 
 **** org contents templates
@@ -11363,7 +11385,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                               ((derived-mode-p 'reb-lisp-mode)
                                (with-current-buffer reb-target-buffer (syntax-table)))
                               ((derived-mode-p 'minibuffer-mode)
-                               (with-current-buffer (other-buffer) (syntax-table)))
+                               (with-current-buffer (other-buffer nil t) (syntax-table)))
                               (t (syntax-table)))
             (parened-rx paren-open-char 'element))))
 #+end_src
