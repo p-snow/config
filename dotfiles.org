@@ -4461,11 +4461,14 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (use-package org-src
     :after org
     :hook (org-src-mode . (lambda ()
+                            (setq-local auto-save-visited-mode nil)
+                            (setq-local buffer-save-without-query t)
                             (when (eq major-mode 'text-mode)
                               (visual-line-mode 1))))
     :custom
     (org-special-ctrl-a/e t)
     (org-src-window-setup 'current-window)
+    (org-edit-src-turn-on-auto-save nil)
     (org-edit-src-auto-save-idle-delay 30)
     (org-edit-src-persistent-message nil)
     (org-src-ask-before-returning-to-edit-buffer nil)
@@ -17571,7 +17574,8 @@ Stripping rules are:
 :END:
 
 # Local Variables:
-# auto-save-visited-mode: nil
 # compile-command: "make tangle"
 # eval: (add-hook 'after-save-hook #'my/compile-default-command nil t)
+# auto-save-visited-mode: nil
+# buffer-save-without-query: t
 # End:
