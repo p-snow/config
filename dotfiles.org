@@ -4648,6 +4648,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
       (setq org-plantuml-jar-path "/usr/local/Cellar/plantuml/8041/plantuml.8041.jar")))
     :custom
     (org-babel-load-languages '((emacs-lisp . t)
+                                (lisp       . t)
                                 (C          . t)
                                 (java       . t)
                                 (R          . t)
@@ -5846,6 +5847,40 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
   (define-key emacs-lisp-mode-map (kbd "C-c C-c") #'my/elisp-mode-eval-buffer)
   (define-key lisp-interaction-mode-map (kbd "C-c C-c") #'my/elisp-mode-eval-buffer)
+#+end_src
+
+***** lisp-mode
+:PROPERTIES:
+:CREATED:  [2023-12-20 Wed 16:53]
+:END:
+
+#+begin_src emacs-lisp
+  (use-package lisp-mode
+    :mode "\\.lisp$"
+    :config
+    (my/add-dash-docsets-hook 'lisp-mode-hook
+                              '("Common Lisp")))
+#+end_src
+
+****** sly
+:PROPERTIES:
+:CREATED:  [2023-12-18 Mon 14:53]
+:END:
+
+[[https://github.com/joaotavora/sly#start-of-content][Sly]], a fork of [[https://slime.common-lisp.dev/][Slime]].
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+  "emacs-sly"
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
+(use-package sly
+  :custom
+  (inferior-lisp-program "<<which(filename="sbcl")>>")
+  (sly-auto-start 'ask)
+  :config
+  (with-eval-after-load 'ob-lisp
+    (setopt org-babel-lisp-eval-fn 'sly-eval)))
 #+end_src
 
 ***** scheme-mode
@@ -7431,14 +7466,14 @@ Handy commands
 #+end_src
 
 #+begin_src emacs-lisp
-  (use-package paredit
-    :bind (:map paredit-mode-map
-                ("<backspace>" . paredit-backward-delete)
-                ("C-M-g" .  paredit-splice-sexp)
-                ("M-s" . nil)
-                ("C-M-;" . paredit-comment-dwim)
-                ("M-;" . nil))
-    :hook (((emacs-lisp-mode scheme-mode) . enable-paredit-mode)))
+(use-package paredit
+  :bind (:map paredit-mode-map
+              ("<backspace>" . paredit-backward-delete)
+              ("C-M-g" .  paredit-splice-sexp)
+              ("M-s" . nil)
+              ("C-M-;" . paredit-comment-dwim)
+              ("M-;" . nil))
+  :hook (((emacs-lisp-mode lisp-mode scheme-mode) . enable-paredit-mode)))
 #+end_src
 
 - workaround
@@ -15057,6 +15092,16 @@ Documentation is available at [[https://graphviz.org/documentation/][here]] and 
 
 #+begin_src scheme :noweb-ref guix-base
   "rust"
+#+end_src
+
+** Common Lisp
+:PROPERTIES:
+:CREATED:  [2023-12-20 Wed 13:11]
+:END:
+
+#+begin_src scheme :noweb-ref guix-base
+"sbcl"
+"sbcl-slynk"
 #+end_src
 
 ** Node.js
