@@ -454,7 +454,12 @@ This script accepts a space-separated list of manifest file names (without exten
 
 #+name: template-activate-profiles
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
-  (activate-profiles "activate-profiles " (p "profiles"))
+  (activate-profiles "activate-profiles "
+                     (completing-read "profiles: "
+                                      (mapcar (lambda (elt)
+                                                (string-join elt " "))
+                                              (my/combinations
+                                               '("base" "desktop" "emacs")))))
 #+end_src
 
 - Automating Script
@@ -8563,6 +8568,22 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
     (set 'sym (make-symbol (documentation def)))
     (fset sym def)
     (keymap-set keymap key sym))
+#+end_src
+
+***** computational
+:PROPERTIES:
+:CREATED:  [2023-12-20 Wed 18:24]
+:END:
+
+#+begin_src emacs-lisp
+  (defun my/combinations (list)
+    "Return all combinations for all elements in LIST."
+    (if (null list)
+        (list nil)
+      (let ((rest-combs (my/combinations (cdr list))))
+        (append (mapcar (lambda (combination) (cons (car list) combination))
+                        rest-combs)
+                rest-combs))))
 #+end_src
 
 ***** copy line number in kill ring
