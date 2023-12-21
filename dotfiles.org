@@ -8670,77 +8670,6 @@ unit test
             (quit-window)))))))
 #+end_src
 
-***** miscellaneous functions/commands
-
-#+begin_src emacs-lisp
-  (defun my/insert-time-stamp (&optional arg)
-    "Insert date string with format derived in deterministic way with ARG."
-    (interactive "P")
-    (let* ((simple-fmt "%Y%m%d")
-           (concise-fmt "%Y-%m-%d")
-           (verbose-fmt "%Y-%m-%d %H:%M:%S")
-           (fmt-in-use (cond
-                        ((equal arg '(16))
-                         (read-string "time format: "
-                                      "%Y-%m-%d %H:%M:%S"))
-                        ((equal arg '(4))
-                         verbose-fmt)
-                        (t (cond
-                            ((eq major-mode 'text-mode) concise-fmt)
-                            ((eq major-mode 'dired-mode) simple-fmt)
-                            (t simple-fmt))))))
-      (if (called-interactively-p)
-          (insert (format-time-string fmt-in-use))
-        (format-time-string fmt-in-use))))
-  (global-set-key (kbd "C-c .") 'my/insert-time-stamp)
-
-  (defun my/drag-line-backward ()
-    "Drag up current line for one."
-    (interactive)
-    (transpose-lines 1)
-    (previous-line 2))
-  (global-set-key (kbd "M-S-<up>") 'my/drag-line-backward)
-
-  (defun my/drag-line-forward ()
-    "Drag down current line for one."
-    (interactive)
-    (next-line 1)
-    (transpose-lines 1)
-    (previous-line 1))
-  (global-set-key (kbd "M-S-<down>") 'my/drag-line-forward)
-
-  (defun my/comment-box (b e)
-    "Draw a box comment around the region but arrange for the region
-    to extend to at least the fill column. Place the point after the
-    comment box."
-    (interactive "r")
-    (let ((e (copy-marker e t)))
-      (goto-char b)
-      (end-of-line)
-      (insert-char ?  (- fill-column (current-column)))
-      (comment-box b e 1)
-      (goto-char e)
-      (set-marker e nil)))
-
-  (defun my/ascii-string-p (string)
-    "Return non-nil if `STRING' seems to be made of ASCII."
-    (if (length> string 0)
-        (string-match-p
-         (format "\\`[%s]+\\'" "[:ascii:]’“”–")
-         string)
-      t))
-
-  (defun my/file-name-legitimate (filename)
-    "Substitute legitimate file name for `FILENAME' so as not to have any special charactors."
-    (seq-reduce (lambda (takeover replace)
-                  (replace-regexp-in-string
-                   (car replace) (cdr replace) takeover))
-                '(("/" . "／")
-                  ("\"" . "❞")
-                  ("'" . "❜"))
-                filename))
-#+end_src
-
 **** patches and workarounds
 :PROPERTIES:
 :CREATED:  [2023-01-28 Sat 15:56]
@@ -8888,7 +8817,7 @@ Suport successive deletion with C-h/M-h
     "M-h" #'my/backward-kill-word-dwim)
 #+end_src
 
-**** dedicated commands
+**** tailored commands/functions
 :PROPERTIES:
 :CREATED:  [2023-01-20 Fri 10:59]
 :END:
@@ -9551,6 +9480,95 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
   (insert " ")
   (backward-char 1))
 (keymap-global-set "M-o" 'my/open-space)
+#+end_src
+
+***** miscellaneous functions/commands
+
+#+begin_src emacs-lisp
+(defun my/insert-time-stamp (&optional arg)
+  "Insert date string with format derived in deterministic way with ARG."
+  (interactive "P")
+  (let* ((simple-fmt "%Y%m%d")
+         (concise-fmt "%Y-%m-%d")
+         (verbose-fmt "%Y-%m-%d %H:%M:%S")
+         (fmt-in-use (cond
+                      ((equal arg '(16))
+                       (read-string "time format: "
+                                    "%Y-%m-%d %H:%M:%S"))
+                      ((equal arg '(4))
+                       verbose-fmt)
+                      (t (cond
+                          ((eq major-mode 'text-mode) concise-fmt)
+                          ((eq major-mode 'dired-mode) simple-fmt)
+                          (t simple-fmt))))))
+    (if (called-interactively-p)
+        (insert (format-time-string fmt-in-use))
+      (format-time-string fmt-in-use))))
+(global-set-key (kbd "C-c .") 'my/insert-time-stamp)
+
+(defun my/drag-line-backward ()
+  "Drag up current line for one."
+  (interactive)
+  (transpose-lines 1)
+  (previous-line 2))
+(global-set-key (kbd "M-S-<up>") 'my/drag-line-backward)
+
+(defun my/drag-line-forward ()
+  "Drag down current line for one."
+  (interactive)
+  (next-line 1)
+  (transpose-lines 1)
+  (previous-line 1))
+(global-set-key (kbd "M-S-<down>") 'my/drag-line-forward)
+
+(defun my/comment-box (b e)
+  "Draw a box comment around the region but arrange for the region
+  to extend to at least the fill column. Place the point after the
+  comment box."
+  (interactive "r")
+  (let ((e (copy-marker e t)))
+    (goto-char b)
+    (end-of-line)
+    (insert-char ?  (- fill-column (current-column)))
+    (comment-box b e 1)
+    (goto-char e)
+    (set-marker e nil)))
+
+(defun my/ascii-string-p (string)
+  "Return non-nil if `STRING' seems to be made of ASCII."
+  (if (length> string 0)
+      (string-match-p
+       (format "\\`[%s]+\\'" "[:ascii:]’“”–")
+       string)
+    t))
+
+(defun my/file-name-legitimate (filename)
+  "Substitute legitimate file name for `FILENAME' so as not to have any special charactors."
+  (seq-reduce (lambda (takeover replace)
+                (replace-regexp-in-string
+                 (car replace) (cdr replace) takeover))
+              '(("/" . "／")
+                ("\"" . "❞")
+                ("'" . "❜"))
+              filename))
+
+(defun my/kansuji-to-number (kansuuji-string)
+  "Translate Japanese Kansuuji(漢数字) KANSUUJI-STRING to number."
+  (let* ((kanji-digits '(?一 ?二 ?三 ?四 ?五 ?六 ?七 ?八 ?九))
+         (kanji-units '((?十 . 10) (?百 . 100) (?千 . 1000)))
+         (rs (cl-reduce (lambda (kansuji val)
+                          (let ((digit (cl-position kansuji kanji-digits))
+                                (unit (cdr (assoc kansuji kanji-units))))
+                            (if (> (cdr val) 0)
+                                (cons (+ (car val) (* (cdr val)
+                                                      (1+ (or digit 0))))
+                                      (or unit 0))
+                              (cond
+                               (digit (cons (+ (1+ digit) (car val)) 0))
+                               (unit (cons (car val) unit))))))
+                        kansuuji-string
+                        :from-end t :initial-value (cons 0 0))))
+    (+ (car rs) (cdr rs))))
 #+end_src
 
 **** additional org tweaks
