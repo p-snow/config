@@ -8843,16 +8843,17 @@ Suport successive deletion with C-h/M-h
 elfeed-update will run at every midnight time.
 
 #+begin_src emacs-lisp
-  (defun my/elfeed-update ()
-    "Update Elfeed feeds."
-    (interactive)
-    (elfeed)
-    (elfeed-db-compact)
-    (elfeed-update)
-    (when (eq major-mode 'elfeed-search-mode)
-      (elfeed-kill-buffer)))
+(defun my/elfeed-update ()
+  "Update Elfeed feeds."
+  (interactive)
+  (elfeed)
+  (elfeed-db-compact)
+  (elfeed-update)
+  (when (eq major-mode 'elfeed-search-mode)
+    (elfeed-kill-buffer)))
 
-  (add-hook 'midnight-hook #'my/elfeed-update)
+(with-eval-after-load 'midnight
+  (add-hook 'midnight-hook #'my/elfeed-update))
 #+end_src
 
 ***** frame maximization
@@ -10297,49 +10298,61 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
 
 The hook functions, which is commented out, provoke malfunction failing to create todo state change logs which is necessary for habit graph.
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-flush-blobs.el" tangle/emacs-config-dir)
-  (defvar my/org-flush-blobs-old-timestamp-in-day 60
-    "Flush blobs with timestamps that are earlier than this number of days.")
-
-  (defvar my/org-flush-blobs-clock-log t
-    "Whether `my/org-flush-blobs' flushes old clock logs.")
-
-  (defvar my/org-flush-blobs-state-change t
-    "Whether `my/org-flush-blobs' flushes old todo state changes.")
-
-  (defun my/org-flush-blobs ()
-    "Flush old blob."
-    (interactive)
-    (org-save-outline-visibility t
-      (org-show-all)
-      (save-excursion
-        (let ((case-fold-search t)
-              (next-heading (save-excursion
-                              (org-next-visible-heading 1)
-                              (point-marker))))
-          (mapc (lambda (re)
-                  (org-back-to-heading t)
-                  (while-let ((ts-time (and (re-search-forward re (marker-position next-heading) t)
-                                            (encode-time (parse-time-string (match-string 1))))))
-                    (when (time-less-p ts-time
-                                       (time-subtract (current-time) (days-to-time my/org-flush-blobs-old-timestamp-in-day)))
-                      (kill-whole-line))))
-                (append (and my/org-flush-blobs-clock-log
-                             (list org-tr-regexp-both))
-                        (and my/org-flush-blobs-state-change
-                             (list (concat (rx "- State " "\"" (>= 1 upper) "\"" (+ space)
-                                               "from " (opt "\"" (>= 1 upper) "\"") (+ space))
-                                           org-ts-regexp-inactive)))))
-          (when (featurep 'org-clock)
-            (org-clock-remove-empty-clock-drawer))))))
+#+NAME: midnight-flush-blobs
+#+begin_src emacs-lisp
+(with-eval-after-load 'midnight
+  (add-hook 'midnight-hook
+            (lambda ()
+              (org-map-entries (lambda () (when (org-is-habit-p)
+                                        (my/org-flush-blobs)))
+                               nil
+                               'agenda))))
 #+end_src
 
-****** batch blob flushing
+#+NAME: flush-blobs
+#+begin_src emacs-lisp
+(defvar my/org-flush-blobs-old-timestamp-in-day 90
+  "Flush blobs with timestamps that are earlier than this number of days.")
+
+(defvar my/org-flush-blobs-clock-log t
+  "Whether `my/org-flush-blobs' flushes old clock logs.")
+
+(defvar my/org-flush-blobs-state-change t
+  "Whether `my/org-flush-blobs' flushes old todo state changes.")
+
+(defun my/org-flush-blobs ()
+  "Flush old blob."
+  (interactive)
+  (org-save-outline-visibility t
+    (org-show-all)
+    (save-excursion
+      (let ((case-fold-search t)
+            (next-heading (save-excursion
+                            (org-next-visible-heading 1)
+                            (point-marker))))
+        (mapc (lambda (re)
+                (org-back-to-heading t)
+                (while-let ((ts-time (and (re-search-forward re (marker-position next-heading) t)
+                                          (encode-time (parse-time-string (match-string 1))))))
+                  (when (time-less-p ts-time
+                                     (time-subtract (current-time) (days-to-time my/org-flush-blobs-old-timestamp-in-day)))
+                    (kill-whole-line))))
+              (append (and my/org-flush-blobs-clock-log
+                           (list org-tr-regexp-both))
+                      (and my/org-flush-blobs-state-change
+                           (list (concat (rx "- State " "\"" (>= 1 upper) "\"" (+ space)
+                                             "from " (opt "\"" (>= 1 upper) "\"") (+ space))
+                                         org-ts-regexp-inactive)))))
+        (when (featurep 'org-clock)
+          (org-clock-remove-empty-clock-drawer))))))
+#+end_src
+
+****** batch blob flushing                 :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-10-30 Mon 21:05]
 :END:
 
-#+begin_src shell :eval no :tangle no :noweb-ref weekend-batch
+#+begin_src shell :eval no :tangle no
   export DISPLAY=:0 && \
     emacs -Q \
           -l ~/.emacs.d/early-init.el \
@@ -10348,7 +10361,7 @@ The hook functions, which is commented out, provoke malfunction failing to creat
           -f my/org-flush-blobs-in-habits
 #+end_src
 
-#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "batch/org-flush-blobs.el" tangle/emacs-config-dir)
+#+begin_src emacs-lisp :noweb tangle
   (require 'org-habit)
   (require 'org-clock)
 
