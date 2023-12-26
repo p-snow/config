@@ -10706,11 +10706,8 @@ If called interactively, it prompt the user to select the date to find."
 (defvar my/pre-command-history nil
   "History list for pre commands that will be executed before sleep.")
 
-(defun my/command-system-sleep (&optional wake-at delay pre-command)
+(defun my/command-system-sleep (wake-at delay)
   "Return a shell command string to sleep system until WAKE-AT with DELAY time."
-  (interactive (list (read-string "Wake time: ")
-                     (read-string "Delay before sleep: ")
-                     (read-string "Pre command: " nil 'my/pre-command-history)))
   (string-trim-right
    (let ((mid-h <<dawn-hour>>)
          (ct (current-time)))
@@ -10720,9 +10717,6 @@ If called interactively, it prompt the user to select the date to find."
              (and (stringp delay)
                   (length> delay 0)
                   (format "sleep %s" delay))
-             (and (stringp pre-command)
-                  (length> pre-command 0)
-                  pre-command)
              (format "pwsudo rtcwake -v -m mem -l --date '%s';"
                      (string-trim
                       (shell-command-to-string (format "date +'%%Y-%%m-%%d %%H:%%M' -d '%s'"
@@ -10735,7 +10729,9 @@ If called interactively, it prompt the user to select the date to find."
 #+end_src
 
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
-(system-sleep (call-interactively 'my/command-system-sleep))
+(system-sleep (p "When to wake: " wake t)
+              (p "Extension to sleep: " ext t)
+              (my/command-system-sleep wake ext))
 (dawn-job "dawn.sh;")
 (weekend-job "which system.sh | xargs pwsudo; dawn.sh; weekend.sh;")
 #+end_src
