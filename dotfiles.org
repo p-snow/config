@@ -193,7 +193,7 @@ initialize-ubuntu-desktop
 #+end_src
 
 - Back-up Cinnamon Desktop Configuration
-  #+begin_src shell :eval no :tangle no :noweb-ref dawn-batch
+  #+begin_src shell :eval no :tangle no :noweb-ref morning-batch
   dconf dump /org/cinnamon/ > ~/.config/linuxmint/cinnamon.conf
   #+end_src
 
@@ -463,8 +463,8 @@ done
 #+end_src
 
 - Automating Script
-  Update packages in base profile at dawn
-  #+begin_src shell :eval no :tangle no :noweb-ref dawn-batch
+  Update packages in base profile at morning
+  #+begin_src shell :eval no :tangle no :noweb-ref morning-batch
   update-channels && activate-profiles base && guix gc -d 2m -F 20G
   #+end_src
   #+begin_src shell :eval no :tangle no :noweb-ref system-batch
@@ -2777,7 +2777,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   :defer t
   :custom
   (midnight-mode t)
-  (midnight-delay "<<dawn-hour>>:00"))
+  (midnight-delay "<<morning-hour>>:00"))
 #+end_src
 
 ****** Package
@@ -5323,7 +5323,7 @@ Ancestors are looked up If current heading has no CATEGORY."
 :CREATED:  [2023-10-30 Mon 21:05]
 :END:
 
-#+begin_src shell :eval no :tangle no :noweb-ref dawn-batch
+#+begin_src shell :eval no :tangle no :noweb-ref morning-batch
 export DISPLAY=:0 && \
   emacs -Q \
         -l ~/.emacs.d/early-init.el \
@@ -8843,7 +8843,7 @@ Suport successive deletion with C-h/M-h
 :CREATED:  [2023-10-30 Mon 21:39]
 :END:
 
-elfeed-update will run at dawn everyday
+elfeed-update will run at morning everyday
 
 #+begin_src emacs-lisp
 (defun my/elfeed-update ()
@@ -10709,7 +10709,7 @@ If called interactively, it prompt the user to select the date to find."
 (defun my/command-system-sleep (wake-at delay)
   "Return a shell command string to sleep system until WAKE-AT with DELAY time."
   (string-trim-right
-   (let ((mid-h <<dawn-hour>>)
+   (let ((mid-h <<morning-hour>>)
          (ct (current-time)))
      (string-join
       (delq nil
@@ -10732,8 +10732,8 @@ If called interactively, it prompt the user to select the date to find."
 (system-sleep (p "When to wake: " wake t)
               (p "Extension to sleep: " ext t)
               (my/command-system-sleep wake ext))
-(dawn-job "dawn.sh;")
-(weekend-job "which system.sh | xargs pwsudo; dawn.sh; weekend.sh;")
+(morning-job "morning.sh;")
+(weekend-job "which system.sh | xargs pwsudo; morning.sh; weekend.sh;")
 #+end_src
 
 ***** download video/audio
@@ -14018,7 +14018,7 @@ echo "${GUIX_EXTRA_PROFILES}/base/base/share/skk/"
 
 *** derive unique entries in user-jisyo
 
-#+begin_src shell :eval no :tangle no :noweb-ref dawn-batch
+#+begin_src shell :eval no :tangle no :noweb-ref morning-batch
 skkdic_uniq.sh
 #+end_src
 
@@ -15306,21 +15306,21 @@ bash-language-server
 :CREATED:  [2023-10-30 Mon 20:29]
 :END:
 
-*** Dawn Batch
+*** Morning Batch
 :PROPERTIES:
 :CREATED:  [2023-10-31 Tue 14:03]
 :END:
 
-- when to dispatch dawn batch
-  #+name: dawn-hour
+- when to dispatch morning batch
+  #+name: morning-hour
   #+begin_src text
   4
   #+end_src
 
-- dawn.sh: dawn batch script
-  #+NAME: dawn-batch
-  #+begin_src bash :noweb tangle :tangle (expand-file-name "dawn.sh" tangle/local-bin-dir)
-  <<dawn-batch>>
+- morning.sh: morning batch script
+  #+NAME: morning-batch
+  #+begin_src bash :noweb tangle :tangle (expand-file-name "morning.sh" tangle/local-bin-dir)
+  <<morning-batch>>
   #+end_src
 
 *** Weekend Batch
