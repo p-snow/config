@@ -173,7 +173,7 @@ start-systemd-services
   sudo apt-get install -y \
        <<apt-pkg>>
   #+end_src
-- update apt packages every midnight
+- update apt packages every weekend
   #+begin_src shell :eval no :tangle no :noweb-ref system-batch
   apt update && apt upgrade --yes
   #+end_src
@@ -193,7 +193,7 @@ initialize-ubuntu-desktop
 #+end_src
 
 - Back-up Cinnamon Desktop Configuration
-  #+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
+  #+begin_src shell :eval no :tangle no :noweb-ref dawn-batch
   dconf dump /org/cinnamon/ > ~/.config/linuxmint/cinnamon.conf
   #+end_src
 
@@ -463,8 +463,8 @@ done
 #+end_src
 
 - Automating Script
-  Update packages in base profile every midnight
-  #+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
+  Update packages in base profile at dawn
+  #+begin_src shell :eval no :tangle no :noweb-ref dawn-batch
   update-channels && activate-profiles base && guix gc -d 2m -F 20G
   #+end_src
   #+begin_src shell :eval no :tangle no :noweb-ref system-batch
@@ -2777,7 +2777,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   :defer t
   :custom
   (midnight-mode t)
-  (midnight-delay "<<midnight-hour>>:00"))
+  (midnight-delay "<<dawn-hour>>:00"))
 #+end_src
 
 ****** Package
@@ -5323,7 +5323,7 @@ Ancestors are looked up If current heading has no CATEGORY."
 :CREATED:  [2023-10-30 Mon 21:05]
 :END:
 
-#+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
+#+begin_src shell :eval no :tangle no :noweb-ref dawn-batch
 export DISPLAY=:0 && \
   emacs -Q \
         -l ~/.emacs.d/early-init.el \
@@ -8843,7 +8843,7 @@ Suport successive deletion with C-h/M-h
 :CREATED:  [2023-10-30 Mon 21:39]
 :END:
 
-elfeed-update will run at every midnight time.
+elfeed-update will run at dawn everyday
 
 #+begin_src emacs-lisp
 (defun my/elfeed-update ()
@@ -10712,7 +10712,7 @@ If called interactively, it prompt the user to select the date to find."
                      (read-string "Delay before sleep: ")
                      (read-string "Pre command: " nil 'my/pre-command-history)))
   (string-trim-right
-   (let ((mid-h <<midnight-hour>>)
+   (let ((mid-h <<dawn-hour>>)
          (ct (current-time)))
      (string-join
       (delq nil
@@ -10736,8 +10736,8 @@ If called interactively, it prompt the user to select the date to find."
 
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
 (system-sleep (call-interactively 'my/command-system-sleep))
-(weekday-job "midnight.sh;")
-(weekend-job "which system.sh | xargs pwsudo; midnight.sh; weekend.sh;")
+(dawn-job "dawn.sh;")
+(weekend-job "which system.sh | xargs pwsudo; dawn.sh; weekend.sh;")
 #+end_src
 
 ***** download video/audio
@@ -14022,7 +14022,7 @@ echo "${GUIX_EXTRA_PROFILES}/base/base/share/skk/"
 
 *** derive unique entries in user-jisyo
 
-#+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
+#+begin_src shell :eval no :tangle no :noweb-ref dawn-batch
 skkdic_uniq.sh
 #+end_src
 
@@ -15310,20 +15310,21 @@ bash-language-server
 :CREATED:  [2023-10-30 Mon 20:29]
 :END:
 
-*** Midnight Batch
+*** Dawn Batch
 :PROPERTIES:
 :CREATED:  [2023-10-31 Tue 14:03]
 :END:
 
-- when to dispatch midnight batch
-  #+name: midnight-hour
+- when to dispatch dawn batch
+  #+name: dawn-hour
   #+begin_src text
   4
   #+end_src
 
-- midnight.sh: midnight batch script
-  #+begin_src bash :noweb tangle :tangle (expand-file-name "midnight.sh" tangle/local-bin-dir)
-  <<midnight-batch>>
+- dawn.sh: dawn batch script
+  #+NAME: dawn-batch
+  #+begin_src bash :noweb tangle :tangle (expand-file-name "dawn.sh" tangle/local-bin-dir)
+  <<dawn-batch>>
   #+end_src
 
 *** Weekend Batch
