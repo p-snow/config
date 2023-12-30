@@ -10927,10 +10927,10 @@ during the previous playback."
            (delq nil
                  (list (and no-resume "--no-resume-playback")
                        (cond
-                        ((stringp file) (format "'%s'" (expand-file-name file)))
+                        ((stringp file) (shell-quote-argument (expand-file-name file)))
                         ((listp file)
                          (mapconcat (lambda (f)
-                                      (format "'%s'" (expand-file-name f)))
+                                      (shell-quote-argument (expand-file-name f)))
                                     file
                                     " ")))))
            " ")))
