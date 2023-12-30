@@ -10910,6 +10910,89 @@ tempel templates in minibuffer-mode
                  (my/command-download-media url :duration t))
 #+end_src
 
+***** play media
+:PROPERTIES:
+:CREATED:  [2023-12-30 Sat 10:51]
+:END:
+
+#+NAME: command-play-media
+#+begin_src emacs-lisp :noweb tangle
+(cl-command-defun my/play-media (file &key no-resume)
+  "Build a shell command string to play media FILE.
+
+If the option :NO-RESUME is provided, disregard any suspended time
+during the previous playback."
+  (format "mpv %s"
+          (string-join
+           (delq nil
+                 (list (and no-resume "--no-resume-playback")
+                       (cond
+                        ((stringp file) (format "'%s'" (expand-file-name file)))
+                        ((listp file)
+                         (mapconcat (lambda (f)
+                                      (format "'%s'" (expand-file-name f)))
+                                    file
+                                    " ")))))
+           " ")))
+
+(with-eval-after-load 'embark
+  (mapc (lambda (map)
+          (lambda-key map "P"
+                      (lambda (file)
+                        "play media FILE"
+                        (funcall-interactively 'my/play-media file)))
+          (lambda-key map "M-P"
+                      (lambda (file)
+                        "play media FILE as ignoring resume playback"
+                        (funcall-interactively 'my/play-media file :no-resume t))))
+        (list embark-file-map embark-url-map))
+  (with-eval-after-load 'org
+    (mapc (lambda (map)
+            (lambda-key map "P"
+                        (lambda (link)
+                          "play media file written in org LINK"
+                          (funcall-interactively 'my/play-media (url-filename (url-generic-parse-url (org-link-expand-abbrev link))))))
+            (lambda-key map "M-P"
+                        (lambda (link)
+                          "play media file written in org LINK as ignoring resume playback"
+                          (funcall-interactively 'my/play-media (url-filename (url-generic-parse-url (org-link-expand-abbrev link)))
+                                                 :no-resume t))))
+          (list embark-org-link-map))
+    (mapc (lambda (map)
+            (lambda-key map "P"
+                        (lambda (list)
+                          "play media in LIST"
+                          (funcall-interactively
+                           'my/play-media
+                           (mapcar (lambda (item)
+                                     (when (string-match org-link-any-re (car item))
+                                       (url-filename (url-generic-parse-url
+                                                      (org-link-expand-abbrev
+                                                       (or (match-string-no-properties 2 (car item))
+                                                           (match-string-no-properties 0 (car item))))))))
+                                   (cdr (org-list-to-lisp list))))))
+            (lambda-key map "M-P"
+                        (lambda (list)
+                          "play media in LIST written in org LINK as ignoring resume playback"
+                          (funcall-interactively
+                           'my/play-media
+                           (mapcar (lambda (item)
+                                     (when (string-match org-link-any-re (car item))
+                                       (url-filename (url-generic-parse-url
+                                                      (org-link-expand-abbrev
+                                                       (or (match-string-no-properties 2 (car item))
+                                                           (match-string-no-properties 0 (car item))))))))
+                                   (cdr (org-list-to-lisp list)))
+                           :no-resume t))))
+          (list embark-org-plain-list-map))))
+#+end_src
+
+#+NAME: template-play-media
+#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
+(play-media (my/play-media (read-file-name "File: ")))
+(play-media-no-resume (my/play-media (read-file-name "File: ") :no-resume t))
+#+end_src
+
 ***** opus transcoder
 :PROPERTIES:
 :CREATED:  [2023-11-12 Sun 22:00]
