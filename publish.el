@@ -30,8 +30,8 @@
              :publishing-directory "./public"
              :exclude "README.org"
              :with-author nil
-             :with-creator t
-             :with-toc t
+             :with-creator nil
+             :with-toc nil
              :section-numbers nil
              :time-stamp-file nil)))
 
