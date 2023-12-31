@@ -2398,8 +2398,13 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
 ****** Internal
 ******* Storage Allocation
 
-#+begin_src emacs-lisp
-(customize-set-variable 'gc-cons-threshold (* 10 gc-cons-threshold))
+If GC time at Emacs init is problematic, checking [[help:gcs-done][gcs-done]] and [[help:gc-elapsed][gc-elapsed]] may help you. Increasing gc-cons-* variables would minimize Emacs init time, but this also cause each GC time which may noticeable as freeze.
+[[https://emacsconf.org/2023/talks/gc/][
+This presentation]] advise to increase gc-cons-threshold to 20-80Mb if you have Emacs with slow startup, and to increase consult--gc-percentage to 0.2-1.0 if you have slow and frequent GC.
+
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" user-emacs-directory-default)
+(setq gc-cons-threshold (* 30 gc-cons-threshold)
+      gc-cons-percentage 0.3)
 #+end_src
 
 ****** Lisp
