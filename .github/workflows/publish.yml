@@ -11,7 +11,9 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v1
-        submodules: true
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - name: Install Emacs
         run: sudo apt install emacs-nox --yes
