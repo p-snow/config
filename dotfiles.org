@@ -10906,6 +10906,11 @@ If :DURATION offered, return media duration instead."
                         "download and play media file"
                         (funcall-interactively 'my/command-download-media url :play t))))
         (list embark-kill-ring-map embark-url-map)))
+
+(with-eval-after-load 'my-launch-app
+  (keymap-set 'my/launch-app-map "D"
+              (defalias 'download-media-from-kill-ring
+                (kmacro "C-M-y h t t p C-. D"))))
 #+end_src
 
 tempel templates in minibuffer-mode
