@@ -11057,10 +11057,10 @@ during the previous playback."
 
 #+name: template-pandoc
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
-(pandoc (funcall-interactively 'my/pandoc
-                               (if (eq minibuffer-history-variable 'dired-shell-command-history)
-                                   "*" (read-file-name "File: "))
-                               (read-string "Format: " "org")))
+(pandoc (my/pandoc
+         (if (eq minibuffer-history-variable 'dired-shell-command-history)
+             "*" (read-file-name "File: "))
+         (read-string "Format: " "org")))
 #+end_src
 
 #+NAME: guix-base-pandoc
