@@ -4616,6 +4616,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
   :custom
   (org-clock-into-drawer "CLOCK")
   (org-clock-out-when-done t)
+  (org-clock-out-remove-zero-time-clocks t)
   (org-clock-persist t)
   (org-clock-persist-file (file-name-concat user-emacs-directory "org-clock-save.el"))
   (org-clock-persist-query-resume nil)
@@ -9715,10 +9716,12 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
 (provide 'my-org-global-map)
 #+end_src
 
-***** remove empty clock log unless manually clocked out
+***** remove empty clock log unless manually clocked out :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-06-06 Tue 10:23]
 :END:
+
+(setq org-clock-out-remove-zero-time-clocks t) makes this setting happen.
 
 Removing zero time clock log makes sense that you can exclude undesirable line. But there is some sxception. Suppose you want to make clock log afterwards. Then you must create zero time clock log first and tune beginning and/or end of time. So I decided to retain zero time clock log only if clocked out manually (called org-clock-out interactively).
 
