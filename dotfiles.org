@@ -2584,6 +2584,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (global-set-key (kbd "C-c C-o") #'browse-url-at-point)
   :custom
   (browse-url-new-window-flag t)
+  (browse-url-browser-function 'eww-browse-url)
   (browse-url-secondary-browser-function 'browse-url-firefox))
 #+end_src
 
@@ -10934,45 +10935,47 @@ tempel templates in minibuffer-mode
 
 #+NAME: command-play-media
 #+begin_src emacs-lisp :noweb tangle
-(cl-command-defun my/play-media (file &key no-resume)
+(cl-command-defun command/play-media (file &key no-resume start end)
   "Build a shell command string to play media FILE.
 
 If the option :NO-RESUME is provided, disregard any suspended time
 during the previous playback."
-  (format "mpv %s"
-          (string-join
-           (delq nil
-                 (list (and no-resume "--no-resume-playback")
-                       (cond
-                        ((stringp file) (shell-quote-argument (expand-file-name file)))
-                        ((listp file)
-                         (mapconcat (lambda (f)
-                                      (shell-quote-argument (expand-file-name f)))
-                                    file
-                                    " ")))))
-           " ")))
+  (string-join
+   (delq nil
+         (list "mpv"
+               (and no-resume "--no-resume-playback")
+               (and start (format "--start=%s" start))
+               (and end (format "--end=%s" end))
+               (cond
+                ((stringp file) (shell-quote-argument (expand-file-name file)))
+                ((listp file)
+                 (mapconcat (lambda (f)
+                              (shell-quote-argument (expand-file-name f)))
+                            file
+                            " ")))))
+   " "))
 
 (with-eval-after-load 'embark
   (mapc (lambda (map)
           (lambda-key map "P"
                       (lambda (file)
                         "play media FILE"
-                        (funcall-interactively 'my/play-media file)))
+                        (funcall-interactively 'command/play-media file)))
           (lambda-key map "M-P"
                       (lambda (file)
                         "play media FILE as ignoring resume playback"
-                        (funcall-interactively 'my/play-media file :no-resume t))))
+                        (funcall-interactively 'command/play-media file :no-resume t))))
         (list embark-file-map embark-url-map))
   (with-eval-after-load 'org
     (mapc (lambda (map)
             (lambda-key map "P"
                         (lambda (link)
                           "play media file written in org LINK"
-                          (funcall-interactively 'my/play-media (url-filename (url-generic-parse-url (org-link-expand-abbrev link))))))
+                          (funcall-interactively 'command/play-media (url-filename (url-generic-parse-url (org-link-expand-abbrev link))))))
             (lambda-key map "M-P"
                         (lambda (link)
                           "play media file written in org LINK as ignoring resume playback"
-                          (funcall-interactively 'my/play-media (url-filename (url-generic-parse-url (org-link-expand-abbrev link)))
+                          (funcall-interactively 'command/play-media (url-filename (url-generic-parse-url (org-link-expand-abbrev link)))
                                                  :no-resume t))))
           (list embark-org-link-map))
     (mapc (lambda (map)
@@ -10980,7 +10983,7 @@ during the previous playback."
                         (lambda (list)
                           "play media in LIST"
                           (funcall-interactively
-                           'my/play-media
+                           'command/play-media
                            (mapcar (lambda (item)
                                      (when (string-match org-link-any-re (car item))
                                        (url-filename (url-generic-parse-url
@@ -10992,7 +10995,7 @@ during the previous playback."
                         (lambda (list)
                           "play media in LIST written in org LINK as ignoring resume playback"
                           (funcall-interactively
-                           'my/play-media
+                           'command/play-media
                            (mapcar (lambda (item)
                                      (when (string-match org-link-any-re (car item))
                                        (url-filename (url-generic-parse-url
@@ -11006,8 +11009,8 @@ during the previous playback."
 
 #+NAME: template-play-media
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
-(play-media (my/play-media (read-file-name "File: ")))
-(play-media-no-resume (my/play-media (read-file-name "File: ") :no-resume t))
+(play-media (command/play-media (read-file-name "File: ")))
+(play-media-no-resume (command/play-media (read-file-name "File: ") :no-resume t))
 #+end_src
 
 ***** opus transcoder
@@ -11952,6 +11955,7 @@ d <<open-file-dir()>> 0755 - - 14d
   '("tar.gz" "tgz" "tar.xz" "txz" "zip" "7z")
   "Extensions compressed files which can play with media player must have.")
 
+;; TODO: This could be achieved by command builder
 (defmacro my/open-file-as-html (file convert-cmd)
   `(let* ((cap-command (if (string-match-p url-handler-regexp ,file)
                            "curl"
@@ -11980,24 +11984,29 @@ d <<open-file-dir()>> 0755 - - 14d
 (defun my/open-pdf-as-html (pdf)
   "Open PDF in `eww' after the process of convertion into html."
   (my/open-file-as-html
-   pdf
+   (expand-file-name pdf)
    (format "%1$s %2$s 2>/dev/null | pdftohtml -p -s -noframes -nomerge -nodrm - %3$s"
            cap-command
-           (shell-quote-argument pdf)
+           (shell-quote-argument (expand-file-name pdf))
            (shell-quote-argument filename-html))))
 
 (defun my/open-epub-as-html (epub)
   "Open EPUB in `eww' after the process of convertion into html."
-  (my/open-file-as-html
-   epub
-   (format "%1$s %2$s 2>/dev/null | pandoc --from=epub --to=html --extract-media=%3$s - | strip_ruby > %4$s"
-           cap-command
-           (shell-quote-argument epub)
-           (shell-quote-argument dirname-html)
-           (shell-quote-argument filename-html))))
+  (let ((exp-epub (if (file-exists-p epub)
+                      (expand-file-name epub)
+                    epub)))
+    (my/open-file-as-html
+     exp-epub
+     (format "%1$s %2$s 2>/dev/null | pandoc --from=epub --to=html --extract-media=%3$s - | strip_ruby > %4$s"
+             cap-command
+             (shell-quote-argument exp-epub)
+             (shell-quote-argument dirname-html)
+             (shell-quote-argument filename-html)))))
 
-(defun my/open-media (media &optional start-time)
-  "Open MEDIA in `my/open-file-media-player' at the point of START-TIME."
+(defun my/open-media (media &optional query)
+  "Open MEDIA file in media player with respecting QUERY.
+
+QUERY must comply to RFC 822 format, which holds attribute/value pairs."
   (let ((ask-file (when (or (file-directory-p media)
                             (string-match-p (eval `(rx (or ,@my/open-file-compressed-media-extensions)))
                                             media))
@@ -12005,136 +12014,45 @@ d <<open-file-dir()>> 0755 - - 14d
     (when (or (not ask-file)
               (and ask-file
                    (y-or-n-p (format "Play %s?: " ask-file))))
-      (start-process-shell-command
-       my/open-file-media-player nil
-       (let ((cap-cmd (and (string-suffix-p ".gpg" media)
-                           (format "gpg -d %s | " media))))
-         (mapconcat #'identity
-                    (list (or cap-cmd "")
-                          "nohup" my/open-file-media-player
-                          "--force-window"
-                          (or (and start-time
-                                   (format "--start=%s" start-time))
-                              "")
-                          (if cap-cmd
-                              "-"
-                            (shell-quote-argument media))
-                          "2>&1" ">/dev/null")
-                    " "))))))
+      (apply 'funcall-interactively
+             'command/play-media media
+             (and (stringp query)
+                  (flatten-list
+                   (mapcar (lambda (cons-cell)
+                             (pcase cons-cell
+                               (`(,void-var "") `(:start ,void-var))
+                               (`(,(or "s" "start") . ,val)
+                                `(:start ,@val))
+                               (`(,(or "e" "end") . ,val)
+                                `(:end ,@val))))
+                           (url-parse-query-string query))))))))
 
 ;; ==============================================
 ;; browse-url handling
 
 (with-eval-after-load 'browse-url
-  (let ((search-suffix "\\(?:::.*\\)?"))
-    (customize-set-variable
-     'browse-url-handlers
-     `(((lambda (url)
-          (equal current-prefix-arg '(16)))
-        . my/browse-url-external)
-       ((lambda (url)
-          (equal current-prefix-arg '(4)))
-        . my/browse-url-emacs)
-       (,(format "\\.html%s\\'" search-suffix)
-        . my/browse-url-html)
-       (,(format "\\.pdf\\(\\.gpg\\)?%s\\'" search-suffix)
-        . my/browse-url-pdf)
-       (,(format "\\.epub%s\\'" search-suffix)
-        . my/browse-url-epub)
-       (,(eval `(concat (rx "." (or ,@my/open-file-media-extensions
-                                    ,@my/open-file-compressed-media-extensions)
-                            (opt ".gpg"))
-                        search-suffix))
-        . my/browse-url-media)
-       ((lambda (url)
-          (let ((ignore-pattern "search_query"))
-            (if (string-match-p ignore-pattern url)
-                nil
-              (string-match-p (rx-to-string '(: (? (or "https://" "http://" "//"))
-                                                (? "www")
-                                                (or "youtube.com" "youtu.be")))
-                              url))))
-        . my/browse-url-media)))
-    (customize-set-variable
-     'browse-url-browser-function 'eww-browse-url)))
-
-(defun my/browse-url-html (url &optional same-window)
-  "A handler for `browse-url' responsible for html at URL."
-  (cond
-   ((file-exists-p url)
-    (eww-open-file url))
-   ((string-match-p url-handler-regexp url)
-    (browse-web url))
-   (t
-    (eww url))))
-
-(defun my/browse-url-pdf (url &optional same-window)
-  "A handler for `browse-url' responsible for a pdf file at URL."
-  (let* ((query-list (my/browse-url-break-down url))
-         (search-str (cadr query-list)))
-    (my/open-pdf-as-html (car query-list))
-    (and (stringp search-str)
-         (org-link-search search-str))))
-
-(defun my/browse-url-epub (url &optional same-window)
-  "A handler for `browse-url' responsible for an epub file at URL."
-  (let* ((query-list (my/browse-url-break-down url))
-         (search-str (cadr query-list)))
-    (my/open-epub-as-html (car query-list))
-    (and (stringp search-str)
-         (org-link-search search-str))))
-
-(defun my/browse-url-media (url &optional same-window)
-  "A handler for `browse-url' responsible for a media file at URL."
-  (let* ((query-list (my/browse-url-break-down url))
-         (search-str (cadr query-list)))
-    (my/open-media (car query-list) search-str)))
-
-(defun my/browse-url-emacs (url &optional same-window)
-  "A handler for `browse-url' invoked with `C-u' responsible for a file at URL."
-  (browse-url-emacs (car (my/browse-url-break-down url))
-                    same-window))
-
-(defun my/browse-url-external (url &optional same-window)
-  "A handler for `browse-url' invoked with `C-u C-u' responsible for a file at URL."
-  (browse-url-firefox (car (my/browse-url-break-down url))
-                      same-window))
-
-(defun my/browse-url-break-down (query)
-  (let* ((search-opt-regexp "::\\(.*\\)\\'")
-         (matcher nil)
-         (url-or-file
-          (cond ((string-match-p url-handler-regexp query)
-                 (setq matcher (format "\\(%s.*\\)%s"
-                                       url-handler-regexp
-                                       search-opt-regexp))
-                 query)
-                (t
-                 (setq matcher (format "\\(.*\\)%s"
-                                       search-opt-regexp))
-                 (expand-file-name
-                  (and (not (string-match-p "^file://" query))
-                       (replace-regexp-in-string "^\\(?:/\\)?file:" "" query)))))))
-    (if (string-match matcher url-or-file)
-        `(,(match-string 1 url-or-file) ,(match-string 2 url-or-file))
-      `(,url-or-file nil))))
+  (setopt browse-url-handlers
+          `(((lambda (url) (equal current-prefix-arg '(16)))
+             . browse-url-firefox)
+            ((lambda (url) (equal current-prefix-arg '(4)))
+             . browse-url-emacs)
+            ("\\.html\\'"
+             . (lambda (url &optional same-window)
+                 (cond
+                  ((file-exists-p url) (eww-open-file url))
+                  ((string-match-p url-handler-regexp url)
+                   (browse-web url)))))
+            ("\\.pdf\\(\\.gpg\\)?\\'" . (lambda (url &optional same-window)
+                                          (my/open-pdf-as-html url)))
+            ("\\.epub\\'" . (lambda (url &optional same-window)
+                              (my/open-epub-as-html url)))
+            (,(eval `(rx "." (or ,@my/open-file-media-extensions
+                                 ,@my/open-file-compressed-media-extensions)
+                         (opt ".gpg")))
+             . my/open-media))))
 
 ;; ==============================================
 ;; org-open handling
-
-(with-eval-after-load 'org
-  (customize-set-variable
-   `org-file-apps
-   `(("\\.html\\'" . my/org-open-html)
-     ("\\.pdf\\(\\.gpg\\)?\\'" . my/org-open-pdf)
-     ("\\.epub\\'" . my/org-open-epub)
-     (,(eval `(rx "." (or ,@my/open-file-media-extensions
-                          ,@my/open-file-compressed-media-extensions)
-                  (opt ".gpg") string-end))
-      . my/org-open-media)
-     (auto-mode . emacs)
-     (directory . my/org-open-media)
-     (system . browse-url-default-browser))))
 
 (defun my/org-open-html (file-path link-string)
   "Open a html file at FILE-PATH via org-open command."
@@ -12172,6 +12090,19 @@ d <<open-file-dir()>> 0755 - - 14d
 (add-hook 'org-execute-file-search-functions
           'my/org-execute-file-search-line-number)
 
+(with-eval-after-load 'org
+  (setopt org-file-apps
+          `(("\\.html\\'" . my/org-open-html)
+            ("\\.pdf\\(\\.gpg\\)?\\'" . my/org-open-pdf)
+            ("\\.epub\\'" . my/org-open-epub)
+            (,(eval `(rx "." (or ,@my/open-file-media-extensions
+                                 ,@my/open-file-compressed-media-extensions)
+                         (opt ".gpg") string-end))
+             . my/org-open-media)
+            (auto-mode . emacs)
+            (directory . my/org-open-media)
+            (system . browse-url-default-browser))))
+
 ;; ==============================================
 ;; dired-open handling
 
@@ -12180,9 +12111,7 @@ d <<open-file-dir()>> 0755 - - 14d
                                dired-open-by-extension
                                dired-open-subdir)
         dired-open-extensions-elisp `(("pdf" . my/open-pdf-as-html)
-                                      ("pdf.gpg" . my/open-pdf-as-html)
                                       ("epub" . my/open-epub-as-html)
-                                      ("jpg.gpg" . my/open-media)
                                       ,@(mapcar (lambda (ext)
                                                   (cons ext 'my/open-media))
                                                 my/open-file-media-extensions))
@@ -12197,14 +12126,8 @@ a `dired-open-file' call with `C-u' or `C-u C-u'."
       (browse-url-default-browser file-for-visit))
      ((equal current-prefix-arg '(4))
       (dired--find-possibly-alternative-file file-for-visit))
-     ((or (and (file-directory-p file-for-visit)
-               (seq-some (lambda (file)
-                           (string-match-p
-                            (concat "." (regexp-opt my/open-file-media-extensions) "$")
-                            file))
-                         (directory-files file-for-visit)))
-          (string-match-p (eval `(rx (or ,@my/open-file-compressed-media-extensions)))
-                          file-for-visit))
+     ((string-match-p (eval `(rx (or ,@my/open-file-compressed-media-extensions)))
+                      file-for-visit)
       (my/open-media file-for-visit))
      (t (dired-find-file)))))
 
