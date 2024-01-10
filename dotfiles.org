@@ -10487,26 +10487,25 @@ export DISPLAY=:0 && \
   (save-buffers-kill-emacs t))
 #+end_src
 
-***** pad non clocking time
+***** pad non-clocking time with break task
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 07:36]
 :END:
 
 #+begin_src emacs-lisp
 (with-eval-after-load 'org-clock
-  (add-hook 'org-clock-out-hook #'my/org-clock-pad-time))
+  (add-hook 'org-clock-out-hook #'my/org-clock-in-break-time))
 
-(defun my/org-clock-pad-time ()
-  "Clock in the 'Break' task if the previous task has clocked out."
-  (save-excursion
-    (let ((break-entry-id "d49d97de-58ec-4e41-b58c-491a9e216e1c"))
-      (when (and (not org-clock-clocking-in)
-                 (not (string= (or (save-excursion
-                                     (org-clock-goto)
-                                     (org-id-get))
-                                   "")
-                               break-entry-id)))
-        (org-id-goto break-entry-id)
+(defun my/org-clock-in-break-time ()
+  "Clock in the 'Break' task automatically as to pat non-clocking time."
+  (let ((break-task-id "d49d97de-58ec-4e41-b58c-491a9e216e1c"))
+    (when (and (not org-clock-clocking-in)
+               (not (string= (or (save-excursion
+                                   (org-clock-goto)
+                                   (org-id-get))
+                                 "")
+                             break-task-id)))
+      (org-with-point-at (org-id-find break-task-id t)
         (org-clock-in)))))
 #+end_src
 
