@@ -10935,8 +10935,8 @@ tempel templates in minibuffer-mode
 
 #+NAME: command-play-media
 #+begin_src emacs-lisp :noweb tangle
-(cl-command-defun command/play-media (file &key no-resume start end)
-  "Build a shell command string to play media FILE.
+(cl-command-defun command/play-media (file-or-url &key no-resume start end)
+  "Build a shell command string to play media FILE-OR-URL.
 
 If the option :NO-RESUME is provided, disregard any suspended time
 during the previous playback."
@@ -10947,11 +10947,14 @@ during the previous playback."
                (and start (format "--start=%s" start))
                (and end (format "--end=%s" end))
                (cond
-                ((stringp file) (shell-quote-argument (expand-file-name file)))
-                ((listp file)
+                ((stringp file-or-url)
+                 (if (file-exists-p file-or-url)
+                     (shell-quote-argument (expand-file-name file-or-url))
+                   file-or-url))
+                ((listp file-or-url)
                  (mapconcat (lambda (f)
                               (shell-quote-argument (expand-file-name f)))
-                            file
+                            file-or-url
                             " ")))))
    " "))
 
@@ -11009,7 +11012,8 @@ during the previous playback."
 
 #+NAME: template-play-media
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
-(play-media (command/play-media (read-file-name "File: ")))
+(play-media (p "File: " file t)
+            (command/play-media file))
 (play-media-no-resume (command/play-media (read-file-name "File: ") :no-resume t))
 #+end_src
 
@@ -11124,13 +11128,13 @@ during the previous playback."
 
 #+header: :shebang "minibuffer-mode"
 #+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/minibuffer.eld")
+<<minibuffer-template>>
+
 (guix-search "guix search " (p (my/region-string-trans-buffer)))
 (version (p "command") " --version")
 (curly-bracket-japanese-regexp
  (rx (parened ?｛ (+ (or " "
-                         (category japanese-hiragana-two-byte))))))
-
- <<minibuffer-template>>
+                         (category japanese-hiragana-two-byte)))))))
 #+end_src
 
 ***** emacs-lisp-mode templates
