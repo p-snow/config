@@ -9744,72 +9744,35 @@ Removing zero time clock log makes sense that you can exclude undesirable line. 
 :END:
 
 #+begin_src emacs-lisp
-(defmacro my/with-org-heading (candidate &rest body)
-  "Execute BODY at org heading CANDIDATE.
+(defun my/embark-org-clock-in-with-opening-thing (target)
+  "Clock in and open thing for TARGET at once.
 
-This macro is supposed to be used in `embark-consult-org-heading-map' or
-`embark-consult-outline-map'."
-  (declare (indent defun))
-  `(when-let* ((marker (or (get-text-property 0 'consult--candidate ,candidate)
-                           (car (get-text-property 0 'consult-location ,candidate))))
-               (buffer (marker-buffer marker))
-               (pos (marker-position marker)))
-     (save-excursion
-       (org-with-remote-undo buffer
-         (with-current-buffer buffer
-           (goto-char pos)
-           ,@body)))))
+If TARGET is an agenda item and `other-window-for-scrolling' is
+displaying an org mode buffer, then that is the source window.
+If TARGET is a minibuffer completion candidate, then the source
+window is the window selected before the command that opened the
+minibuffer ran."
+  (embark-org--in-source-window
+   target
+   (lambda (marker)
+     (org-with-point-at marker
+       (org-clock-in)
+       (org-open-at-point)))))
 
-(defun my/org-clock-in-with (cand)
-  "Clock in for CAND org heading.
-
-CAND is supposed to be either consult-candidate or consult-location."
-  (my/with-org-heading cand (org-clock-in)))
-
-(defun my/org-clock-in-and-open-with (cand)
-  "Clock in and open thing for CAND at once.
-
-CAND is supposed to be either consult-candidate or consult-location."
-  (my/with-org-heading cand
-    (progn (org-clock-in)
-           (org-open-at-point))))
-
-(defun my/org-clock-supersede-with (cand)
-  "Cancel the current clocking then clock in for CAND with filling out the canceled time.
-
-CAND is supposed to be either consult-candidate or consult-location."
-  (my/with-org-heading cand (my/org-clock-supersede)))
-
-(defun my/org-clock-supersede-and-out-with (cand)
-  "Cancel the current clocking then clock in and out for CAND with filling out the canceled time.
-
-CAND is supposed to be either consult-candidate or consult-location."
-  (my/with-org-heading cand
-    (progn (my/org-clock-supersede)
-           (org-clock-out))))
-
-(defun my/org-todo-with (cand)
-  "Change the todo state of an org heading CAND."
-  (my/with-org-heading cand (org-todo)))
-
-(defun my/org-open-with (cand)
-  "Open org link in an org heading CAND."
-  (my/with-org-heading cand (org-open-at-point)))
+(defun my/embark-org-clock-supersede (target)
+  "Cancel the current clocking then clock in TARGET so as to fill out the gap time."
+  (embark-org--in-source-window
+   target
+   (lambda (marker)
+     (org-with-point-at marker
+       (my/org-clock-supersede)))))
 
 (with-eval-after-load 'embark
-  (add-to-list 'embark-keymap-alist
-               `(consult-org-heading
-                 ,(defvar-keymap embark-consult-org-heading-map
-                    :doc "Keymap for actions on Org headings."
-                    :parent embark-general-map
-                    "I"   #'my/org-clock-in-with
-                    "C-I" #'my/org-clock-in-and-open-with
-                    "V"   #'my/org-clock-supersede-with
-                    "C-V" #'my/org-clock-supersede-and-out-with
-                    "T"   #'my/org-todo-with
-                    "o"   #'my/org-open-with)))
-  (add-to-list 'embark-keymap-alist
-               '(consult-location embark-consult-org-heading-map)))
+  (cl-mapc (lambda (key-def)
+             (keymap-set embark-org-heading-map
+                         (car key-def) (cdr key-def)))
+           '(("M-I" . my/embark-org-clock-in-with-opening-thing)
+             ("V" . my/embark-org-clock-supersede))))
 #+end_src
 
 ***** org move repeat map
