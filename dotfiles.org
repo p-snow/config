@@ -10911,12 +10911,14 @@ during the previous playback."
                (and end (format "--end=%s" end))
                (cond
                 ((stringp file-or-url)
-                 (if (file-exists-p file-or-url)
-                     (shell-quote-argument (expand-file-name file-or-url))
-                   file-or-url))
+                 (format "'%s'"
+                         (s-chop-suffix "::" ; workaround
+                                        (if (file-exists-p file-or-url)
+                                            (expand-file-name file-or-url)
+                                          file-or-url))))
                 ((listp file-or-url)
                  (mapconcat (lambda (f)
-                              (shell-quote-argument (expand-file-name f)))
+                              (format "'%s'" (expand-file-name f)))
                             file-or-url
                             " ")))))
    " "))
