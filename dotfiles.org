@@ -12404,7 +12404,7 @@ Capture URL or file currently visiting as well as a sentence at point."
                                        :action 'element-with-markers))
          (sentence (replace-regexp-in-string word
                                              (my/cloze-deletion word)
-                                             (sentence-at-point))))
+                                             (or (sentence-at-point) ""))))
     (kill-new (if (stringp sentence) sentence ""))
     (cond
      (my/org-english-match-entry (org-capture nil "!1"))
