@@ -10820,7 +10820,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
           (parened-rx paren-open-char 'element))))
 #+end_src
 
-**** shell command string builders
+**** OBSOLETE: shell commands
 :PROPERTIES:
 :CREATED:  [2023-11-07 Tue 21:20]
 :END:
@@ -10937,7 +10937,7 @@ tempel templates in minibuffer-mode
                  (my/command-download-media url :duration t))
 #+end_src
 
-***** play media
+***** play media                            :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-12-30 Sat 10:51]
 :END:
@@ -11087,6 +11087,116 @@ during the previous playback."
 #+NAME: guix-base-pandoc
 #+begin_src scheme :noweb-ref guix-base
 "weasyprint"
+#+end_src
+
+**** shell command builder using transient
+:PROPERTIES:
+:CREATED:  [2024-01-15 Mon 20:15]
+:END:
+
+#+begin_src emacs-lisp
+(require 'transient)
+
+(transient-define-suffix my/shell-command-string (the-prefix-arg)
+  :transient 'transient--do-exit
+  :key "c"
+  :description "show command"
+  (interactive "P")
+  (let* ((comm (oref transient-current-prefix scope))
+         (comm-data
+          (plist-get comm 'command))
+         (command-str (if (string-match-p "$i" comm-data)
+                          (format (replace-regexp-in-string
+                                   "$i"
+                                   (cond
+                                    ((equal the-prefix-arg '(64)) "*")
+                                    (t
+                                     (flet ((quote-str (arg)
+                                                       (pcase arg
+                                                         ((and (pred stringp) file)
+                                                          (format "'%s'"
+                                                                  (if (file-exists-p file)
+                                                                      (expand-file-name file)
+                                                                    file)))
+                                                         ((and (pred listp) li)
+                                                          (mapconcat 'quote-str li " ")))))
+                                       (quote-str (or (plist-get comm 'input)
+                                                      (expand-file-name (read-file-name "File: ")))))))
+                                   comm-data)
+                                  (string-join (transient-args (oref transient-current-prefix command)) " "))
+                        comm-data)))
+    (funcall (cond
+              ((member the-prefix-arg '((16) (64))) 'insert)
+              ((equal the-prefix-arg '(4)) 'kill-new)
+              (t 'detached-shell-command))
+             command-str)))
+#+end_src
+
+***** mpv command
+:PROPERTIES:
+:CREATED:  [2024-01-15 Mon 20:17]
+:END:
+
+#+begin_src emacs-lisp
+(cl-defun mpv-command (&key file no-resume start end)
+  ""
+  (interactive)
+  (transient-define-prefix my-shell-command/mpv ()
+    "Prefix that just shows off many typical infix types."
+    [("-R" "noresume" "--no-resume-playback"
+      :init-value (lambda (obj) (oset obj value
+                                  (if no-resume "--no-resume-playback" nil))))
+     ("-s" "start" "--start=" :prompt "start: "
+      :init-value (lambda (obj) (oset obj value start)))
+     ("-e" "end" "--end=" :prompt "end: "
+      :init-value (lambda (obj) (oset obj value end)))]
+    [("p" "play" my/shell-command-string)
+     ("d" "insert command for dired-*"
+      (lambda () (interactive) (funcall-interactively 'my/shell-command-string '(64)))
+      :if (lambda () (eq minibuffer-history-variable 'dired-shell-command-history)))])
+
+  (transient-setup 'my-shell-command/mpv nil nil
+                   :scope (let ((command-data (plist-put nil 'command "mpv %s $i")))
+                            (if file
+                                (plist-put command-data
+                                           'input
+                                           file)
+                              command-data))))
+
+(with-eval-after-load 'embark
+  (mapc (lambda (map)
+          (lambda-key map "P"
+                      (lambda (file)
+                        "play media FILE"
+                        (mpv-command :file file :no-resume t))))
+        (list embark-file-map embark-url-map))
+  (with-eval-after-load 'org
+    (mapc (lambda (map)
+            (lambda-key map "P"
+                        (lambda (link)
+                          "play media file written in org LINK"
+                          (mpv-command :file
+                                       (s-chop-suffix
+                                        "::"
+                                        (url-filename
+                                         (url-generic-parse-url
+                                          (org-link-expand-abbrev link))))
+                                       :no-resume t))))
+          (list embark-org-link-map))
+    (mapc
+     (lambda (map)
+       (lambda-key map "P"
+                   (lambda (list)
+                     "play media in LIST"
+                     (mpv-command :file
+                                  (mapcar (lambda (item)
+                                            (when (string-match org-link-any-re (car item))
+                                              (url-filename (url-generic-parse-url
+                                                             (org-link-expand-abbrev
+                                                              (match-string-no-properties 2 (car item)))))))
+                                          (cdr (org-list-to-lisp list)))
+                                  :no-resume t))))
+     (list embark-org-plain-list-map))))
 #+end_src
 
 **** tempel templates in modes
@@ -12030,7 +12140,7 @@ QUERY must comply to RFC 822 format, which holds attribute/value pairs."
               (and ask-file
                    (y-or-n-p (format "Play %s?: " ask-file))))
       (apply 'funcall-interactively
-             'command/play-media media
+             'mpv-command :file media
              (and (stringp query)
                   (flatten-list
                    (mapcar (lambda (cons-cell)
