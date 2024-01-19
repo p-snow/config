@@ -11021,14 +11021,7 @@ during the previous playback."
           (list embark-org-plain-list-map))))
 #+end_src
 
-#+NAME: template-play-media
-#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
-(play-media (p "File: " file t)
-            (command/play-media file))
-(play-media-no-resume (command/play-media (read-file-name "File: ") :no-resume t))
-#+end_src
-
-***** opus transcoder
+***** opus transcoder                       :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-11-12 Sun 22:00]
 :END:
@@ -11044,13 +11037,6 @@ during the previous playback."
               (lambda (file)
                 "convert to opus audio"
                 (funcall-interactively 'my/command-transcode-opus file))))
-#+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
-(opus (my/command-transcode-opus
-       (if (eq minibuffer-history-variable 'dired-shell-command-history)
-           "*"
-         (read-file-name "File: "))))
 #+end_src
 
 ***** regenerate another file format with pandoc
@@ -11197,6 +11183,36 @@ during the previous playback."
                                           (cdr (org-list-to-lisp list)))
                                   :no-resume t))))
      (list embark-org-plain-list-map))))
+#+end_src
+
+***** generate audio command
+:PROPERTIES:
+:CREATED:  [2023-11-12 Sun 22:00]
+:END:
+
+#+begin_src emacs-lisp
+(cl-defun generate-audio-command (&key file bitrate tempo)
+  ""
+  (interactive)
+  (transient-define-prefix my-shell-command/mpv ()
+    "Prefix that just shows off many typical infix types."
+    [("-b" "bitrate" "-b:a " :prompt "bitrate: " :class transient-option
+      :init-value (lambda (obj) (oset obj value (or bitrate "64k"))))
+     ("-t" "tempo" "-filter:a atempo=" :prompt "tempo: "
+      :init-value (lambda (obj) (oset obj value tempo)))]
+    [("e" "execute" my/shell-command-string)
+     ("d" "insert command for dired-*"
+      (lambda () (interactive) (funcall-interactively 'my/shell-command-string '(64)))
+      :if (lambda () (eq minibuffer-history-variable 'dired-shell-command-history)))])
+
+  (transient-setup 'my-shell-command/mpv nil nil
+                   :scope (let ((command-data (plist-put nil 'command
+                                                         "parallel ffmpeg -i '{}' -c:a libopus -ac 2 %s '{.}'.opus ::: $i")))
+                            (if file
+                                (plist-put command-data
+                                           'input
+                                           file)
+                              command-data))))
 #+end_src
 
 **** tempel templates in modes
