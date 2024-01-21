@@ -10840,7 +10840,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   `(command-defun ,name ,args ,docstring ,builder cl-defun))
 #+end_src
 
-***** system sleep
+***** system sleep                          :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-11-07 Tue 21:25]
 :END:
@@ -10871,7 +10871,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
       " && "))))
 #+end_src
 
-#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
+#+begin_src emacs-lisp :tangle no
 (system-sleep (p "When to wake: " wake t)
               (p "Extension to sleep: " ext t)
               (my/command-system-sleep wake ext))
@@ -11083,48 +11083,55 @@ during the previous playback."
 #+begin_src emacs-lisp
 (require 'transient)
 
-(transient-define-suffix my/shell-command-string (the-prefix-arg)
+(transient-define-suffix my/command-builder-execute ()
   :transient 'transient--do-exit
-  :key "c"
-  :description "show command"
-  (interactive "P")
-  (let* ((comm (oref transient-current-prefix scope))
-         (comm-data
-          (plist-get comm 'command))
-         (command-str (if (string-match-p "$i" comm-data)
-                          (format (replace-regexp-in-string
-                                   "$i"
-                                   (cond
-                                    ((equal the-prefix-arg '(64)) "*")
-                                    (t
-                                     (flet ((quote-str (arg)
-                                                       (pcase arg
-                                                         ((and (pred stringp) file)
-                                                          (format "'%s'"
-                                                                  (if (file-exists-p file)
-                                                                      (expand-file-name file)
-                                                                    file)))
-                                                         ((and (pred listp) li)
-                                                          (mapconcat 'quote-str li " ")))))
-                                       (quote-str (or (plist-get comm 'input)
-                                                      (expand-file-name (read-file-name "File: ")))))))
-                                   comm-data)
-                                  (string-join (transient-args (oref transient-current-prefix command)) " "))
-                        comm-data)))
-    (funcall (cond
-              ((member the-prefix-arg '((16) (64))) 'insert)
-              ((equal the-prefix-arg '(4)) 'kill-new)
-              (t 'detached-shell-command))
-             command-str)))
+  :key "x"
+  :description "execute"
+  (interactive)
+  (detached-shell-command (my/command-builder--build) t))
+
+(transient-define-suffix my/command-builder-insert ()
+  :transient 'transient--do-exit
+  :key "i"
+  :description "insert"
+  :if-derived 'minibuffer-mode
+  (interactive)
+  (insert (my/command-builder--build)))
+
+(defun my/command-builder--build ()
+  (let* ((comm-data (oref transient-current-prefix scope))
+         (fmt-str (plist-get comm-data 'format)))
+    (format
+     (if (string-match-p "%i" fmt-str)
+         (replace-regexp-in-string
+          "%i"
+          (if (eq minibuffer-history-variable 'dired-shell-command-history)
+              "*"
+            (flet ((quote-str (arg)
+                              (pcase arg
+                                ((and (pred stringp) file)
+                                 (if (file-exists-p file)
+                                     (format "'%s'" (expand-file-name file))
+                                   file))
+                                ((and (pred listp) li)
+                                 (mapconcat 'quote-str li " ")))))
+              (quote-str (or (plist-get comm-data 'input)
+                             (expand-file-name (read-file-name "File: "))))))
+          fmt-str)
+       fmt-str)
+     (string-join
+      (append (oref transient-current-prefix value)
+              (transient-args (oref transient-current-prefix command)))
+      " "))))
 #+end_src
 
-***** mpv command
+***** command: mpv
 :PROPERTIES:
 :CREATED:  [2024-01-15 Mon 20:17]
 :END:
 
 #+begin_src emacs-lisp
-(cl-defun mpv-command (&key file no-resume start end)
+(cl-defun command/mpv (&key file no-resume start end)
   ""
   (interactive)
   (transient-define-prefix my-shell-command/mpv ()
@@ -11136,17 +11143,12 @@ during the previous playback."
       :init-value (lambda (obj) (oset obj value start)))
      ("-e" "end" "--end=" :prompt "end: "
       :init-value (lambda (obj) (oset obj value end)))]
-    [("p" "play" my/shell-command-string)
-     ("d" "insert command for dired-*"
-      (lambda () (interactive) (funcall-interactively 'my/shell-command-string '(64)))
-      :if (lambda () (eq minibuffer-history-variable 'dired-shell-command-history)))])
-
+    [(my/command-builder-execute)
+     (my/command-builder-insert)])
   (transient-setup 'my-shell-command/mpv nil nil
-                   :scope (let ((command-data (plist-put nil 'command "mpv %s $i")))
+                   :scope (let ((command-data (plist-put nil 'format "mpv %s %i")))
                             (if file
-                                (plist-put command-data
-                                           'input
-                                           file)
+                                (plist-put command-data 'input file)
                               command-data))))
 
 (with-eval-after-load 'embark
@@ -11154,14 +11156,14 @@ during the previous playback."
           (lambda-key map "P"
                       (lambda (file)
                         "play media FILE"
-                        (mpv-command :file file :no-resume t))))
+                        (command/mpv :file file :no-resume t))))
         (list embark-file-map embark-url-map))
   (with-eval-after-load 'org
     (mapc (lambda (map)
             (lambda-key map "P"
                         (lambda (link)
                           "play media file written in org LINK"
-                          (mpv-command :file
+                          (command/mpv :file
                                        (s-chop-suffix
                                         "::"
                                         (url-filename
@@ -11174,7 +11176,7 @@ during the previous playback."
        (lambda-key map "P"
                    (lambda (list)
                      "play media in LIST"
-                     (mpv-command :file
+                     (command/mpv :file
                                   (mapcar (lambda (item)
                                             (when (string-match org-link-any-re (car item))
                                               (url-filename (url-generic-parse-url
@@ -11185,13 +11187,13 @@ during the previous playback."
      (list embark-org-plain-list-map))))
 #+end_src
 
-***** generate audio command
+***** command: make opus audio
 :PROPERTIES:
 :CREATED:  [2023-11-12 Sun 22:00]
 :END:
 
 #+begin_src emacs-lisp
-(cl-defun generate-audio-command (&key file bitrate tempo)
+(cl-defun command/make-opus (&key file bitrate tempo)
   ""
   (interactive)
   (transient-define-prefix my-shell-command/mpv ()
@@ -11200,19 +11202,55 @@ during the previous playback."
       :init-value (lambda (obj) (oset obj value (or bitrate "64k"))))
      ("-t" "tempo" "-filter:a atempo=" :prompt "tempo: "
       :init-value (lambda (obj) (oset obj value tempo)))]
-    [("e" "execute" my/shell-command-string)
-     ("d" "insert command for dired-*"
-      (lambda () (interactive) (funcall-interactively 'my/shell-command-string '(64)))
-      :if (lambda () (eq minibuffer-history-variable 'dired-shell-command-history)))])
+    [(my/command-builder-execute)
+     (my/command-builder-insert)])
 
   (transient-setup 'my-shell-command/mpv nil nil
-                   :scope (let ((command-data (plist-put nil 'command
-                                                         "parallel ffmpeg -i '{}' -c:a libopus -ac 2 %s '{.}'.opus ::: $i")))
+                   :scope (let ((command-data (plist-put nil 'format
+                                                         "parallel ffmpeg -i '{}' -c:a libopus -ac 2 %s '{.}'.opus ::: %i")))
                             (if file
-                                (plist-put command-data
-                                           'input
-                                           file)
+                                (plist-put command-data 'input file)
                               command-data))))
+#+end_src
+
+***** command: system sleep
+:PROPERTIES:
+:CREATED:  [2024-01-20 Sat 14:29]
+:END:
+
+#+begin_src emacs-lisp
+(transient-define-prefix my/system-sleep ()
+  "Prefix that just shows off many typical infix types."
+  :value '("-l" "-m mem" "-v")
+  [("-d" "date" "--date " :prompt "When to wake up?: " :class transient-option
+    :allow-empty nil :reader my/transient-read-time :always-read t
+    :init-value (lambda (obj) (oset obj value (my/transient-read-time nil "+7h" nil))))]
+  [(my/command-builder-insert)])
+
+(defun my/transient-read-time (prompt default-time _history)
+  "Read time using date command."
+  (format "'%s'"
+          (or (seq-some (lambda (d)
+                          (let ((time-str (string-trim
+                                           (shell-command-to-string
+                                            (format "date +'%%Y-%%m-%%d %%H:%%M' -d '%s'"
+                                                    (my/expand-shorthand-time d))))))
+                            (unless (string-prefix-p "date: invalid date"
+                                                     time-str)
+                              time-str)))
+                        (delq nil (list (and prompt (read-string prompt)) default-time)))
+              "")))
+
+(defun command/system-sleep (sec)
+  ""
+  (interactive "sSleep for (sec[s/m/h/d]): ")
+  (transient-setup 'my/system-sleep nil nil
+                   :scope (plist-put nil 'format
+                                     (format "sleep %s; pwsudo rtcwake %%s; %s"
+                                             sec
+                                             (completing-read "Wake-up task: "
+                                                              '("morning.sh;"
+                                                                "which system.sh | xargs pwsudo; morning.sh; weekend.sh;"))))))
 #+end_src
 
 **** tempel templates in modes
@@ -12156,7 +12194,7 @@ QUERY must comply to RFC 822 format, which holds attribute/value pairs."
               (and ask-file
                    (y-or-n-p (format "Play %s?: " ask-file))))
       (apply 'funcall-interactively
-             'mpv-command :file media
+             'command/mpv :file media
              (and (stringp query)
                   (flatten-list
                    (mapcar (lambda (cons-cell)
