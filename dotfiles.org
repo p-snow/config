@@ -8751,6 +8751,13 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
   (keymap-set keymap key sym))
 #+end_src
 
+#+name: template-lambda-key
+#+begin_src emacs-lisp :tangle no :noweb-ref emacs-lisp-mode-template
+(lambda-key "(lambda-key " (p "keymap") " \"" (p "key") "\"" n>
+            "(lambda () \"" (p "desc") "\"" n> "(interactive)" n>
+            p "))")
+#+end_src
+
 ***** computational
 :PROPERTIES:
 :CREATED:  [2023-12-20 Wed 18:24]
@@ -11319,6 +11326,8 @@ during the previous playback."
 
 #+header: :shebang "emacs-lisp-mode"
 #+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/emacs-lisp.eld")
+<<emacs-lisp-mode-template>>
+
 (require "(require '" (p "feature") ")")
 (lambda "(lambda () " n>
   (p "docstring: " doc-str t)
