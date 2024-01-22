@@ -11174,16 +11174,16 @@ during the previous playback."
                         (command/mpv :file file :no-resume t))))
         (list embark-file-map embark-url-map))
   (with-eval-after-load 'org
+    (defun my/flink-path (flink)
+      (let* ((exp-link (org-link-expand-abbrev flink)))
+        (string-trim-right
+         (string-trim-left exp-link "file:")
+         "::.+$")))
     (mapc (lambda (map)
             (lambda-key map "P"
                         (lambda (link)
                           "play media file written in org LINK"
-                          (command/mpv :file
-                                       (s-chop-suffix
-                                        "::"
-                                        (url-filename
-                                         (url-generic-parse-url
-                                          (org-link-expand-abbrev link))))
+                          (command/mpv :file (my/flink-path link)
                                        :no-resume t))))
           (list embark-org-link-map))
     (mapc
@@ -11194,9 +11194,7 @@ during the previous playback."
                      (command/mpv :file
                                   (mapcar (lambda (item)
                                             (when (string-match org-link-any-re (car item))
-                                              (url-filename (url-generic-parse-url
-                                                             (org-link-expand-abbrev
-                                                              (match-string-no-properties 2 (car item)))))))
+                                              (my/flink-path (match-string-no-properties 2 (car item)))))
                                           (cdr (org-list-to-lisp list)))
                                   :no-resume t))))
      (list embark-org-plain-list-map))))
@@ -11239,7 +11237,8 @@ during the previous playback."
   [("-d" "date" "--date " :prompt "When to wake up?: " :class transient-option
     :allow-empty nil :reader my/transient-read-time :always-read t
     :init-value (lambda (obj) (oset obj value (my/transient-read-time nil "+7h" nil))))]
-  [(my/command-builder-insert)])
+  [(my/command-builder-execute)
+   (my/command-builder-insert)])
 
 (defun my/transient-read-time (prompt default-time _history)
   "Read time using date command."
