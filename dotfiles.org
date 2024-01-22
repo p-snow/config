@@ -11047,7 +11047,7 @@ during the previous playback."
                 (funcall-interactively 'my/command-transcode-opus file))))
 #+end_src
 
-***** regenerate another file format with pandoc
+***** regenerate another file format with pandoc :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-12-17 Sun 10:09]
 :END:
@@ -11071,7 +11071,7 @@ during the previous playback."
 #+end_src
 
 #+name: template-pandoc
-#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-mode-template
+#+begin_src emacs-lisp :tangle no
 (pandoc (my/pandoc
          (if (eq minibuffer-history-variable 'dired-shell-command-history)
              "*" (read-file-name "File: "))
@@ -11107,30 +11107,38 @@ during the previous playback."
   (insert (my/command-builder--build)))
 
 (defun my/command-builder--build ()
-  (let* ((comm-data (oref transient-current-prefix scope))
-         (fmt-str (plist-get comm-data 'format)))
-    (format
-     (if (string-match-p "%i" fmt-str)
-         (replace-regexp-in-string
-          "%i"
-          (if (eq minibuffer-history-variable 'dired-shell-command-history)
-              "*"
-            (flet ((quote-str (arg)
-                              (pcase arg
-                                ((and (pred stringp) file)
-                                 (if (file-exists-p file)
-                                     (format "'%s'" (expand-file-name file))
-                                   file))
-                                ((and (pred listp) li)
-                                 (mapconcat 'quote-str li " ")))))
-              (quote-str (or (plist-get comm-data 'input)
-                             (expand-file-name (read-file-name "File: "))))))
-          fmt-str)
-       fmt-str)
-     (string-join
-      (append (oref transient-current-prefix value)
-              (transient-args (oref transient-current-prefix command)))
-      " "))))
+  ""
+  (flet ((exp-fun (arg)
+                  (pcase arg
+                    ((and (pred stringp) file) file)
+                    ((and (pred listp) li)
+                     (mapconcat 'exp-fun li " ")))))
+    (let* ((comm-data (oref transient-current-prefix scope))
+           (prefix-val (oref transient-current-prefix value))
+           (fmt-str (or (and prefix-val
+                             (exp-fun prefix-val))
+                        (plist-get comm-data 'format))))
+      (format
+       (if (string-match-p "%i" fmt-str)
+           (replace-regexp-in-string
+            "%i"
+            (if (eq minibuffer-history-variable 'dired-shell-command-history)
+                "*"
+              (flet ((quote-str (arg)
+                                (pcase arg
+                                  ((and (pred stringp) file)
+                                   (if (file-exists-p file)
+                                       (format "'%s'" (expand-file-name file))
+                                     file))
+                                  ((and (pred listp) li)
+                                   (mapconcat 'quote-str li " ")))))
+                (quote-str (or (plist-get comm-data 'input)
+                               (expand-file-name (read-file-name "File: "))))))
+            fmt-str)
+         fmt-str)
+       (string-join
+        (transient-args (oref transient-current-prefix command))
+        " ")))))
 #+end_src
 
 ***** command: mpv
@@ -11144,6 +11152,7 @@ during the previous playback."
   (interactive)
   (transient-define-prefix my-shell-command/mpv ()
     "Prefix that just shows off many typical infix types."
+    :value "mpv %s %i"
     [("-R" "noresume" "--no-resume-playback"
       :init-value (lambda (obj) (oset obj value
                                   (if no-resume "--no-resume-playback" nil))))
@@ -11154,10 +11163,8 @@ during the previous playback."
     [(my/command-builder-execute)
      (my/command-builder-insert)])
   (transient-setup 'my-shell-command/mpv nil nil
-                   :scope (let ((command-data (plist-put nil 'format "mpv %s %i")))
-                            (if file
-                                (plist-put command-data 'input file)
-                              command-data))))
+                   :scope (when file
+                            (plist-put nil 'input file))))
 
 (with-eval-after-load 'embark
   (mapc (lambda (map)
@@ -11195,13 +11202,13 @@ during the previous playback."
      (list embark-org-plain-list-map))))
 #+end_src
 
-***** command: make opus audio
+***** command: produce opus audio
 :PROPERTIES:
 :CREATED:  [2023-11-12 Sun 22:00]
 :END:
 
 #+begin_src emacs-lisp
-(cl-defun command/make-opus (&key file bitrate tempo)
+(cl-defun command/produce-opus (&key file bitrate tempo)
   ""
   (interactive)
   (transient-define-prefix my-shell-command/mpv ()
@@ -11229,7 +11236,6 @@ during the previous playback."
 #+begin_src emacs-lisp
 (transient-define-prefix my/system-sleep ()
   "Prefix that just shows off many typical infix types."
-  :value '("-l" "-m mem" "-v")
   [("-d" "date" "--date " :prompt "When to wake up?: " :class transient-option
     :allow-empty nil :reader my/transient-read-time :always-read t
     :init-value (lambda (obj) (oset obj value (my/transient-read-time nil "+7h" nil))))]
@@ -11254,11 +11260,54 @@ during the previous playback."
   (interactive "sSleep for (sec[s/m/h/d]): ")
   (transient-setup 'my/system-sleep nil nil
                    :scope (plist-put nil 'format
-                                     (format "sleep %s; pwsudo rtcwake %%s; %s"
+                                     (format "sleep %s; pwsudo rtcwake -l -m mem -v %%s; %s"
                                              sec
                                              (completing-read "Wake-up task: "
                                                               '("morning.sh;"
                                                                 "which system.sh | xargs pwsudo; morning.sh; weekend.sh;"))))))
+#+end_src
+
+***** command: pandoc
+:PROPERTIES:
+:CREATED:  [2024-01-22 Mon 14:23]
+:END:
+
+#+name: command/pandoc
+#+begin_src emacs-lisp
+(transient-define-prefix my/pandoc-menu ()
+  ""
+  :value '("parallel pandoc %s '{}' ::: %i")
+  [(my/pandoc-to)]
+  [(my/command-builder-execute)
+   (my/command-builder-insert)])
+
+(defclass my/transient-option (transient-option)
+  ())
+
+(transient-define-infix my/pandoc-to ()
+  :class my/transient-option
+  :transient t
+  :prompt "To format: "
+  :key "-t"
+  :description "To Format"
+  :argument "--to="
+  :allow-empty nil
+  :always-read t
+  :init-value (lambda (obj) (oset obj value (car (oref obj choices))))
+  :choices '("org" "pdf" "epub" "rst" "texinfo" "odt" "docx"))
+
+(cl-defmethod transient-infix-value ((obj my/transient-option))
+  ""
+  (let ((fmt (oref obj value)))
+    (concat (format "-o '{.}'.%s" fmt)
+            (when (string= fmt "pdf")
+              " --pdf-engine weasyprint"))))
+
+(cl-defun my/pandoc (&key file)
+  ""
+  (interactive)
+  (transient-setup 'my/pandoc-menu nil nil
+                   :scope (when file (plist-put nil 'input file))))
 #+end_src
 
 **** tempel templates in modes
