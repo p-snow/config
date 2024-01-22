@@ -3102,15 +3102,16 @@ sudo systemctl start dictd
 
 (use-package dired-x
   :after dired
-  :custom
-  ;; hide ., .. and all dotfiles starting with .
-  (dired-omit-files (rx (seq string-start
-                             (or "." ".."
-                                 (seq "." (+? graph)))
-                             string-end)))
   :config
-  (bind-keys :map dired-mode-map
-             ("." . dired-omit-mode)))
+  (lambda-key dired-mode-map "."
+              (lambda ()
+                "Toggle hiding dotfiles whose name starts with '.'"
+                (interactive)
+                (let ((dired-omit-files (rx (seq string-start
+                                                 (or "." ".."
+                                                     (seq "." (+? graph)))
+                                                 string-end))))
+                  (call-interactively #'dired-omit-mode)))))
 
 (use-package dired-aux
   :after dired
