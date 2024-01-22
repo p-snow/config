@@ -457,7 +457,7 @@ done
 #+end_src
 
 #+name: template-activate-profiles
-#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
+#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-mode-template
 (activate-profiles "activate-profiles "
                    (completing-read "profiles: "
                                     (mapcar (lambda (elt)
@@ -6515,7 +6515,7 @@ This subtree holds resources for [[https://p-snow.org/][my blog]].
 :END:
 
 #+NAME: template-blog-post-filename
-#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
+#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-mode-template
 (blog-post-filename (format-time-string "%Y%m%d-%H%M.org"))
 #+end_src
 
@@ -10928,7 +10928,7 @@ If :DURATION offered, return media duration instead."
 #+end_src
 
 tempel templates in minibuffer-mode
-#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
+#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-mode-template
 (download-video (p "URL: " url t)
                 (my/command-download-media url))
 (download-audio (p "URL: " url t)
@@ -11063,7 +11063,7 @@ during the previous playback."
 #+end_src
 
 #+name: template-pandoc
-#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-template
+#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-mode-template
 (pandoc (my/pandoc
          (if (eq minibuffer-history-variable 'dired-shell-command-history)
              "*" (read-file-name "File: "))
@@ -11303,7 +11303,7 @@ during the previous playback."
 
 #+header: :shebang "minibuffer-mode"
 #+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/minibuffer.eld")
-<<minibuffer-template>>
+<<minibuffer-mode-template>>
 
 (guix-search "guix search " (p (my/region-string-trans-buffer)))
 (version (p "command") " --version")
