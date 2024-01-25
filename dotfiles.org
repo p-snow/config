@@ -12596,6 +12596,7 @@ My workflow for acquiring English words is:
 (require 'org-drill)
 (require 'cl)
 (require 'request)
+(require 'logos)
 
 (defvar my/org-english-file "~/documents/english.org"
   "A file where all english words to learn locate.")
@@ -12809,15 +12810,23 @@ Display information and add it to kill ring if called interactively."
            (org-drill-adjust-intervals-for-early-and-late-repetitions-p t)
            ;; Adjusting item difficulty globally
            (org-drill-learn-fraction 0.43) ; intend not to reschedule drastically forward in 10th+ interval
-           (org-startup-indented nil))
+           (org-startup-indented nil)
+           (logos-hide-cursor t)
+           (logos-hide-mode-line t)
+           (logos-hide-buffer-boundaries t)
+           (logos-buffer-read-only nil)
+           (logos-olivetti nil)
+           (logos-hide-fringe t))
        (org-indent-mode -1)
        (visual-line-mode 1)
        (text-scale-set -1)
+       (logos-focus-mode 1)
        ,@body)
      (save-buffer)
      (org-indent-mode 1)
      (text-scale-set 0)
-     (visual-line-mode -1)))
+     (visual-line-mode -1)
+     (logos-focus-mode -1)))
 
 ;;;###autoload
 (defun my/org-english-drill ()
