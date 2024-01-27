@@ -8675,16 +8675,20 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 "emacs-logos"
 #+end_src
 
+#+NAME: config/emacs-logos
 #+begin_src emacs-lisp
 (use-package logos
-  :bind (("H-z" . logos-focus-mode)
+  :bind (("H-;" . logos-focus-mode)
+         ("H-n" . logos-narrow-dwim)
          :map logos-focus-mode-map
          ("f" . scroll-up-line)
+         ("j" . scroll-up-line)
          ("e" . scroll-down-line)
+         ("i" . scroll-down-line)
          ("SPC" . my/forward-paragraph)
          ("E" . my/backward-paragraph)
-         ("n" . logos-narrow-dwim)
-         ("z" . logos-focus-mode))
+         ("I" . my/backward-paragraph)
+         (";" . logos-focus-mode))
   :hook ((help-mode Info-mode eww-mode nov-mode mu4e-view-mode woman-mode mastodon-mode)
          . logos-focus-mode)
   :custom
