@@ -11087,13 +11087,14 @@ during the previous playback."
 "weasyprint"
 #+end_src
 
-**** dispatch-shell-command based on transient
+**** dispatch-command-dwim based on transient
 :PROPERTIES:
 :CREATED:  [2024-01-15 Mon 20:15]
 :END:
 
 #+begin_src emacs-lisp
 (require 'transient)
+(require 'detached)
 
 (defclass dispatch-shell-command (transient-suffix)
   ((shell-command-string :initarg :shell-command-string)
@@ -11134,29 +11135,43 @@ during the previous playback."
       'insert
     my/execute-command-function))
 
-(defun my/determine-file-specifier (file)
-  (cl-flet ((files-str (arg)
-              (pcase arg
-                ((and (and (pred stringp) (pred file-exists-p)) str)
-                 (shell-quote-argument (expand-file-name str)))
-                ((and (pred listp) li) (mapconcat 'files-str li " ")))))
-    (let ((disp-comm (oref (transient-suffix-object) dispatch-command)))
-      (cond
-       ((equal disp-comm my/execute-command-function)
-        (files-str file))
-       ((equal disp-comm 'insert)
-        (if (eq minibuffer-history-variable 'dired-shell-command-history)
-            "*"
-          (files-str file)))))))
+(defun dispatch-command-dwim/determine-file (file)
+  ""
+  (cl-labels ((read-file ()
+                (read-file-name "File: ")))
+    (apply (or (and file
+                    `(dispatch-dwim--paths-string ,file))
+               (cond
+                ((derived-mode-p 'dired-mode)
+                 `(dispatch-dwim--paths-string ,(dired-get-marked-files)))
+                ((derived-mode-p 'minibuffer-mode)
+                 (cond
+                  ((equal minibuffer-history-variable 'dired-shell-command-history)
+                   '(identity "*"))
+                  ((or (member minibuffer-history-variable
+                               '(detached-shell-command-history
+                                 shell-command-history)))
+                   (with-current-buffer (other-buffer nil t)
+                     `(dispatch-dwim--paths-string
+                       ,(if (derived-mode-p 'dired-mode)
+                            (or (dired-get-marked-files) (read-file))
+                          (read-file)))))
+                  (t `(dispatch-dwim--paths-string ,(read-file))))))))))
+
+(defun dispatch-dwim--paths-string (arg)
+  (pcase arg
+    ((and (and (pred stringp) (pred file-exists-p)) str)
+     (shell-quote-argument (expand-file-name str)))
+    ((and (pred listp) li) (mapconcat #'dispatch-dwim--paths-string li " "))))
 #+end_src
 
-***** dispatch: mpv
+***** mpv dwim
 :PROPERTIES:
 :CREATED:  [2024-01-15 Mon 20:17]
 :END:
 
 #+begin_src emacs-lisp
-(transient-define-prefix dispatch-mpv (file &optional no-resume start end)
+(transient-define-prefix dispatch-mpv-dwim (&optional file no-resume start end)
   ""
   :man-page "mpv"
   [("-R" "noresume" "--no-resume-playback"
@@ -11168,19 +11183,17 @@ during the previous playback."
   [(my/command-execute
     :shell-command-string
     (format "mpv %%a %s"
-            (my/determine-file-specifier
-             (plist-get (oref transient-current-prefix scope) 'file))))]
-  (interactive "f")
-  (transient-setup 'dispatch-mpv nil nil
-                   :scope (plist-put nil 'file file)))
+            (plist-get (oref transient-current-prefix scope) 'file)))]
+  (interactive)
+  (transient-setup 'dispatch-mpv-dwim nil nil
+                   :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
 
 (with-eval-after-load 'embark
   (mapc (lambda (map)
           (lambda-key map "P"
                       (lambda (file)
                         "play media FILE"
-                        (dispatch-mpv file t)
-                        )))
+                        (dispatch-mpv-dwim file t))))
         (list embark-file-map embark-url-map))
   (with-eval-after-load 'org
     (defun my/flink-path (flink)
@@ -11192,44 +11205,42 @@ during the previous playback."
             (lambda-key map "P"
                         (lambda (link)
                           "play media file written in org LINK"
-                          (dispatch-mpv (my/flink-path link) t))))
+                          (dispatch-mpv-dwim (my/flink-path link) t))))
           (list embark-org-link-map))
     (mapc
      (lambda (map)
        (lambda-key map "P"
                    (lambda (list)
                      "play media in LIST"
-                     (dispatch-mpv (mapcar (lambda (item)
-                                             (when (string-match org-link-any-re (car item))
-                                               (my/flink-path (match-string-no-properties 2 (car item)))))
-                                           (cdr (org-list-to-lisp list)))
-                                   t))))
+                     (dispatch-mpv-dwim (mapcar (lambda (item)
+                                                  (when (string-match org-link-any-re (car item))
+                                                    (my/flink-path (match-string-no-properties 2 (car item)))))
+                                                (cdr (org-list-to-lisp list)))
+                                        t))))
      (list embark-org-plain-list-map))))
 #+end_src
 
-***** dispatch: ffmpeg opus
+***** ffmpeg-opus dwim
 :PROPERTIES:
 :CREATED:  [2023-11-12 Sun 22:00]
 :END:
 
 #+begin_src emacs-lisp
-(transient-define-prefix my/ffmpeg-opus (file)
-  "Prefix that just shows off many typical infix types."
+(transient-define-prefix dispatch-ffmpeg-opus-dwim (&optional file)
+  ""
   [("-b" "bitrate" "-b:a " :prompt "bitrate: " :class transient-option
     :init-value (lambda (obj) (oset obj value "64k")))
    ("-t" "tempo" "-filter:a atempo=" :prompt "tempo (floating number): ")]
   [(my/command-execute
     :shell-command-string
     (format "parallel ffmpeg -i '{}' -c:a libopus -ac 2 %%a '{.}'.opus ::: %s"
-            (shell-quote-argument
-             (expand-file-name
-              (plist-get (oref transient-current-prefix scope) 'file)))))]
-  (interactive "f")
-  (transient-setup 'my/ffmpeg-opus nil nil
-                   :scope (plist-put nil 'file file)))
+            (plist-get (oref transient-current-prefix scope) 'file)))]
+  (interactive)
+  (transient-setup 'dispatch-ffmpeg-opus-dwim nil nil
+                   :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
 #+end_src
 
-***** dispatch: sleep-rtcwake
+***** sleep-rtcwake dwim
 :PROPERTIES:
 :CREATED:  [2024-01-24 Wed 13:07]
 :END:
@@ -11274,24 +11285,23 @@ during the previous playback."
       ""))
 #+end_src
 
-***** dispatch: pandoc
+***** pandoc dwim
 :PROPERTIES:
 :CREATED:  [2024-01-22 Mon 14:23]
 :END:
 
 #+name: command/pandoc
 #+begin_src emacs-lisp
-(transient-define-prefix my/pandoc (file)
+(transient-define-prefix dispatch-pandoc-dwim (&optional file)
   ""
   [(my/pandoc-to)]
   [(my/command-execute
     :shell-command-string
     (format "parallel pandoc %%a '{}' ::: %s"
-            (my/determine-file-specifier
-             (plist-get (oref transient-current-prefix scope) 'file))))]
-  (interactive "f")
-  (transient-setup 'my/pandoc nil nil
-                   :scope (when file (plist-put nil 'input file))))
+            (plist-get (oref transient-current-prefix scope) 'file)))]
+  (interactive)
+  (transient-setup 'dispatch-pandoc-dwim nil nil
+                   :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
 
 (defclass my/transient-option (transient-option)
   ())
@@ -12260,7 +12270,7 @@ QUERY must comply to RFC 822 format, which holds attribute/value pairs."
               (and ask-file
                    (y-or-n-p (format "Play %s?: " ask-file))))
       (apply 'funcall-interactively
-             'dispatch-mpv media nil
+             'dispatch-mpv-dwim media nil
              (and (stringp query)
                   (let ((start) (end))
                     (mapc (lambda (cons-cell)
