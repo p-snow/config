@@ -2454,6 +2454,39 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
 (customize-set-variable 'message-log-max 10000)
 #+end_src
 
+****** Development
+:PROPERTIES:
+:CREATED:  [2024-01-28 Sun 19:30]
+:END:
+
+******* Extensions
+:PROPERTIES:
+:CREATED:  [2024-01-28 Sun 19:30]
+:END:
+
+******** Transient
+:PROPERTIES:
+:CREATED:  [2024-01-28 Sun 19:31]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-transient"
+#+end_src
+
+#+NAME: config/emacs-transient
+#+begin_src emacs-lisp
+(use-package transient
+  :custom
+  (transient-save-history t)
+  ;; :config
+  ;; (mapc (lambda (face) (set-face-attribute face nil
+  ;;                                      :font "fontset-code"
+  ;;                                      :height (my/normalized-font-size 420)))
+  ;;       (seq-filter (lambda (face) (string-match-p "transient-.+" (symbol-name face)))
+  ;;                   (face-list)))
+  )
+#+end_src
+
 ***** Help
 :PROPERTIES:
 :CREATED:  [2023-10-08 Sun 23:04]
@@ -10832,247 +10865,10 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
           (parened-rx paren-open-char 'element))))
 #+end_src
 
-**** OBSOLETE: shell commands
-:PROPERTIES:
-:CREATED:  [2023-11-07 Tue 21:20]
-:END:
-
-#+begin_src emacs-lisp
-(defmacro command-defun (name args docstring builder &optional defun-func)
-  (declare (indent 2))
-  `(,(or defun-func 'defun) ,name ,args
-    ,docstring
-    (interactive)
-    (if (called-interactively-p 'any)
-        (detached-shell-command ,builder)
-      ,builder)))
-
-(defmacro cl-command-defun (name args docstring builder)
-  (declare (indent 2))
-  `(command-defun ,name ,args ,docstring ,builder cl-defun))
-#+end_src
-
-***** system sleep                          :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-11-07 Tue 21:25]
-:END:
-
-#+begin_src emacs-lisp :noweb tangle
-(defvar my/pre-command-history nil
-  "History list for pre commands that will be executed before sleep.")
-
-(command-defun my/command-system-sleep (wake-at delay)
-  "Return a shell command string to sleep system until WAKE-AT with DELAY time."
-  (string-trim-right
-   (let ((mid-h <<morning-hour>>)
-         (ct (current-time)))
-     (string-join
-      (delq nil
-            (list
-             (and (stringp delay)
-                  (length> delay 0)
-                  (format "sleep %s" delay))
-             (format "pwsudo rtcwake -v -m mem -l --date '%s';"
-                     (string-trim
-                      (shell-command-to-string (format "date +'%%Y-%%m-%%d %%H:%%M' -d '%s'"
-                                                       (or (and (stringp wake-at) (length> wake-at 0)
-                                                                (my/expand-shorthand-time wake-at))
-                                                           (concat (when (>= (nth 2 (decode-time ct)) mid-h)
-                                                                     "tomorrow ")
-                                                                   (format "%02d:00" mid-h)))))))))
-      " && "))))
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-(system-sleep (p "When to wake: " wake t)
-              (p "Extension to sleep: " ext t)
-              (my/command-system-sleep wake ext))
-(morning-job "morning.sh;")
-(weekend-job "which system.sh | xargs pwsudo; morning.sh; weekend.sh;")
-#+end_src
-
-***** download video/audio                  :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-11-10 Fri 20:57]
-:END:
-
-command builders
-#+begin_src emacs-lisp :noweb tangle
-(cl-command-defun my/command-download-media (url &key filename audio play duration)
-  "Return a shell command string to download media file from URL using yt-dlp.
-
-If :FILENAME offered, the name of downloaded file will be its value.
-If :AUDIO offered, audio file will be extracted from downloaded video file and
- set thumbnail.
-if :PLAY offered, the file will be played right after downloading.
-If :DURATION offered, return media duration instead."
-  (format "yt-dlp %s"
-          (string-join
-           (delq nil
-                 (list (format "-P '%s'" (file-name-concat "<<media-dir()>>" "downloads"))
-                       "--embed-chapters"
-                       "--live-from-start"
-                       (and filename
-                            (format "-o '%s.%%\(ext\)s'"
-                                    (my/file-name-legitimate filename)))
-                       (and play "--exec 'mpv {}'")
-                       (and audio "-x --embed-thumbnail")
-                       (and duration "--get-duration")
-                       (format "'%s'" url)))
-           " ")))
-#+end_src
-
-tempel templates in minibuffer-mode
-#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-mode-template
-(download-video (p "URL: " url t)
-                (my/command-download-media url))
-(download-audio (p "URL: " url t)
-                (my/command-download-media url :audio t))
-(media-durationa (p "URL: " url t)
-                 (my/command-download-media url :duration t))
-#+end_src
-
-***** play media                            :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-12-30 Sat 10:51]
-:END:
-
-#+NAME: command-play-media
-#+begin_src emacs-lisp :noweb tangle
-(cl-command-defun command/play-media (file-or-url &key no-resume start end)
-  "Build a shell command string to play media FILE-OR-URL.
-
-If the option :NO-RESUME is provided, disregard any suspended time
-during the previous playback."
-  (string-join
-   (delq nil
-         (list "mpv"
-               (and no-resume "--no-resume-playback")
-               (and start (format "--start=%s" start))
-               (and end (format "--end=%s" end))
-               (cond
-                ((stringp file-or-url)
-                 (format "'%s'"
-                         (s-chop-suffix "::" ; workaround
-                                        (if (file-exists-p file-or-url)
-                                            (expand-file-name file-or-url)
-                                          file-or-url))))
-                ((listp file-or-url)
-                 (mapconcat (lambda (f)
-                              (format "'%s'" (expand-file-name f)))
-                            file-or-url
-                            " ")))))
-   " "))
-
-(with-eval-after-load 'embark
-  (mapc (lambda (map)
-          (lambda-key map "P"
-                      (lambda (file)
-                        "play media FILE"
-                        (funcall-interactively 'command/play-media file)))
-          (lambda-key map "M-P"
-                      (lambda (file)
-                        "play media FILE as ignoring resume playback"
-                        (funcall-interactively 'command/play-media file :no-resume t))))
-        (list embark-file-map embark-url-map))
-  (with-eval-after-load 'org
-    (mapc (lambda (map)
-            (lambda-key map "P"
-                        (lambda (link)
-                          "play media file written in org LINK"
-                          (funcall-interactively 'command/play-media (url-filename (url-generic-parse-url (org-link-expand-abbrev link))))))
-            (lambda-key map "M-P"
-                        (lambda (link)
-                          "play media file written in org LINK as ignoring resume playback"
-                          (funcall-interactively 'command/play-media (url-filename (url-generic-parse-url (org-link-expand-abbrev link)))
-                                                 :no-resume t))))
-          (list embark-org-link-map))
-    (mapc (lambda (map)
-            (lambda-key map "P"
-                        (lambda (list)
-                          "play media in LIST"
-                          (funcall-interactively
-                           'command/play-media
-                           (mapcar (lambda (item)
-                                     (when (string-match org-link-any-re (car item))
-                                       (url-filename (url-generic-parse-url
-                                                      (org-link-expand-abbrev
-                                                       (or (match-string-no-properties 2 (car item))
-                                                           (match-string-no-properties 0 (car item))))))))
-                                   (cdr (org-list-to-lisp list))))))
-            (lambda-key map "M-P"
-                        (lambda (list)
-                          "play media in LIST written in org LINK as ignoring resume playback"
-                          (funcall-interactively
-                           'command/play-media
-                           (mapcar (lambda (item)
-                                     (when (string-match org-link-any-re (car item))
-                                       (url-filename (url-generic-parse-url
-                                                      (org-link-expand-abbrev
-                                                       (or (match-string-no-properties 2 (car item))
-                                                           (match-string-no-properties 0 (car item))))))))
-                                   (cdr (org-list-to-lisp list)))
-                           :no-resume t))))
-          (list embark-org-plain-list-map))))
-#+end_src
-
-***** opus transcoder                       :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-11-12 Sun 22:00]
-:END:
-
-#+begin_src emacs-lisp
-(command-defun my/command-transcode-opus (file)
-  "Return a shell command string to transcode FILE to opus audio file.."
-  (format "parallel ffmpeg -i '{}' -c:a libopus -b:a 64k -ac 2 '{.}'.opus ::: %s"
-          file))
-
-(with-eval-after-load 'embark
-  (lambda-key embark-file-map "$"
-              (lambda (file)
-                "convert to opus audio"
-                (funcall-interactively 'my/command-transcode-opus file))))
-#+end_src
-
-***** regenerate another file format with pandoc :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-12-17 Sun 10:09]
-:END:
-
-#+NAME: elisp-pandoc
-#+begin_src emacs-lisp
-(command-defun my/pandoc (file out-format)
-  "Regenerate FILE with desired OUT-FORMAT with pandoc."
-  (format "parallel pandoc -o '{.}'.%1$s '{}' %3$s::: %2$s"
-          out-format file
-          (if (string= out-format "pdf")
-              "--pdf-engine weasyprint "
-            "")))
-
-(with-eval-after-load 'embark
-  (lambda-key embark-file-map "%"
-              (lambda (file)
-                "regenerate other format"
-                (funcall-interactively 'my/pandoc file
-                                       (read-string "Format: " "org")))))
-#+end_src
-
-#+name: template-pandoc
-#+begin_src emacs-lisp :tangle no
-(pandoc (my/pandoc
-         (if (eq minibuffer-history-variable 'dired-shell-command-history)
-             "*" (read-file-name "File: "))
-         (read-string "Format: " "org")))
-#+end_src
-
-#+NAME: guix-base-pandoc
-#+begin_src scheme :noweb-ref guix-base
-"weasyprint"
-#+end_src
-
-**** dispatch-command-dwim based on transient
+**** dispatch-dwim based on transient
 :PROPERTIES:
 :CREATED:  [2024-01-15 Mon 20:15]
+:ID:       cd86fe03-b295-4cde-8b7c-68d5705b843a
 :END:
 
 #+begin_src emacs-lisp
@@ -11343,6 +11139,7 @@ during the previous playback."
                                  (format "%s.%%\(ext\)s"
                                          (my/file-name-legitimate output)))))))]
   [(my/command-execute
+    ;; embed url to :shell-command-string may cause unexpected glitch
     :shell-command-string
     "yt-dlp --embed-chapters --live-from-start %a %u"
     :format-spec ((?u . (plist-get (oref transient-current-prefix scope) 'url))))]
@@ -11973,6 +11770,246 @@ if SYSTEM is non-nii open FILE using preferable application in system."
             #'my/view-file-filter-org-link-store-props)
 
 (provide 'my/view-file)
+#+end_src
+
+***** shell command builder                 :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-11-07 Tue 21:20]
+:END:
+
+This mechanism precedes [[id:cd86fe03-b295-4cde-8b7c-68d5705b843a][dispatch-dwim]]
+
+#+begin_src emacs-lisp
+(defmacro command-defun (name args docstring builder &optional defun-func)
+  (declare (indent 2))
+  `(,(or defun-func 'defun) ,name ,args
+    ,docstring
+    (interactive)
+    (if (called-interactively-p 'any)
+        (detached-shell-command ,builder)
+      ,builder)))
+
+(defmacro cl-command-defun (name args docstring builder)
+  (declare (indent 2))
+  `(command-defun ,name ,args ,docstring ,builder cl-defun))
+#+end_src
+
+****** system sleep                          :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-11-07 Tue 21:25]
+:END:
+
+#+begin_src emacs-lisp :noweb tangle
+(defvar my/pre-command-history nil
+  "History list for pre commands that will be executed before sleep.")
+
+(command-defun my/command-system-sleep (wake-at delay)
+  "Return a shell command string to sleep system until WAKE-AT with DELAY time."
+  (string-trim-right
+   (let ((mid-h <<morning-hour>>)
+         (ct (current-time)))
+     (string-join
+      (delq nil
+            (list
+             (and (stringp delay)
+                  (length> delay 0)
+                  (format "sleep %s" delay))
+             (format "pwsudo rtcwake -v -m mem -l --date '%s';"
+                     (string-trim
+                      (shell-command-to-string (format "date +'%%Y-%%m-%%d %%H:%%M' -d '%s'"
+                                                       (or (and (stringp wake-at) (length> wake-at 0)
+                                                                (my/expand-shorthand-time wake-at))
+                                                           (concat (when (>= (nth 2 (decode-time ct)) mid-h)
+                                                                     "tomorrow ")
+                                                                   (format "%02d:00" mid-h)))))))))
+      " && "))))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(system-sleep (p "When to wake: " wake t)
+              (p "Extension to sleep: " ext t)
+              (my/command-system-sleep wake ext))
+(morning-job "morning.sh;")
+(weekend-job "which system.sh | xargs pwsudo; morning.sh; weekend.sh;")
+#+end_src
+
+****** download video/audio                  :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-11-10 Fri 20:57]
+:END:
+
+command builders
+#+begin_src emacs-lisp :noweb tangle
+(cl-command-defun my/command-download-media (url &key filename audio play duration)
+  "Return a shell command string to download media file from URL using yt-dlp.
+
+If :FILENAME offered, the name of downloaded file will be its value.
+If :AUDIO offered, audio file will be extracted from downloaded video file and
+ set thumbnail.
+if :PLAY offered, the file will be played right after downloading.
+If :DURATION offered, return media duration instead."
+  (format "yt-dlp %s"
+          (string-join
+           (delq nil
+                 (list (format "-P '%s'" (file-name-concat "<<media-dir()>>" "downloads"))
+                       "--embed-chapters"
+                       "--live-from-start"
+                       (and filename
+                            (format "-o '%s.%%\(ext\)s'"
+                                    (my/file-name-legitimate filename)))
+                       (and play "--exec 'mpv {}'")
+                       (and audio "-x --embed-thumbnail")
+                       (and duration "--get-duration")
+                       (format "'%s'" url)))
+           " ")))
+#+end_src
+
+tempel templates in minibuffer-mode
+#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-mode-template
+(download-video (p "URL: " url t)
+                (my/command-download-media url))
+(download-audio (p "URL: " url t)
+                (my/command-download-media url :audio t))
+(media-durationa (p "URL: " url t)
+                 (my/command-download-media url :duration t))
+#+end_src
+
+****** play media                            :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-12-30 Sat 10:51]
+:END:
+
+#+NAME: command-play-media
+#+begin_src emacs-lisp :noweb tangle
+(cl-command-defun command/play-media (file-or-url &key no-resume start end)
+  "Build a shell command string to play media FILE-OR-URL.
+
+If the option :NO-RESUME is provided, disregard any suspended time
+during the previous playback."
+  (string-join
+   (delq nil
+         (list "mpv"
+               (and no-resume "--no-resume-playback")
+               (and start (format "--start=%s" start))
+               (and end (format "--end=%s" end))
+               (cond
+                ((stringp file-or-url)
+                 (format "'%s'"
+                         (s-chop-suffix "::" ; workaround
+                                        (if (file-exists-p file-or-url)
+                                            (expand-file-name file-or-url)
+                                          file-or-url))))
+                ((listp file-or-url)
+                 (mapconcat (lambda (f)
+                              (format "'%s'" (expand-file-name f)))
+                            file-or-url
+                            " ")))))
+   " "))
+
+(with-eval-after-load 'embark
+  (mapc (lambda (map)
+          (lambda-key map "P"
+                      (lambda (file)
+                        "play media FILE"
+                        (funcall-interactively 'command/play-media file)))
+          (lambda-key map "M-P"
+                      (lambda (file)
+                        "play media FILE as ignoring resume playback"
+                        (funcall-interactively 'command/play-media file :no-resume t))))
+        (list embark-file-map embark-url-map))
+  (with-eval-after-load 'org
+    (mapc (lambda (map)
+            (lambda-key map "P"
+                        (lambda (link)
+                          "play media file written in org LINK"
+                          (funcall-interactively 'command/play-media (url-filename (url-generic-parse-url (org-link-expand-abbrev link))))))
+            (lambda-key map "M-P"
+                        (lambda (link)
+                          "play media file written in org LINK as ignoring resume playback"
+                          (funcall-interactively 'command/play-media (url-filename (url-generic-parse-url (org-link-expand-abbrev link)))
+                                                 :no-resume t))))
+          (list embark-org-link-map))
+    (mapc (lambda (map)
+            (lambda-key map "P"
+                        (lambda (list)
+                          "play media in LIST"
+                          (funcall-interactively
+                           'command/play-media
+                           (mapcar (lambda (item)
+                                     (when (string-match org-link-any-re (car item))
+                                       (url-filename (url-generic-parse-url
+                                                      (org-link-expand-abbrev
+                                                       (or (match-string-no-properties 2 (car item))
+                                                           (match-string-no-properties 0 (car item))))))))
+                                   (cdr (org-list-to-lisp list))))))
+            (lambda-key map "M-P"
+                        (lambda (list)
+                          "play media in LIST written in org LINK as ignoring resume playback"
+                          (funcall-interactively
+                           'command/play-media
+                           (mapcar (lambda (item)
+                                     (when (string-match org-link-any-re (car item))
+                                       (url-filename (url-generic-parse-url
+                                                      (org-link-expand-abbrev
+                                                       (or (match-string-no-properties 2 (car item))
+                                                           (match-string-no-properties 0 (car item))))))))
+                                   (cdr (org-list-to-lisp list)))
+                           :no-resume t))))
+          (list embark-org-plain-list-map))))
+#+end_src
+
+****** opus transcoder                       :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-11-12 Sun 22:00]
+:END:
+
+#+begin_src emacs-lisp
+(command-defun my/command-transcode-opus (file)
+  "Return a shell command string to transcode FILE to opus audio file.."
+  (format "parallel ffmpeg -i '{}' -c:a libopus -b:a 64k -ac 2 '{.}'.opus ::: %s"
+          file))
+
+(with-eval-after-load 'embark
+  (lambda-key embark-file-map "$"
+              (lambda (file)
+                "convert to opus audio"
+                (funcall-interactively 'my/command-transcode-opus file))))
+#+end_src
+
+****** regenerate another file format with pandoc :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-12-17 Sun 10:09]
+:END:
+
+#+NAME: elisp-pandoc
+#+begin_src emacs-lisp
+(command-defun my/pandoc (file out-format)
+  "Regenerate FILE with desired OUT-FORMAT with pandoc."
+  (format "parallel pandoc -o '{.}'.%1$s '{}' %3$s::: %2$s"
+          out-format file
+          (if (string= out-format "pdf")
+              "--pdf-engine weasyprint "
+            "")))
+
+(with-eval-after-load 'embark
+  (lambda-key embark-file-map "%"
+              (lambda (file)
+                "regenerate other format"
+                (funcall-interactively 'my/pandoc file
+                                       (read-string "Format: " "org")))))
+#+end_src
+
+#+name: template-pandoc
+#+begin_src emacs-lisp :tangle no
+(pandoc (my/pandoc
+         (if (eq minibuffer-history-variable 'dired-shell-command-history)
+             "*" (read-file-name "File: "))
+         (read-string "Format: " "org")))
+#+end_src
+
+#+NAME: guix-base-pandoc
+#+begin_src scheme :noweb-ref guix-base
+"weasyprint"
 #+end_src
 
 *** would-be packages
