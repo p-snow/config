@@ -3645,6 +3645,7 @@ Command in practice presumably looks like:
 ("https://github.com/skeeto/elfeed/releases.atom" soft_update)
 #+end_src
 
+#+NAME: config/emacs-elfeed
 #+begin_src emacs-lisp
 (use-package elfeed
   :delight
@@ -3735,8 +3736,8 @@ Command in practice presumably looks like:
              when (or (caar (elfeed-entry-enclosures entry))
                       (elfeed-entry-link entry))
              do (let ((title (elfeed-entry-title entry)))
-                  (funcall-interactively
-                   'my/command-download-media it :filename title)))
+                  (dispatch-yt-dlp-dwim it title)
+                  (dispatch-execute-macro)))
     (mapc #'elfeed-search-update-entry entries)
     (unless (or elfeed-search-remain-on-entry (use-region-p))
       (forward-line))))
@@ -3747,10 +3748,9 @@ Command in practice presumably looks like:
   (let* ((entry (elfeed-search-selected :single))
          (url (or (caar (elfeed-entry-enclosures entry))
                   (elfeed-entry-link entry))))
-    (princ
-     (string-trim
-      (shell-command-to-string
-       (my/command-download-media url :duration t))))))
+    (let ((my/execute-command-function '(shell-command-to-string string-trim princ)))
+      (dispatch-yt-dlp-dwim url nil t)
+      (dispatch-execute-macro))))
 #+end_src
 
 ***** elfeed-score
@@ -10891,7 +10891,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 (weekend-job "which system.sh | xargs pwsudo; morning.sh; weekend.sh;")
 #+end_src
 
-***** download video/audio
+***** download video/audio                  :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-11-10 Fri 20:57]
 :END:
@@ -10920,23 +10920,6 @@ If :DURATION offered, return media duration instead."
                        (and duration "--get-duration")
                        (format "'%s'" url)))
            " ")))
-
-(with-eval-after-load 'embark
-  (mapc (lambda (map)
-          (lambda-key map "D"
-                      (lambda (url)
-                        "download media file"
-                        (funcall-interactively 'my/command-download-media url)))
-          (lambda-key map "P"
-                      (lambda (url)
-                        "download and play media file"
-                        (funcall-interactively 'my/command-download-media url :play t))))
-        (list embark-kill-ring-map embark-url-map)))
-
-(with-eval-after-load 'my-launch-app
-  (keymap-set 'my/launch-app-map "D"
-              (defalias 'download-media-from-kill-ring
-                (kmacro "C-M-y h t t p C-. D"))))
 #+end_src
 
 tempel templates in minibuffer-mode
@@ -11104,6 +11087,8 @@ during the previous playback."
 (cl-defmethod transient-init-value ((obj dispatch-shell-command))
   (oset obj dispatch-command (my/determine-invocation-function)))
 
+(defalias 'dispatch-execute-macro (kmacro "x"))
+
 (transient-define-suffix my/command-execute ()
   :class dispatch-shell-command
   :transient 'transient--do-exit
@@ -11111,15 +11096,19 @@ during the previous playback."
   (interactive)
   (let* ((cur-obj (transient-suffix-object))
          (format-spec (and (slot-boundp cur-obj :format-spec)
-                           (oref cur-obj format-spec))))
-    (funcall (oref cur-obj dispatch-command)
-             (format-spec
-              (eval (oref cur-obj shell-command-string))
-              (append
-               `((?a . ,(string-join (transient-get-value) " ")))
-               (when format-spec
-                 (mapcar (lambda (key-val) (cons (car key-val) (eval (cdr key-val))))
-                         format-spec)))))))
+                           (oref cur-obj format-spec)))
+         (comm (format-spec
+                (eval (oref cur-obj shell-command-string))
+                (append
+                 `((?a . ,(string-join (transient-get-value) " ")))
+                 (when format-spec
+                   (mapcar (lambda (key-val) (cons (car key-val) (eval (cdr key-val))))
+                           format-spec))))))
+    (pcase (oref cur-obj dispatch-command)
+      ((and (pred symbolp) sym) (funcall sym comm))
+      ((and (pred listp) li)
+       (seq-reduce (lambda (accum fun) (funcall fun accum))
+                   li comm)))))
 
 (defun dispatch-shell-command--key-vals (keys)
   (mapconcat 'transient-infix-value
@@ -11290,7 +11279,7 @@ during the previous playback."
 :CREATED:  [2024-01-22 Mon 14:23]
 :END:
 
-#+name: command/pandoc
+#+name: pandoc-dwim
 #+begin_src emacs-lisp
 (transient-define-prefix dispatch-pandoc-dwim (&optional file)
   ""
@@ -11324,6 +11313,70 @@ during the previous playback."
     (concat (format "-o '{.}'.%s" fmt)
             (when (string= fmt "pdf")
               " --pdf-engine weasyprint"))))
+#+end_src
+
+***** yt-dlp dwim
+:PROPERTIES:
+:CREATED:  [2024-01-27 Sat 18:25]
+:END:
+
+#+name: yt-dlp-dwim
+#+begin_src emacs-lisp :noweb tangle
+(transient-define-prefix dispatch-yt-dlp-dwim (url &optional output duration-p play-p)
+  ""
+  :man-page "yt-dlp"
+  [("-P" "download path" "--paths "
+    :class transient-option
+    :reader transient-read-existing-directory
+    :init-value (lambda (obj) (oset obj value (file-name-concat "<<media-dir()>>" "downloads"))))
+   ("-a" "audio" "-x --embed-thumbnail")
+   ("-d" "duration" "--get-duration"
+    :init-value (lambda (obj) (oset obj value (and duration-p (oref obj argument)))))
+   ("-p" "play" "--exec 'mpv --no-pause {}'"
+    :init-value (lambda (obj) (oset obj value (and play-p (oref obj argument)))))
+   ("-o" "output" "--output "
+    :class transient-option :reader dispatch-dwim-read-yt-dlp-output
+    :prompt "Output file name without extension: "
+    :init-value
+    (lambda (obj) (oset obj value
+                    (and output (shell-quote-argument
+                                 (format "%s.%%\(ext\)s"
+                                         (my/file-name-legitimate output)))))))]
+  [(my/command-execute
+    :shell-command-string
+    "yt-dlp --embed-chapters --live-from-start %a %u"
+    :format-spec ((?u . (plist-get (oref transient-current-prefix scope) 'url))))]
+  (interactive "sURL: ")
+  (transient-setup 'dispatch-yt-dlp-dwim nil nil
+                   :scope (plist-put nil 'url url)))
+
+(defun dispatch-dwim-read-yt-dlp-output (prompt _default _history)
+  ""
+  (shell-quote-argument
+   (format "%s.%%\(ext\)s"
+           (my/file-name-legitimate (read-string prompt)))))
+
+(with-eval-after-load 'embark
+  (mapc (lambda (map)
+          (lambda-key map "D"
+                      (lambda (url)
+                        "download media file"
+                        (dispatch-yt-dlp-dwim url)
+                        (dispatch-execute-macro)))
+          (lambda-key map "P"
+                      (lambda (url)
+                        "download and play media file"
+                        (dispatch-yt-dlp-dwim url nil nil t)
+                        (dispatch-execute-macro))))
+        (list embark-kill-ring-map embark-url-map)))
+
+(with-eval-after-load 'my-launch-app
+  (keymap-set 'my/launch-app-map "D D"
+              (defalias 'download-media-from-kill-ring
+                (kmacro "C-M-y h t t p C-. D")))
+  (keymap-set 'my/launch-app-map "D P"
+              (defalias 'play-media-from-kill-ring
+                (kmacro "C-M-y h t t p C-. P"))))
 #+end_src
 
 **** tempel templates in modes
