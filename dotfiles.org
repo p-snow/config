@@ -9785,996 +9785,6 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
     (+ (car rs) (cdr rs))))
 #+end_src
 
-**** additional org tweaks
-:PROPERTIES:
-:header-args+: :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
-:END:
-***** keymap for global org commands
-:PROPERTIES:
-:CREATED:  [2023-08-08 Tue 14:42]
-:END:
-
-#+begin_src emacs-lisp
-(global-set-key (kbd "H-o")
-                (define-keymap
-                  :prefix 'my/org-global-map
-                  "o" #'org-open-at-point
-                  "C-s" #'org-save-all-org-buffers
-                  "J" #'org-babel-tangle-jump-to-org
-                  "i" #'org-info-find-node
-                  "m" #'org-mark-ring-goto
-                  "@" #'org-previous-link))
-
-(provide 'my-org-global-map)
-#+end_src
-
-***** remove empty clock log unless manually clocked out :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-06-06 Tue 10:23]
-:END:
-
-(setq org-clock-out-remove-zero-time-clocks t) makes this setting happen.
-
-Removing zero time clock log makes sense that you can exclude undesirable line. But there is some sxception. Suppose you want to make clock log afterwards. Then you must create zero time clock log first and tune beginning and/or end of time. So I decided to retain zero time clock log only if clocked out manually (called org-clock-out interactively).
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org-clock
-  (setq org-clock-out-remove-zero-time-clocks t)
-  (advice-add #'org-clock-out :around #'my/org-clock-out-force-keep))
-
-(defun my/org-clock-out-force-keep (oldfun &rest r)
-  "Clock out with removing zero time clock log if called interactively."
-  (let ((org-clock-out-remove-zero-time-clocks
-         (if (called-interactively-p) nil t)))
-    (apply oldfun r)))
-#+end_src
-
-***** embark keymaps for consult-org-heading and consult-location
-:PROPERTIES:
-:CREATED:  [2023-04-16 Sun 17:13]
-:END:
-
-#+begin_src emacs-lisp
-(defun my/embark-org-clock-in-with-opening-thing (target)
-  "Clock in and open thing for TARGET at once.
-
-If TARGET is an agenda item and `other-window-for-scrolling' is
-displaying an org mode buffer, then that is the source window.
-If TARGET is a minibuffer completion candidate, then the source
-window is the window selected before the command that opened the
-minibuffer ran."
-  (embark-org--in-source-window
-   target
-   (lambda (marker)
-     (org-with-point-at marker
-       (org-clock-in)
-       (org-open-at-point)))))
-
-(defun my/embark-org-clock-supersede (target)
-  "Cancel the current clocking then clock in TARGET so as to fill out the gap time."
-  (embark-org--in-source-window
-   target
-   (lambda (marker)
-     (org-with-point-at marker
-       (my/org-clock-supersede)))))
-
-(with-eval-after-load 'embark
-  (cl-mapc (lambda (key-def)
-             (keymap-set embark-org-heading-map
-                         (car key-def) (cdr key-def)))
-           '(("M-I" . my/embark-org-clock-in-with-opening-thing)
-             ("V" . my/embark-org-clock-supersede))))
-#+end_src
-
-***** org move repeat map
-:PROPERTIES:
-:CREATED:  [2023-03-05 Sun 16:15]
-:END:
-
-[[help:my/org-move-repeat-map][my/org-move-repeat-map]] allows to move around org elements and blocks with ease.
-
-#+begin_src emacs-lisp
-(defvar-keymap my/org-move-repeat-map
-  :doc "Keymap to repeat moving commands in `org-mode'.  Used in `repeat-mode'."
-  :repeat t
-  "n" #'org-next-item
-  "p" #'org-previous-item
-  "u" #'org-up-element
-  "d" #'org-down-element
-  "f" #'org-forward-element
-  "b" #'org-backward-element
-  ">" #'org-next-link
-  "<" #'org-previous-link
-  "F" #'org-next-block
-  "B" #'org-previous-block
-  "M-f" #'org-next-block
-  "M-b" #'org-previous-block
-  "M-n" #'org-babel-next-src-block
-  "M-p" #'org-babel-previous-src-block)
-#+end_src
-
-***** show org entries pointing to the current (backlink)
-:PROPERTIES:
-:CREATED:  [2023-03-03 Fri 11:26]
-:END:
-
-These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea][denote]] files.
-
-#+begin_src emacs-lisp
-(defun my/org-backlink-entry ()
-  "Show all entries that point to the entry at point."
-  (interactive)
-  (let ((id (org-entry-get (point) "ID"))
-        (heading (org-get-heading t t t t)))
-    (org-ql-search
-      (directory-files-recursively org-directory "\\.org$" t
-                                   (lambda (subdir)
-                                     (member (file-relative-name subdir org-directory)
-                                             '("agenda" "notes"))))
-      `(link ,(or id heading))
-      :super-groups '((:auto-parent)))))
-(global-set-key (kbd "C-c b b") #'my/org-backlink-entry)
-
-(defun my/org-backlink-by-tag ()
-  "Show all entries that share tag with the entry at point."
-  (interactive)
-  (let* ((org-use-tag-inheritance
-          (if (denote-file-is-note-p (buffer-file-name))
-              t nil))
-         (tags (org-get-tags)))
-    (org-ql-search
-      (directory-files-recursively org-directory "\\.org$" t
-                                   (lambda (subdir)
-                                     (member (file-relative-name subdir org-directory)
-                                             '("agenda" "notes"))))
-      `(tags ,@tags)
-      :super-groups '((:auto-tags)))))
-(global-set-key (kbd "C-c b t") #'my/org-backlink-by-tag)
-#+end_src
-
-***** set timer at clocking in
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org-clock
-  (add-hook 'org-clock-in-prepare-hook
-            #'my/org-clock-in-set-timer))
-
-(defun my/org-clock-in-set-timer ()
-  "Start count down timer for a clocked in entry.
-
-If the entry has ATTENTION_SPAN property, use it for `org-timer-default-timer'.
-Otherwise count down time is Effort property value.
-In neither case, count down time is 25 min which is suggested in the Pomodoro-technique."
-  (let* ((todo (org-get-todo-state))
-         (attention-span (org-entry-get (point) "ATTENTION_SPAN" 'selective))
-         (effort (org-entry-get (point) "Effort" 'selective))
-         (countdown-time (or attention-span
-                             (and todo "25")))
-         (org-timer-default-timer countdown-time))
-    (and countdown-time
-         (org-timer-set-timer '(16)))))
-#+end_src
-
-***** stop timer at clocking out
-:PROPERTIES:
-:CREATED:  [2023-01-29 Sun 15:08]
-:END:
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org-clock
-  (dolist (hook '(org-clock-out-hook org-clock-cancel-hook))
-    (add-hook hook
-              (lambda ()
-                (and (bound-and-true-p  org-timer-countdown-timer)
-                     (org-timer-stop))))))
-#+end_src
-
-***** supersede clocking task
-:PROPERTIES:
-:CREATED:  [2023-02-01 Wed 13:01]
-:END:
-
-#+begin_src emacs-lisp
-(defun my/org-clock-supersede ()
-  "Supersede clocking task with the task at point."
-  (interactive)
-  (let ((org-clock-continuously t))
-    (save-excursion
-      (and (bound-and-true-p org-clock-current-task)
-           (org-clock-cancel)))
-    (org-clock-in)))
-
-(with-eval-after-load 'org-keys
-  (with-eval-after-load 'my-org-global-map
-    (bind-keys :map my/org-global-map
-               ("V" . my/org-clock-supersede))
-    (setf (map-elt org-speed-commands "V") #'my/org-clock-supersede)))
-#+end_src
-
-***** notify completion of timer for a task
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"mpg321"
-#+end_src
-
-#+begin_src bash :tangle (expand-file-name "volget" tangle/local-bin-dir)
-pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(($SINK + 1 )) | tail -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,'
-#+end_src
-
-#+begin_src emacs-lisp :noweb tangle
-(with-eval-after-load 'org-timer
-  (add-hook 'org-timer-done-hook
-            'my/org-task-timer-finish))
-
-(defun my/org-task-timer-finish ()
-  "Notify task timer by appropriate means."
-  (when (and (org-clocking-p)
-             org-clock-marker)
-    (let ((alert (org-entry-get org-clock-marker
-                                "ALERT")))
-      (and (stringp alert)
-           (string= alert "alarm")
-           (alert "Timer Done!" :style 'alarm))
-      (alert "Timer Done!" :style 'fringe :mode 'org-mode :buffer (org-clocking-buffer) :severity 'trivial))))
-
-(defvar alarm-sound (file-name-concat "<<media-dir()>>" "levelup.mp3"))
-
-(with-eval-after-load 'alert
-  (alert-define-style 'alarm
-                      :title "alarm"
-                      :notifier
-                      (lambda (info)
-                        (let ((system-volume (string-trim (shell-command-to-string "volget"))))
-                          (when (not (string= system-volume "0"))
-                            (start-process-shell-command "system-alarm" nil
-                                                         (mapconcat #'shell-quote-argument
-                                                                    (list "mpg321" alarm-sound)
-                                                                    " ")))))))
-#+end_src
-
-***** org-scrap (jotting down in org)
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 15:32]
-:END:
-
-Memo file (memo.org) is useful for jotting down fragmented pieces of text, code and more.
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org
-  (defvar my/org-capture-scrap-file
-    (file-name-concat org-directory "sandbox/scrap.org")
-    "File for jotting down with `org-capture'.")
-  (with-eval-after-load 'org-capture
-    (add-to-list 'org-capture-templates
-                 `("j" "Jot down"
-                   entry (file ,my/org-capture-scrap-file)
-                   "* %U\n#+begin_src %^{Lnaguage|text}\n%(my/org-capture-filter-scrap \"%i\")\n#+end_src"
-                   :jump-to-captured t
-                   :immediate-finish t)
-                 t)))
-
-(defun my/org-capture-filter-scrap (&optional str)
-  "Replace semantic representation in `org-mode' with plain string in STR."
-  (cond
-   ((stringp str)
-    (replace-regexp-in-string "^\\(*+ \\)" ",\\1" str))
-   (t "")))
-#+end_src
-
-***** reset org element contextually
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 14:23]
-:END:
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org
-  (bind-keys :map org-mode-map
-             ("C-c SPC" . my/org-reset-dwim)))
-
-(defun my/org-reset-dwim ()
-  "Exert reset procedure depending on org element at point."
-  (interactive)
-  (cond
-   ((org-at-table-p) (org-table-blank-field))
-   ((org-in-subtree-not-table-p)
-    (org-save-outline-visibility t
-      (org-reset-checkbox-state-subtree)))))
-#+end_src
-
-***** copy arbitrary org property to kill ring
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 13:52]
-:END:
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org
-  (bind-keys :map org-mode-map
-             ("C-c W" . my/org-entry-kill)))
-
-(with-eval-after-load 'org-keys
-  (add-to-list 'org-speed-commands
-               '("W" . my/org-entry-kill)
-               t))
-
-(defun my/org-entry-kill ()
-  "Prompt user to select property to append to the kill ring.
-
-If property's value matches $(...) format, ... is interpreted as shell command and execute it."
-  (interactive)
-  (let* ((properties (org-entry-properties))
-         (prop-key-to-copy
-          (completing-read "Property name: "
-                           (mapcar #'(lambda (var) (car var)) properties))))
-    (when (stringp prop-key-to-copy)
-      (let* ((prop-value (cdr (assoc prop-key-to-copy properties)))
-             (str-to-copy
-              (cond
-               ((string-match "$(\\(.+\\))" prop-value)
-                (shell-command-to-string (match-string 1 prop-value)))
-               (t prop-value))))
-        (kill-new str-to-copy)))))
-#+end_src
-
-***** lob ingest all named source blocks
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 12:10]
-:END:
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org
-  (bind-keys :map my/org-global-map
-             ("b i" . my/org-babel-lob-ingest-all))
-
-  (defvar my/org-babel-lob-ingest-files
-    (seq-reduce (lambda (org-files dir)
-                  (append org-files
-                          (directory-files (expand-file-name dir org-directory) "\.org$")))
-                '("agenda" "notes")
-                nil)
-    "A list of org files which is used in `my/org-babel-lob-ingest-all'.")
-
-  (defun my/org-babel-lob-ingest-all ()
-    "Add all named soruce blocks in cpecified files."
-    (interactive)
-    (dolist (org-file my/org-babel-lob-ingest-files)
-      (org-babel-lob-ingest org-file))))
-#+end_src
-
-***** browse org subtree
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 11:11]
-:END:
-
-# #+header: :var
-#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-d <<share-dir()>>/emacs/org-subtree-view 0755 - - 3d
-#+end_src
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org
-  (bind-keys :map org-mode-map
-             ("C-c C-!" . my/org-subtree-view-in-browser))
-  (add-to-list 'org-speed-commands
-               '("!" . my/org-subtree-view-in-browser)
-               t))
-
-(defvar my/org-subtree-view-directory
-  (expand-file-name "org-subtree-view"
-                    user-emacs-directory)
-  "A directory where generated html files are located in `my/org-subtree-view-in-browser'.")
-
-(defun my/org-subtree-view-in-browser ()
-  "Display org subtree at point as HTML.
-
-If cursor points before first heading, all org sub-trees in the buffer will be
-displayed instead."
-  (interactive)
-  (let* ((heading (org-get-heading t t t t))
-         (org-export-show-temporary-export-buffer nil)
-         (export-buf-name "*Org HTML Export*")
-         (org-export-with-broken-links 'mark)
-         (org-export-babel-evaluate t)
-         (org-export-preserve-breaks t)
-         (id (org-id-get))
-         (uuid (downcase (if id id (org-id-uuid))))
-         (html-file (format "%s/%s.html" my/org-subtree-view-directory uuid)))
-    (org-html-export-as-html nil (not (org-before-first-heading-p)) nil)
-    (with-current-buffer export-buf-name
-      (write-file html-file))
-    (browse-url-of-file html-file)))
-#+end_src
-
-***** alter org heading
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 10:55]
-:END:
-
-[[https://www.p-snow.org/posts/20231121_1858/][I wrote a blog post]] for this topic.
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org
-  (bind-keys :map org-mode-map
-             ("C-c C-% h" . my/org-change-heading)))
-
-(defun my/org-change-heading ()
-  "CHange the heading of the entry at `point'.
-
-The previous name will be stored along with the execution date."
-  (interactive)
-  (let* ((old-heading (org-get-heading t t t t))
-         (new-heading (read-string "Heading: " old-heading)))
-    (save-excursion
-      (org-back-to-heading t)
-      (replace-string old-heading new-heading nil
-                      (line-beginning-position) (line-end-position))
-      (org-align-tags))
-    (org-add-log-setup 'state new-heading old-heading 'state)))
-#+end_src
-
-***** download media files in org           :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 10:43]
-:END:
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org
-  (bind-keys :map org-mode-map
-             ("C-c D v" . my/org-download-video-link-at-point)
-             ("C-c D a" . my/org-download-audio-link-at-point)
-             ("C-c D =" . my/org-show-media-duration-at-point)))
-
-(defun my/org-download-video-link-at-point ()
-  "Download video file described in org link at point.
-
-With `C-u' prefix find `my/download-video-dir' instead."
-  (interactive)
-  (cl-multiple-value-bind (url title)
-      (ignore-errors
-        (org-link-at-point-map
-         (lambda (link desc)
-           (cl-values link desc))))
-    (if (and (not current-prefix-arg)
-             url)
-        (my/download-video url title)
-      (call-interactively #'my/download-video))))
-
-(defun my/org-download-audio-link-at-point ()
-  "Download audio file described in org link at point.
-
-With `C-u' prefix find `my/download-audio-dir' instead."
-  (interactive)
-  (cl-multiple-value-bind (url title)
-      (ignore-errors
-        (org-link-at-point-map
-         (lambda (link desc)
-           (cl-values link desc))))
-    (if (and (not current-prefix-arg)
-             url)
-        (my/download-audio url title)
-      (call-interactively #'my/download-audio))))
-
-(defun my/org-show-media-duration-at-point ()
-  "Show duration of media at point."
-  (interactive)
-  (org-link-at-point-map (lambda (url title)
-                           (show-media-duration url))))
-#+end_src
-
-***** manage on-hold tasks
-:PROPERTIES:
-:CREATED:  [2022-12-12 Mon 09:14]
-:END:
-
-- task lifecycle
-  #+HEADER: :file ./task_lifecycle.png
-  #+begin_src dot :tangle no
-  digraph{
-  "web browsing" [shape = hexagon];
-  "web browsing" -> task [label = "read later"];
-  elfeed [shape = hexagon];
-  elfeed -> task [label = "watch later"];
-  "web browsing" -> someday [label = "read someday"];
-  task -> someday [label = "expired"];
-  someday -> task [label = "drill (active)"];
-  task -> pending [label = "abandoned"];
-  subgraph cluster_0 {
-  someday -> someday [label = "drill (inactive)"];
-  pending;
-  label = "somedays.org";
-  }
-  }
-  #+end_src
-
-****** review on-hold tasks
-:PROPERTIES:
-:CREATED:  [2022-12-12 Mon 09:18]
-:END:
-
-On-hold tasks are encouraged to review and they prohibited to appear in agenda views.
-
-#+begin_src emacs-lisp
-(defun my/org-on-hold-task-review (resume-p)
-  "Start or resume (if RESUME-P is non-nil) a session for reviewing tasks."
-  (interactive "P")
-  (progn
-    (org-id-goto "58da20ee-97a9-4463-96b8-6ebb1084b9b7")
-    (let ((org-drill-scope 'tree)
-          (org-drill-question-tag my/org-review-tag)
-          (org-drill-maximum-items-per-session 40)
-          (org-drill-hide-item-headings-p nil)
-          ;; drill session regulations
-          (org-drill-maximum-duration 12)
-          (org-drill-maximum-items-per-session 30)
-          (org-drill-item-count-includes-failed-items-p t)
-          ;; Spaced repetition algorithm
-          (org-drill-spaced-repetition-algorithm 'sm5)
-          (org-drill-sm5-initial-interval 14.0)
-          ;; Random variation of repetition intervals
-          (org-drill-add-random-noise-to-intervals-p t)
-          ;; Adjusting item difficulty globally
-          (org-drill-learn-fraction 0.37)
-          (org-startup-indented nil))
-      (and (require 'cl nil t)
-           (org-drill nil (format "TODO=\"%s\"" my/org-todo-keyword--someday)
-                      resume-p)))))
-#+end_src
-
-****** skip showing on-hold tasks in agenda view
-:PROPERTIES:
-:CREATED:  [2023-11-04 Sat 12:17]
-:END:
-
-#+begin_src emacs-lisp
-(defvar my/org-review-tag "review"
-  "Tag name set for tasks which is encourged to review.")
-
-(defun my/org-agenda-skip-on-hold-task ()
-  "Skip entries which hold schedule time and review tag in agenda view."
-  (let ((tags (org-get-tags)))
-    (if (and (member my/org-review-tag (org-get-tags))
-             (org-get-scheduled-time (point)))
-        (progn (outline-next-heading) (point))
-      nil)))
-
-(with-eval-after-load 'org-agenda
-  (setopt org-agenda-skip-function-global
-          'my/org-agenda-skip-on-hold-task))
-#+end_src
-
-****** show on-hold/leg-go task list
-:PROPERTIES:
-:CREATED:  [2022-09-15 Thu 22:06]
-:END:
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org-ql-view
-  (push `("On-Hold tasks"
-          :buffers-files ,(list (file-name-concat org-directory
-                                                  "agenda/on-holds.org"))
-          :query (todo ,my/org-todo-keyword--someday)
-          :super-groups ((:auto-property "ARCHIVE_OLPATH"))
-          :sort (priority date))
-        org-ql-views)
-  (push `("Review: on-hold tasks"
-          :buffers-files ,(list (file-name-concat org-directory
-                                                  "agenda/on-holds.org"))
-          :query (todo ,my/org-todo-keyword--someday)
-          :sort (scheduled))
-        org-ql-views)
-  (push `("Let-go tasks"
-          :buffers-files ,(org-agenda-files)
-          :query (todo ,my/org-done-keyword--pending)
-          :super-groups ((:auto-property "ARCHIVE_OLPATH"))
-          :sort (scheduled priority date))
-        org-ql-views))
-#+end_src
-
-****** immediate re-refile on-hold task
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org-refile
-  (add-hook 'org-after-refile-insert-hook
-            #'my/org-archive-suspended-task))
-
-(defun my/org-archive-suspended-task ()
-  "Archive this entry to the file for suspended tasks if the TODO state fits the bill."
-  (interactive)
-  (when (member (org-entry-get nil "TODO")
-                `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
-    (org-archive-subtree)))
-#+end_src
-
-***** send org subtree via email
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org-keys
-  (bind-keys :map org-mode-map
-             ("C-c M" . my/org-subtree-send-email))
-  (add-to-list 'org-speed-commands
-               '("M" . my/org-subtree-send-email)
-               t))
-
-(defun my/org-subtree-send-email ()
-  "Send an email containing the contents of the subtree at the entry at point."
-  (interactive)
-  (org-save-outline-visibility t
-    (save-excursion
-      (org-fold-show-all)
-      (let* ((heading (org-get-heading t t t t))
-             (org-export-with-toc nil)
-             (org-export-with-author nil)
-             (org-export-show-temporary-export-buffer nil)
-             (message-kill-buffer-on-exit t)
-             (exp-buf (org-ascii-export-as-ascii nil t t t)))
-        (message-mail (cdr (assoc "username" (auth-source-pass-parse-entry "www.zoho.com")))
-                      heading)
-        (message-goto-body)
-        (insert (with-current-buffer exp-buf (buffer-string)))
-        (message-send-and-exit)))))
-#+end_src
-***** clean up after the task has chenged to DONE
-:PROPERTIES:
-:CREATED:  [2023-01-30 Mon 13:45]
-:END:
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org
-  (add-hook 'org-after-todo-state-change-hook
-            #'my/org-todo-cleanup-when-done))
-
-(defun my/org-todo-cleanup-when-done ()
-  "Exert several procedure when the state of the task has chnaged to DONE.
-
-Including:
-- Remove priority
-- Reset DONE state if the task is non-repeated habit
-- Close the project of the task"
-  ;; when the entry has any org-done-keywords
-  (when (member org-state
-                `(,my/org-done-keyword--done ,my/org-done-keyword--cancel ,my/org-done-keyword--pending))
-    ;; remove priority if exists
-    (and ;; the entry has been set any priority
-     (/= 21000 (save-excursion
-                 (save-match-data
-                   (beginning-of-line)
-                   (and (looking-at org-heading-regexp)
-                        (org-get-priority (match-string 0))))))
-     (org-priority 'remove))
-    ;; reset done state if the task is non-repeated habit
-    (and (org-is-habit-p)
-         (not (org-get-scheduled-time (point)))
-         (org-todo ""))
-    ;; close the project
-    (save-excursion
-      (org-back-to-heading t)
-      (org-speed-move-safe 'outline-up-heading)
-      (and (member my/org-project-tag (org-get-tags))
-           (org-todo my/org-done-keyword--done)))))
-#+end_src
-
-***** flush old clock logs and state changes
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 14:51]
-:END:
-:LOGBOOK:
-- State "flush old clock logs and state changes" from "purge old clock logs and state changes" [2023-11-23 Thu 15:10]
-- State "purge old clock logs and state changes" from "tidy up org entry by removing old blobs" [2023-11-23 Thu 15:01]
-:END:
-
-The hook functions, which is commented out, provoke malfunction failing to create todo state change logs which is necessary for habit graph.
-
-#+NAME: midnight-flush-blobs
-#+begin_src emacs-lisp
-(with-eval-after-load 'midnight
-  (add-hook 'midnight-hook
-            (lambda ()
-              (org-map-entries (lambda () (when (org-is-habit-p)
-                                            (my/org-flush-blobs)))
-                               nil
-                               'agenda))))
-#+end_src
-
-#+NAME: flush-blobs
-#+begin_src emacs-lisp
-(defvar my/org-flush-blobs-old-timestamp-in-day 90
-  "Flush blobs with timestamps that are earlier than this number of days.")
-
-(defvar my/org-flush-blobs-clock-log t
-  "Whether `my/org-flush-blobs' flushes old clock logs.")
-
-(defvar my/org-flush-blobs-state-change t
-  "Whether `my/org-flush-blobs' flushes old todo state changes.")
-
-(defun my/org-flush-blobs ()
-  "Flush old blob."
-  (interactive)
-  (org-save-outline-visibility t
-    (org-show-all)
-    (save-excursion
-      (let ((case-fold-search t)
-            (next-heading (save-excursion
-                            (org-next-visible-heading 1)
-                            (point-marker))))
-        (mapc (lambda (re)
-                (org-back-to-heading t)
-                (while-let ((ts-time (and (re-search-forward re (marker-position next-heading) t)
-                                          (encode-time (parse-time-string (match-string 1))))))
-                  (when (time-less-p ts-time
-                                     (time-subtract (current-time) (days-to-time my/org-flush-blobs-old-timestamp-in-day)))
-                    (kill-whole-line))))
-              (append (and my/org-flush-blobs-clock-log
-                           (list org-tr-regexp-both))
-                      (and my/org-flush-blobs-state-change
-                           (list (concat (rx "- State " "\"" (>= 1 upper) "\"" (+ space)
-                                             "from " (opt "\"" (>= 1 upper) "\"") (+ space))
-                                         org-ts-regexp-inactive)))))
-        (when (featurep 'org-clock)
-          (org-clock-remove-empty-clock-drawer))))))
-#+end_src
-
-****** batch blob flushing                 :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-10-30 Mon 21:05]
-:END:
-
-#+begin_src shell :eval no :tangle no
-export DISPLAY=:0 && \
-  emacs -Q \
-        -l ~/.emacs.d/early-init.el \
-        -l ~/.emacs.d/elisp/config/my-org-flush-blobs.el \
-        -l ~/.emacs.d/elisp/config/batch/org-flush-blobs.el \
-        -f my/org-flush-blobs-in-habits
-#+end_src
-
-#+begin_src emacs-lisp :noweb tangle
-(require 'org-habit)
-(require 'org-clock)
-
-(setq org-agenda-files '("~/org/agenda/"))
-
-(defun my/org-flush-blobs-in-habits ()
-  "Flush old blobs for habit tasks in `org-agenda-files'."
-  (org-map-entries (lambda () (when (org-is-habit-p)
-                                (my/org-flush-blobs)))
-                   nil
-                   'agenda)
-  (org-save-all-org-buffers)
-  (save-buffers-kill-emacs t))
-#+end_src
-
-***** pad non-clocking time with break task
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 07:36]
-:END:
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org-clock
-  (add-hook 'org-clock-out-hook #'my/org-clock-in-break-time))
-
-(defun my/org-clock-in-break-time ()
-  "Clock in the 'Break' task automatically as to pat non-clocking time."
-  (let ((break-task-id "d49d97de-58ec-4e41-b58c-491a9e216e1c"))
-    (when (and (not org-clock-clocking-in)
-               (not (string= (or (save-excursion
-                                   (org-clock-goto)
-                                   (org-id-get))
-                                 "")
-                             break-task-id)))
-      (org-with-point-at (org-id-find break-task-id t)
-        (org-clock-in)))))
-#+end_src
-
-***** show week number from the timestamp at point
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 15:01]
-:END:
-
-#+begin_src emacs-lisp
-(defun my/org-iso-week-at-point ()
-  "Display ISO 8601 week number correspoinds to time stamp at point."
-  (interactive)
-  (when-let ((ts-bound (org-in-regexp (org-re-timestamp 'all)))
-             (ts (buffer-substring (car ts-bound) (cdr ts-bound))))
-    (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil)))))
-#+end_src
-
-***** show outline path for the entry at point
-:PROPERTIES:
-:CREATED:  [2023-11-01 Wed 14:48]
-:END:
-
-#+begin_src emacs-lisp
-(defun my/org-show-outline-path ()
-  "Show sparse tree for the entry at point to represent outline path."
-  (interactive)
-  (save-excursion
-    (cl-labels ((lookup-parent ()
-                  (let* ((heading-raw (substring-no-properties
-                                       (org-get-heading t t t t)))
-                         (heading (if (string-match org-link-bracket-re heading-raw)
-                                      (match-string 2 heading-raw)
-                                    heading-raw))
-                         (h-li (list heading)))
-                    (if (org-up-heading-safe)
-                        (append (lookup-parent) h-li)
-                      h-li))))
-      (org-ql-sparse-tree (format "(olps %s)"
-                                  (mapconcat (lambda (str) (format "\"%s\"" str))
-                                             (lookup-parent)
-                                             " "))))))
-
-(with-eval-after-load 'my/org-mode-init
-  (keymap-set org-mode-map "C-c M-/"
-              #'my/org-show-outline-path))
-#+end_src
-
-***** use ISO week tree instead of Y/M/D tree
-:PROPERTIES:
-:CREATED:  [2023-11-03 Fri 15:03]
-:END:
-
-Following code is also responsible for deterministic archive location.
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org-archive
-  (advice-add #'org-archive-subtree :around
-              #'my/org-archive-subtree--iso-datetree))
-
-(defun my/org-archive-subtree--iso-datetree (oldfun &rest r)
-  "Move the current subtree to the archive.
-
-If archiving location is datetree, it supposed to be iso week tree."
-  (interactive)
-  (when (member (org-get-todo-state)
-                `(,my/org-todo-keyword--urgent ,my/org-todo-keyword--todo ,my/org-todo-keyword--next ,my/org-todo-keyword--in-action))
-    (org-todo my/org-done-keyword--cancel))
-  (when (string= (org-get-todo-state)
-                 my/org-todo-keyword--someday)
-    (org-toggle-tag my/org-review-tag 'on))
-  (let* ((todo-state (org-get-todo-state))
-         (closed-time (org-entry-get nil "CLOSED" t))
-         (org-archive-location
-          (cond
-           ((member todo-state
-                    `(nil ,my/org-done-keyword--done ,my/org-done-keyword--cancel))
-            (format "%s::datetree/"
-                    (file-name-concat org-directory "archive"
-                                      (format "archive_%s.org"
-                                              (if closed-time
-                                                  (nth 5
-                                                       (parse-time-string
-                                                        (substring closed-time 1 -1)))
-                                                (format-time-string "%Y"))))))
-           ((string= todo-state my/org-todo-keyword--someday)
-            (format "%s::* on-hold tasks"
-                    (expand-file-name "agenda/on-holds.org" org-directory)))
-           ((string= todo-state my/org-done-keyword--pending)
-            (format "%s::* let go tasks"
-                    (expand-file-name "archive/agenda/let-goes.org" org-directory))))))
-    (when (stringp org-archive-location)
-      (and (require 'org-relate nil t)
-           (org-relate-interrelate))
-      (advice-add #'org-datetree-find-date-create :override
-                  #'org-datetree-find-iso-week-create)
-      (apply oldfun r)
-      (advice-remove #'org-datetree-find-date-create
-                     #'org-datetree-find-iso-week-create))))
-
-(with-eval-after-load 'org-agenda
-  (define-key org-agenda-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
-
-(with-eval-after-load 'calendar
-  (define-key calendar-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
-
-;;;###autoload
-(defun my/org-archive-find--iso-datetree (date)
-  "Find and visit the location of DATE in archivee file.
-
-DATE must be a string representing the date to find and parsable with `format-time-string'.
-
-If called interactively, it prompt the user to select the date to find."
-  (interactive
-   (cond
-    ((eq major-mode 'calendar-mode)
-     (list (calendar-date-string (calendar-cursor-to-date))))
-    ((eq major-mode 'org-agenda-mode)
-     (let* ((day (or (get-text-property (min (1- (point-max)) (point)) 'day)
-                     (user-error "Don't know which date to open in calendar")))
-            (date (calendar-gregorian-from-absolute day)))
-       (list (calendar-date-string date))))
-    (t (let ((date-select (org-read-date)))
-         (list date-select)))))
-  (let* ((d (parse-time-string date))
-         (day (decoded-time-day d))
-         (month (decoded-time-month d))
-         (year (decoded-time-year d)))
-    (find-file (file-name-concat org-directory "archive" (format "archive_%d.org" year)))
-    (org-datetree-find-iso-week-create `(,month ,day ,year))))
-
-(with-eval-after-load 'my-org-global-map
-  (bind-keys :map my/org-global-map
-             ("D" . my/org-archive-find--iso-datetree)))
-#+end_src
-
-***** search org entry under 'default-directory'
-:PROPERTIES:
-:CREATED:  [2023-10-20 Fri 20:14]
-:END:
-
-#+begin_src emacs-lisp
-(defmacro with-org-files-under (&rest body)
-  "Eval `BODY' with providing org file list from `default-directory'."
-  (declare (indent defun))
-  `(let ((org-files (directory-files-recursively
-                     default-directory
-                     "\\(?:\\.org\\(?:\\.gpg\\)?$\\)")))
-     ,@body))
-
-(defun my/consult-org-heading-under ()
-  "Invoke `consult-org-heading' with all org files under `default-directory'."
-  (interactive)
-  (with-org-files-under
-    (let ((org-agenda-files org-files))
-      (consult-org-agenda))))
-
-(with-eval-after-load 'embark
-  (keymap-set embark-file-map "H"
-              (lambda (dir) (interactive "sDir: ")
-                (let ((default-directory dir))
-                  (my/consult-org-heading-under)))))
-
-(with-eval-after-load 'my-org-global-map
-  (keymap-set my/org-global-map "H"
-              #'my/consult-org-heading-under))
-
-(defun my/org-ql-search-under ()
-  "Invoke `org-ql-search' with all org files under `default-directory'."
-  (interactive)
-  (with-org-files-under
-    (let ((org-agenda-files org-files)
-          (query (read-string "Query: ")))
-      (org-ql-search (org-agenda-files) query))))
-
-(with-eval-after-load 'embark
-  (keymap-set embark-file-map "Q"
-              (lambda (dir) (interactive "sDir: ")
-                (let ((default-directory dir))
-                  (my/org-ql-search-under)))))
-
-(with-eval-after-load 'my-org-global-map
-  (keymap-set my/org-global-map "q Q"
-              #'my/org-ql-search-under))
-#+end_src
-
-***** open large org files insidiously
-:PROPERTIES:
-:CREATED:  [2023-11-28 Tue 07:38]
-:END:
-
-#+begin_src emacs-lisp
-(use-package open-large-org-file
-  :no-require t
-  :after (org denote)
-  :config
-  (run-with-idle-timer (* 3 60) nil
-                       (lambda ()
-                         "Open large org files."
-                         (mapc #'find-file-noselect
-                               (list (denote-get-path-by-id "20230605T170959")
-                                     (file-name-concat org-directory (format-time-string "archive/archive_%Y.org")))))))
-#+end_src
-
-**** elisp code corresponding to external app
-:PROPERTIES:
-:CREATED:  [2023-01-20 Fri 10:59]
-:END:
-
-This section mainly for elisp code associated with some other programs.
-
-#+begin_src emacs-lisp :noweb yes
-<<elisp-code>>
-#+end_src
-
 **** literate configuration (this file)
 :PROPERTIES:
 :CREATED:  [2023-10-27 Fri 17:44]
@@ -10842,7 +9852,7 @@ I'd share this babel config between literate configuration and main Emacs sessio
                   (:shebang . "#!/usr/bin/env ruby")))))
 #+end_src
 
-**** my RX definitions
+**** custom RX definitions
 :PROPERTIES:
 :CREATED:  [2023-12-12 Tue 11:25]
 :END:
@@ -11176,7 +10186,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                 (kmacro "C-M-y h t t p C-. P"))))
 #+end_src
 
-**** tempel templates in modes
+**** TempEL templates in modes
 :PROPERTIES:
 :CREATED:  [2023-11-07 Tue 20:02]
 :header-args:emacs-lisp: :eval no
@@ -11184,7 +10194,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 #+NAME: elisp-region-text
 #+begin_src emacs-lisp
-(command-defun my/region-string-trans-buffer ()
+(defun my/region-string-trans-buffer ()
   "Return region string in some buffer where region is active."
   (cl-some (lambda (buf)
              (with-current-buffer buf
@@ -11279,6 +10289,17 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 #+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/mu4e-compose.eld")
 (よろ "よろしくお願いいたします。")
 (いじょう "以上、よろしくお願いいたします。")
+#+end_src
+
+**** elisp code from outside of Emacs
+:PROPERTIES:
+:CREATED:  [2023-01-20 Fri 10:59]
+:END:
+
+This section mainly for elisp code associated with some other programs.
+
+#+begin_src emacs-lisp :noweb yes
+<<elisp-code>>
 #+end_src
 
 **** obsolete features                       :ARCHIVE:
@@ -12010,6 +11031,986 @@ during the previous playback."
 #+NAME: guix-base-pandoc
 #+begin_src scheme :noweb-ref guix-base
 "weasyprint"
+#+end_src
+
+*** bespoke org tweaks
+:PROPERTIES:
+:header-args+: :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
+:END:
+
+**** keymap for global org commands
+:PROPERTIES:
+:CREATED:  [2023-08-08 Tue 14:42]
+:END:
+
+#+begin_src emacs-lisp
+(global-set-key (kbd "H-o")
+                (define-keymap
+                  :prefix 'my/org-global-map
+                  "o" #'org-open-at-point
+                  "C-s" #'org-save-all-org-buffers
+                  "J" #'org-babel-tangle-jump-to-org
+                  "i" #'org-info-find-node
+                  "m" #'org-mark-ring-goto
+                  "@" #'org-previous-link))
+
+(provide 'my-org-global-map)
+#+end_src
+
+**** remove empty clock log unless manually clocked out :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-06-06 Tue 10:23]
+:END:
+
+(setq org-clock-out-remove-zero-time-clocks t) makes this setting happen.
+
+Removing zero time clock log makes sense that you can exclude undesirable line. But there is some sxception. Suppose you want to make clock log afterwards. Then you must create zero time clock log first and tune beginning and/or end of time. So I decided to retain zero time clock log only if clocked out manually (called org-clock-out interactively).
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org-clock
+  (setq org-clock-out-remove-zero-time-clocks t)
+  (advice-add #'org-clock-out :around #'my/org-clock-out-force-keep))
+
+(defun my/org-clock-out-force-keep (oldfun &rest r)
+  "Clock out with removing zero time clock log if called interactively."
+  (let ((org-clock-out-remove-zero-time-clocks
+         (if (called-interactively-p) nil t)))
+    (apply oldfun r)))
+#+end_src
+
+**** embark keymaps for consult-org-heading and consult-location
+:PROPERTIES:
+:CREATED:  [2023-04-16 Sun 17:13]
+:END:
+
+#+begin_src emacs-lisp
+(defun my/embark-org-clock-in-with-opening-thing (target)
+  "Clock in and open thing for TARGET at once.
+
+If TARGET is an agenda item and `other-window-for-scrolling' is
+displaying an org mode buffer, then that is the source window.
+If TARGET is a minibuffer completion candidate, then the source
+window is the window selected before the command that opened the
+minibuffer ran."
+  (embark-org--in-source-window
+   target
+   (lambda (marker)
+     (org-with-point-at marker
+       (org-clock-in)
+       (org-open-at-point)))))
+
+(defun my/embark-org-clock-supersede (target)
+  "Cancel the current clocking then clock in TARGET so as to fill out the gap time."
+  (embark-org--in-source-window
+   target
+   (lambda (marker)
+     (org-with-point-at marker
+       (my/org-clock-supersede)))))
+
+(with-eval-after-load 'embark
+  (cl-mapc (lambda (key-def)
+             (keymap-set embark-org-heading-map
+                         (car key-def) (cdr key-def)))
+           '(("M-I" . my/embark-org-clock-in-with-opening-thing)
+             ("V" . my/embark-org-clock-supersede))))
+#+end_src
+
+**** org move repeat map
+:PROPERTIES:
+:CREATED:  [2023-03-05 Sun 16:15]
+:END:
+
+[[help:my/org-move-repeat-map][my/org-move-repeat-map]] allows to move around org elements and blocks with ease.
+
+#+begin_src emacs-lisp
+(defvar-keymap my/org-move-repeat-map
+  :doc "Keymap to repeat moving commands in `org-mode'.  Used in `repeat-mode'."
+  :repeat t
+  "n" #'org-next-item
+  "p" #'org-previous-item
+  "u" #'org-up-element
+  "d" #'org-down-element
+  "f" #'org-forward-element
+  "b" #'org-backward-element
+  ">" #'org-next-link
+  "<" #'org-previous-link
+  "F" #'org-next-block
+  "B" #'org-previous-block
+  "M-f" #'org-next-block
+  "M-b" #'org-previous-block
+  "M-n" #'org-babel-next-src-block
+  "M-p" #'org-babel-previous-src-block)
+#+end_src
+
+**** show org entries pointing to the current (backlink)
+:PROPERTIES:
+:CREATED:  [2023-03-03 Fri 11:26]
+:END:
+
+These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea][denote]] files.
+
+#+begin_src emacs-lisp
+(defun my/org-backlink-entry ()
+  "Show all entries that point to the entry at point."
+  (interactive)
+  (let ((id (org-entry-get (point) "ID"))
+        (heading (org-get-heading t t t t)))
+    (org-ql-search
+      (directory-files-recursively org-directory "\\.org$" t
+                                   (lambda (subdir)
+                                     (member (file-relative-name subdir org-directory)
+                                             '("agenda" "notes"))))
+      `(link ,(or id heading))
+      :super-groups '((:auto-parent)))))
+(global-set-key (kbd "C-c b b") #'my/org-backlink-entry)
+
+(defun my/org-backlink-by-tag ()
+  "Show all entries that share tag with the entry at point."
+  (interactive)
+  (let* ((org-use-tag-inheritance
+          (if (denote-file-is-note-p (buffer-file-name))
+              t nil))
+         (tags (org-get-tags)))
+    (org-ql-search
+      (directory-files-recursively org-directory "\\.org$" t
+                                   (lambda (subdir)
+                                     (member (file-relative-name subdir org-directory)
+                                             '("agenda" "notes"))))
+      `(tags ,@tags)
+      :super-groups '((:auto-tags)))))
+(global-set-key (kbd "C-c b t") #'my/org-backlink-by-tag)
+#+end_src
+
+**** set timer at clocking in
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org-clock
+  (add-hook 'org-clock-in-prepare-hook
+            #'my/org-clock-in-set-timer))
+
+(defun my/org-clock-in-set-timer ()
+  "Start count down timer for a clocked in entry.
+
+If the entry has ATTENTION_SPAN property, use it for `org-timer-default-timer'.
+Otherwise count down time is Effort property value.
+In neither case, count down time is 25 min which is suggested in the Pomodoro-technique."
+  (let* ((todo (org-get-todo-state))
+         (attention-span (org-entry-get (point) "ATTENTION_SPAN" 'selective))
+         (effort (org-entry-get (point) "Effort" 'selective))
+         (countdown-time (or attention-span
+                             (and todo "25")))
+         (org-timer-default-timer countdown-time))
+    (and countdown-time
+         (org-timer-set-timer '(16)))))
+#+end_src
+
+**** stop timer at clocking out
+:PROPERTIES:
+:CREATED:  [2023-01-29 Sun 15:08]
+:END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org-clock
+  (dolist (hook '(org-clock-out-hook org-clock-cancel-hook))
+    (add-hook hook
+              (lambda ()
+                (and (bound-and-true-p  org-timer-countdown-timer)
+                     (org-timer-stop))))))
+#+end_src
+
+**** supersede clocking task
+:PROPERTIES:
+:CREATED:  [2023-02-01 Wed 13:01]
+:END:
+
+#+begin_src emacs-lisp
+(defun my/org-clock-supersede ()
+  "Supersede clocking task with the task at point."
+  (interactive)
+  (let ((org-clock-continuously t))
+    (save-excursion
+      (and (bound-and-true-p org-clock-current-task)
+           (org-clock-cancel)))
+    (org-clock-in)))
+
+(with-eval-after-load 'org-keys
+  (with-eval-after-load 'my-org-global-map
+    (bind-keys :map my/org-global-map
+               ("V" . my/org-clock-supersede))
+    (setf (map-elt org-speed-commands "V") #'my/org-clock-supersede)))
+#+end_src
+
+**** notify completion of timer for a task
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"mpg321"
+#+end_src
+
+#+begin_src bash :tangle (expand-file-name "volget" tangle/local-bin-dir)
+pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(($SINK + 1 )) | tail -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,'
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
+(with-eval-after-load 'org-timer
+  (add-hook 'org-timer-done-hook
+            'my/org-task-timer-finish))
+
+(defun my/org-task-timer-finish ()
+  "Notify task timer by appropriate means."
+  (when (and (org-clocking-p)
+             org-clock-marker)
+    (let ((alert (org-entry-get org-clock-marker
+                                "ALERT")))
+      (and (stringp alert)
+           (string= alert "alarm")
+           (alert "Timer Done!" :style 'alarm))
+      (alert "Timer Done!" :style 'fringe :mode 'org-mode :buffer (org-clocking-buffer) :severity 'trivial))))
+
+(defvar alarm-sound (file-name-concat "<<media-dir()>>" "levelup.mp3"))
+
+(with-eval-after-load 'alert
+  (alert-define-style 'alarm
+                      :title "alarm"
+                      :notifier
+                      (lambda (info)
+                        (let ((system-volume (string-trim (shell-command-to-string "volget"))))
+                          (when (not (string= system-volume "0"))
+                            (start-process-shell-command "system-alarm" nil
+                                                         (mapconcat #'shell-quote-argument
+                                                                    (list "mpg321" alarm-sound)
+                                                                    " ")))))))
+#+end_src
+
+**** org-scrap (jotting down in org)
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 15:32]
+:END:
+
+Memo file (memo.org) is useful for jotting down fragmented pieces of text, code and more.
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  (defvar my/org-capture-scrap-file
+    (file-name-concat org-directory "sandbox/scrap.org")
+    "File for jotting down with `org-capture'.")
+  (with-eval-after-load 'org-capture
+    (add-to-list 'org-capture-templates
+                 `("j" "Jot down"
+                   entry (file ,my/org-capture-scrap-file)
+                   "* %U\n#+begin_src %^{Lnaguage|text}\n%(my/org-capture-filter-scrap \"%i\")\n#+end_src"
+                   :jump-to-captured t
+                   :immediate-finish t)
+                 t)))
+
+(defun my/org-capture-filter-scrap (&optional str)
+  "Replace semantic representation in `org-mode' with plain string in STR."
+  (cond
+   ((stringp str)
+    (replace-regexp-in-string "^\\(*+ \\)" ",\\1" str))
+   (t "")))
+#+end_src
+
+**** reset org element contextually
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 14:23]
+:END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  (bind-keys :map org-mode-map
+             ("C-c SPC" . my/org-reset-dwim)))
+
+(defun my/org-reset-dwim ()
+  "Exert reset procedure depending on org element at point."
+  (interactive)
+  (cond
+   ((org-at-table-p) (org-table-blank-field))
+   ((org-in-subtree-not-table-p)
+    (org-save-outline-visibility t
+      (org-reset-checkbox-state-subtree)))))
+#+end_src
+
+**** copy arbitrary org property to kill ring
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 13:52]
+:END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  (bind-keys :map org-mode-map
+             ("C-c W" . my/org-entry-kill)))
+
+(with-eval-after-load 'org-keys
+  (add-to-list 'org-speed-commands
+               '("W" . my/org-entry-kill)
+               t))
+
+(defun my/org-entry-kill ()
+  "Prompt user to select property to append to the kill ring.
+
+If property's value matches $(...) format, ... is interpreted as shell command and execute it."
+  (interactive)
+  (let* ((properties (org-entry-properties))
+         (prop-key-to-copy
+          (completing-read "Property name: "
+                           (mapcar #'(lambda (var) (car var)) properties))))
+    (when (stringp prop-key-to-copy)
+      (let* ((prop-value (cdr (assoc prop-key-to-copy properties)))
+             (str-to-copy
+              (cond
+               ((string-match "$(\\(.+\\))" prop-value)
+                (shell-command-to-string (match-string 1 prop-value)))
+               (t prop-value))))
+        (kill-new str-to-copy)))))
+#+end_src
+
+**** lob ingest all named source blocks
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 12:10]
+:END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  (bind-keys :map my/org-global-map
+             ("b i" . my/org-babel-lob-ingest-all))
+
+  (defvar my/org-babel-lob-ingest-files
+    (seq-reduce (lambda (org-files dir)
+                  (append org-files
+                          (directory-files (expand-file-name dir org-directory) "\.org$")))
+                '("agenda" "notes")
+                nil)
+    "A list of org files which is used in `my/org-babel-lob-ingest-all'.")
+
+  (defun my/org-babel-lob-ingest-all ()
+    "Add all named soruce blocks in cpecified files."
+    (interactive)
+    (dolist (org-file my/org-babel-lob-ingest-files)
+      (org-babel-lob-ingest org-file))))
+#+end_src
+
+**** browse org subtree
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 11:11]
+:END:
+
+# #+header: :var
+#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+d <<share-dir()>>/emacs/org-subtree-view 0755 - - 3d
+#+end_src
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  (bind-keys :map org-mode-map
+             ("C-c C-!" . my/org-subtree-view-in-browser))
+  (add-to-list 'org-speed-commands
+               '("!" . my/org-subtree-view-in-browser)
+               t))
+
+(defvar my/org-subtree-view-directory
+  (expand-file-name "org-subtree-view"
+                    user-emacs-directory)
+  "A directory where generated html files are located in `my/org-subtree-view-in-browser'.")
+
+(defun my/org-subtree-view-in-browser ()
+  "Display org subtree at point as HTML.
+
+If cursor points before first heading, all org sub-trees in the buffer will be
+displayed instead."
+  (interactive)
+  (let* ((heading (org-get-heading t t t t))
+         (org-export-show-temporary-export-buffer nil)
+         (export-buf-name "*Org HTML Export*")
+         (org-export-with-broken-links 'mark)
+         (org-export-babel-evaluate t)
+         (org-export-preserve-breaks t)
+         (id (org-id-get))
+         (uuid (downcase (if id id (org-id-uuid))))
+         (html-file (format "%s/%s.html" my/org-subtree-view-directory uuid)))
+    (org-html-export-as-html nil (not (org-before-first-heading-p)) nil)
+    (with-current-buffer export-buf-name
+      (write-file html-file))
+    (browse-url-of-file html-file)))
+#+end_src
+
+**** alter org heading
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 10:55]
+:END:
+
+[[https://www.p-snow.org/posts/20231121_1858/][I wrote a blog post]] for this topic.
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  (bind-keys :map org-mode-map
+             ("C-c C-% h" . my/org-change-heading)))
+
+(defun my/org-change-heading ()
+  "CHange the heading of the entry at `point'.
+
+The previous name will be stored along with the execution date."
+  (interactive)
+  (let* ((old-heading (org-get-heading t t t t))
+         (new-heading (read-string "Heading: " old-heading)))
+    (save-excursion
+      (org-back-to-heading t)
+      (replace-string old-heading new-heading nil
+                      (line-beginning-position) (line-end-position))
+      (org-align-tags))
+    (org-add-log-setup 'state new-heading old-heading 'state)))
+#+end_src
+
+**** download media files in org             :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 10:43]
+:END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  (bind-keys :map org-mode-map
+             ("C-c D v" . my/org-download-video-link-at-point)
+             ("C-c D a" . my/org-download-audio-link-at-point)
+             ("C-c D =" . my/org-show-media-duration-at-point)))
+
+(defun my/org-download-video-link-at-point ()
+  "Download video file described in org link at point.
+
+With `C-u' prefix find `my/download-video-dir' instead."
+  (interactive)
+  (cl-multiple-value-bind (url title)
+      (ignore-errors
+        (org-link-at-point-map
+         (lambda (link desc)
+           (cl-values link desc))))
+    (if (and (not current-prefix-arg)
+             url)
+        (my/download-video url title)
+      (call-interactively #'my/download-video))))
+
+(defun my/org-download-audio-link-at-point ()
+  "Download audio file described in org link at point.
+
+With `C-u' prefix find `my/download-audio-dir' instead."
+  (interactive)
+  (cl-multiple-value-bind (url title)
+      (ignore-errors
+        (org-link-at-point-map
+         (lambda (link desc)
+           (cl-values link desc))))
+    (if (and (not current-prefix-arg)
+             url)
+        (my/download-audio url title)
+      (call-interactively #'my/download-audio))))
+
+(defun my/org-show-media-duration-at-point ()
+  "Show duration of media at point."
+  (interactive)
+  (org-link-at-point-map (lambda (url title)
+                           (show-media-duration url))))
+#+end_src
+
+**** manage on-hold tasks
+:PROPERTIES:
+:CREATED:  [2022-12-12 Mon 09:14]
+:END:
+
+- task lifecycle
+  #+HEADER: :file ./task_lifecycle.png
+  #+begin_src dot :tangle no
+  digraph{
+  "web browsing" [shape = hexagon];
+  "web browsing" -> task [label = "read later"];
+  elfeed [shape = hexagon];
+  elfeed -> task [label = "watch later"];
+  "web browsing" -> someday [label = "read someday"];
+  task -> someday [label = "expired"];
+  someday -> task [label = "drill (active)"];
+  task -> pending [label = "abandoned"];
+  subgraph cluster_0 {
+  someday -> someday [label = "drill (inactive)"];
+  pending;
+  label = "somedays.org";
+  }
+  }
+  #+end_src
+
+***** review on-hold tasks
+:PROPERTIES:
+:CREATED:  [2022-12-12 Mon 09:18]
+:END:
+
+On-hold tasks are encouraged to review and they prohibited to appear in agenda views.
+
+#+begin_src emacs-lisp
+(defun my/org-on-hold-task-review (resume-p)
+  "Start or resume (if RESUME-P is non-nil) a session for reviewing tasks."
+  (interactive "P")
+  (progn
+    (org-id-goto "58da20ee-97a9-4463-96b8-6ebb1084b9b7")
+    (let ((org-drill-scope 'tree)
+          (org-drill-question-tag my/org-review-tag)
+          (org-drill-maximum-items-per-session 40)
+          (org-drill-hide-item-headings-p nil)
+          ;; drill session regulations
+          (org-drill-maximum-duration 12)
+          (org-drill-maximum-items-per-session 30)
+          (org-drill-item-count-includes-failed-items-p t)
+          ;; Spaced repetition algorithm
+          (org-drill-spaced-repetition-algorithm 'sm5)
+          (org-drill-sm5-initial-interval 14.0)
+          ;; Random variation of repetition intervals
+          (org-drill-add-random-noise-to-intervals-p t)
+          ;; Adjusting item difficulty globally
+          (org-drill-learn-fraction 0.37)
+          (org-startup-indented nil))
+      (and (require 'cl nil t)
+           (org-drill nil (format "TODO=\"%s\"" my/org-todo-keyword--someday)
+                      resume-p)))))
+#+end_src
+
+***** skip showing on-hold tasks in agenda view
+:PROPERTIES:
+:CREATED:  [2023-11-04 Sat 12:17]
+:END:
+
+#+begin_src emacs-lisp
+(defvar my/org-review-tag "review"
+  "Tag name set for tasks which is encourged to review.")
+
+(defun my/org-agenda-skip-on-hold-task ()
+  "Skip entries which hold schedule time and review tag in agenda view."
+  (let ((tags (org-get-tags)))
+    (if (and (member my/org-review-tag (org-get-tags))
+             (org-get-scheduled-time (point)))
+        (progn (outline-next-heading) (point))
+      nil)))
+
+(with-eval-after-load 'org-agenda
+  (setopt org-agenda-skip-function-global
+          'my/org-agenda-skip-on-hold-task))
+#+end_src
+
+***** show on-hold/leg-go task list
+:PROPERTIES:
+:CREATED:  [2022-09-15 Thu 22:06]
+:END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org-ql-view
+  (push `("On-Hold tasks"
+          :buffers-files ,(list (file-name-concat org-directory
+                                                  "agenda/on-holds.org"))
+          :query (todo ,my/org-todo-keyword--someday)
+          :super-groups ((:auto-property "ARCHIVE_OLPATH"))
+          :sort (priority date))
+        org-ql-views)
+  (push `("Review: on-hold tasks"
+          :buffers-files ,(list (file-name-concat org-directory
+                                                  "agenda/on-holds.org"))
+          :query (todo ,my/org-todo-keyword--someday)
+          :sort (scheduled))
+        org-ql-views)
+  (push `("Let-go tasks"
+          :buffers-files ,(org-agenda-files)
+          :query (todo ,my/org-done-keyword--pending)
+          :super-groups ((:auto-property "ARCHIVE_OLPATH"))
+          :sort (scheduled priority date))
+        org-ql-views))
+#+end_src
+
+***** immediate re-refile on-hold task
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org-refile
+  (add-hook 'org-after-refile-insert-hook
+            #'my/org-archive-suspended-task))
+
+(defun my/org-archive-suspended-task ()
+  "Archive this entry to the file for suspended tasks if the TODO state fits the bill."
+  (interactive)
+  (when (member (org-entry-get nil "TODO")
+                `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
+    (org-archive-subtree)))
+#+end_src
+
+**** send org subtree via email
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org-keys
+  (bind-keys :map org-mode-map
+             ("C-c M" . my/org-subtree-send-email))
+  (add-to-list 'org-speed-commands
+               '("M" . my/org-subtree-send-email)
+               t))
+
+(defun my/org-subtree-send-email ()
+  "Send an email containing the contents of the subtree at the entry at point."
+  (interactive)
+  (org-save-outline-visibility t
+    (save-excursion
+      (org-fold-show-all)
+      (let* ((heading (org-get-heading t t t t))
+             (org-export-with-toc nil)
+             (org-export-with-author nil)
+             (org-export-show-temporary-export-buffer nil)
+             (message-kill-buffer-on-exit t)
+             (exp-buf (org-ascii-export-as-ascii nil t t t)))
+        (message-mail (cdr (assoc "username" (auth-source-pass-parse-entry "www.zoho.com")))
+                      heading)
+        (message-goto-body)
+        (insert (with-current-buffer exp-buf (buffer-string)))
+        (message-send-and-exit)))))
+#+end_src
+**** clean up after the task has chenged to DONE
+:PROPERTIES:
+:CREATED:  [2023-01-30 Mon 13:45]
+:END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  (add-hook 'org-after-todo-state-change-hook
+            #'my/org-todo-cleanup-when-done))
+
+(defun my/org-todo-cleanup-when-done ()
+  "Exert several procedure when the state of the task has chnaged to DONE.
+
+Including:
+- Remove priority
+- Reset DONE state if the task is non-repeated habit
+- Close the project of the task"
+  ;; when the entry has any org-done-keywords
+  (when (member org-state
+                `(,my/org-done-keyword--done ,my/org-done-keyword--cancel ,my/org-done-keyword--pending))
+    ;; remove priority if exists
+    (and ;; the entry has been set any priority
+     (/= 21000 (save-excursion
+                 (save-match-data
+                   (beginning-of-line)
+                   (and (looking-at org-heading-regexp)
+                        (org-get-priority (match-string 0))))))
+     (org-priority 'remove))
+    ;; reset done state if the task is non-repeated habit
+    (and (org-is-habit-p)
+         (not (org-get-scheduled-time (point)))
+         (org-todo ""))
+    ;; close the project
+    (save-excursion
+      (org-back-to-heading t)
+      (org-speed-move-safe 'outline-up-heading)
+      (and (member my/org-project-tag (org-get-tags))
+           (org-todo my/org-done-keyword--done)))))
+#+end_src
+
+**** flush old clock logs and state changes
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 14:51]
+:END:
+:LOGBOOK:
+- State "flush old clock logs and state changes" from "purge old clock logs and state changes" [2023-11-23 Thu 15:10]
+- State "purge old clock logs and state changes" from "tidy up org entry by removing old blobs" [2023-11-23 Thu 15:01]
+:END:
+
+The hook functions, which is commented out, provoke malfunction failing to create todo state change logs which is necessary for habit graph.
+
+#+NAME: midnight-flush-blobs
+#+begin_src emacs-lisp
+(with-eval-after-load 'midnight
+  (add-hook 'midnight-hook
+            (lambda ()
+              (org-map-entries (lambda () (when (org-is-habit-p)
+                                            (my/org-flush-blobs)))
+                               nil
+                               'agenda))))
+#+end_src
+
+#+NAME: flush-blobs
+#+begin_src emacs-lisp
+(defvar my/org-flush-blobs-old-timestamp-in-day 90
+  "Flush blobs with timestamps that are earlier than this number of days.")
+
+(defvar my/org-flush-blobs-clock-log t
+  "Whether `my/org-flush-blobs' flushes old clock logs.")
+
+(defvar my/org-flush-blobs-state-change t
+  "Whether `my/org-flush-blobs' flushes old todo state changes.")
+
+(defun my/org-flush-blobs ()
+  "Flush old blob."
+  (interactive)
+  (org-save-outline-visibility t
+    (org-show-all)
+    (save-excursion
+      (let ((case-fold-search t)
+            (next-heading (save-excursion
+                            (org-next-visible-heading 1)
+                            (point-marker))))
+        (mapc (lambda (re)
+                (org-back-to-heading t)
+                (while-let ((ts-time (and (re-search-forward re (marker-position next-heading) t)
+                                          (encode-time (parse-time-string (match-string 1))))))
+                  (when (time-less-p ts-time
+                                     (time-subtract (current-time) (days-to-time my/org-flush-blobs-old-timestamp-in-day)))
+                    (kill-whole-line))))
+              (append (and my/org-flush-blobs-clock-log
+                           (list org-tr-regexp-both))
+                      (and my/org-flush-blobs-state-change
+                           (list (concat (rx "- State " "\"" (>= 1 upper) "\"" (+ space)
+                                             "from " (opt "\"" (>= 1 upper) "\"") (+ space))
+                                         org-ts-regexp-inactive)))))
+        (when (featurep 'org-clock)
+          (org-clock-remove-empty-clock-drawer))))))
+#+end_src
+
+***** batch blob flushing                    :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-10-30 Mon 21:05]
+:END:
+
+#+begin_src shell :eval no :tangle no
+export DISPLAY=:0 && \
+  emacs -Q \
+        -l ~/.emacs.d/early-init.el \
+        -l ~/.emacs.d/elisp/config/my-org-flush-blobs.el \
+        -l ~/.emacs.d/elisp/config/batch/org-flush-blobs.el \
+        -f my/org-flush-blobs-in-habits
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
+(require 'org-habit)
+(require 'org-clock)
+
+(setq org-agenda-files '("~/org/agenda/"))
+
+(defun my/org-flush-blobs-in-habits ()
+  "Flush old blobs for habit tasks in `org-agenda-files'."
+  (org-map-entries (lambda () (when (org-is-habit-p)
+                                (my/org-flush-blobs)))
+                   nil
+                   'agenda)
+  (org-save-all-org-buffers)
+  (save-buffers-kill-emacs t))
+#+end_src
+
+**** pad non-clocking time with break task
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 07:36]
+:END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org-clock
+  (add-hook 'org-clock-out-hook #'my/org-clock-in-break-time))
+
+(defun my/org-clock-in-break-time ()
+  "Clock in the 'Break' task automatically as to pat non-clocking time."
+  (let ((break-task-id "d49d97de-58ec-4e41-b58c-491a9e216e1c"))
+    (when (and (not org-clock-clocking-in)
+               (not (string= (or (save-excursion
+                                   (org-clock-goto)
+                                   (org-id-get))
+                                 "")
+                             break-task-id)))
+      (org-with-point-at (org-id-find break-task-id t)
+        (org-clock-in)))))
+#+end_src
+
+**** show week number from the timestamp at point
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 15:01]
+:END:
+
+#+begin_src emacs-lisp
+(defun my/org-iso-week-at-point ()
+  "Display ISO 8601 week number correspoinds to time stamp at point."
+  (interactive)
+  (when-let ((ts-bound (org-in-regexp (org-re-timestamp 'all)))
+             (ts (buffer-substring (car ts-bound) (cdr ts-bound))))
+    (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil)))))
+#+end_src
+
+**** show outline path for the entry at point
+:PROPERTIES:
+:CREATED:  [2023-11-01 Wed 14:48]
+:END:
+
+#+begin_src emacs-lisp
+(defun my/org-show-outline-path ()
+  "Show sparse tree for the entry at point to represent outline path."
+  (interactive)
+  (save-excursion
+    (cl-labels ((lookup-parent ()
+                  (let* ((heading-raw (substring-no-properties
+                                       (org-get-heading t t t t)))
+                         (heading (if (string-match org-link-bracket-re heading-raw)
+                                      (match-string 2 heading-raw)
+                                    heading-raw))
+                         (h-li (list heading)))
+                    (if (org-up-heading-safe)
+                        (append (lookup-parent) h-li)
+                      h-li))))
+      (org-ql-sparse-tree (format "(olps %s)"
+                                  (mapconcat (lambda (str) (format "\"%s\"" str))
+                                             (lookup-parent)
+                                             " "))))))
+
+(with-eval-after-load 'my/org-mode-init
+  (keymap-set org-mode-map "C-c M-/"
+              #'my/org-show-outline-path))
+#+end_src
+
+**** use ISO week tree instead of Y/M/D tree
+:PROPERTIES:
+:CREATED:  [2023-11-03 Fri 15:03]
+:END:
+
+Following code is also responsible for deterministic archive location.
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org-archive
+  (advice-add #'org-archive-subtree :around
+              #'my/org-archive-subtree--iso-datetree))
+
+(defun my/org-archive-subtree--iso-datetree (oldfun &rest r)
+  "Move the current subtree to the archive.
+
+If archiving location is datetree, it supposed to be iso week tree."
+  (interactive)
+  (when (member (org-get-todo-state)
+                `(,my/org-todo-keyword--urgent ,my/org-todo-keyword--todo ,my/org-todo-keyword--next ,my/org-todo-keyword--in-action))
+    (org-todo my/org-done-keyword--cancel))
+  (when (string= (org-get-todo-state)
+                 my/org-todo-keyword--someday)
+    (org-toggle-tag my/org-review-tag 'on))
+  (let* ((todo-state (org-get-todo-state))
+         (closed-time (org-entry-get nil "CLOSED" t))
+         (org-archive-location
+          (cond
+           ((member todo-state
+                    `(nil ,my/org-done-keyword--done ,my/org-done-keyword--cancel))
+            (format "%s::datetree/"
+                    (file-name-concat org-directory "archive"
+                                      (format "archive_%s.org"
+                                              (if closed-time
+                                                  (nth 5
+                                                       (parse-time-string
+                                                        (substring closed-time 1 -1)))
+                                                (format-time-string "%Y"))))))
+           ((string= todo-state my/org-todo-keyword--someday)
+            (format "%s::* on-hold tasks"
+                    (expand-file-name "agenda/on-holds.org" org-directory)))
+           ((string= todo-state my/org-done-keyword--pending)
+            (format "%s::* let go tasks"
+                    (expand-file-name "archive/agenda/let-goes.org" org-directory))))))
+    (when (stringp org-archive-location)
+      (and (require 'org-relate nil t)
+           (org-relate-interrelate))
+      (advice-add #'org-datetree-find-date-create :override
+                  #'org-datetree-find-iso-week-create)
+      (apply oldfun r)
+      (advice-remove #'org-datetree-find-date-create
+                     #'org-datetree-find-iso-week-create))))
+
+(with-eval-after-load 'org-agenda
+  (define-key org-agenda-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
+
+(with-eval-after-load 'calendar
+  (define-key calendar-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
+
+;;;###autoload
+(defun my/org-archive-find--iso-datetree (date)
+  "Find and visit the location of DATE in archivee file.
+
+DATE must be a string representing the date to find and parsable with `format-time-string'.
+
+If called interactively, it prompt the user to select the date to find."
+  (interactive
+   (cond
+    ((eq major-mode 'calendar-mode)
+     (list (calendar-date-string (calendar-cursor-to-date))))
+    ((eq major-mode 'org-agenda-mode)
+     (let* ((day (or (get-text-property (min (1- (point-max)) (point)) 'day)
+                     (user-error "Don't know which date to open in calendar")))
+            (date (calendar-gregorian-from-absolute day)))
+       (list (calendar-date-string date))))
+    (t (let ((date-select (org-read-date)))
+         (list date-select)))))
+  (let* ((d (parse-time-string date))
+         (day (decoded-time-day d))
+         (month (decoded-time-month d))
+         (year (decoded-time-year d)))
+    (find-file (file-name-concat org-directory "archive" (format "archive_%d.org" year)))
+    (org-datetree-find-iso-week-create `(,month ,day ,year))))
+
+(with-eval-after-load 'my-org-global-map
+  (bind-keys :map my/org-global-map
+             ("D" . my/org-archive-find--iso-datetree)))
+#+end_src
+
+**** search org entry under 'default-directory'
+:PROPERTIES:
+:CREATED:  [2023-10-20 Fri 20:14]
+:END:
+
+#+begin_src emacs-lisp
+(defmacro with-org-files-under (&rest body)
+  "Eval `BODY' with providing org file list from `default-directory'."
+  (declare (indent defun))
+  `(let ((org-files (directory-files-recursively
+                     default-directory
+                     "\\(?:\\.org\\(?:\\.gpg\\)?$\\)")))
+     ,@body))
+
+(defun my/consult-org-heading-under ()
+  "Invoke `consult-org-heading' with all org files under `default-directory'."
+  (interactive)
+  (with-org-files-under
+    (let ((org-agenda-files org-files))
+      (consult-org-agenda))))
+
+(with-eval-after-load 'embark
+  (keymap-set embark-file-map "H"
+              (lambda (dir) (interactive "sDir: ")
+                (let ((default-directory dir))
+                  (my/consult-org-heading-under)))))
+
+(with-eval-after-load 'my-org-global-map
+  (keymap-set my/org-global-map "H"
+              #'my/consult-org-heading-under))
+
+(defun my/org-ql-search-under ()
+  "Invoke `org-ql-search' with all org files under `default-directory'."
+  (interactive)
+  (with-org-files-under
+    (let ((org-agenda-files org-files)
+          (query (read-string "Query: ")))
+      (org-ql-search (org-agenda-files) query))))
+
+(with-eval-after-load 'embark
+  (keymap-set embark-file-map "Q"
+              (lambda (dir) (interactive "sDir: ")
+                (let ((default-directory dir))
+                  (my/org-ql-search-under)))))
+
+(with-eval-after-load 'my-org-global-map
+  (keymap-set my/org-global-map "q Q"
+              #'my/org-ql-search-under))
+#+end_src
+
+**** open large org files insidiously
+:PROPERTIES:
+:CREATED:  [2023-11-28 Tue 07:38]
+:END:
+
+#+begin_src emacs-lisp
+(use-package open-large-org-file
+  :no-require t
+  :after (org denote)
+  :config
+  (run-with-idle-timer (* 3 60) nil
+                       (lambda ()
+                         "Open large org files."
+                         (mapc #'find-file-noselect
+                               (list (denote-get-path-by-id "20230605T170959")
+                                     (file-name-concat org-directory (format-time-string "archive/archive_%Y.org")))))))
 #+end_src
 
 *** would-be packages
