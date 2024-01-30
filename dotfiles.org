@@ -4476,30 +4476,30 @@ If entry at POM has no clock log time stamp, this function returns 0."
 ****** Org Structure
 
 #+begin_src emacs-lisp
-(customize-set-variable 'org-startup-indented t)
-(customize-set-variable 'org-bookmark-names-plist nil)
-(customize-set-variable 'org-M-RET-may-split-line '((default . nil)))
-
 (use-package org-indent
   :after org
   :bind (:map org-mode-map
               ("C-c C-M-i" . org-indent-mode))
-  :hook (org-mode . org-indent-mode))
+  :hook (org-mode . org-indent-mode)
+  :custom
+  (org-startup-indented t)
+  (org-bookmark-names-plist nil)
+  (org-insert-heading-respect-content t)
+  (org-M-RET-may-split-line '((default . nil))))
 
-;; org speed command settings
-(customize-set-variable 'org-use-speed-commands
-                        (lambda () (and (looking-at org-outline-regexp) (looking-back "^\**"))))
-
-(with-eval-after-load 'org-keys
-  (add-to-list 'org-speed-commands
-               '("Additional")
-               t)
+(use-package org-keys
+  :after org
+  :custom
+  (org-use-speed-commands
+   (lambda () (and (looking-at org-outline-regexp) (looking-back "^\**"))))
+  :config
   (cl-labels ((os-set (key command)
                 (assoc-delete-all key org-speed-commands)
                 (add-to-list 'org-speed-commands
                              (cons key command)
                              t)))
-    (os-set "k" nil) ; prevent from inadvertent org tree loss
+    (add-to-list 'org-speed-commands '("Additional") t)
+    (os-set "k" nil)                    ; prevent from inadvertent org tree loss
     (os-set "j" #'org-insert-heading)
     (os-set "P" #'org-set-property)
     (os-set "C" #'org-clone-subtree-with-time-shift)
