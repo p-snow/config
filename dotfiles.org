@@ -205,6 +205,11 @@ initialize-ubuntu-desktop
   dconf load /org/cinnamon/ < <<home-dir()>>/.config/linuxmint/cinnamon.conf
   #+end_src
 
+- Commands/Applications that need to use LinuxMint comfortably
+  #+begin_src scheme :noweb-ref guix-base
+  "xclip"
+  #+end_src
+
 ** GNU Guix
 
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
@@ -2582,15 +2587,12 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 ****** Server
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
 (use-package server
-  :preface
-  (defun my/server-start ()
-    "Start Emacs server only if not running."
-    (unless (server-running-p)
-      (server-start)))
-  :hook (after-init . my/server-start)
+  :hook (after-init . (lambda () (unless (server-running-p)
+                               (server-start))))
   :custom
+  (server-name "server-<<hash-string(seed="server", len=6)>>")
   (server-client-instructions t))
 #+end_src
 
@@ -4688,6 +4690,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
 "plantuml"
 #+end_src
 
+#+NAME: config/emacs-ob-core
 #+begin_src emacs-lisp :noweb tangle
 (use-package ob-core
   :after org
@@ -10152,7 +10155,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   [(my/command-execute
     ;; embed url to :shell-command-string may cause unexpected glitch
     :shell-command-string
-    "yt-dlp --embed-chapters --live-from-start %a %u"
+    "yt-dlp --embed-chapters --live-from-start %a '%u'"
     :format-spec ((?u . (plist-get (oref transient-current-prefix scope) 'url))))]
   (interactive "sURL: ")
   (transient-setup 'dispatch-yt-dlp-dwim nil nil
@@ -10166,25 +10169,19 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 (with-eval-after-load 'embark
   (mapc (lambda (map)
-          (lambda-key map "D"
-                      (lambda (url)
+          (lambda-key map "Y"
+                      (lambda (thing)
                         "download media file"
-                        (dispatch-yt-dlp-dwim url)
-                        (dispatch-execute-macro)))
-          (lambda-key map "P"
-                      (lambda (url)
-                        "download and play media file"
-                        (dispatch-yt-dlp-dwim url nil nil t)
-                        (dispatch-execute-macro))))
-        (list embark-kill-ring-map embark-url-map)))
-
-(with-eval-after-load 'my-launch-app
-  (keymap-set 'my/launch-app-map "D D"
-              (defalias 'download-media-from-kill-ring
-                (kmacro "C-M-y h t t p C-. D")))
-  (keymap-set 'my/launch-app-map "D P"
-              (defalias 'play-media-from-kill-ring
-                (kmacro "C-M-y h t t p C-. P"))))
+                        (let ((url (pcase thing
+                                     ((and (pred (lambda (s) (string-match org-link-any-re s))) ol)
+                                      (or (match-string-no-properties 0 ol)
+                                          (match-string-no-properties 2 ol)))
+                                     ((and (pred (lambda (s) (string-match ffap-url-at-point s))) u)
+                                      (match-string-no-properties 0 u)))))
+                          (dispatch-yt-dlp-dwim url)
+                          (dispatch-execute-macro)))))
+        (list embark-kill-ring-map embark-url-map
+              embark-org-link-map)))
 #+end_src
 
 **** TempEL templates in modes
@@ -16459,6 +16456,24 @@ case "$(sync_state)" in
   ;;
 esac
 #+end_src
+
+** Download media at anywhere in desktop
+:PROPERTIES:
+:CREATED:  [2024-01-30 Tue 21:11]
+:END:
+
+I prefer using mpv, the video file player, instead of watching YouTube videos in a browser. I can download a video file from the internet by executing this shell script using a shortcut key. The script calls the Emacs dispatch-yt-dlp-dwim function using a client/server scheme.
+
+#+NAME: bash/emacs-yt-dlp
+#+begin_src bash :noweb tangle :tangle (expand-file-name "emacs-yt-dlp" tangle/local-bin-dir)
+if [ $# -ge 1 ]; then
+  arg=" nil nil t"
+else
+  arg=""
+fi
+emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(progn (dispatch-yt-dlp-dwim \"$(xclip -out)\"${arg})(dispatch-execute-macro))"
+#+end_src
+
 * Babel Utility Functions
 :PROPERTIES:
 :header-args+: :tangle-mode (identity #o755)
@@ -16472,20 +16487,20 @@ return absolute path for file using which command
 which ${filename}
 #+end_src
 
-** hash to number
+** Generate hash string
 :PROPERTIES:
 :CREATED:  [2023-10-15 Sun 18:41]
 :END:
 
-return a number between 0 and max by hashing given string
+Return hash string from 'seed'. You can cull the output to desired length by 'len'.
 
-#+name: hash-to-num
-#+header: :var s="str" max_n=10
+#+name: hash-string
+#+header: :var seed="str" len=8
 #+begin_src python
 import hashlib
 
-sha256 = hashlib.sha256(s.encode("utf-8"))
-return int(sha256.hexdigest(), 16) % (max_n + 1)
+sha256_hash = hashlib.sha256(seed.encode("utf-8"))
+return sha256_hash.hexdigest()[:len]
 #+end_src
 
 ** random number
