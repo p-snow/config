@@ -11716,7 +11716,9 @@ The hook functions, which is commented out, provoke malfunction failing to creat
   (add-hook 'midnight-hook
             (lambda ()
               (org-map-entries (lambda () (when (org-is-habit-p)
-                                            (my/org-flush-blobs)))
+                                        (revert-buffer t t t)
+                                        (my/org-flush-blobs)
+                                        (basic-save-buffer)))
                                nil
                                'agenda))))
 #+end_src
