@@ -9964,6 +9964,20 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     ((and (pred listp) li) (mapconcat #'dispatch-dwim--paths-string li " "))))
 #+end_src
 
+#+NAME: config/bind-dwims
+#+begin_src emacs-lisp
+(defun my/execute-dispatch-dwim-command ()
+  "Execute dispatch-*-dwim command."
+  (declare (interactive-only command-execute))
+  (interactive)
+  (let ((read-extended-command-predicate
+         (lambda (sym buf)
+           (string-match-p (rx "dispatch" (+ nonl) "dwim" eos)
+                           (symbol-name sym)))))
+    (execute-extended-command current-prefix-arg)))
+(keymap-global-set "H-D" 'my/execute-dispatch-dwim-command)
+#+end_src
+
 ***** mpv dwim
 :PROPERTIES:
 :CREATED:  [2024-01-15 Mon 20:17]
@@ -10045,7 +10059,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+begin_src emacs-lisp
-(transient-define-prefix dispatch/sleep-rtcwake (&optional number)
+(transient-define-prefix dispatch-sleep-rtcwake-dwim (&optional number)
   ""
   :man-page "rtcwake"
   [("-b" "time before sleep" "" :prompt "amount of time [s/m/h/d]: "
@@ -10063,7 +10077,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                   (?d . (dispatch-shell-command--key-vals '("-t")))
                   (?j . (dispatch-shell-command--key-vals '("-j")))))]
   (interactive)
-  (transient-setup 'dispatch/sleep-rtcwake))
+  (transient-setup 'dispatch-sleep-rtcwake-dwim))
 
 (defun my/transient-read-time (prompt default-time history)
   "Read time using date command."
