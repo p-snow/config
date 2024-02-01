@@ -10077,7 +10077,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                                  (message "Input time is invalid"))
                             (and (time-less-p (time-add nil (seconds-to-time (* 12 60 60)))
                                               (encode-time (parse-time-string time-str)))
-                                 (message "Wake up time must be less than 12h later")))
+                                 ;; confirm the time that is more than 12 hours later
+                                 (not (y-or-n-p (format "Is %s right?: " time-str)))))
                         (car (symbol-value history))
                       (format "'%s'" time-str))))
                 (delq nil (list (and prompt (read-string prompt)) default-time)))
