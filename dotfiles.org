@@ -3448,25 +3448,15 @@ if type(out_root_str) is bytes:
     out_root_str = out_root_str.decode()
     print(out_root_str)
 #+end_src
+
 **** Info
 
 #+begin_src emacs-lisp
-(with-eval-after-load 'info
-  (require 'info-look)
-  (autoload 'info-lookup-add-help "info-look")
-  (customize-set-variable 'Info-use-header-line nil)
-  (customize-set-variable
-   'Info-additional-directory-list
-   `(,(expand-file-name "~/.local/share/info")
-     ,@(let ((guix-custom-dir "~/.guix-extra-profiles")
-             custom-info-path)
-         (remq nil (mapcar (lambda (prof)
-                             (setq custom-info-path (file-name-concat guix-custom-dir prof prof "share/info"))
-                             (when (file-directory-p custom-info-path)
-                               custom-info-path))
-                           (directory-files guix-custom-dir))))))
-  (define-key Info-mode-map (kbd "C-j") #'Info-follow-nearest-node)
-  (define-key Info-mode-map (kbd "a") #'info-apropos))
+(use-package info
+  :custom
+  (Info-use-header-line nil)
+  :config
+  (bind-keys :map Info-mode-map ("a" . info-apropos)))
 #+end_src
 
 **** Magit
