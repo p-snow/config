@@ -2030,12 +2030,11 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
 
 #+begin_src emacs-lisp
 (use-package savehist
-  :defer 1
   :custom
   (savehist-save-minibuffer-history t)
   (savehist-additional-variables '((kill-ring . 1000)
                                    (register-alist . 200)))
-  (savehist-autosave-interval 90)
+  (savehist-autosave-interval 180)
   :config
   (savehist-mode 1))
 #+end_src
@@ -6993,11 +6992,21 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 "emacs-engine-mode"
 #+end_src
 
+#+NAME: config/engine-mode
 #+begin_src emacs-lisp
 (use-package engine-mode
-  :custom
-  (engine/browser-function 'eww-browse-url)
+  :preface
+  (defvar engine/minibuffer-history nil
+    "Minibuffer history for `engine-mode'.")
+  (defun engine--history-search-term (engine-name)
+    "Prompt the user for a search term for ENGINE-NAME.
+Default to the symbol at point."
+    (let ((current-word (or (thing-at-point 'symbol 'no-properties) "")))
+      (read-string (engine--search-prompt engine-name current-word)
+                   nil 'engine/minibuffer-history current-word)))
   :config
+  (advice-add 'engine--prompted-search-term :override
+              'engine--history-search-term)
   (engine/set-keymap-prefix (kbd "H-q"))
   (engine-mode 1)
   (defengine google
@@ -8047,14 +8056,17 @@ helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mod
   :bind (:map engine-mode-prefixed-map
               ("n" . my/define-word))
   :preface
+  (defvar my/define-word-minibuffer-history nil)
   (defun my/define-word ()
-    "docstring"
+    "Invoke `define-word' with dedicated minibuffer history."
     (interactive)
-    (if (use-region-p)
-        (call-interactively #'define-word-at-point)
-
-
-      (call-interactively #'define-word)))
+    (let ((word (if (use-region-p)
+                    (buffer-substring-no-properties
+                     (region-beginning)
+                     (region-end))
+                  (read-string "Word: " nil 'my/define-word-minibuffer-history
+                               (word-at-point t)))))
+      (define-word word define-word-default-service)))
   :custom
   (define-word-displayfn-alist
    '((wordnik . my/define-word--display-in-buffer)
@@ -12793,13 +12805,13 @@ Capture URL or file currently visiting as well as a sentence at point."
   (setq my/org-english-match-entry nil)
   (let* ((sentence-end-double-space nil)
          (my/org-english-match-entry (org-ql-select
-                                       `(,my/org-english-file)
-                                       `(and (heading-regexp
-                                              ,(eval `(rx word-start
-                                                          ,org-english-word
-                                                          word-end)))
-                                             (tags "drill"))
-                                       :action 'element-with-markers))
+                                      `(,my/org-english-file)
+                                      `(and (heading-regexp
+                                             ,(eval `(rx word-start
+                                                         ,org-english-word
+                                                         word-end)))
+                                            (tags "drill"))
+                                      :action 'element-with-markers))
          (sentence (replace-regexp-in-string word
                                              (my/cloze-deletion word)
                                              (or (sentence-at-point) ""))))
@@ -12885,7 +12897,7 @@ Return translation result as a string If SYNC is non-nil.
 If called interactively, display results and add them to kill ring."
   (interactive `(,(or (when (region-active-p)
                         (buffer-substring (region-beginning) (region-end)))
-                      (read-string "Word: "))))
+                      (read-string "Word: " nil 'my/define-word-minibuffer-history))))
   (let ((intr-p (interactive-p))
         trans)
     (request
@@ -12923,7 +12935,7 @@ Return search infromation as a string If SYNC is non-nil.
 Display information and add it to kill ring if called interactively."
   (interactive `(,(or (when (region-active-p)
                         (buffer-substring (region-beginning) (region-end)))
-                      (read-string "Word: "))))
+                      (read-string "Word: " nil 'my/define-word-minibuffer-history))))
   (let ((intr-p (interactive-p))
         pron)
     (request
