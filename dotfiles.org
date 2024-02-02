@@ -9960,8 +9960,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                      `(dispatch-dwim--paths-string
                        ,(if (derived-mode-p 'dired-mode)
                             (or (dired-get-marked-files) (read-file))
-                          (read-file)))))
-                  (t `(dispatch-dwim--paths-string ,(read-file))))))))))
+                          (read-file)))))))
+                (t `(dispatch-dwim--paths-string ,(read-file))))))))
 
 (defun dispatch-dwim--paths-string (arg)
   (pcase arg
