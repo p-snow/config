@@ -4914,13 +4914,19 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   (org-ai-openai-api-token "<<openai-api-key()>>"))
 #+end_src
 
-****** org-modern                          :ARCHIVE:
+****** org-modern
 :PROPERTIES:
 :CREATED:  [2023-06-06 Tue 22:03]
 :END:
 
-#+begin_src scheme :tangle no
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
 "emacs-org-modern"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package org-modern
+  :after org
+  :commands org-modern-mode)
 #+end_src
 
 ****** org-transclusion
