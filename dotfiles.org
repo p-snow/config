@@ -10199,6 +10199,32 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
               embark-org-link-map)))
 #+end_src
 
+***** du dwim
+:PROPERTIES:
+:CREATED:  [2024-02-02 Fri 11:13]
+:END:
+
+#+begin_src emacs-lisp
+(transient-define-prefix dispatch-du-dwim (&optional file)
+  "Dispatch du command."
+  :man-page "du"
+  [("-s" "summarize" "--summarize"
+    :init-value (lambda (obj) (oset obj value "--summarize")))
+   ("-c" "add total" "--total"
+    :init-value (lambda (obj) (oset obj value "--total")))
+   ("-D" "deref symlinks" "--dereference-args"
+    :init-value (lambda (obj) (oset obj value "--dereference-args")))
+   ("-h" "human readable" "--human-readable"
+    :init-value (lambda (obj) (oset obj value "--human-readable")))]
+  [(my/command-execute
+    :shell-command-string
+    (format "ionice -c2 -n7 nice -n19 du %%a %s"
+            (plist-get (oref transient-current-prefix scope) 'file)))]
+  (interactive)
+  (transient-setup 'dispatch-du-dwim nil nil
+                   :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
+#+end_src
+
 **** TempEL templates in modes
 :PROPERTIES:
 :CREATED:  [2023-11-07 Tue 20:02]
