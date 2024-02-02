@@ -2035,8 +2035,8 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
   (savehist-additional-variables '((kill-ring . 1000)
                                    (register-alist . 200)))
   (savehist-autosave-interval 180)
-  :config
-  (savehist-mode 1))
+  :hook
+  (after-init . savehist-mode))
 #+end_src
 
 ****** Menu
@@ -6529,6 +6529,7 @@ This subtree holds resources for [[https://p-snow.org/][my blog]].
 
 #+begin_src emacs-lisp
 (use-package org-static-blog
+  :defer t
   :after org
   :init
   (defvar my/blog-directory (expand-file-name "~/org/dotlife"))
