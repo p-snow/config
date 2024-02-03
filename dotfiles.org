@@ -1626,6 +1626,7 @@ Settings in this section are influenced a great deal by my personal preference. 
 (set-keyboard-coding-system 'utf-8-unix)
 (setq locale-coding-system 'utf-8-unix)
 #+end_src
+
 ***** Fontsets
 
 #+begin_src emacs-lisp
@@ -1656,8 +1657,17 @@ Settings in this section are influenced a great deal by my personal preference. 
 :CREATED:  [2022-09-11 Sun 16:55]
 :END:
 
-Caveat: There are some face definitions which use an extra large font since I am [[https://en.wikipedia.org/wiki/Visual_impairment][visually impaired]].
+Caveat: [[https://en.wikipedia.org/wiki/Leber%27s_hereditary_optic_neuropathy][I am visually impaired]], so the font size for the default face is extraordinarily large.
 
+| face name           | font        |
+|---------------------+-------------|
+| default             | IPAGothic   |
+| fixed-pitch         | IPAMincho   |
+| fixed-pitch-serif   | Iosevka     |
+| variable-pitch      | IPAExMincho |
+| variable-pitch-text | IPAExGothic |
+
+#+NAME: config/emacs-face
 #+begin_src emacs-lisp
 (defvar my/default-pixel-width 2560 "Default display width in pixel.")
 (defmacro my/normalized-font-size (original-size)
@@ -1669,52 +1679,41 @@ It tries to proportionate ORIGINAL-SIZE in `my/default-pixel-width' in the displ
 (set-face-attribute 'default
                     nil
                     :font "fontset-default"
-                    :height (my/normalized-font-size 630))
+                    :height (my/normalized-font-size 620))
 (set-face-attribute 'fixed-pitch
                     nil
-                    :font "fontset-default")
+                    :font "fontset-mincho")
+(set-face-attribute 'fixed-pitch-serif
+                    nil
+                    :font "fontset-code")
 (set-face-attribute 'variable-pitch
                     nil
                     :font "fontset-exmincho")
+(set-face-attribute 'variable-pitch-text
+                    nil
+                    :font "fontset-exgothic")
 
 (use-package face
   :no-require t
   :hook
   ((eww-mode mastodon-mode nov-mode mu4e-view-mode elfeed-show-mode)
    . (lambda ()
-       (buffer-face-set
-        (or (ignore-errors (check-face 'my/reading-face))
-            (defface my/reading-face `((t . (:font "fontset-exgothic"
-                                                   :height ,(my/normalized-font-size 850))))
-              "My customized face offers great legibility for reading articles.")))))
-  ((Info-mode help-mode helpful-mode woman-mode)
+       (buffer-face-set (check-face 'variable-pitch-text))
+       (text-scale-set 5.0)))
+  ((Info-mode help-mode woman-mode)
    . (lambda ()
-       (buffer-face-set
-        (or (ignore-errors (check-face 'my/document-face))
-            (defface my/document-face `((t . (:font "fontset-default"
-                                                    :height ,(my/normalized-font-size 720))))
-              "My customized face offers large fixed fonts for documentations.")))))
+       (buffer-face-set (check-face 'default))
+       (text-scale-set 1.3)))
   ((org-mode text-mode mu4e-compose-mode)
    . (lambda ()
-       (buffer-face-set
-        (or (ignore-errors (check-face 'my/writing-face))
-            (defface my/writing-face `((t . (:font "fontset-default"
-                                                   :height ,(my/normalized-font-size 655))))
-              "My customized face offers relatively small fixed fonts for writing.")))))
+       (buffer-face-set (check-face 'default))))
   ((prog-mode shell-mode term-mode vterm-mode eshell-mode calendar-mode)
    . (lambda ()
-       (buffer-face-set
-        (or (ignore-errors (check-face 'my/code-face))
-            (defface my/code-face `((t . (:font "fontset-code"
-                                                :height ,(my/normalized-font-size 580))))
-              "My customized face offers condensed fonts for programming code.")))))
+       (buffer-face-set (check-face 'fixed-pitch-serif))
+       (text-scale-set -1.2)))
   ((dired-mode mu4e-headers-mode elfeed-search-update)
    . (lambda ()
-       (buffer-face-set
-        (or (ignore-errors (check-face 'my/list-face))
-            (defface my/list-face `((t . (:font "fontset-mincho"
-                                                :height ,(my/normalized-font-size 670))))
-              "My customized face offers variable pitch fonts for displaying lists."))))))
+       (buffer-face-set (check-face 'fixed-pitch)))))
 #+end_src
 
 ***** Performance Tuning
@@ -8754,7 +8753,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
          ("e" . scroll-down-line)
          ("SPC" . my/forward-paragraph)
          ("E" . my/backward-paragraph))
-  :hook ((help-mode Info-mode eww-mode nov-mode mu4e-view-mode woman-mode mastodon-mode)
+  :hook ((help-mode Info-mode eww-mode nov-mode mu4e-view-mode woman-mode mastodon-mode Custom-mode)
          . logos-focus-mode)
   :custom
   (logos-scroll-lock nil)
@@ -8988,7 +8987,7 @@ As of 28.1, Emacs won't steal keyboard focus at startup which means we can use e
 (use-package emacs
   :no-require t
   :bind-keymap
-  ("H-y" . my/cycle-visual-repeat-map)
+  ("H-c" . my/cycle-visual-repeat-map)
   :preface
   (defvar-keymap my/cycle-visual-repeat-map
     :doc "Keymap to repeat toggle/cycling appearance.  Used in `repeat-mode'."
