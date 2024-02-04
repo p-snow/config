@@ -9732,26 +9732,13 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
 ***** miscellaneous functions/commands
 
 #+begin_src emacs-lisp
-(defun my/insert-time-stamp (&optional arg)
-  "Insert date string with format derived in deterministic way with ARG."
-  (interactive "P")
-  (let* ((simple-fmt "%Y%m%d")
-         (concise-fmt "%Y-%m-%d")
-         (verbose-fmt "%Y-%m-%d %H:%M:%S")
-         (fmt-in-use (cond
-                      ((equal arg '(16))
-                       (read-string "time format: "
-                                    "%Y-%m-%d %H:%M:%S"))
-                      ((equal arg '(4))
-                       verbose-fmt)
-                      (t (cond
-                          ((eq major-mode 'text-mode) concise-fmt)
-                          ((eq major-mode 'dired-mode) simple-fmt)
-                          (t simple-fmt))))))
-    (if (called-interactively-p)
-        (insert (format-time-string fmt-in-use))
-      (format-time-string fmt-in-use))))
-(global-set-key (kbd "C-c .") 'my/insert-time-stamp)
+(defun my/insert-time-stamp ()
+  "Insert time stamp with preferred format."
+  (interactive)
+  (insert
+   (completing-read "Format: "
+                    (mapcar #'format-time-string
+                            '("%Y%m%d" "%Y-%m-%d" "%Y-%m-%d %H:%M:%S")))))
 
 (defun my/drag-line-backward ()
   "Drag up current line for one."
@@ -10263,7 +10250,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                    :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
 #+end_src
 
-**** TempEL templates in modes
+**** TempEL templates for modes
 :PROPERTIES:
 :CREATED:  [2023-11-07 Tue 20:02]
 :header-args:emacs-lisp: :eval no
@@ -10281,6 +10268,16 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
            (list (current-buffer) (other-buffer nil t))))
 #+end_src
 
+***** fundamental-mode templates
+:PROPERTIES:
+:CREATED:  [2024-02-04 Sun 11:56]
+:END:
+
+#+header: :shebang "fundamental-mode"
+#+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/fundamental.eld")
+(timestamp (my/insert-time-stamp))
+#+end_src
+
 ***** text-mode templates
 :PROPERTIES:
 :CREATED:  [2023-11-09 Thu 14:33]
@@ -10288,7 +10285,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 #+header: :shebang "text-mode"
 #+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/text.eld")
-(gma "update on " (my/insert-time-stamp '(4)))
+(gma "update on " (my/insert-time-stamp))
 #+end_src
 
 ***** org-mode templates
