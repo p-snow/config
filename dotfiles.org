@@ -8643,12 +8643,14 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 ;; "emacs-tempel-collection"
 #+end_src
 
+#+NAME: config/emacs-tempel
 #+begin_src emacs-lisp
 (use-package tempel
   :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
          ("M-_" . tempel-insert))
   :hook
   ((conf-mode prog-mode text-mode minibuffer-mode) . tempel-setup-capf)
+  (mu4e-compose-mode . tempel-abbrev-mode)
   :preface
   (defun tempel-setup-capf ()
     (setq-local completion-at-point-functions
