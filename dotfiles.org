@@ -9961,7 +9961,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
       'insert
     my/execute-command-function))
 
-(defun dispatch-command-dwim/determine-file (file)
+(defun dispatch-command-dwim/determine-file (&optional file)
   ""
   (cl-labels ((read-file ()
                 (read-file-name "File: ")))
@@ -9983,6 +9983,14 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                             (or (dired-get-marked-files) (read-file))
                           (read-file)))))))
                 (t `(dispatch-dwim--paths-string ,(read-file))))))))
+
+(defun dispatch-dwim--determine-url (&optional url)
+  "Determine the URL to which the dwim commands refer in relation to the context."
+  (format "'%s'" (or url
+                     (thing-at-point-url-at-point)
+                     (and (derived-mode-p 'eww-mode)
+                          (shr-url-at-point nil))
+                     (read-string "URL: "))))
 
 (defun dispatch-dwim--paths-string (arg)
   (pcase arg
@@ -10174,7 +10182,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 #+name: yt-dlp-dwim
 #+begin_src emacs-lisp :noweb tangle
-(transient-define-prefix dispatch-yt-dlp-dwim (url &optional output duration-p play-p)
+(transient-define-prefix dispatch-yt-dlp-dwim (&optional url output duration-p play-p)
   ""
   :man-page "yt-dlp"
   [("-P" "download path" "--paths "
@@ -10197,11 +10205,12 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   [(my/command-execute
     ;; embed url to :shell-command-string may cause unexpected glitch
     :shell-command-string
-    "yt-dlp --embed-chapters --live-from-start %a '%u'"
+    "yt-dlp --embed-chapters --live-from-start %a %u"
     :format-spec ((?u . (plist-get (oref transient-current-prefix scope) 'url))))]
-  (interactive "sURL: ")
+  (interactive)
   (transient-setup 'dispatch-yt-dlp-dwim nil nil
-                   :scope (plist-put nil 'url url)))
+                   :scope (plist-put nil 'url
+                                     (dispatch-dwim--determine-url url))))
 
 (defun dispatch-dwim-read-yt-dlp-output (prompt _default _history)
   ""
