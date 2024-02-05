@@ -1270,52 +1270,41 @@ HOLD: KEY_RIGHTSHIFT
 export EDITOR="emacsclient -c -a emacs"
 #+end_src
 
-#+name: emacs-dir
-#+begin_src emacs-lisp :noweb yes
-(expand-file-name "~/.emacs.d")
+#+NAME: emacs-var-dir
+#+begin_src emacs-lisp :tangle no
+no-littering-var-directory
 #+end_src
 
 *** general configuration
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/elisp/config/my-config.el")
+:header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
 **** early-init.el
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "early-init.el" user-emacs-directory-default)
+:header-args+: :tangle (expand-file-name "early-init.el" user-emacs-directory) :tangle-mode (identity #o644)
 :END:
 
 Early init file defines fundamental variables used from both normal Emacs session and batch mode.
 
-***** global variable definitions
+***** no-littering
+:PROPERTIES:
+:CREATED:  [2024-02-04 Sun 16:29]
+:END:
 
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-no-littering"
+#+end_src
+
+#+NAME: config/emacs-no-littering
 #+begin_src emacs-lisp :noweb tangle
-(setf user-emacs-directory
-      (file-name-as-directory (expand-file-name "emacs" "<<share-dir()>>")))
-(setf user-emacs-directory-default
-      (file-name-as-directory (expand-file-name (file-name-as-directory "~/.emacs.d"))))
+(require 'no-littering)
 
-(defvar my/user-dot-emacs-dir
-  (expand-file-name "<<emacs-dir()>>")
-  "Original .emacs.d directory.")
-(defvar my/user-lisp-dir
-  (expand-file-name "elisp" "<<emacs-dir()>>")
-  "Directory beneath which user Emacs config files are placed.")
-(defvar my/user-config-dir
-  (expand-file-name "config" my/user-lisp-dir)
-  "Directory beneath which user Emacs init files are placed.")
-(defvar my/user-package-dir
-  (expand-file-name "site-elisp" "<<emacs-dir()>>")
-  "Directory beneath which Emacs packages including mime are placed.")
-
-(defvar my/user-bin-dir
-  (expand-file-name "<<user-bin-dir()>>")
-  "Directory beneath which local binary files are placed.")
-(defvar my/user-share-directory "<<share-dir()>>")
-
-(push my/user-lisp-dir load-path)
-(push my/user-package-dir load-path)
+(when (fboundp 'startup-redirect-eln-cache)
+  (startup-redirect-eln-cache
+   (convert-standard-filename
+    (expand-file-name  "var/eln-cache/" user-emacs-directory))))
 #+end_src
 
 ***** package.el
@@ -1328,7 +1317,7 @@ Early init file defines fundamental variables used from both normal Emacs sessio
              t)
 (setopt package-enable-at-startup t)
 (setopt package-user-dir
-        (expand-file-name "elpa" user-emacs-directory-default))
+        (no-littering-expand-var-file-name "elpa"))
 
 (require 'package-vc)
 #+end_src
@@ -1381,11 +1370,11 @@ use-package depends on following packages internally
 
 #+begin_src emacs-lisp :tangle no
 (customize-set-variable 'straight-recipes-gnu-elpa-use-mirror t)
-(customize-set-variable 'straight-base-dir user-emacs-directory-default)
+(customize-set-variable 'straight-base-dir user-emacs-directory)
 (customize-set-variable 'straight-vc-git-default-clone-depth 1)
 
 (let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory-default))
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
       (bootstrap-version 5))
   (unless (file-exists-p bootstrap-file)
     (with-current-buffer
@@ -1449,7 +1438,7 @@ Following hook statements are likely written in .dir-locals.el at the top level 
 
 #+begin_src emacs-lisp
 (customize-set-variable 'custom-file
-                        (expand-file-name "custom.el" user-emacs-directory-default))
+                        (expand-file-name "custom.el" user-emacs-directory))
 
 (when (file-readable-p custom-file)
   (load custom-file))
@@ -1462,24 +1451,14 @@ Following hook statements are likely written in .dir-locals.el at the top level 
 
 init.el devote itself to call for remaining config files.
 
-#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/init.el")
-(require 'user-init)
-#+end_src
+#+begin_src emacs-lisp :tangle (expand-file-name "init.el" user-emacs-directory)
+(push (file-name-concat user-emacs-directory "lisp") load-path)
+(push (file-name-concat user-emacs-directory "site-lisp") load-path)
 
-***** load user config files
-:PROPERTIES:
-:CREATED:  [2023-01-10 Tue 18:46]
-:END:
-
-#+begin_src emacs-lisp  :tangle (expand-file-name ".emacs.d/elisp/user-init.el")
 (let ((load-match "\\.el$"))
   (mapc #'load-file
-        (append (directory-files my/user-config-dir t load-match)
-                (directory-files (file-name-concat my/user-config-dir "tangled") t load-match))))
-
-(provide 'user-init)
-
-;;; user-init ends here
+        (append (directory-files (file-name-concat user-emacs-directory "lisp") t load-match)
+                (directory-files (file-name-concat user-emacs-directory "lisp/tangled") t load-match))))
 #+end_src
 
 **** Themes
@@ -1763,29 +1742,18 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 
 [[info:emacs#Auto Save][Auto Save mode]] saves the file you are editing periodically, whereas [[help:auto-save-visited-mode][auto-save-visited-mode]] saves all  open buffers in Emacs session.
 
-#+name: emacs-auto-save-dir
-#+begin_src elisp :noweb yes :eval no-export
-(let ((auto-save-dir (file-name-as-directory (expand-file-name "emacs/auto-save" "<<share-dir()>>"))))
-  (unless (file-directory-p auto-save-dir)
-    (make-directory auto-save-dir))
-  auto-save-dir)
-#+end_src
-
-#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-d <<emacs-auto-save-dir()>> 0775 - - 2w
-#+end_src
-
 #+begin_src emacs-lisp :noweb tangle
-(setopt auto-save-default t)
-(setopt auto-save-interval 200)
-(setopt auto-save-timeout 25)
-(setopt auto-save-file-name-transforms
-        '((".*" "<<emacs-auto-save-dir()>>" t)))
-(setopt delete-auto-save-files t)
-(setopt kill-buffer-delete-auto-save-files t)
+(setopt auto-save-default t
+        auto-save-interval 200
+        auto-save-timeout 25
+        auto-save-file-name-transforms
+        `((".*" ,(no-littering-expand-var-file-name "auto-save/files") t))
+        delete-auto-save-files t
+        kill-buffer-delete-auto-save-files t
+        auto-save-no-message t)
 
-(setopt auto-save-visited-mode t)
-(setopt auto-save-visited-interval 10)
+(setopt auto-save-visited-mode t
+        auto-save-visited-interval 10)
 (put 'auto-save-visited-mode 'disabled nil)
 
 (setopt delete-by-moving-to-trash t)
@@ -1845,8 +1813,10 @@ d <<emacs-auto-save-dir()>> 0775 - - 2w
 I no longer use backup functionality. Even if I reinstate it, backing up by copying must be rational.
 
 #+begin_src emacs-lisp
-(setopt make-backup-files nil)
-(setopt backup-by-copying t)
+(setopt make-backup-files nil
+        backup-by-copying t
+        backup-directory-alist
+        `(("." . ,(no-littering-expand-var-file-name "backup"))))
 #+end_src
 
 ***** Environment
@@ -2151,8 +2121,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
   :custom
   (save-abbrevs t)
   :config
-  (setq-default abbrev-mode t)
-  (setf abbrev-file-name (expand-file-name "abbrev_defs" user-emacs-directory))
+  (setq-default abbrev-mode 1)
   (quietly-read-abbrev-file))
 #+end_src
 
@@ -2406,7 +2375,7 @@ If GC time at Emacs init is problematic, checking [[help:gcs-done][gcs-done]] an
 [[https://emacsconf.org/2023/talks/gc/][
 This presentation]] advise to increase gc-cons-threshold to 20-80Mb if you have Emacs with slow startup, and to increase consult--gc-percentage to 0.2-1.0 if you have slow and frequent GC.
 
-#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" user-emacs-directory-default)
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" user-emacs-directory)
 (setq gc-cons-threshold (* 30 gc-cons-threshold)
       gc-cons-percentage 0.3)
 #+end_src
@@ -2815,6 +2784,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 :CREATED:  [2023-06-08 Thu 18:20]
 :END:
 
+#+NAME: config/emacs-midnight
 #+begin_src emacs-lisp :noweb tangle
 (use-package midnight
   :defer t
@@ -2831,9 +2801,6 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (package-native-compile t)
   (package-install-upgrade-built-in t)
   (package-quickstart t)
-  (package-quickstart-file
-   (expand-file-name "package-quickstart.el"
-                     user-emacs-directory-default))
   :config
   (with-eval-after-load 'my-launch-app
     (keymap-set my/invoke-list-command-map (kbd "p")
@@ -2926,9 +2893,9 @@ sudo systemctl start dictd
 ("https://github.com/skk-dev/ddskk/releases.atom" soft_update)
 #+end_src
 
+#+NAME: config/emacs-ddskk
 #+begin_src emacs-lisp :noweb tangle
-(defvar skk-dir (expand-file-name "skk" my/user-share-directory))
-(defvar skk-dotemacs-dir (expand-file-name "ddskk" user-emacs-directory-default))
+(defvar skk-dir (expand-file-name "skk" "<<share-dir()>>"))
 
 (use-package skk
   :defer t
@@ -2940,8 +2907,8 @@ sudo systemctl start dictd
     :group 'skk-dcomp)
   (setq skk-get-jisyo-directory "<<skk-jisyo-path()>>")
   :custom
-  (skk-user-directory (expand-file-name "ddskk" user-emacs-directory))
-  (skk-init-file (expand-file-name "skk-init.el" skk-dotemacs-dir))
+  (skk-user-directory (no-littering-expand-etc-file-name "ddskk"))
+  (skk-init-file (expand-file-name "ddskk-init.el" skk-user-directory))
   (skk-byte-compile-init-file t)
   ;; cursor color
   (skk-use-color-cursor t)
@@ -2999,7 +2966,7 @@ sudo systemctl start dictd
   (skk-compare-jisyo-size-when-saving t)
   (skk-save-jisyo-instantly t)
   ;; jisyo file/directory
-  (skk-jisyo `(,(expand-file-name "jisyo" skk-dotemacs-dir) . utf-8))
+  (skk-jisyo `(,(no-littering-expand-var-file-name "ddskk/jisyo.txt") . utf-8))
   (skk-backup-jisyo (expand-file-name "jisyo.bak" skk-dir))
   (skk-large-jisyo (expand-file-name "SKK-JISYO.L" skk-get-jisyo-directory))
   (skk-itaiji-jisyo (expand-file-name "SKK-JISYO.itaiji" skk-get-jisyo-directory))
@@ -3022,9 +2989,8 @@ sudo systemctl start dictd
   (bind-keys ("C-x j" . skk-mode)))
 #+end_src
 
-***** skk init file
-
-#+begin_src emacs-lisp :tangle (expand-file-name ".emacs.d/ddskk/skk-init.el")
+- ddskk init file
+#+begin_src emacs-lisp :tangle (no-littering-expand-etc-file-name "ddskk/ddskk-init.el")
 ;; -*- mode:emacs-lisp; -*-
 (setq skk-rom-kana-rule-list
       (append skk-rom-kana-rule-list
@@ -3271,11 +3237,16 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 
 **** EWW
 
-#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-d <<share-dir()>>/emacs/eww-view-in-org 0755 - - 3d
+#+NAME: eww-org-dir
+#+begin_src emacs-lisp
+(no-littering-expand-var-file-name "eww/org")
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+d <<eww-org-dir()>> 0755 - - 3d
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
 (with-eval-after-load 'shr
   (setopt shr-width 10000)
   (setopt shr-use-fonts nil)
@@ -3298,8 +3269,6 @@ d <<share-dir()>>/emacs/eww-view-in-org 0755 - - 3d
   (eww-browse-url-new-window-is-tab nil)
   (eww-auto-rename-buffer 'title)
   (eww-buffer-name-length 20)
-  (eww-bookmarks-directory (expand-file-name "eww"
-                                             user-emacs-directory-default))
   :config
   (bind-keys :map eww-mode-map
              ("C" . eww-set-character-encoding)
@@ -3317,9 +3286,8 @@ This is handy if you would like to check a page index comfortably."
   (interactive)
   (let ((source (plist-get eww-data :source))
         (src-html (make-temp-file "source-"))
-        (dst-org (file-name-concat user-emacs-directory
-                                   "eww-view-in-org"
-                                   (format "%s.org" (org-id-uuid))))
+        (dst-org (no-littering-expand-var-file-name
+                  (format "<<eww-org-dir()>>/%s.org" (org-id-uuid))))
         (coding-system-for-write 'utf-8-unix)
         (org-startup-folded t))
     (with-temp-buffer
@@ -3690,7 +3658,6 @@ Command in practice presumably looks like:
   (elfeed-search-checked-title-face ((t (:foreground "darkblue"))))
   :custom
   (elfeed-use-curl t)
-  (elfeed-db-directory (expand-file-name "elfeed" user-emacs-directory))
   (elfeed-search-date-format '("%Y%m%d" 8 :left))
   (elfeed-search-title-min-width 100)
   (elfeed-search-title-max-width 120)
@@ -3789,11 +3756,9 @@ Command in practice presumably looks like:
 (use-package elfeed-score
   :after elfeed
   :custom
-  (elfeed-score-serde-score-file
-   (expand-file-name "elfeed.score" user-emacs-directory-default))
-  (elfeed-score-rule-stats-file
-   (expand-file-name "elfeed.stats" user-emacs-directory))
   (elfeed-score-score-format '("%d " 3 :right))
+  (elfeed-score-rule-stats-file
+   (no-littering-expand-var-file-name "elfeed/score/stats.el"))
   :config
   (elfeed-score-enable)
   (setq elfeed-search-sort-function #'my/elfeed-score-sort-descending)
@@ -3806,7 +3771,7 @@ Command in practice presumably looks like:
     "Apply score rule from user managed score file."
     (interactive)
     (when (featurep 'elfeed-score)
-      (elfeed-score-load-score-file (expand-file-name "elfeed.score.el" user-emacs-directory-default))
+      (elfeed-score-load-score-file elfeed-score-serde-score-file)
       (when (eq major-mode 'elfeed-search-mode)
         (elfeed-score-score-search))
       (elfeed-score-serde-write-score-file elfeed-score-serde-score-file)))
@@ -4641,7 +4606,6 @@ If entry at POM has no clock log time stamp, this function returns 0."
   (org-clock-out-when-done t)
   (org-clock-out-remove-zero-time-clocks t)
   (org-clock-persist t)
-  (org-clock-persist-file (file-name-concat user-emacs-directory "org-clock-save.el"))
   (org-clock-persist-query-resume nil)
   (org-clock-string-limit 20)
   (org-clock-continuously t)
@@ -4732,9 +4696,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
               ("C-c i" . org-id-copy))
   :custom
   (org-id-track-globally t)
-  (org-id-link-to-org-use-id 'create-if-interactive)
-  (org-id-locations-file
-   (expand-file-name ".org-id-locations" org-directory)))
+  (org-id-link-to-org-use-id 'create-if-interactive))
 #+end_src
 
 ****** Org Crypt
@@ -5367,9 +5329,9 @@ Ancestors are looked up If current heading has no CATEGORY."
 #+begin_src shell :eval no :tangle no :noweb-ref morning-batch
 export DISPLAY=:0 && \
   emacs -Q \
-        -l ~/.emacs.d/early-init.el \
-        -l ~/.emacs.d/elisp/config/my-org-web-track.el \
-        -l ~/.emacs.d/elisp/config/batch/org-web-track-mail.el \
+        -l $XDG_CONFIG_HOME/emacs/early-init.el \
+        -l $XDG_CONFIG_HOME/emacs/lisp/my-org-web-track.el \
+        -l $XDG_CONFIG_HOME/emacs/lisp/batch/org-web-track-mail.el \
         -f my/org-web-track-mail
 #+end_src
 
@@ -6479,6 +6441,7 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
 
 #+begin_src emacs-lisp :noweb tangle :noweb-prefix no
 (use-package combobulate
+  :disabled t
   :after treesit
   :preface
   (setq combobulate-key-prefix "C-c o")
@@ -6698,6 +6661,8 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
   :custom
   (mastodon-active-user "p_snow")
   (mastodon-instance-url "https://emacs.ch")
+  (mastodon-client--token-file
+   (no-littering-expand-var-file-name "mastodon.plstore"))
   :config
   (require 'mastodon-views))
 #+end_src
@@ -7329,14 +7294,14 @@ Typical file downloading workflow:
 "emacs-dash-docs"
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
 (use-package dash-docs
   :custom
   (dash-docs-docsets-path
-   (file-name-concat my/user-share-directory "dash/docsets")))
+   (file-name-concat "<<share-dir()>>" "dash/docsets")))
 
 (add-to-list 'load-path
-             (expand-file-name "elpa/consult-dash-20220621.226" user-emacs-directory-default))
+             (expand-file-name "elpa/consult-dash-20220621.226" user-emacs-directory))
 
 (use-package consult-dash
   :after dash-docs
@@ -7939,13 +7904,13 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
 "emacs-undo-tree"
 #+end_src
 
-#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-d <<share-dir()>>/emacs/undo-tree 0755 - - 3w
-#+end_src
-
 #+name: undo-tree-hist-dir
 #+begin_src emacs-lisp :tangle no :eval no-export
-(expand-file-name "undo-tree" user-emacs-directory)
+(no-littering-expand-var-file-name "undo-tree")
+#+end_src
+
+#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+d <<undo-tree-hist-dir()>> 0755 - - 3w
 #+end_src
 
 #+begin_src shell :noweb yes :noweb-ref updatedb-opt :tangle no
@@ -8451,9 +8416,6 @@ Major mode for manupulating password store file.
   :hook
   ((prog-mode text-mode) . yas-minor-mode)
   (after-init . yas-reload-all)
-  :init
-  (setq yas-snippet-dirs
-        (list (expand-file-name "snippets" user-emacs-directory-default)))
   :custom
   (yas-triggers-in-field t)
   (yas-wrap-around-region t)
@@ -8474,9 +8436,6 @@ Major mode for manupulating password store file.
 (use-package auto-yasnippet
   :disabled t
   :after yasnippet
-  :init
-  (setq aya-persist-snippets-dir
-        (expand-file-name "snippets" user-emacs-directory-default))
   :config
   (bind-keys :map my/yas-map
              ("a"   . aya-create)
@@ -8657,8 +8616,8 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
                 (cons #'tempel-expand
                       completion-at-point-functions)))
   :custom
-  (tempel-path (list (file-name-concat user-emacs-directory-default "templates/*.eld")
-                     (file-name-concat user-emacs-directory-default "templates/private/*.eld")))
+  (tempel-path (list (no-littering-expand-var-file-name "tempel/templates/*.eld")
+                     (no-littering-expand-var-file-name "tempel/templates/*/*.eld")))
   :config
   (bind-keys :map tempel-map
              ("TAB" . tempel-next)
@@ -8797,7 +8756,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 
 *** further extension
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name ".emacs.d/elisp/config/my-config.el")
+:header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
@@ -8949,7 +8908,7 @@ As of 28.1, Emacs won't steal keyboard focus at startup which means we can use e
 
 [[https://github.com/skk-dev/ddskk/issues/190][Cursor colour no longer changes to match hiragana/katakana mode. · Issue #190 · skk-dev/ddskk · GitHub]]
 
-#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" user-emacs-directory-default)
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" user-emacs-directory)
 (require 'facemenu)
 #+end_src
 
@@ -9827,11 +9786,27 @@ Configuration files are generated by tangling org source blocks whenever this fi
                         #'my/compile-default-command nil t))
 #+end_src
 
+***** Variables for tangling
+:PROPERTIES:
+:CREATED:  [2024-02-05 Mon 20:43]
+:END:
+
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" user-emacs-directory)
+(setq tangle/home "~/dotfiles/")
+(setq tangle/user-emacs-directory (file-name-concat tangle/home ".config/emacs"))
+(setq tangle/emacs-sitelisp-dir
+      (expand-file-name "site-lisp" tangle/user-emacs-directory))
+(setq tangle/emacs-config-dir
+      (expand-file-name "lisp" tangle/user-emacs-directory))
+(setq tangle/local-bin-dir
+      (expand-file-name ".local/bin/" tangle/home))
+#+end_src
+
 ***** Common Babel Config
 
 I'd share this babel config between literate configuration and main Emacs session.
 
-#+begin_src emacs-lisp :comments no :tangle (expand-file-name "org-babel-config.el" current-dir) :noweb-ref babel-conf
+#+begin_src emacs-lisp :comments no :tangle (expand-file-name "org-babel-config.el" tangle/emacs-config-dir) :noweb-ref babel-conf
 (with-eval-after-load 'ob-core
   (setq org-babel-noweb-error-all-langs t)
   (setopt org-babel-python-command (executable-find "python3"))
@@ -10274,7 +10249,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "fundamental-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/fundamental.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/fundamental.eld")
 (timestamp (my/insert-time-stamp))
 #+end_src
 
@@ -10284,7 +10259,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "text-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/text.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/text.eld")
 (gma "update on " (my/insert-time-stamp))
 #+end_src
 
@@ -10294,7 +10269,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "org-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/org.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/org.eld")
 (call & "#+CALL: " (p "name" name) "(" (s var) "=\"" (s value) "\")")
 (name & "#+NAME: " (p "name" name))
 (/ "[/]" (org-update-statistics-cookies nil))
@@ -10309,7 +10284,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "minibuffer-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/minibuffer.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/minibuffer.eld")
 <<minibuffer-mode-template>>
 
 (guix-search "guix search " (p (my/region-string-trans-buffer)))
@@ -10325,7 +10300,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "emacs-lisp-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/emacs-lisp.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/emacs-lisp.eld")
 <<emacs-lisp-mode-template>>
 
 (require "(require '" (p "feature") ")")
@@ -10349,7 +10324,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "sh-base-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/sh-base.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/sh-base.eld")
 (rf "${" p "}")
 (function "function " (p "name") " {" n> p n "}")
 #+end_src
@@ -10360,7 +10335,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "mu4e-compose-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (file-name-concat user-emacs-directory-default "templates/mu4e-compose.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/mu4e-compose.eld")
 (よろ "よろしくお願いいたします。")
 (いじょう "以上、よろしくお願いいたします。")
 #+end_src
@@ -11468,9 +11443,8 @@ If property's value matches $(...) format, ... is interpreted as shell command a
 :CREATED:  [2023-01-27 Fri 11:11]
 :END:
 
-# #+header: :var
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-d <<share-dir()>>/emacs/org-subtree-view 0755 - - 3d
+d <<emacs-var-dir()>>/org/subtree-view 0755 - - 3d
 #+end_src
 
 #+begin_src emacs-lisp
@@ -11482,8 +11456,7 @@ d <<share-dir()>>/emacs/org-subtree-view 0755 - - 3d
                t))
 
 (defvar my/org-subtree-view-directory
-  (expand-file-name "org-subtree-view"
-                    user-emacs-directory)
+  (no-littering-expand-var-file-name "org/subtree-view")
   "A directory where generated html files are located in `my/org-subtree-view-in-browser'.")
 
 (defun my/org-subtree-view-in-browser ()
@@ -12343,7 +12316,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
 
 #+name: open-file-dir
 #+begin_src emacs-lisp :noweb yes :eval no-export
-(file-name-concat "<<share-dir()>>" "emacs/open-file")
+(no-littering-expand-var-file-name "open-file")
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
@@ -12359,8 +12332,7 @@ d <<open-file-dir()>> 0755 - - 14d
 ;; general functions
 
 (defvar my/open-file-dir
-  (expand-file-name "open-file"
-                    user-emacs-directory)
+  (no-littering-expand-var-file-name "open-file")
   "Directory where html file is converted into.")
 
 (defvar my/open-file-media-player "mpv"
@@ -14537,9 +14509,9 @@ skkdic_uniq.sh
 #+begin_src bash :noweb tangle :tangle (expand-file-name "skkdic_uniq.sh" tangle/local-bin-dir)
 tmp_euc=$(mktemp)
 tmp_utf8=$(mktemp)
-skk_dir=<<share-dir()>>/skk
+skk_dir="<<share-dir()>>"/skk
 skk_get_dir=${skk_dir}/get-jisyo
-dic_orig=${HOME}/.emacs.d/ddskk/jisyo
+dic_orig=$XDG_CONFIG_HOME/emacs/var/ddskk/jisyo.txt
 dic_uniq=${skk_dir}/jisyo.uniq
 
 skkdic-expr2 ${skk_get_dir}/SKK-JISYO.* > ${tmp_euc}

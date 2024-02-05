@@ -3,18 +3,12 @@
 (require 'ob-shell)
 (require 'ob-ruby)
 
-(setq tangle/root "~/dotfiles/")
-
-(load-file "./org-babel-config.el")
+(load-file (expand-file-name "org-babel-config.el" tangle/emacs-config-dir))
 (remove-hook 'org-babel-pre-tangle-hook
              'save-buffer)
 
 (with-current-buffer (find-file-noselect "./dotfiles.org")
-  (let* ((current-dir (expand-file-name "."))
-         (default-directory tangle/root)
-         (tangle/emacs-config-dir (expand-file-name ".emacs.d/elisp/config" tangle/root))
-         (tangle/emacs-sitelisp-dir (expand-file-name ".emacs.d/site-elisp" tangle/root))
-         (tangle/local-bin-dir (expand-file-name ".local/bin/" tangle/root))
+  (let* ((default-directory tangle/home)
          (org-babel-tangle-use-relative-file-links nil)
          (python-indent-guess-indent-offset nil)
          (org-id-locations-file nil))
