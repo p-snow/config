@@ -10156,7 +10156,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-a" "audio" "-x --embed-thumbnail")
    ("-d" "duration" "--get-duration"
     :init-value (lambda (obj) (oset obj value (and duration-p (oref obj argument)))))
-   ("-p" "play" "--exec 'mpv --no-pause {}'"
+   ("-p" "play" "--exec 'mpv --no-pause {}\; rm {}'"
     :init-value (lambda (obj) (oset obj value (and play-p (oref obj argument)))))
    ("-o" "output" "--output "
     :class transient-option :reader dispatch-dwim-read-yt-dlp-output
