@@ -7127,7 +7127,12 @@ How to use detached.el
   :custom
   (detached-shell-command-initial-input nil)
   (detached-terminal-data-command system-type)
-  (detached-terminal-data-command system-type))
+  (detached-terminal-data-command system-type)
+  :config
+  (add-to-list 'display-buffer-alist
+               `(,(regexp-opt (list detached--shell-command-buffer))
+                 . (body-function
+                    . (lambda (window) (bury-buffer))))))
 
 (defun my/org-link--open-shell-detached (path _)
   "Open a \"shell\" type.
