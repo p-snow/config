@@ -10086,17 +10086,19 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 (defun my/transient-read-time (prompt default-time history)
   "Read time using date command."
   (or (seq-some (lambda (d)
-                  (let ((time-str (string-trim
-                                   (shell-command-to-string
-                                    (format "date +'%%Y-%%m-%%d %%H:%%M' -d '%s'"
-                                            (my/expand-shorthand-time d))))))
-                    (if (or (and (string-prefix-p "date: invalid date"
-                                                  time-str)
-                                 (message "Input time is invalid"))
-                            (and (time-less-p (time-add nil (seconds-to-time (* 12 60 60)))
-                                              (encode-time (parse-time-string time-str)))
-                                 ;; confirm the time that is more than 12 hours later
-                                 (not (y-or-n-p (format "Is %s right?: " time-str)))))
+                  (let* ((time-str (string-trim
+                                    (shell-command-to-string
+                                     (format "date +'%%Y-%%m-%%d %%H:%%M' -d '%s'"
+                                             (my/expand-shorthand-time d)))))
+                         (time-ts (or (and (string-prefix-p "date: invalid date"
+                                                            time-str)
+                                           (message "Invalid time"))
+                                      (encode-time (parse-time-string time-str)))))
+                    ;; Ask the user if the specified time is designated as either past or beyond 12 hours
+                    (if (and (or (time-less-p time-ts (current-time))
+                                 (time-less-p (time-add nil (seconds-to-time (* 12 60 60)))
+                                              time-ts))
+                             (not (y-or-n-p (format "Is %s right?: " time-str))))
                         (car (symbol-value history))
                       (format "'%s'" time-str))))
                 (delq nil (list (and prompt (read-string prompt)) default-time)))
