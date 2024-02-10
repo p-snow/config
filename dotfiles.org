@@ -7131,8 +7131,10 @@ How to use detached.el
   :config
   (add-to-list 'display-buffer-alist
                `(,(regexp-opt (list detached--shell-command-buffer))
-                 . (body-function
-                    . (lambda (window) (bury-buffer))))))
+                 (display-buffer-reuse-window)
+                 (body-function
+                  . (lambda (window) (interactive)
+                      (bury-buffer))))))
 
 (defun my/org-link--open-shell-detached (path _)
   "Open a \"shell\" type.
