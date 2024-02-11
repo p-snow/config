@@ -7140,6 +7140,7 @@ How to use detached.el
 (use-package detached
   :init
   (detached-init)
+  (defvar my/detached-bury-buffer nil)
   :bind
   (([remap async-shell-command] . detached-shell-command)
    ([remap compile] . detached-compile)
@@ -7150,7 +7151,15 @@ How to use detached.el
   (detached-terminal-data-command system-type)
   :config
   (add-to-list 'display-buffer-alist
-               `(,(regexp-opt (list detached--shell-command-buffer))
+               `((lambda (buffer-or-name arg)
+                   (when (and (string-match-p
+                               (regexp-opt (list detached--shell-command-buffer))
+                               (cond
+                                ((stringp buffer-or-name) buffer-or-name)
+                                ((bufferp buffer-or-name) (buffer-name buffer-or-name))))
+                              my/detached-bury-buffer)
+                     (setq my/detached-bury-buffer nil)
+                     t))
                  (display-buffer-reuse-window)
                  (body-function
                   . (lambda (window) (interactive)
@@ -10061,6 +10070,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     (format "mpv %%a %s"
             (plist-get (oref transient-current-prefix scope) 'file)))]
   (interactive)
+  (setq my/detached-bury-buffer t)
   (transient-setup 'mpv-dispatch-dwim nil nil
                    :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
 
@@ -10278,6 +10288,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     "yt-dlp --embed-chapters --live-from-start %a %u"
     :format-spec ((?u . (plist-get (oref transient-current-prefix scope) 'url))))]
   (interactive)
+  (setq my/detached-bury-buffer t)
   (transient-setup 'yt-dlp-dispatch-dwim nil nil
                    :scope (plist-put nil 'url
                                      (dispatch-dwim--determine-url url))))
