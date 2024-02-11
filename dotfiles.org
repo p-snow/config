@@ -3744,7 +3744,7 @@ Command in practice presumably looks like:
              when (or (caar (elfeed-entry-enclosures entry))
                       (elfeed-entry-link entry))
              do (let ((title (elfeed-entry-title entry)))
-                  (dispatch-yt-dlp-dwim it title)
+                  (yt-dlp-dispatch-dwim it title)
                   (dispatch-execute-macro)))
     (mapc #'elfeed-search-update-entry entries)
     (unless (or elfeed-search-remain-on-entry (use-region-p))
@@ -3757,7 +3757,7 @@ Command in practice presumably looks like:
          (url (or (caar (elfeed-entry-enclosures entry))
                   (elfeed-entry-link entry))))
     (let ((my/execute-command-function '(shell-command-to-string string-trim princ)))
-      (dispatch-yt-dlp-dwim url nil t)
+      (yt-dlp-dispatch-dwim url nil t)
       (dispatch-execute-macro))))
 #+end_src
 
@@ -9895,7 +9895,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
           (parened-rx paren-open-char 'element))))
 #+end_src
 
-**** dispatch-dwim based on transient
+**** Dispatch DWIM transient menu
 :PROPERTIES:
 :CREATED:  [2024-01-15 Mon 20:15]
 :ID:       cd86fe03-b295-4cde-8b7c-68d5705b843a
@@ -9915,9 +9915,9 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 (defalias 'dispatch-execute-macro (kmacro "x"))
 
-(transient-define-suffix my/command-execute ()
+(transient-define-suffix dispatch-dwim-execute ()
   :class dispatch-shell-command
-  :transient 'transient--do-exit
+  :transient 'transient--do-return
   :key "x" :description "execute"
   (interactive)
   (let* ((cur-obj (transient-suffix-object))
@@ -9930,11 +9930,15 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                  (when format-spec
                    (mapcar (lambda (key-val) (cons (car key-val) (eval (cdr key-val))))
                            format-spec))))))
-    (pcase (oref cur-obj dispatch-command)
-      ((and (pred symbolp) sym) (funcall sym comm))
-      ((and (pred listp) li)
-       (seq-reduce (lambda (accum fun) (funcall fun accum))
-                   li comm)))))
+    (if dispatch-dwim--stacking
+        (progn
+          (setq dispatch-dwim--stacking nil)
+          (setq dispatch-dwim--stack-message comm))
+      (pcase (oref cur-obj dispatch-command)
+        ((and (pred symbolp) sym) (funcall sym comm))
+        ((and (pred listp) li)
+         (seq-reduce (lambda (accum fun) (funcall fun accum))
+                     li comm))))))
 
 (defun dispatch-shell-command--key-vals (keys)
   (mapconcat 'transient-infix-value
@@ -9986,29 +9990,62 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     ((and (and (pred stringp) (pred file-exists-p)) str)
      (shell-quote-argument (expand-file-name str)))
     ((and (pred listp) li) (mapconcat #'dispatch-dwim--paths-string li " "))))
-#+end_src
 
-#+NAME: config/bind-dwims
-#+begin_src emacs-lisp
-(defun my/execute-dispatch-dwim-command ()
+(defvar dispatch-dwim--stack-message nil)
+(defvar dispatch-dwim--stacking nil)
+
+(defclass dispatch-dwim-sub-suffix (transient-suffix)
+  ((message   :initarg :message)
+   (format    :initarg :format   :initform " %k %d (%v)")))
+
+(cl-defmethod transient-infix-value ((obj dispatch-dwim-sub-suffix))
+  ""
+  (when (slot-boundp obj :message)
+    (oref obj message)))
+
+(cl-defmethod transient-format-value ((obj dispatch-dwim-sub-suffix))
+  (if (slot-boundp obj :message)
+      (propertize (oref obj message)
+                  'face 'transient-argument)
+    ""))
+
+(cl-defmethod transient-format ((obj dispatch-dwim-sub-suffix))
+  (when (and (not dispatch-dwim--stacking)
+             (stringp dispatch-dwim--stack-message))
+    (oset obj message dispatch-dwim--stack-message)
+    (setq dispatch-dwim--stack-message nil))
+  (format-spec (oref obj format)
+               `((?k . ,(transient-format-key obj))
+                 (?d . ,(transient-format-description obj))
+                 (?v . ,(transient-format-value obj)))))
+
+(transient-define-suffix dispatch-dwim-stack-command ()
+  :class dispatch-dwim-sub-suffix
+  :transient 'transient--do-recurse
+  (interactive)
+  (setq dispatch-dwim--stacking t)
+  (setq dispatch-dwim--stack-message nil)
+  (dispatch-dwim-select))
+
+(defun dispatch-dwim-select ()
   "Execute dispatch-*-dwim command."
   (declare (interactive-only command-execute))
   (interactive)
   (let ((read-extended-command-predicate
          (lambda (sym buf)
-           (string-match-p (rx "dispatch" (+ nonl) "dwim" eos)
+           (string-match-p (rx "dispatch-dwim" eos)
                            (symbol-name sym)))))
     (execute-extended-command current-prefix-arg)))
-(keymap-global-set "H-D" 'my/execute-dispatch-dwim-command)
+(keymap-global-set "H-D" 'dispatch-dwim-select)
 #+end_src
 
-***** mpv dwim
+***** mpv command
 :PROPERTIES:
 :CREATED:  [2024-01-15 Mon 20:17]
 :END:
 
 #+begin_src emacs-lisp
-(transient-define-prefix dispatch-mpv-dwim (&optional file no-resume start end)
+(transient-define-prefix mpv-dispatch-dwim (&optional file no-resume start end)
   ""
   :man-page "mpv"
   [("-R" "noresume" "--no-resume-playback"
@@ -10017,12 +10054,12 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :init-value (lambda (obj) (oset obj value start)))
    ("-e" "end" "--end=" :prompt "end: "
     :init-value (lambda (obj) (oset obj value end)))]
-  [(my/command-execute
+  [(dispatch-dwim-execute
     :shell-command-string
     (format "mpv %%a %s"
             (plist-get (oref transient-current-prefix scope) 'file)))]
   (interactive)
-  (transient-setup 'dispatch-mpv-dwim nil nil
+  (transient-setup 'mpv-dispatch-dwim nil nil
                    :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
 
 (with-eval-after-load 'embark
@@ -10030,7 +10067,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
           (lambda-key map "P"
                       (lambda (file)
                         "play media FILE"
-                        (dispatch-mpv-dwim file t))))
+                        (mpv-dispatch-dwim file t))))
         (list embark-file-map embark-url-map))
   (with-eval-after-load 'org
     (defun my/flink-path (flink)
@@ -10042,14 +10079,14 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
             (lambda-key map "P"
                         (lambda (link)
                           "play media file written in org LINK"
-                          (dispatch-mpv-dwim (my/flink-path link) t))))
+                          (mpv-dispatch-dwim (my/flink-path link) t))))
           (list embark-org-link-map))
     (mapc
      (lambda (map)
        (lambda-key map "P"
                    (lambda (list)
                      "play media in LIST"
-                     (dispatch-mpv-dwim (mapcar (lambda (item)
+                     (mpv-dispatch-dwim (mapcar (lambda (item)
                                                   (when (string-match org-link-any-re (car item))
                                                     (my/flink-path (match-string-no-properties 2 (car item)))))
                                                 (cdr (org-list-to-lisp list)))
@@ -10057,51 +10094,61 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
      (list embark-org-plain-list-map))))
 #+end_src
 
-***** ffmpeg-opus dwim
+***** ffmpeg-opus command
 :PROPERTIES:
 :CREATED:  [2023-11-12 Sun 22:00]
 :END:
 
 #+begin_src emacs-lisp
-(transient-define-prefix dispatch-ffmpeg-opus-dwim (&optional file)
+(transient-define-prefix ffmpeg-opus-dispatch-dwim (&optional file)
   ""
   [("-b" "bitrate" "-b:a " :prompt "bitrate: " :class transient-option
     :init-value (lambda (obj) (oset obj value "64k")))
    ("-t" "tempo" "-filter:a atempo=" :prompt "tempo (floating number): ")]
-  [(my/command-execute
+  [(dispatch-dwim-execute
     :shell-command-string
     (format "parallel ffmpeg -i '{}' -c:a libopus -ac 2 %%a '{.}'.opus ::: %s"
             (plist-get (oref transient-current-prefix scope) 'file)))]
   (interactive)
-  (transient-setup 'dispatch-ffmpeg-opus-dwim nil nil
+  (transient-setup 'ffmpeg-opus-dispatch-dwim nil nil
                    :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
 #+end_src
 
-***** sleep-rtcwake dwim
+***** rtcwake complex command
 :PROPERTIES:
 :CREATED:  [2024-01-24 Wed 13:07]
 :END:
 
 #+begin_src emacs-lisp
-(transient-define-prefix dispatch-sleep-rtcwake-dwim (&optional number)
+(transient-define-prefix sleep-dispatch-dwim (&optional number)
   ""
-  :man-page "rtcwake"
+  :man-page "sleep"
   [("-b" "time before sleep" "" :prompt "amount of time [s/m/h/d]: "
     :class transient-option :always-read t :allow-empty nil
-    :init-value (lambda (obj) (oset obj value (or number "30m"))))
-   ("-t" "wake-up time" "--date " :prompt "Wake-up time: " :class transient-option
-    :allow-empty nil :reader my/transient-read-time :always-read t
-    :init-value (lambda (obj) (oset obj value (my/transient-read-time nil "+7h" nil))))
-   ("-j" "wake-up job" "" :prompt "Wake-up job: " :class transient-option
-    :choices ("morning.sh" "which system.sh | xargs pwsudo; morning.sh; weekend.sh")
-    :init-value (lambda (obj) (oset obj value (car (oref obj choices)))))]
-  [(my/command-execute
-    :shell-command-string "sleep %n; pwsudo rtcwake -l -m mem -v %d; %j"
-    :format-spec ((?n . (dispatch-shell-command--key-vals '("-b")))
-                  (?d . (dispatch-shell-command--key-vals '("-t")))
-                  (?j . (dispatch-shell-command--key-vals '("-j")))))]
+    :init-value (lambda (obj) (oset obj value (or number "0"))))]
+  [(dispatch-dwim-execute
+    :shell-command-string "sleep %a")]
   (interactive)
-  (transient-setup 'dispatch-sleep-rtcwake-dwim))
+  (transient-setup 'sleep-dispatch-dwim))
+
+(transient-define-prefix rtcwake-complex-dispatch-dwim (&optional number)
+  ""
+  :man-page "rtcwake"
+  [("-t" "wake-up time" "--date " :prompt "Wake-up time: " :class transient-option
+    :allow-empty nil :reader my/transient-read-time :always-read t
+    :init-value (lambda (obj) (oset obj value (my/transient-read-time nil "+7h" nil))))]
+  [("p" "pre task" dispatch-dwim-stack-command
+    :message "sleep 30m")
+   ("P" "post task" "" :prompt "Wake-up job: " :class transient-option
+    :choices ("morning.sh" "which system.sh | xargs pwsudo; morning.sh; weekend.sh")
+    :init-value (lambda (obj) (oset obj value (car (oref obj choices)))))
+   (dispatch-dwim-execute
+    :shell-command-string "%p; pwsudo rtcwake -l -m mem -v %d; %P"
+    :format-spec ((?d . (dispatch-shell-command--key-vals '("-t")))
+                  (?P . (dispatch-shell-command--key-vals '("P")))
+                  (?p . (dispatch-shell-command--key-vals '("p")))))]
+  (interactive)
+  (transient-setup 'rtcwake-complex-dispatch-dwim))
 
 (defun my/transient-read-time (prompt default-time history)
   "Read time using date command."
@@ -10125,22 +10172,22 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
       ""))
 #+end_src
 
-***** pandoc dwim
+***** pandoc command
 :PROPERTIES:
 :CREATED:  [2024-01-22 Mon 14:23]
 :END:
 
-#+name: pandoc-dwim
+#+name: pandoc-command
 #+begin_src emacs-lisp
-(transient-define-prefix dispatch-pandoc-dwim (&optional file)
+(transient-define-prefix pandoc-dispatch-dwim (&optional file)
   ""
   [(my/pandoc-to)]
-  [(my/command-execute
+  [(dispatch-dwim-execute
     :shell-command-string
     (format "parallel pandoc %%a '{}' ::: %s"
             (plist-get (oref transient-current-prefix scope) 'file)))]
   (interactive)
-  (transient-setup 'dispatch-pandoc-dwim nil nil
+  (transient-setup 'pandoc-dispatch-dwim nil nil
                    :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
 
 (defclass my/transient-option (transient-option)
@@ -10166,14 +10213,14 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
               " --pdf-engine weasyprint"))))
 #+end_src
 
-***** yt-dlp dwim
+***** yt-dlp command
 :PROPERTIES:
 :CREATED:  [2024-01-27 Sat 18:25]
 :END:
 
-#+name: yt-dlp-dwim
+#+name: yt-dlp-command
 #+begin_src emacs-lisp :noweb tangle
-(transient-define-prefix dispatch-yt-dlp-dwim (&optional url output duration-p play-p)
+(transient-define-prefix yt-dlp-dispatch-dwim (&optional url output duration-p play-p)
   ""
   :man-page "yt-dlp"
   [("-P" "download path" "--paths "
@@ -10193,13 +10240,13 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                     (and output (shell-quote-argument
                                  (format "%s.%%\(ext\)s"
                                          (my/file-name-legitimate output)))))))]
-  [(my/command-execute
+  [(dispatch-dwim-execute
     ;; embed url to :shell-command-string may cause unexpected glitch
     :shell-command-string
     "yt-dlp --embed-chapters --live-from-start %a %u"
     :format-spec ((?u . (plist-get (oref transient-current-prefix scope) 'url))))]
   (interactive)
-  (transient-setup 'dispatch-yt-dlp-dwim nil nil
+  (transient-setup 'yt-dlp-dispatch-dwim nil nil
                    :scope (plist-put nil 'url
                                      (dispatch-dwim--determine-url url))))
 
@@ -10220,19 +10267,19 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                                           (match-string-no-properties 2 ol)))
                                      ((and (pred (lambda (s) (string-match ffap-url-at-point s))) u)
                                       (match-string-no-properties 0 u)))))
-                          (dispatch-yt-dlp-dwim url)
+                          (yt-dlp-dispatch-dwim url)
                           (dispatch-execute-macro)))))
         (list embark-kill-ring-map embark-url-map
               embark-org-link-map)))
 #+end_src
 
-***** du dwim
+***** du command
 :PROPERTIES:
 :CREATED:  [2024-02-02 Fri 11:13]
 :END:
 
 #+begin_src emacs-lisp
-(transient-define-prefix dispatch-du-dwim (&optional file)
+(transient-define-prefix du-dispatch-dwim (&optional file)
   "Dispatch du command."
   :man-page "du"
   [("-s" "summarize" "--summarize"
@@ -10243,12 +10290,12 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :init-value (lambda (obj) (oset obj value "--dereference-args")))
    ("-h" "human readable" "--human-readable"
     :init-value (lambda (obj) (oset obj value "--human-readable")))]
-  [(my/command-execute
+  [(dispatch-dwim-execute
     :shell-command-string
     (format "ionice -c2 -n7 nice -n19 du %%a %s"
             (plist-get (oref transient-current-prefix scope) 'file)))]
   (interactive)
-  (transient-setup 'dispatch-du-dwim nil nil
+  (transient-setup 'du-dispatch-dwim nil nil
                    :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
 #+end_src
 
@@ -12436,7 +12483,7 @@ QUERY must comply to RFC 822 format, which holds attribute/value pairs."
               (and ask-file
                    (y-or-n-p (format "Play %s?: " ask-file))))
       (apply 'funcall-interactively
-             'dispatch-mpv-dwim media nil
+             'mpv-dispatch-dwim media nil
              (and (stringp query)
                   (let ((start) (end))
                     (mapc (lambda (cons-cell)
@@ -16548,7 +16595,7 @@ if [ $# -ge 1 ]; then
 else
   arg=""
 fi
-emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(progn (dispatch-yt-dlp-dwim \"$(xclip -out)\"${arg})(dispatch-execute-macro))"
+emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(progn (yt-dlp-dispatch-dwim \"$(xclip -out)\"${arg})(dispatch-execute-macro))"
 #+end_src
 
 * Babel Utility Functions
