@@ -1299,12 +1299,12 @@ Early init file defines fundamental variables used from both normal Emacs sessio
 
 #+NAME: config/emacs-no-littering
 #+begin_src emacs-lisp :noweb tangle
-(require 'no-littering)
-
 (when (fboundp 'startup-redirect-eln-cache)
   (startup-redirect-eln-cache
    (convert-standard-filename
     (expand-file-name  "var/eln-cache/" user-emacs-directory))))
+
+(require 'no-littering)
 #+end_src
 
 ***** package.el
@@ -1312,12 +1312,14 @@ Early init file defines fundamental variables used from both normal Emacs sessio
 #+begin_src emacs-lisp
 (require 'package)
 
+(setopt package-user-dir
+        (no-littering-expand-var-file-name "elpa"))
+(setopt package-gnupghome-dir
+        (no-littering-expand-var-file-name "elpa/gnupg"))
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/")
              t)
 (setopt package-enable-at-startup t)
-(setopt package-user-dir
-        (no-littering-expand-var-file-name "elpa"))
 
 (require 'package-vc)
 #+end_src
