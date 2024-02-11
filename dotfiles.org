@@ -2104,6 +2104,24 @@ Mouse needs to be unobtrusive in my Emacs experience.
               ("b" . battery)))
 #+end_src
 
+****** Installation
+:PROPERTIES:
+:CREATED:  [2024-02-11 Sun 16:10]
+:END:
+
+#+begin_src emacs-lisp
+(use-package tutorial
+  :commands help-with-tutorial
+  :preface
+  (defun my/tutorial--saved-dir ()
+    (locate-user-emacs-file
+     (no-littering-expand-var-file-name "tutorial/")
+     (expand-file-name "tutorial/" user-emacs-directory)))
+  :config
+  (advice-add #'tutorial--saved-dir :override
+              #'my/tutorial--saved-dir))
+#+end_src
+
 ***** Convenience
 
 subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFeed'
