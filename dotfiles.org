@@ -10114,6 +10114,36 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                    :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
 #+end_src
 
+***** ffmpeg-vp9 command
+:PROPERTIES:
+:CREATED:  [2024-02-10 Sat 10:52]
+:END:
+
+#+begin_src emacs-lisp
+(transient-define-prefix ffmpeg-vp9-dispatch-dwim (&optional file)
+  ""
+  [("-B" "audio bitrate" "-b:a " :prompt "Audio bitrate: " :class transient-option
+    :init-value (lambda (obj) (oset obj value "128k")))
+   ("-c" "crf" "-crf " :prompt "CRF value: " :class transient-option
+    :init-value (lambda (obj) (oset obj value "28")))
+   ("-ss" "seek start" "-ss " :prompt "Time to start seeking: " :class transient-option)
+   ("-to" "seek stop" "-to " :prompt "Time to stop seeking: " :class transient-option)]
+  [(dispatch-dwim-execute
+    :shell-command-string
+    (format "ffmpeg -i %5$s %1$s %2$s /dev/null && ffmpeg %%S -i %5$s %1$s %3$s %4$s %5$s_out.webm"
+            "-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 %c"
+            "-pass 1 -an -f null"
+            "-pass 2 -map_metadata 0"
+            "-c:a libopus %b -ac 2"
+            (plist-get (oref transient-current-prefix scope) 'file))
+    :format-spec ((?b . (dispatch-shell-command--key-vals '("-B")))
+                  (?c . (dispatch-shell-command--key-vals '("-c")))
+                  (?S . (dispatch-shell-command--key-vals '("-ss" "-to")))))]
+  (interactive)
+  (transient-setup 'ffmpeg-vp9-dispatch-dwim nil nil
+                   :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
+#+end_src
+
 ***** rtcwake complex command
 :PROPERTIES:
 :CREATED:  [2024-01-24 Wed 13:07]
