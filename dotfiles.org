@@ -1778,12 +1778,11 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 
 #+begin_src emacs-lisp
 (use-package recentf
-  :defer 5
+  :defer 30
   :custom
   (recentf-exclude '(".gz" ".xz" ".zip" ".gpg"))
-  (recentf-max-saved-items 200)
-  (recentf-max-menu-items 15)
-  (recentf-auto-cleanup "1:23am")
+  (recentf-max-saved-items 50)
+  (recentf-auto-cleanup (* 7 60)) ; clean-up when idle time reaches 7 minutes
   :config
   (recentf-mode 1))
 #+end_src
@@ -3605,7 +3604,6 @@ Command in practice presumably looks like:
 #+begin_src emacs-lisp
 (use-package mu4e-alert
   :commands mu4e-alert-view-unread-mails
-  :defer 5
   :custom
   (mu4e-alert-modeline-formatter
    (lambda (count)
@@ -6698,7 +6696,6 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 
 #+begin_src emacs-lisp
 (use-package bookmark+
-  :defer 2
   :after bookmark)
 #+end_src
 
