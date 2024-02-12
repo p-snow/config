@@ -4747,7 +4747,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 
 #+begin_src emacs-lisp
 (use-package ol
-  :after my-org-global-map
+  :after (my-org-global-map my/org-mode-init)
   :bind (:map my/org-global-map
               ("s" . org-store-link))
   :config
@@ -6642,7 +6642,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 
 #+begin_src emacs-lisp
 (use-package orgit
-  :after org
+  :after my/org-mode-init
   :custom
   (orgit-remote "github"))
 #+end_src
@@ -12161,19 +12161,29 @@ If called interactively, it prompt the user to select the date to find."
               #'my/org-ql-search-under))
 #+end_src
 
-**** open large org files insidiously
+**** read well-used org files insidiously
 :PROPERTIES:
 :CREATED:  [2023-11-28 Tue 07:38]
 :END:
 
 #+begin_src emacs-lisp
-(use-package open-large-org-file
+(use-package read-org-agenda-files
+  :no-require t
+  :after org
+  :config
+  (run-with-idle-timer (* 30) nil
+                       (lambda ()
+                         "Read org agenda files."
+                         (mapc #'find-file-noselect
+                               (org-agenda-files)))))
+
+(use-package read-large-org-file
   :no-require t
   :after (org denote)
   :config
   (run-with-idle-timer (* 3 60) nil
                        (lambda ()
-                         "Open large org files."
+                         "Read large org files."
                          (mapc #'find-file-noselect
                                (list (denote-get-path-by-id "20230605T170959")
                                      (file-name-concat org-directory (format-time-string "archive/archive_%Y.org")))))))
