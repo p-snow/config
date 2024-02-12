@@ -1681,7 +1681,7 @@ It tries to proportionate ORIGINAL-SIZE in `my/default-pixel-width' in the displ
    . (lambda ()
        (buffer-face-set (check-face 'variable-pitch-text))
        (text-scale-set 5.0)))
-  ((Info-mode help-mode woman-mode)
+  ((Info-mode help-mode helpful-mode woman-mode)
    . (lambda ()
        (buffer-face-set (check-face 'default))
        (text-scale-set 1.3)))
@@ -7996,39 +7996,28 @@ d <<undo-tree-hist-dir()>> 0755 - - 3w
   (push 'er/mark-outside-pairs er/try-expand-list))
 #+end_src
 
-***** helpful                               :ARCHIVE:
+***** helpful
+:PROPERTIES:
+:CREATED:  [2024-02-12 Mon 19:01]
+:END:
 
-helpful-mode shows more than [[id:a55da7a2-6525-4788-ba56-085eb61928d4][help-mode]].
+helpful-mode displays more sources compared to help-mode, including callers, debugging information, and source code.
 
-# #+begin_src scheme :tangle no :noweb-ref guix-emacs
-#   "emacs-helpful"
-# #+end_src
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+  "emacs-helpful"
+#+end_src
 
 #+begin_src emacs-lisp
 (use-package helpful
-  :bind
-  (:map help-map
-        ("f" . helpful-callable)
-        ("v" . helpful-variable)
-        ("k" . helpful-key))
-  (:map helpful-mode-map
-        ("w" . helpful-push-symbol-onto-kill-ring) )
-  :config
-  (bind-keys :map helpful-mode-map
-             ("f" . scroll-up-line)
-             ("e" . scroll-down-line)
-             ("SPC" . my/forward-paragraph)
-             ("E" . my/backward-paragraph)
-             ("2" . backward-button)
-             ("3" . forward-button)
-             ("4" . push-button)))
-
-(defun helpful-push-symbol-onto-kill-ring ()
-  "Push symbol name to kill ring."
-  (interactive)
-  (let ((symbol (symbol-name helpful--sym)))
-    (kill-new (symbol-name helpful--sym))
-    (message "COPY: %s" symbol)))
+  :after help
+  :bind (:map help-map
+              ("C-u a" . helpful-callable)
+              ("C-u f" . helpful-function)
+              ("C-u s" . helpful-symbol)
+              ("C-u x" . helpful-command)
+              ("C-u v" . helpful-variable)
+              ("C-u k" . helpful-key)
+              ("C-u m" . helpful-macro)))
 #+end_src
 
 ***** define-word            :dictionary:convenience:
@@ -8750,7 +8739,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
          ("e" . scroll-down-line)
          ("SPC" . my/forward-paragraph)
          ("E" . my/backward-paragraph))
-  :hook ((help-mode Info-mode eww-mode nov-mode mu4e-view-mode woman-mode mastodon-mode Custom-mode)
+  :hook ((help-mode helpful-mode Info-mode eww-mode nov-mode mu4e-view-mode woman-mode mastodon-mode Custom-mode)
          . logos-focus-mode)
   :custom
   (logos-scroll-lock nil)
@@ -8788,6 +8777,25 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 
 #+begin_src emacs-lisp
 (use-package editorconfig)
+#+end_src
+
+***** elisp-demos
+:PROPERTIES:
+:CREATED:  [2024-02-11 Sun 22:02]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-elisp-demos"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package elisp-demos
+  :after helpful
+  :bind
+  (:map help-map
+        ("O" . elisp-demos-find-demo)
+        :map helpful-mode-map
+        ("O" . elisp-demos-for-helpful)))
 #+end_src
 
 *** further extension
