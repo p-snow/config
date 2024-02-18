@@ -16219,18 +16219,23 @@ function git-one-go {
   local _branch=$(git symbolic-ref -q HEAD | sed 's/refs\/heads\///')
   local _remote=$(git config --get branch.$_branch.pushRemote)
   local _commit_msg="auto-commit by $(whoami) on $(uname -n) at $(date +"%H:%M %b %d")"
-  # local _autocommit_cmd="git add -u ; git commit -m \"${_commit_msg}\";"
+
+  echo -e "\nStarting git syncing at $(pwd)"
+
   if [[ "true" = "$(git config --get --bool branch.$_branch.sync)" ]] ; then
-    git add -u ; git commit -m "${_commit_msg}";
-    if [ $? != 0 ]; then
-      echo "ghq-sync: git commit returned non-zero." >&2
-      exit 1
+    git add -u
+    if [ -n "$(git status --porcelain)" ]; then
+      git commit --allow-empty -m "${_commit_msg}"
     fi
 
-    git push $_remote $_branch
-    if [ $? != 0 ]; then
-      echo "ghq-sync: git push returned non-zero. Likely a connection failure." >&2
-      exit 1
+    if [ -n "$(git log origin/main..HEAD)" ]; then
+      git push $_remote $_branch
+      if [ $? != 0 ]; then
+        echo "ghq-sync: git push returned non-zero. Likely a connection failure." >&2
+        exit 1
+      fi
+    else
+      echo "No unpushed commits found. Nothing to push."
     fi
   fi
 }
