@@ -342,6 +342,7 @@ export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/base/base/share/man
    "jq"
    "pup"
    "htmlq"
+   "python-feedparser"
    "util-linux"
    "binutils"
    "make"
@@ -1637,6 +1638,7 @@ Settings in this section are influenced a great deal by my personal preference. 
 ***** Faces
 :PROPERTIES:
 :CREATED:  [2022-09-11 Sun 16:55]
+:ID:       9edc9c6a-607c-4a06-8f75-c04de9a32abb
 :END:
 
 Caveat: [[https://en.wikipedia.org/wiki/Leber%27s_hereditary_optic_neuropathy][I am visually impaired]], so the font size for the default face is extraordinarily large.
@@ -8794,6 +8796,36 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
         ("O" . elisp-demos-find-demo)
         :map helpful-mode-map
         ("O" . elisp-demos-for-helpful)))
+#+end_src
+
+***** yeetube
+:PROPERTIES:
+:CREATED:  [2024-02-26 Mon 20:42]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-yeetube"
+#+end_src
+
+#+NAME: config-emacs-yeetube
+#+begin_src emacs-lisp :noweb tangle
+(use-package yeetube
+  :after engine-mode
+  :bind (:map engine-mode-prefixed-map
+              ("Y" . yeetube-search))
+  :custom
+  (yeetube-download-directory (file-name-concat "<<media-dir()>>" "downloads"))
+  (yeetube-default-sort-column "Date")
+  :config
+  (keymap-set yeetube-mode-map "Y"
+              (lambda () (interactive)
+                "Dwonload a video at point using `yt-dlp-dispatch-dwim'"
+                (yt-dlp-dispatch-dwim (yeetube-get-url))))
+  (keymap-set yeetube-mode-map "P"
+              (lambda () (interactive)
+                "Play a video at point using `yt-dlp-dispatch-dwim'"
+                (yt-dlp-dispatch-dwim (yeetube-get-url) nil nil t)
+                (dispatch-execute-macro))))
 #+end_src
 
 *** further extension
