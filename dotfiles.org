@@ -4590,7 +4590,12 @@ If entry at POM has no clock log time stamp, this function returns 0."
   :custom
   (org-refile-targets
    `((org-agenda-files :tag . ,my/org-project-tag)
-     (,(org-agenda-files) :tag . "refile"))))
+     (org-agenda-files :tag . "refile")
+     (,(cl-remove-if-not (lambda (f)
+                           (member "inbox"
+                                   (denote-extract-keywords-from-path f)))
+                         (denote-all-files))
+      :tag . "refile"))))
 #+end_src
 
 ****** Org Time
