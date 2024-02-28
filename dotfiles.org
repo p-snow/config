@@ -10036,8 +10036,10 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 (defun dispatch-dwim--paths-string (arg)
   (pcase arg
-    ((and (and (pred stringp) (pred file-exists-p)) str)
+    ((and (pred stringp) (pred file-exists-p) str)
      (shell-quote-argument (expand-file-name str)))
+    ((and (pred stringp) (pred (string-match-p ffap-url-regexp)) (app (match-string 1) str))
+     (dispatch-dwim--determine-url str))
     ((and (pred listp) li) (mapconcat #'dispatch-dwim--paths-string li " "))))
 
 (defvar dispatch-dwim--stack-message nil)
