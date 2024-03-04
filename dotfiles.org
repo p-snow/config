@@ -5380,6 +5380,7 @@ export DISPLAY=:0 && \
   (org-save-all-org-buffers)
   (save-buffers-kill-emacs t))
 #+end_src
+
 **** Completion
 
 ***** vertico
@@ -13890,6 +13891,16 @@ line_username=2
 target=github.com
 # username_extractor=entry_name
 #+end_src
+
+- make some projects invisible from plocate command
+  #+NAME: ghq-invisible-projects
+  #+begin_src shell :tangle no
+  ghq list --full-path p-snow/dotfiles
+  #+end_src
+
+  #+begin_src shell :noweb yes :noweb-ref updatedb-opt
+  -e "<<ghq-invisible-projects()>>" \
+  #+end_src
 
 ** Pass
 
