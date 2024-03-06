@@ -4377,7 +4377,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
   (org-capture-templates
    `(("e" "Entry"
       entry (id "58e12e3e-da50-4089-9d22-565986637121")
-      ,(concat "* %a\n"
+      ,(concat "* [heading]\n%a\n"
                "%(and (length> \"%i\" 0)
 (format \"#+begin_\%1$s\n\%2$s#+end_%1$s\n\"
 \"text\"
@@ -4593,7 +4593,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
    `((org-agenda-files :tag . ,my/org-project-tag)
      (org-agenda-files :tag . "refile")
      (,(cl-remove-if-not (lambda (f)
-                           (member "inbox"
+                           (member "refile"
                                    (denote-extract-keywords-from-path f)))
                          (denote-all-files))
       :tag . "refile"))))
