@@ -5265,7 +5265,8 @@ Ancestors are looked up If current heading has no CATEGORY."
     (bind-keys :map my/org-global-map
                ("T q" . my/org-web-track-ql-view)
                ("T c" . org-web-track-columns)
-               ("T n" . org-web-track-setup)
+               ("T C" . org-web-track-agenda-columns)
+               ("T n" . org-web-track-initialize)
                ("T u" . org-web-track-update)
                ("T U" . org-web-track-update-all)
                ("T i" . org-web-track-insert-value-change-table)))
@@ -5320,7 +5321,7 @@ Ancestors are looked up If current heading has no CATEGORY."
     (when-let* ((changes (org-web-track-update-all))
                 (mail-msg (mapconcat
                            (lambda (chg)
-                             (org-with-point-at (car chg)
+                             (org-with-point-at chg
                                (let ((org-trust-scanner-tags t))
                                  (format "%s\n\t%s\n"
                                          (substring-no-properties
