@@ -1972,22 +1972,26 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
 
 ****** Minibuffer
 
-#+begin_src emacs-lisp
-(define-key minibuffer-mode-map
-            (kbd "C-h") #'delete-backward-char)
-(define-key minibuffer-mode-map
-            (kbd "M-h") #'backward-kill-word)
-(keymap-set minibuffer-mode-map "TAB" 'minibuffer-complete)
+Formerly, I used to bind C-h to `backward-delete-char' and M-h to `backward-kill-word', which was very comfortable. However, I realized that C-h must be a help key, as many Emacs packages are developed based on the assumption that "C-h is a help key". Having said that, in the minibuffer where a help key does not necessarily play a significant role, I decided to bind C-h to `backward-delete-char'.
 
-(customize-set-variable 'history-length 300)
-(customize-set-variable 'history-delete-duplicates t)
-(customize-set-variable 'enable-recursive-minibuffers t)
-(customize-set-variable 'minibuffer-depth-indicate-mode t)
-(customize-set-variable 'read-file-name-completion-ignore-case t)
-(customize-set-variable 'read-minibuffer-restore-windows t)
-(customize-set-variable 'minibuffer-default-prompt-format " [%s]")
-(customize-set-variable 'completion-cycle-threshold 1)
-(customize-set-variable 'completions-detailed t)
+#+begin_src emacs-lisp
+(keymap-set minibuffer-mode-map
+            "C-h" #'delete-backward-char)
+(keymap-set minibuffer-mode-map
+            "M-h" #'backward-kill-word)
+(keymap-set minibuffer-mode-map "TAB" 'minibuffer-complete)
+#+end_src
+
+#+begin_src emacs-lisp
+(setopt history-length 1500)
+(setopt history-delete-duplicates t)
+(setopt enable-recursive-minibuffers t)
+(setopt minibuffer-depth-indicate-mode t)
+(setopt read-file-name-completion-ignore-case t)
+(setopt read-minibuffer-restore-windows t)
+(setopt minibuffer-default-prompt-format " [%s]")
+(setopt completion-cycle-threshold 1)
+(setopt completions-detailed t)
 
 (add-hook 'minibuffer-setup-hook 'my/minibuffer-setup-function)
 (defun my/minibuffer-setup-function ()
