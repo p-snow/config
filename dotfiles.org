@@ -1569,9 +1569,11 @@ Settings in this section are influenced a great deal by my personal preference. 
                              global-map)
   #+end_src
 
-- bind handy find functions like 'find-library to C-x L
+- bind find-functions and finder commands
   #+begin_src emacs-lisp
   (find-function-setup-keys)
+
+  (define-key ctl-x-map "C" 'finder-commentary)
   #+end_src
 
 ***** Unleash Disabled Commands
@@ -2493,6 +2495,8 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
 
 #+begin_src emacs-lisp
 (setopt help-enable-variable-value-editing t)
+(setopt help-enable-symbol-autoload t)
+(setopt describe-bindings-outline t)
 #+end_src
 
 ***** Data
@@ -6301,14 +6305,10 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 :END:
 
 #+begin_src emacs-lisp
-(customize-set-variable 'help-enable-symbol-autoload t)
-(customize-set-variable 'describe-bindings-outline t)
-
 (with-eval-after-load 'help
-  (define-key help-map (kbd "C-?") #'help-for-help)
-  (define-key help-map (kbd "c") #'describe-face)
-  (define-key help-map (kbd "K") #'describe-keymap)
-  (define-key help-map (kbd "C-l") #'find-library))
+  (keymap-set help-map "C-?" #'help-for-help)
+  (keymap-set help-map "c" #'describe-face)
+  (keymap-set help-map "K" #'describe-keymap))
 #+end_src
 
 ***** woman
