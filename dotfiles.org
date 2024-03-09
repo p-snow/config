@@ -8804,12 +8804,12 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 
 #+begin_src emacs-lisp
 (use-package elisp-demos
-  :after helpful
-  :bind
-  (:map help-map
-        ("O" . elisp-demos-find-demo)
-        :map helpful-mode-map
-        ("O" . elisp-demos-for-helpful)))
+  :bind (:map help-map
+              ("O" . elisp-demos-find-demo))
+  :config
+  (require 'helpful)
+  (bind-keys :map helpful-mode-map
+             ("O" . elisp-demos-for-helpful)))
 #+end_src
 
 ***** yeetube
