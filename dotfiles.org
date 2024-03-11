@@ -354,7 +354,6 @@ export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/base/base/share/man
    "shellcheck"
    "global"
    "perl"
-   "linux-libre-documentation"
    "pfetch"
    "neofetch"
    <<guix-base>>))
@@ -4868,14 +4867,6 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
                  ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))))
 #+end_src
 
-****** Org Plot                            :ARCHIVE:
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"gnuplot"
-"emacs-gnuplot"
-"emacs-mkmcc-gnuplot-mode"
-#+end_src
-
 ***** org 3rd-party packages
 :PROPERTIES:
 :CREATED:  [2023-01-24 Tue 16:07]
@@ -6045,7 +6036,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
      (setq-local flycheck-checker 'python-pylint)))
   :config
   (my/add-dash-docsets-hook 'python-mode-hook
-                            '("Python 3"))
+                            '("Python 3" "NumPy" "Matplotlib"))
   (my/add-dash-docsets-hook 'inferior-python-mode-hook
                             '("Python 3")))
 
@@ -15856,6 +15847,8 @@ They are mostly written in Rust. [[https://github.com/mhoye/moderntools/][modern
 "python-jedi"
 "python-send2trash"
 "python-matplotlib"
+"python-numpy"
+"python-pandas"
 #+end_src
 
 ** Ruby
