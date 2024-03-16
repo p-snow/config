@@ -1686,7 +1686,7 @@ It tries to proportionate ORIGINAL-SIZE in `my/default-pixel-width' in the displ
    . (lambda ()
        (buffer-face-set (check-face 'variable-pitch-text))
        (text-scale-set 5.0)))
-  ((Info-mode help-mode helpful-mode woman-mode)
+  ((Info-mode help-mode helpful-mode woman-mode devdocs-mode)
    . (lambda ()
        (buffer-face-set (check-face 'default))
        (text-scale-set 1.3)))
@@ -2178,9 +2178,11 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
   :no-require t
   :after adaptive-wrap
   :hook
-  ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode)
+  ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode
+                   mu4e-view-mode nov-mode devdocs-mode)
    . visual-line-mode)
-  ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode mu4e-view-mode nov-mode twittering-mode)
+  ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode
+                   mu4e-view-mode nov-mode devdocs-mode)
    . adaptive-wrap-prefix-mode)
   :custom
   (global-visual-line-mode nil))
@@ -5871,6 +5873,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   :mode ("\\.eld?$" . emacs-lisp-mode)
   :commands emacs-lisp-mode
   :hook (emacs-lisp-mode . (lambda ()
+                             (setq-local devdocs-current-docs '("elisp"))
                              (push '("lambda" . ?λ) prettify-symbols-alist)
                              (setq-local tab-width 8)
                              (eldoc-mode 1)))
@@ -6033,7 +6036,8 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   :hook
   ((python-mode inferior-python-mode) .
    (lambda ()
-     (setq-local flycheck-checker 'python-pylint)))
+     (setq-local flycheck-checker 'python-pylint)
+     (setq-local devdocs-current-docs '("python~3.9"))))
   :config
   (my/add-dash-docsets-hook 'python-mode-hook
                             '("Python 3" "NumPy" "Matplotlib"))
@@ -8744,7 +8748,8 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
          ("e" . scroll-down-line)
          ("SPC" . my/forward-paragraph)
          ("E" . my/backward-paragraph))
-  :hook ((help-mode helpful-mode Info-mode eww-mode nov-mode mu4e-view-mode woman-mode mastodon-mode Custom-mode)
+  :hook ((help-mode helpful-mode Info-mode eww-mode nov-mode mu4e-view-mode
+                    woman-mode mastodon-mode Custom-mode devdocs-mode)
          . logos-focus-mode)
   :custom
   (logos-scroll-lock nil)
@@ -8871,6 +8876,21 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
   :ensure t
   :config
   (treesit-auto-add-to-auto-mode-alist 'all))
+#+end_src
+
+***** devdocs
+:PROPERTIES:
+:CREATED:  [2024-03-16 Sat 16:20]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-devdocs"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package devdocs
+  :bind (:map help-map
+              ("M-d" . devdocs-lookup)))
 #+end_src
 
 *** further extension
