@@ -3278,7 +3278,7 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 d <<eww-org-dir()>> 0755 - - 3d
 #+end_src
 
-#+begin_src emacs-lisp :noweb tangle
+#+begin_src emacs-lisp
 (with-eval-after-load 'shr
   (setopt shr-width 10000)
   (setopt shr-use-fonts nil)
@@ -3287,7 +3287,12 @@ d <<eww-org-dir()>> 0755 - - 3d
   (setopt shr-max-image-proportion 0.4)
   ;; never use cookies
   (setopt shr-cookie-policy nil))
+#+end_src
 
+The EWW bookmark functionality is an original implementation, separate from the emacs bookmark facility. Although [[https://lists.gnu.org/archive/html/emacs-devel/2020-10/msg01651.html][adoption of the facility has been considered]], a possible solution to count EWW bookmarks in the source of consult-buffer is showcased at [[https://github.com/minad/consult/issues/347][here]].
+
+#+NAME: config-eww
+#+begin_src emacs-lisp :noweb tangle
 (use-package eww
   :commands eww
   :after my-launch-app
@@ -3309,7 +3314,23 @@ d <<eww-org-dir()>> 0755 - - 3d
              ("L" . my/eww-goto-heading)
              ("O" . my/eww-view-in-org)
              :map eww-bookmark-mode-map
-             ("C-j" . eww-bookmark-browse)))
+             ("C-j" . eww-bookmark-browse))
+  (with-eval-after-load 'consult
+    (defvar consult--source-eww
+      (list :name     "Eww"
+            :narrow   ?w
+            :action   (lambda (bm)
+                        (eww-browse-url (get-text-property 0 'url bm)))
+            :items    (lambda ()
+                        (eww-read-bookmarks)
+                        (mapcar (lambda (bm)
+                                  (propertize
+                                   (format "%s (%s)"
+                                           (plist-get bm :url)
+                                           (plist-get bm :title))
+                                   'url (plist-get bm :url)))
+                                eww-bookmarks))))
+    (add-to-list 'consult-buffer-sources 'consult--source-eww 'append)))
 
 (defun my/eww-view-in-org ()
   "Convert current html page into one org file and show it.
@@ -6697,12 +6718,14 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
   (require 'mastodon-views))
 #+end_src
 
-***** bookmark+
+***** bookmark+                             :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-09-17 Sun 14:58]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
+[[https://github.com/emacsmirror/bookmark-plus][Bookmark-plus]] package is so feature-rich that it is a great package for most people, but a bit overwhelming for me. I realized that the URL bookmarking functionality is the only benefit that I receive from bookmark-plus. Therefore, I have decided to use [[help:eww-add-bookmark][EWW's bookmarking command]] for that purpose.
+
+#+begin_src scheme :tangle no :noweb-ref no
 "emacs-bookmark-plus"
 #+end_src
 
