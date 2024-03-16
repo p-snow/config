@@ -8833,6 +8833,46 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
                 (dispatch-execute-macro))))
 #+end_src
 
+***** consult-notes          :wp:convenience:ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2024-03-05 Tue 14:09]
+:END:
+
+#+begin_src emacs-lisp
+(use-package consult-notes
+  :ensure t
+  :after (consult denote))
+#+end_src
+
+***** gnuplot
+:PROPERTIES:
+:CREATED:  [2024-03-11 Mon 16:55]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-base
+"gnuplot"
+#+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-gnuplot"
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
+;; (setopt gnuplot-program "<<which(filename="gnuplot")>>")
+#+end_src
+
+***** treesit-auto
+:PROPERTIES:
+:CREATED:  [2024-03-13 Wed 16:07]
+:END:
+
+#+begin_src emacs-lisp
+(use-package treesit-auto
+  :ensure t
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all))
+#+end_src
+
 *** further extension
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
