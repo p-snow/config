@@ -6128,7 +6128,8 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   (setq ruby-insert-encoding-magic-comment nil)
   (add-hook 'ruby-mode-hook
             '(lambda ()
-               (setq-local flycheck-checker 'ruby-rubocop)))
+               (setq-local flycheck-checker 'ruby-rubocop)
+               (setq-local devdocs-current-docs '("ruby~3.2"))))
   (add-to-list 'hs-special-modes-alist
                `(ruby-mode
                  ,(rx (or "def" "class" "module" "do" "if" "{" "[")) ; Block start
@@ -8886,7 +8887,10 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle
-;; (setopt gnuplot-program "<<which(filename="gnuplot")>>")
+(use-package gnuplot
+  :hook
+  (gnuplot-mode . (lambda ()
+                    (setq-local devdocs-current-docs '("gnuplot")))))
 #+end_src
 
 ***** treesit-auto
