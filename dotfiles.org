@@ -5280,51 +5280,21 @@ Ancestors are looked up If current heading has no CATEGORY."
 
 #+begin_src emacs-lisp :tangle (expand-file-name "my-org-web-track.el" tangle/emacs-config-dir)
 (use-package org-web-track
-  :after my/org-mode-init
+  :after (my/org-mode-init my-org-global-map)
   :load-path ("~/data/ghq/github.com/p-snow/org-web-track")
-  :config
-  (with-eval-after-load 'my-org-global-map
-    (bind-keys :map my/org-global-map
-               ("T q" . my/org-web-track-ql-view)
-               ("T c" . org-web-track-columns)
-               ("T a" . org-web-track-agenda-columns)
-               ("T n" . org-web-track-initialize)
-               ("T u" . org-web-track-update)
-               ("T U" . org-web-track-update-all)
-               ("T i" . org-web-track-insert-value-change-table)))
-  (setq org-web-track-selector-alist
-        `((,(rx "www.amazon.co.jp"
-                (+ anychar)
-                "-ebook")
-           "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'")
-          (,(regexp-quote "www.amazon.co.jp/product-reviews")
-           [.a-size-base.a-color-secondary] ; num of stars
-           [.a-size-medium.a-color-base]) ; rating
-          (,(regexp-quote "www.amazon.co.jp")
-           [.a-price .a-offscreen]
-           [div:availability span]) ; availability
-          (,(regexp-quote "www.yodobashi.com/product")
-           [:js_scl_unitPrice])
-          (,(regexp-quote "kakaku.com/item")
-           [.priceTxt])
-          (,(regexp-quote "store.steampowered.com")
-           "htmlq --text 'div.game_purchase_action:nth-child(4) > div:nth-child(1) > div:nth-child(1)'")
-          ("www.googleapis.com/youtube/v3/channels"
-           (lambda (json)
-             (assoc-default 'subscriberCount
-                            (assoc-default 'statistics (aref (cdr (assoc 'items json))
-                                                             0)))))
-          ("openexchangerates.org/api/latest"
-           (lambda (json)
-             (number-to-string
-              (assoc-default 'JPY
-                             (assoc-default 'rates json)))))
-          ("map.kaldi.co.jp/kaldi"
-           "pup 'div[class=\"shop_bnr news\"] ul li text{}' | xargs echo -n")))
+  :bind (:map my/org-global-map
+              ("T q" . my/org-web-track-ql-view)
+              ("T c" . org-web-track-columns)
+              ("T a" . org-web-track-agenda-columns)
+              ("T n" . org-web-track-initialize)
+              ("T u" . org-web-track-update-entry)
+              ("T U" . org-web-track-update-files)
+              ("T i" . org-web-track-insert-log-table))
   :preface
   (defun my/org-web-track-ql-view ()
     "Open Org Agenda view with tracking items which hold TRACK_URL property."
     (interactive)
+    (require 'org-web-track nil t)
     (with-current-buffer (get-buffer-create "Org Web Track")
       (org-agenda-mode)
       (setq-local org-overriding-columns-format org-web-track-columns-format
@@ -5333,32 +5303,77 @@ Ancestors are looked up If current heading has no CATEGORY."
             'org-web-track-display-values)
       (when (require 'org-ql nil t)
         (org-ql-search org-web-track-files
-          `(property ,org-web-track-url-property)
-          :super-groups '((:tag "book") (:tag "food")
-                          (:tag "tool") (:tag "supply"))
-          :buffer (current-buffer)))))
+                       `(property ,org-web-track-url)
+                       :super-groups '((:tag "book") (:tag "food")
+                                       (:tag "tool") (:tag "supply"))
+                       :buffer (current-buffer)))))
   (defun my/org-web-track-update-all-and-notify ()
     "Update all web tracking items in `org-web-track-files'
  and send an email if any of them has changed its value."
-    (when-let* ((changes (org-web-track-update-all))
-                (mail-msg (mapconcat
-                           (lambda (chg)
-                             (org-with-point-at chg
-                               (let ((org-trust-scanner-tags t))
-                                 (format "%s\n\t%s\n"
-                                         (substring-no-properties
-                                          (org-get-heading t t t t))
-                                         (org-web-track-current-changes nil "%p => %c" " | ")))))
-                           changes)))
-      ;; you need to set SMTP info to smtpmail-xxx variables
-      (let ((message-kill-buffer-on-exit t))
+    (let* ((org-log-into-drawer t)
+           (message-kill-buffer-on-exit t)
+           (mail-msg (mapconcat
+                      (lambda (chg)
+                        (org-with-point-at chg
+                          (let ((org-trust-scanner-tags t))
+                            (format "%s\n\t%s\n"
+                                    (substring-no-properties
+                                     (org-get-heading t t t t))
+                                    (org-web-track-current-changes nil "%p => %c" " | ")))))
+                      (org-web-track-update-files))))
+      (unless (string-blank-p mail-msg)
+        ;; you need to set SMTP info to smtpmail-xxx variables
         (message-mail user-mail-address "Web Tracking Notification")
         (message-goto-body)
         (insert mail-msg)
         (message-send-and-exit))))
   :custom
+  (org-web-track-selectors-alist
+   `((,(rx "www.amazon.co.jp" (+ anychar) "-ebook")
+      "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'")
+     (,(regexp-quote "www.amazon.co.jp/product-reviews")
+      ([.a-size-base.a-color-secondary] ; num of stars
+       [.a-size-medium.a-color-base])) ; rating
+     (,(regexp-quote "www.amazon.co.jp")
+      ([.a-price.aok-align-center > .a-offscreen]
+       [div:availability span])) ; availability
+     (,(regexp-quote "www.yodobashi.com/product")
+      [:js_scl_unitPrice])
+     (,(regexp-quote "kakaku.com/item")
+      [.priceTxt])
+     (,(regexp-quote "store.steampowered.com")
+      (lambda (dom)
+        (when-let ((products (dom-search dom (lambda (node) (string-prefix-p "game_area_purchase_game"
+                                                                         (dom-attr node 'class))))))
+          (dom-text (or (dom-by-class (car products) "game_purchase_price")
+                        (dom-by-class (car products) "discount_final_price"))))))
+     (,(regexp-quote "www.googleapis.com/youtube/v3/channels")
+      (lambda (json)
+        (assoc-default 'subscriberCount
+                       (assoc-default 'statistics (aref (cdr (assoc 'items json))
+                                                        0)))))
+     (,(regexp-quote "www.googleapis.com/youtube/v3/videos")
+      (lambda (json)
+        (when (require 'dash nil t)
+          (let ((stat (->> json
+                           (assoc-default 'items)
+                           (mapcar #'identity)
+                           (nth 0)
+                           (assoc-default 'statistics))))
+            (list (assoc-default 'likeCount stat)
+                  (assoc-default 'commentCount stat))))))
+     (,(regexp-quote "openexchangerates.org/api/latest")
+      (lambda (json)
+        (number-to-string
+         (assoc-default 'JPY
+                        (assoc-default 'rates json))))
+      (lambda (rate) (format "%.3f" (string-to-number rate))))
+     (,(regexp-quote "map.kaldi.co.jp/kaldi")
+      "pup 'div[class=\"shop_bnr news\"] ul li text{}' | xargs echo -n")
+     (,(regexp-quote "www.seijoishii.com")
+      [.price > .total])))
   (org-agenda-bulk-custom-functions
-   '((?W org-web-track-update-item)))
+   '((?U org-web-track-agenda-update)))
   (org-web-track-item-column-width 16)
   (org-web-track-update-column-width 30)
   (org-web-track-files
