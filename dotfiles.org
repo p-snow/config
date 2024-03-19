@@ -5344,7 +5344,7 @@ Ancestors are looked up If current heading has no CATEGORY."
      (,(regexp-quote "store.steampowered.com")
       (lambda (dom)
         (when-let ((products (dom-search dom (lambda (node) (string-prefix-p "game_area_purchase_game"
-                                                                         (dom-attr node 'class))))))
+                                                                             (dom-attr node 'class))))))
           (dom-text (or (dom-by-class (car products) "game_purchase_price")
                         (dom-by-class (car products) "discount_final_price"))))))
      (,(regexp-quote "www.googleapis.com/youtube/v3/channels")
@@ -5378,14 +5378,14 @@ Ancestors are looked up If current heading has no CATEGORY."
   (org-web-track-update-column-width 30)
   (org-web-track-files
    (lambda ()
-     (require 'denote)
-     (setopt denote-directory (expand-file-name "~/org/notes"))
-     (setopt org-agenda-files '("~/org/agenda/"))
-     (append (org-agenda-files)
-             (cl-remove-if-not (lambda (f)
-                                 (member "track"
-                                         (denote-extract-keywords-from-path f)))
-                               (denote-all-files))))))
+     (when (require 'denote nil t)
+       (let ((denote-directory (expand-file-name "~/org/notes"))
+             (org-agenda-files '("~/org/agenda/")))
+         (append (org-agenda-files)
+                 (cl-remove-if-not (lambda (f)
+                                     (member "track"
+                                             (denote-extract-keywords-from-path f)))
+                                   (denote-all-files))))))))
 #+end_src
 
 ******* batch tracking
@@ -5404,15 +5404,16 @@ export DISPLAY=:0 && \
 
 #+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "batch/org-web-track-mail.el" tangle/emacs-config-dir)
 (provide 'my/org-mode-init)
+(define-keymap :prefix 'my/org-global-map)
+(provide 'my-org-global-map)
 
-(custom-set-variables
- '(message-send-mail-function 'smtpmail-send-it)
- '(smtpmail-smtp-server "<<smtp-host>>")
- '(smtpmail-smtp-service 465)
- '(smtpmail-smtp-user user-mail-address)
- '(smtpmail-stream-type 'ssl)
- '(smtpmail-mail-address user-mail-address)
- '(message-send-mail-function 'smtpmail-send-it))
+(setopt message-send-mail-function 'smtpmail-send-it
+        smtpmail-smtp-server "<<smtp-host>>"
+        smtpmail-smtp-service 465
+        smtpmail-smtp-user user-mail-address
+        smtpmail-stream-type 'ssl
+        smtpmail-mail-address user-mail-address
+        message-send-mail-function 'smtpmail-send-it)
 
 (defun my/org-web-track-mail ()
   "Update `org-web-track' items along with sending email and immediate exit."
