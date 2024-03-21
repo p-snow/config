@@ -5286,7 +5286,7 @@ Ancestors are looked up If current heading has no CATEGORY."
               ("T q" . my/org-web-track-ql-view)
               ("T c" . org-web-track-columns)
               ("T a" . org-web-track-agenda-columns)
-              ("T n" . org-web-track-initialize)
+              ("T n" . org-web-track-setup-entry)
               ("T u" . org-web-track-update-entry)
               ("T U" . org-web-track-update-files)
               ("T i" . org-web-track-insert-log-table))
@@ -5344,7 +5344,7 @@ Ancestors are looked up If current heading has no CATEGORY."
      (,(regexp-quote "store.steampowered.com")
       (lambda (dom)
         (when-let ((products (dom-search dom (lambda (node) (string-prefix-p "game_area_purchase_game"
-                                                                             (dom-attr node 'class))))))
+                                                                         (dom-attr node 'class))))))
           (dom-text (or (dom-by-class (car products) "game_purchase_price")
                         (dom-by-class (car products) "discount_final_price"))))))
      (,(regexp-quote "www.googleapis.com/youtube/v3/channels")
