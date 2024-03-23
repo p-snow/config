@@ -2536,18 +2536,20 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 ***** Editing Basics
 
 #+begin_src emacs-lisp
-(customize-set-variable 'set-mark-command-repeat-pop t)
-(customize-set-variable 'mark-ring-max 32)
-(customize-set-variable 'next-line-add-newlines nil)
-(customize-set-variable 'cycle-spacing-actions
-                        '(delete-all-space just-one-space restore))
+(setopt set-mark-command-repeat-pop t
+        mark-ring-max 64
+        next-line-add-newlines nil
+        cycle-spacing-actions '(delete-all-space just-one-space restore))
+
 ;; delsel
-;;; delete rather than insert the text in region if hit single char
-(customize-set-variable 'delete-selection-mode t)
+;;; inserting Replacing the string in the region with the typed character
+;;; instead of simply inserting it.
+(setopt delete-selection-mode t)
+
 ;; files
-(customize-set-variable 'mode-require-final-newline 'visit-save)
-(customize-set-variable 'delete-auto-save-files t)
-(customize-set-variable 'enable-remote-dir-locals t)
+(setopt mode-require-final-newline 'visit-save
+        enable-remote-dir-locals t)
+(setq delete-auto-save-files t)
 #+end_src
 
 ***** External
