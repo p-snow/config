@@ -1341,8 +1341,8 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 (require 'use-package)
 (require 'use-package-ensure)
 
-(customize-set-variable 'use-package-compute-statistics t)
-(customize-set-variable 'use-package-verbose nil)
+(setopt use-package-compute-statistics t
+        use-package-verbose nil)
 (with-eval-after-load 'my-launch-app
   (keymap-set my/invoke-list-command-map (kbd "u")
               #'use-package-report))
@@ -1440,8 +1440,8 @@ Following hook statements are likely written in .dir-locals.el at the top level 
 :END:
 
 #+begin_src emacs-lisp
-(customize-set-variable 'custom-file
-                        (expand-file-name "custom.el" user-emacs-directory))
+(setopt custom-file
+        (expand-file-name "custom.el" user-emacs-directory))
 
 (when (file-readable-p custom-file)
   (load custom-file))
@@ -1726,8 +1726,8 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 :END:
 
 #+begin_src emacs-lisp
-(customize-set-variable 'create-lockfiles nil)
-(customize-set-variable 'remote-file-name-inhibit-locks t)
+(setopt create-lockfiles nil
+        remote-file-name-inhibit-locks t)
 #+end_src
 
 ****** Auto Revert
@@ -1890,10 +1890,10 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
 ******* Cursor
 
 #+begin_src emacs-lisp
-(customize-set-variable 'blink-cursor-blinks 15)
-(customize-set-variable 'blink-cursor-delay 0.7)
-(customize-set-variable 'blink-cursor-interval 0.35)
-(customize-set-variable 'blink-cursor-mode t)
+(setopt blink-cursor-blinks 15
+        blink-cursor-delay 0.7
+        blink-cursor-interval 0.35
+        blink-cursor-mode t)
 #+end_src
 
 ******* Scrolling
@@ -1902,7 +1902,7 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
 :END:
 
 #+begin_src emacs-lisp
-(customize-set-variable 'fast-but-imprecise-scrolling t)
+(setopt fast-but-imprecise-scrolling t)
 #+end_src
 
 ****** Display
@@ -1911,14 +1911,14 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
 ;; do not use visual bell
 (setopt visible-bell nil)
 
-(customize-set-variable 'text-scale-mode-step 1.0625)
-(customize-set-variable 'highlight-nonselected-windows t)
-(customize-set-variable 'truncate-lines t)
-(customize-set-variable 'x-underline-at-descent-line nil)
+(setopt text-scale-mode-step 1.0625
+        highlight-nonselected-windows t
+        truncate-lines t
+        x-underline-at-descent-line nil)
 ;; avoid to break at whitespace in Japanese
-(customize-set-variable 'word-wrap-by-category t)
+(setopt word-wrap-by-category t)
 ;; suppress curved quotes in docstring (for emacs25)
-(customize-set-variable 'text-quoting-style 'straight)
+(setopt text-quoting-style 'straight)
 ;; resize frame size responding to font size
 (setopt global-text-scale-adjust-resizes-frames t)
 #+end_src
@@ -1928,16 +1928,16 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
 [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager?utm_source=newsletter&utm_medium=email&utm_campaign=rss][This blog post]] is must-read when you tweak display-buffer facilities or something related to display settings.
 
 #+begin_src emacs-lisp
-(customize-set-variable 'scroll-step 1)
-(customize-set-variable 'scroll-conservatively 101)
-(customize-set-variable 'next-screen-context-lines 2)
-(customize-set-variable 'scroll-preserve-screen-position t)
+(setopt scroll-step 1
+        scroll-conservatively 101
+        next-screen-context-lines 2
+        scroll-preserve-screen-position t)
 ;; display buffer
-(customize-set-variable 'display-buffer-base-action
-                        '((display-buffer-same-window
-                           display-buffer-reuse-window
-                           display-buffer-reuse-mode-window
-                           display-buffer-in-previous-window)))
+(setopt display-buffer-base-action
+        '((display-buffer-same-window
+           display-buffer-reuse-window
+           display-buffer-reuse-mode-window
+           display-buffer-in-previous-window)))
 
 (bind-keys :map other-window-repeat-map
            ("0" . delete-window)
@@ -2033,11 +2033,11 @@ Formerly, I used to bind C-h to `backward-delete-char' and M-h to `backward-kill
 (defvar my/mode-line-buffer-name-length-max 15
   "Fixed length for displaying buffer name in mode line.")
 
-(customize-set-variable 'line-number-mode nil)
-(customize-set-variable 'column-number-mode nil)
-(customize-set-variable 'mode-line-compact t)
-(customize-set-variable
- 'mode-line-format
+(setopt line-number-mode nil
+        column-number-mode nil
+        mode-line-compact t)
+(setopt
+ mode-line-format
  '("%e"
    mode-line-front-space
    (:eval
@@ -2065,10 +2065,10 @@ Formerly, I used to bind C-h to `backward-delete-char' and M-h to `backward-kill
 ******* Display Time
 
 #+begin_src emacs-lisp
-(customize-set-variable
- 'display-time-string-forms
+(setopt
+ display-time-string-forms
  '((propertize (format-time-string "%H:%M" now) 'face 'mode-line-highlight)))
-(customize-set-variable 'display-time-mode t)
+(setopt display-time-mode t)
 #+end_src
 
 ****** Mouse
@@ -2218,7 +2218,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
 :END:
 
 #+begin_src emacs-lisp
-(customize-set-variable 'global-so-long-mode t)
+(setopt global-so-long-mode t)
 #+end_src
 
 ****** Tab Bar
@@ -2269,9 +2269,9 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
 
 #+begin_src emacs-lisp
-(customize-set-variable 'tab-always-indent 'complete)
-(customize-set-variable 'indent-tabs-mode nil)
-(customize-set-variable 'tab-first-completion 'word-or-paren-or-punct)
+(setopt tab-always-indent 'complete
+        indent-tabs-mode nil
+        tab-first-completion 'word-or-paren-or-punct)
 #+end_src
 
 ****** Electricity
@@ -2283,8 +2283,8 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
 ****** Fill
 
 #+begin_src emacs-lisp
-(customize-set-variable 'fill-column 80)
-(customize-set-variable 'sentence-end-double-space nil)
+(setopt fill-column 80
+        sentence-end-double-space nil)
 #+end_src
 
 ****** Killing
@@ -2303,10 +2303,10 @@ The oldest undo step, if undo info exceeds [[help:undo-strong-limit][undo-strong
 No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not be registered.
 
 #+begin_src emacs-lisp
-(customize-set-variable 'undo-limit 320000)
-(customize-set-variable 'undo-strong-limit 480000)
-(customize-set-variable 'undo-outer-limit 48000000)
-(customize-set-variable 'undo-no-redo t)
+(setopt undo-limit 320000
+        undo-strong-limit 480000
+        undo-outer-limit 48000000
+        undo-no-redo t)
 #+end_src
 
 ****** Matching
@@ -2342,7 +2342,7 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
 :END:
 
 #+begin_src emacs-lisp
-(customize-set-variable 'bidi-paragraph-direction 'left-to-right)
+(setopt bidi-paragraph-direction 'left-to-right)
 #+end_src
 
 ***** Multimedia
@@ -2453,7 +2453,7 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
 ****** Debug
 
 #+begin_src emacs-lisp
-(customize-set-variable 'message-log-max 10000)
+(setopt message-log-max 10000)
 #+end_src
 
 ****** Development
@@ -2509,16 +2509,16 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+begin_src emacs-lisp
 (require 'saveplace)
 
-(customize-set-variable 'save-place-abbreviate-file-names t)
-(customize-set-variable 'save-place-version-control t)
-(customize-set-variable 'save-place-mode t)
+(setopt save-place-abbreviate-file-names t
+        save-place-version-control t
+        save-place-mode t)
 #+end_src
 
 ****** Compression
 
 - Jka Compr (auto compression mode)
   #+begin_src emacs-lisp
-  (customize-set-variable 'auto-compression-mode t)
+  (setopt auto-compression-mode t)
   #+end_src
 
 ****** Tar
@@ -2885,10 +2885,13 @@ sudo systemctl start dictd
 #+end_src
 
 #+begin_src emacs-lisp
-(customize-set-variable 'dictionary-use-single-buffer t)
-(customize-set-variable 'dictionary-server nil)
 
-(with-eval-after-load 'dictionary
+(use-package dictionary
+  :commands (dictionary-search dictionary-lookup-definition)
+  :custom
+  (dictionary-use-single-buffer t)
+  (dictionary-server nil)
+  :config
   (setq switch-to-buffer-obey-display-actions t)
   (add-to-list 'display-buffer-alist
                '("^\\*Dictionary\\*"
@@ -2934,7 +2937,7 @@ sudo systemctl start dictd
 (use-package skk
   :defer t
   :init
-  (customize-set-variable 'default-input-method "japanese-skk")
+  (setopt default-input-method "japanese-skk")
   (defface skk-candidate `((t . (:font "fontset-default"
                                        :height ,(my/normalized-font-size 860))))
     "Default face for ddskk candidates."
@@ -3912,7 +3915,7 @@ This function needs to be invoked after `rmh-elfeed-org-process' which clear all
 
 #+begin_src emacs-lisp
 (setf shell-command-switch "-c")
-(customize-set-variable 'shell-command-prompt-show-cwd t)
+(setopt shell-command-prompt-show-cwd t)
 
 (shell-command-with-editor-mode 1)
 #+end_src
@@ -4442,44 +4445,42 @@ If entry at POM has no clock log time stamp, this function returns 0."
 ****** Org TODO
 
 #+begin_src emacs-lisp
-(customize-set-variable 'org-enforce-todo-dependencies t)
-(customize-set-variable
- 'org-todo-keywords
- `((sequence ,(format "%s(%c)" my/org-todo-keyword--todo
-                      (get 'my/org-todo-keyword--todo 'char))
-             ,(format "%s(%c)" my/org-todo-keyword--urgent
-                      (get 'my/org-todo-keyword--urgent 'char))
-             ,(format "%s(%c)" my/org-todo-keyword--next
-                      (get 'my/org-todo-keyword--next 'char))
-             ,(format "%s(%c)" my/org-todo-keyword--in-action
-                      (get 'my/org-todo-keyword--in-action 'char))
-             ,(format "%s(%c!/!)" my/org-todo-keyword--someday
-                      (get 'my/org-todo-keyword--someday 'char))
-             "|"
-             ,(format "%s(%c!/@)" my/org-done-keyword--done
-                      (get 'my/org-done-keyword--done 'char))
-             ,(format "%s(%c!/@)" my/org-done-keyword--cancel
-                      (get 'my/org-done-keyword--cancel 'char))
-             ,(format "%s(%c!/@)" my/org-done-keyword--pending
-                      (get 'my/org-done-keyword--pending 'char)))))
-(customize-set-variable
- 'org-todo-keyword-faces
- `((,my/org-todo-keyword--urgent    . "red1")
-   (,my/org-todo-keyword--todo      . "DeepPink1")
-   (,my/org-todo-keyword--next      . "green1")
-   (,my/org-todo-keyword--in-action . "DodgerBlue1")
-   (,my/org-todo-keyword--someday   . "SpringGreen")
-   (,my/org-done-keyword--done      . "gray30")
-   (,my/org-done-keyword--cancel    . "dark gray")
-   (,my/org-done-keyword--pending   . "sea green")))
-(customize-set-variable 'org-log-into-drawer t)
-(customize-set-variable 'org-log-states-order-reversed t)
-(customize-set-variable 'org-log-note-clock-out nil)
-(customize-set-variable 'org-log-done 'time)
-(customize-set-variable 'org-log-refile 'time)
-(customize-set-variable 'org-log-reschedule nil)
-(customize-set-variable 'org-log-redeadline 'time)
-(customize-set-variable 'org-closed-keep-when-no-todo nil)
+(setopt org-enforce-todo-dependencies t)
+(setopt org-todo-keywords
+        `((sequence ,(format "%s(%c)" my/org-todo-keyword--todo
+                             (get 'my/org-todo-keyword--todo 'char))
+                    ,(format "%s(%c)" my/org-todo-keyword--urgent
+                             (get 'my/org-todo-keyword--urgent 'char))
+                    ,(format "%s(%c)" my/org-todo-keyword--next
+                             (get 'my/org-todo-keyword--next 'char))
+                    ,(format "%s(%c)" my/org-todo-keyword--in-action
+                             (get 'my/org-todo-keyword--in-action 'char))
+                    ,(format "%s(%c!/!)" my/org-todo-keyword--someday
+                             (get 'my/org-todo-keyword--someday 'char))
+                    "|"
+                    ,(format "%s(%c!/@)" my/org-done-keyword--done
+                             (get 'my/org-done-keyword--done 'char))
+                    ,(format "%s(%c!/@)" my/org-done-keyword--cancel
+                             (get 'my/org-done-keyword--cancel 'char))
+                    ,(format "%s(%c!/@)" my/org-done-keyword--pending
+                             (get 'my/org-done-keyword--pending 'char)))))
+(setopt org-todo-keyword-faces
+        `((,my/org-todo-keyword--urgent    . "red1")
+          (,my/org-todo-keyword--todo      . "DeepPink1")
+          (,my/org-todo-keyword--next      . "green1")
+          (,my/org-todo-keyword--in-action . "DodgerBlue1")
+          (,my/org-todo-keyword--someday   . "SpringGreen")
+          (,my/org-done-keyword--done      . "gray30")
+          (,my/org-done-keyword--cancel    . "dark gray")
+          (,my/org-done-keyword--pending   . "sea green")))
+(setopt org-log-into-drawer t
+        org-log-states-order-reversed t
+        org-log-note-clock-out nil
+        org-log-done 'time
+        org-log-refile 'time
+        org-log-reschedule nil
+        org-log-redeadline 'time
+        org-closed-keep-when-no-todo nil)
 #+end_src
 
 ****** Org Structure
@@ -4562,12 +4563,12 @@ If entry at POM has no clock log time stamp, this function returns 0."
 ******* Org Plain lists
 
 #+begin_src emacs-lisp
-(customize-set-variable 'org-list-demote-modify-bullet
-                        '(("-" . "+") ("+" . "-") ("*" . "-")
-                          ("1." . "1)") ("1)" . "1.") ("*" . "1.")))
-(customize-set-variable 'org-cycle-include-plain-lists 'integrate)
-(customize-set-variable 'org-list-use-circular-motion t)
-(customize-set-variable 'org-list-allow-alphabetical t)
+(setopt org-list-demote-modify-bullet
+        '(("-" . "+") ("+" . "-") ("*" . "-")
+          ("1." . "1)") ("1)" . "1.") ("*" . "1."))
+        org-cycle-include-plain-lists 'integrate
+        org-list-use-circular-motion t
+        org-list-allow-alphabetical t)
 #+end_src
 
 ******* Org Archive
@@ -4597,21 +4598,20 @@ If entry at POM has no clock log time stamp, this function returns 0."
 
 #+begin_src emacs-lisp
 (with-eval-after-load 'org
-  (customize-set-variable 'org-use-tag-inheritance
-                          org-archive-tag)
-  (customize-set-variable 'org-tags-column -57)
-  (customize-set-variable 'org-tags-sort-function #'org-string-collate-greaterp))
+  (setopt org-use-tag-inheritance org-archive-tag
+          org-tags-column -57
+          org-tags-sort-function #'org-string-collate-greaterp))
 #+end_src
 
 ****** Org Properties
 
 #+begin_src emacs-lisp
-(customize-set-variable 'org-use-property-inheritance "TIMELIMIT.*")
-(customize-set-variable 'org-highest-priority ?A)
-(customize-set-variable 'org-lowest-priority ?Z)
-(customize-set-variable 'org-default-priority ?E)
-(customize-set-variable 'org-global-properties
-                        '(("Effort_ALL". "0 0:10 0:20 0:30 1:00 1:30 2:00 3:00 4:00 6:00 8:00")))
+(setopt org-use-property-inheritance "TIMELIMIT.*"
+        org-highest-priority ?A
+        org-lowest-priority ?Z
+        org-default-priority ?E
+        org-global-properties
+        '(("Effort_ALL". "0 0:10 0:20 0:30 1:00 1:30 2:00 3:00 4:00 6:00 8:00")))
 #+end_src
 
 ****** Org Refile
@@ -4634,8 +4634,8 @@ If entry at POM has no clock log time stamp, this function returns 0."
 ****** Org Time
 
 #+begin_src emacs-lisp
-(customize-set-variable 'org-time-stamp-custom-formats
-                        '("<%m-%d %a>" . "<%H:%M>"))
+(setopt org-time-stamp-custom-formats
+        '("<%m-%d %a>" . "<%H:%M>"))
 #+end_src
 
 ******* Org Progress
@@ -4688,11 +4688,11 @@ If entry at POM has no clock log time stamp, this function returns 0."
 ****** Org Appearance
 
 #+begin_src emacs-lisp
-(customize-set-variable 'org-hide-leading-stars t)
-(customize-set-variable 'org-hide-emphasis-markers t)
-(customize-set-variable 'org-pretty-entities t)
-(customize-set-variable 'org-image-actual-width 100)
-(customize-set-variable 'org-display-remote-inline-images 'cache)
+(setopt org-hide-leading-stars t
+        org-hide-emphasis-markers t
+        org-pretty-entities t
+        org-image-actual-width 100
+        org-display-remote-inline-images 'cache)
 #+end_src
 
 ****** Babel
@@ -4776,10 +4776,13 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
                org-crypt-tag-matcher))
 #+end_src
 
-****** Org Attach
+****** Org Attach                          :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2024-03-23 Sat 18:22]
+:END:
 
 #+begin_src emacs-lisp
-(customize-set-variable 'org-attach-preferred-new-method nil)
+(setopt org-attach-preferred-new-method nil)
 #+end_src
 
 ****** Org Link
@@ -4796,10 +4799,12 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 ******* Org Follow Link
 
 #+begin_src emacs-lisp
-(customize-set-variable 'org-link-elisp-confirm-function nil)
-(customize-set-variable 'org-return-follows-link t)
 (with-eval-after-load 'ol
-  (setf (alist-get 'file org-link-frame-setup) 'find-file))
+  (setf (alist-get 'file org-link-frame-setup) 'find-file)
+  (setopt org-link-elisp-confirm-function nil))
+
+(with-eval-after-load 'org-keys
+  (setopt org-return-follows-link t))
 #+end_src
 
 ****** Org Export
@@ -6225,7 +6230,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 #+begin_src emacs-lisp
 (with-eval-after-load 'css-mode
-  (customize-set-variable 'css-indent-offset 2)
+  (setopt css-indent-offset 2)
   (my/add-dash-docsets-hook 'css-mode-hook '("CSS")))
 #+end_src
 
@@ -6375,7 +6380,7 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
 ***** Next Error
 
 #+begin_src emacs-lisp
-(customize-set-variable 'next-error-message-highlight t)
+(setopt next-error-message-highlight t)
 #+end_src
 
 ***** Hideshow
@@ -7297,13 +7302,11 @@ PATH is the command to execute with `detached-shell-command'."
 #+end_src
 
 #+begin_src emacs-lisp
-(customize-set-variable 'iedit-toggle-key-default (kbd "C-\""))
-(customize-set-variable 'iedit-auto-narrow t)
-
-;; require clause should sit here to supress key occupation warning
-(require 'iedit)
-
-(global-set-key (kbd "C-\"") 'iedit-mode)
+(use-package iedit
+  :bind ("C-\"" . iedit-mode)
+  :custom
+  (iedit-toggle-key-default (kbd "C-\""))
+  (iedit-auto-narrow t))
 #+end_src
 
 ***** ledger-mode / flycheck-ledger :tools:languages:convenience:
