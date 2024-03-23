@@ -1315,12 +1315,18 @@ Early init file defines fundamental variables used from both normal Emacs sessio
 
 (setopt package-user-dir
         (no-littering-expand-var-file-name "elpa"))
+
+(setopt package-archives
+        '(("gnu" . "https://elpa.gnu.org/packages/")
+          ("nongnu" . "https://elpa.nongnu.org/nongnu/")
+          ("melpa" . "https://melpa.org/packages/")))
+(setopt package-archive-priorities
+        '(("gnu" . 3)
+          ("melpa" . 2)
+          ("nongnu" . 1)))
+(setopt package-enable-at-startup t)
 (setopt package-gnupghome-dir
         (no-littering-expand-var-file-name "elpa/gnupg"))
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/")
-             t)
-(setopt package-enable-at-startup t)
 
 (require 'package-vc)
 #+end_src
