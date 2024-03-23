@@ -6787,11 +6787,14 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
               ("c p" . chatgpt-shell-proofread-region)
               ("c g" . chatgpt-shell-write-git-commit)
               ("c u" . chatgpt-shell-generate-unit-test)
-              ("c j" . (lambda ()
-                         "Ask ChatGPT to interpret into Japanese."
-                         (interactive)
+              ("c i" . (lambda (&optional lang)
+                         "Ask ChatGPT to interpret into Japanese or some other language if LANG is non-nil."
+                         (interactive "P")
                          (chatgpt-shell-send-region-with-header
-                          "Please help me interpret the following sentence into Japanese:")))
+                          (format "Please help me interpret the following sentence into %s:"
+                                  (if (equal lang '(4))
+                                      (completing-read "Langauage: " '("Japanese" "English" "German"))
+                                    "Japanese")))))
               :map chatgpt-shell-mode-map
               ("C-M-g" . chatgpt-shell-clear-buffer))
   :custom
