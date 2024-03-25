@@ -9101,6 +9101,36 @@ unit test
           (quit-window)))))))
 #+end_src
 
+***** play sound
+:PROPERTIES:
+:CREATED:  [2024-03-25 Mon 22:55]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"mpg321"
+"vorbis-tools"
+#+end_src
+
+#+begin_src emacs-lisp
+(defun my/play-sound (sound-file &optional background-p)
+  "Play SOUND-FILE.
+
+The job is executed in the background if BACKGROUND-P is non-nil."
+  (call-process-shell-command
+   (concat
+    (mapconcat #'shell-quote-argument
+               (list (cond
+                      ((string-suffix-p ".mp3" sound-file)
+                       "mpg321")
+                      ((string-suffix-p ".oga" sound-file)
+                       "ogg123")
+                      (t
+                       "mpv --no-config"))
+                     sound-file)
+               " ")
+    (when background-p "&"))))
+#+end_src
+
 **** patches and workarounds
 :PROPERTIES:
 :CREATED:  [2023-01-28 Sat 15:56]
@@ -11597,13 +11627,9 @@ In neither case, count down time is 25 min which is suggested in the Pomodoro-te
     (setf (map-elt org-speed-commands "V") #'my/org-clock-supersede)))
 #+end_src
 
-**** notify completion of timer for a task
+**** notify the completion of the timer with an alarm
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"mpg321"
-#+end_src
-
-#+begin_src bash :tangle (expand-file-name "volget" tangle/local-bin-dir)
+#+begin_src shell :tangle (expand-file-name "volget" tangle/local-bin-dir)
 pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(($SINK + 1 )) | tail -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,'
 #+end_src
 
@@ -11623,19 +11649,14 @@ pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(($SINK + 1 )) | tail -
            (alert "Timer Done!" :style 'alarm))
       (alert "Timer Done!" :style 'fringe :mode 'org-mode :buffer (org-clocking-buffer) :severity 'trivial))))
 
-(defvar alarm-sound (file-name-concat "<<media-dir()>>" "levelup.mp3"))
+(defvar alarm-sound "/usr/share/sounds/freedesktop/stereo/complete.oga")
 
 (with-eval-after-load 'alert
   (alert-define-style 'alarm
                       :title "alarm"
                       :notifier
                       (lambda (info)
-                        (let ((system-volume (string-trim (shell-command-to-string "volget"))))
-                          (when (not (string= system-volume "0"))
-                            (start-process-shell-command "system-alarm" nil
-                                                         (mapconcat #'shell-quote-argument
-                                                                    (list "mpg321" alarm-sound)
-                                                                    " ")))))))
+                        (my/play-sound alarm-sound t))))
 #+end_src
 
 **** org-scrap (jotting down in org)
