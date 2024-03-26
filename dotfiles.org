@@ -10199,7 +10199,9 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                        ,(if (derived-mode-p 'dired-mode)
                             (or (dired-get-marked-files) (read-file))
                           (read-file)))))))
-                (t `(dispatch-dwim--paths-string ,(read-file))))))))
+                (t `(dispatch-dwim--paths-string
+                     ,(or (ffap-file-at-point)
+                          (read-file)))))))))
 
 (defun dispatch-dwim--determine-url (&optional url)
   "Determine the URL to which the dwim commands refer in relation to the context."
