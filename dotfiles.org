@@ -10131,10 +10131,10 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 (defclass dispatch-shell-command (transient-suffix)
   ((shell-command-string :initarg :shell-command-string)
    (format-spec :initarg :format-spec :initform nil)
-   (dispatch-command :initarg :dispatch-command)))
+   (dispatch-method :initarg :dispatch-method)))
 
 (cl-defmethod transient-init-value ((obj dispatch-shell-command))
-  (oset obj dispatch-command (my/determine-invocation-function)))
+  (oset obj dispatch-method (my/determine-invocation-function)))
 
 (defalias 'dispatch-execute-macro (kmacro "x"))
 
