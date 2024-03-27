@@ -42,7 +42,7 @@ realpath "${HOME}/data/share"
 
 #+name: media-dir
 #+begin_src shell :noweb yes :eval no-export
-realpath "<<home-dir()>>/data/media"
+realpath "<<home-dir()>>/data/audiovisual"
 #+end_src
 
 *** trash directory
@@ -8882,7 +8882,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
   :bind (:map engine-mode-prefixed-map
               ("Y" . yeetube-search))
   :custom
-  (yeetube-download-directory (file-name-concat "<<media-dir()>>" "downloads"))
+  (yeetube-download-directory "<<media-dir()>>")
   (yeetube-default-sort-column "Date")
   :config
   (keymap-set yeetube-mode-map "Y"
@@ -10484,7 +10484,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   [("-P" "download path" "--paths "
     :class transient-option
     :reader transient-read-existing-directory
-    :init-value (lambda (obj) (oset obj value (file-name-concat "<<media-dir()>>" "downloads"))))
+    :init-value (lambda (obj) (oset obj value "<<media-dir()>>")))
    ("-a" "audio" "-x --embed-thumbnail")
    ("-d" "duration" "--get-duration"
     :init-value (lambda (obj) (oset obj value (and duration-p (oref obj argument)))))
