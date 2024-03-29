@@ -13794,10 +13794,10 @@ Provide a function to Build a clock table summing up time by tag.
     ""))
 
 (cl-defmethod transient-format ((obj dispatch-dwim-stack-suffix))
-  (command-format-spec (oref obj format)
-                       `((?k . ,(transient-format-key obj))
-                         (?d . ,(transient-format-description obj))
-                         (?v . ,(transient-format-value obj)))))
+  (format-spec (oref obj format)
+               `((?k . ,(transient-format-key obj))
+                 (?d . ,(transient-format-description obj))
+                 (?v . ,(transient-format-value obj)))))
 
 (defun dispatch-shell-command--key-vals (keys)
   (mapconcat 'transient-infix-value
