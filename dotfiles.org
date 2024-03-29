@@ -10159,7 +10159,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-e" "end" "--end=" :prompt "end: "
     :init-value (lambda (obj) (oset obj value end)))]
   [(dispatch-dwim-execute
-    :shell-command-string
+    :command-format
     (format "mpv %%a %s"
             (plist-get (oref transient-current-prefix scope) 'file)))]
   (interactive)
@@ -10211,7 +10211,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :init-value (lambda (obj) (oset obj value "64k")))
    ("-t" "tempo" "-filter:a atempo=" :prompt "tempo (floating number): ")]
   [(dispatch-dwim-execute
-    :shell-command-string
+    :command-format
     (format "parallel ffmpeg -i '{}' -c:a libopus -ac 2 %%a '{.}'.opus ::: %s"
             (plist-get (oref transient-current-prefix scope) 'file)))]
   (interactive)
@@ -10234,16 +10234,16 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-ss" "seek start" "-ss " :prompt "Time to start seeking: " :class transient-option)
    ("-to" "seek stop" "-to " :prompt "Time to stop seeking: " :class transient-option)]
   [(dispatch-dwim-execute
-    :shell-command-string
+    :command-format
     (format "ffmpeg -i %5$s %1$s %2$s /dev/null && ffmpeg %%S -i %5$s %1$s %3$s %4$s %5$s_out.webm"
             "-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 %c"
             "-pass 1 -an -f null"
             "-pass 2 -map_metadata 0"
             "-c:a libopus %b -ac 2"
             (plist-get (oref transient-current-prefix scope) 'file))
-    :format-spec ((?b . (dispatch-shell-command--key-vals '("-B")))
-                  (?c . (dispatch-shell-command--key-vals '("-c")))
-                  (?S . (dispatch-shell-command--key-vals '("-ss" "-to")))))]
+    :command-format-spec ((?b . (dispatch-shell-command--key-vals '("-B")))
+                          (?c . (dispatch-shell-command--key-vals '("-c")))
+                          (?S . (dispatch-shell-command--key-vals '("-ss" "-to")))))]
   (interactive)
   (transient-setup 'ffmpeg-vp9-dispatch-dwim nil nil
                    :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
@@ -10263,7 +10263,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :class transient-option :always-read t :allow-empty nil
     :init-value (lambda (obj) (oset obj value (or number "0"))))]
   [(dispatch-dwim-execute
-    :shell-command-string "sleep %a")]
+    :command-format "sleep %a")]
   (interactive)
   (transient-setup 'sleep-dispatch-dwim))
 
@@ -10284,15 +10284,15 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   [("-t" "wake-up time" "--date " :prompt "Wake-up time: " :class transient-option
     :allow-empty nil :reader my/transient-read-time :always-read t
     :init-value (lambda (obj) (oset obj value (my/transient-read-time nil "+7h" nil))))]
-  [("(" "preceding sleep" dispatch-dwim-sibling-command
+  [("(" "preceding sleep" dispatch-dwim-fraction-command
     :prefix sleep-dispatch-dwim :prefix-arg ("30m") :priority 20
     :default "sleep 30m")
-   (")" "following command" dispatch-dwim-sibling-command
+   (")" "following command" dispatch-dwim-fraction-command
     :prefix option-dispatch-dwim :prefix-arg ("morning.sh" "which system.sh | xargs pwsudo; morning.sh; weekend.sh")
     :priority 90 :default "morning.sh")
    (dispatch-dwim-execute
-    :shell-command-string "pwsudo rtcwake -l -m mem -v %d"
-    :format-spec ((?d . (dispatch-shell-command--key-vals '("-t")))))])
+    :command-format "pwsudo rtcwake -l -m mem -v %d"
+    :command-format-spec ((?d . (dispatch-shell-command--key-vals '("-t")))))])
 
 (defun my/transient-read-time (prompt default-time history)
   "Read time using date command."
@@ -10327,7 +10327,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   ""
   [(my/pandoc-to)]
   [(dispatch-dwim-execute
-    :shell-command-string
+    :command-format
     (format "parallel pandoc %%a '{}' ::: %s"
             (plist-get (oref transient-current-prefix scope) 'file)))]
   (interactive)
@@ -10391,10 +10391,10 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                                  (format "%s.%%\(ext\)s"
                                          (my/file-name-legitimate output)))))))]
   [(dispatch-dwim-execute
-    ;; embed url to :shell-command-string may cause unexpected glitch
-    :shell-command-string
+    ;; embed url to :command-format may cause unexpected glitch
+    :command-format
     "yt-dlp --embed-chapters --live-from-start %a %u"
-    :format-spec ((?u . (plist-get (oref transient-current-prefix scope) 'url))))]
+    :command-format-spec ((?u . (plist-get (oref transient-current-prefix scope) 'url))))]
   (interactive)
   (setq my/detached-bury-buffer t)
   (transient-setup 'yt-dlp-dispatch-dwim nil nil
@@ -10442,7 +10442,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-h" "human readable" "--human-readable"
     :init-value (lambda (obj) (oset obj value "--human-readable")))]
   [(dispatch-dwim-execute
-    :shell-command-string
+    :command-format
     (format "ionice -c2 -n7 nice -n19 du %%a %s"
             (plist-get (oref transient-current-prefix scope) 'file)))]
   (interactive)
@@ -13621,6 +13621,7 @@ Provide a function to Build a clock table summing up time by tag.
 :CREATED:  [2024-03-29 Fri 14:57]
 :END:
 
+#+NAME: package/dispatch-dwim
 #+begin_src emacs-lisp :comments no :tangle (expand-file-name "dispatch-dwim.el" tangle/emacs-sitelisp-dir)
 ;; -*- lexical-binding: t -*-
 
@@ -13642,13 +13643,13 @@ Provide a function to Build a clock table summing up time by tag.
 ;;; Classes & Objects
 
 (defclass dispatch-shell-command (transient-suffix)
-  ((shell-command-string :initarg :shell-command-string :initform "%a")
-   (format-spec :initarg :format-spec :initform nil)
+  ((command-format :initarg :command-format :initform "%a")
+   (command-format-spec :initarg :command-format-spec :initform nil)
    (dispatch-method :initarg :dispatch-method)))
 
 (cl-defmethod transient-init-value ((obj dispatch-shell-command))
-  (unless (slot-boundp obj :shell-command-string)
-    (oset obj shell-command-string "%a"))
+  (unless (slot-boundp obj :command-format)
+    (oset obj command-format "%a"))
   (oset obj dispatch-method
         (cond
          ((and transient--stack
@@ -13663,15 +13664,15 @@ Provide a function to Build a clock table summing up time by tag.
   :key "x" :description "execute"
   (interactive)
   (let* ((cur-obj (transient-suffix-object))
-         (format-spec (and (slot-boundp cur-obj :format-spec)
-                           (oref cur-obj format-spec)))
+         (command-format-spec (and (slot-boundp cur-obj :command-format-spec)
+                                   (oref cur-obj command-format-spec)))
          (main-comm (format-spec
-                     (eval (oref cur-obj shell-command-string))
+                     (eval (oref cur-obj command-format))
                      (append
                       `((?a . ,(string-join (transient-get-value) " ")))
-                      (when format-spec
+                      (when command-format-spec
                         (mapcar (lambda (key-val) (cons (car key-val) (eval (cdr key-val))))
-                                format-spec)))))
+                                command-format-spec)))))
          (comm (mapconcat (lambda (elm) (cadr elm))
                           (sort (append dispatch-dwim--precedings-followings
                                         `(("@" ,main-comm 50)))
@@ -13683,15 +13684,15 @@ Provide a function to Build a clock table summing up time by tag.
     (unless transient--stack
       (setq dispatch-dwim--precedings-followings nil))))
 
-(defclass dispatch-dwim-sibling-suffix (transient-suffix)
+(defclass dispatch-dwim-stack-suffix (transient-suffix)
   ((prefix :initarg :prefix)
    (prefix-arg :initarg :prefix-arg :initform nil)
    (priority :initarg :priority :initform 0)
    (default :initarg :default)
    (format :initform " %k %d (%v)")))
 
-(transient-define-suffix dispatch-dwim-sibling-command ()
-  :class dispatch-dwim-sibling-suffix
+(transient-define-suffix dispatch-dwim-fraction-command ()
+  :class dispatch-dwim-stack-suffix
   :transient 'transient--do-recurse
   (interactive)
   (let ((cur-obj (transient-suffix-object)))
@@ -13703,24 +13704,24 @@ Provide a function to Build a clock table summing up time by tag.
     (apply (oref cur-obj prefix)
            (oref cur-obj prefix-arg))))
 
-(cl-defmethod transient-init-value ((obj dispatch-dwim-sibling-suffix))
+(cl-defmethod transient-init-value ((obj dispatch-dwim-stack-suffix))
   (when (slot-boundp obj :default)
     (setf (alist-get (oref obj key) dispatch-dwim--precedings-followings)
           (list (oref obj default)
                 (oref obj priority)))))
 
-(cl-defmethod transient-format-value ((obj dispatch-dwim-sibling-suffix))
+(cl-defmethod transient-format-value ((obj dispatch-dwim-stack-suffix))
   (if-let ((comm (assoc (oref obj key)
                         dispatch-dwim--precedings-followings)))
       (propertize (cadr comm)
                   'face 'transient-argument)
     ""))
 
-(cl-defmethod transient-format ((obj dispatch-dwim-sibling-suffix))
-  (format-spec (oref obj format)
-               `((?k . ,(transient-format-key obj))
-                 (?d . ,(transient-format-description obj))
-                 (?v . ,(transient-format-value obj)))))
+(cl-defmethod transient-format ((obj dispatch-dwim-stack-suffix))
+  (command-format-spec (oref obj format)
+                       `((?k . ,(transient-format-key obj))
+                         (?d . ,(transient-format-description obj))
+                         (?v . ,(transient-format-value obj)))))
 
 (defun dispatch-shell-command--key-vals (keys)
   (mapconcat 'transient-infix-value
