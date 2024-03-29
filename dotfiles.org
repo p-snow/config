@@ -10118,141 +10118,18 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
           (parened-rx paren-open-char 'element))))
 #+end_src
 
-**** Dispatch DWIM transient menu
+**** dispatch-dwim commands
 :PROPERTIES:
 :CREATED:  [2024-01-15 Mon 20:15]
 :ID:       cd86fe03-b295-4cde-8b7c-68d5705b843a
 :END:
 
 #+begin_src emacs-lisp
-(require 'transient)
-(require 'detached)
+(require 'dispatch-dwim)
 
-(defclass dispatch-shell-command (transient-suffix)
-  ((shell-command-string :initarg :shell-command-string)
-   (format-spec :initarg :format-spec :initform nil)
-   (dispatch-method :initarg :dispatch-method)))
-
-(cl-defmethod transient-init-value ((obj dispatch-shell-command))
-  (oset obj dispatch-method (my/determine-invocation-function)))
+;;; Misc
 
 (defalias 'dispatch-execute-macro (kmacro "x"))
-
-(transient-define-suffix dispatch-dwim-execute ()
-  :class dispatch-shell-command
-  :transient 'transient--do-return
-  :key "x" :description "execute"
-  (interactive)
-  (let* ((cur-obj (transient-suffix-object))
-         (format-spec (and (slot-boundp cur-obj :format-spec)
-                           (oref cur-obj format-spec)))
-         (comm (format-spec
-                (eval (oref cur-obj shell-command-string))
-                (append
-                 `((?a . ,(string-join (transient-get-value) " ")))
-                 (when format-spec
-                   (mapcar (lambda (key-val) (cons (car key-val) (eval (cdr key-val))))
-                           format-spec))))))
-    (if dispatch-dwim--stacking
-        (progn
-          (setq dispatch-dwim--stacking nil)
-          (setq dispatch-dwim--stack-message comm))
-      (pcase (oref cur-obj dispatch-command)
-        ((and (pred symbolp) sym) (funcall sym comm))
-        ((and (pred listp) li)
-         (seq-reduce (lambda (accum fun) (funcall fun accum))
-                     li comm))))))
-
-(defun dispatch-shell-command--key-vals (keys)
-  (mapconcat 'transient-infix-value
-             (seq-filter (lambda (obj) (and (member (oref obj key) keys) obj))
-                         (transient-suffixes (oref transient-current-prefix command)))
-             " "))
-
-(defvar my/execute-command-function
-  'detached-shell-command)
-
-(defun my/determine-invocation-function ()
-  (if (eq major-mode 'minibuffer-mode)
-      'insert
-    my/execute-command-function))
-
-(defun dispatch-command-dwim/determine-file (&optional file)
-  ""
-  (cl-labels ((read-file ()
-                (read-file-name "File: ")))
-    (apply (or (and file
-                    `(dispatch-dwim--paths-string ,file))
-               (cond
-                ((derived-mode-p 'dired-mode)
-                 `(dispatch-dwim--paths-string ,(dired-get-marked-files)))
-                ((derived-mode-p 'minibuffer-mode)
-                 (cond
-                  ((equal minibuffer-history-variable 'dired-shell-command-history)
-                   '(identity "`?`"))
-                  ((or (member minibuffer-history-variable
-                               '(detached-shell-command-history
-                                 shell-command-history)))
-                   (with-current-buffer (other-buffer nil t)
-                     `(dispatch-dwim--paths-string
-                       ,(if (derived-mode-p 'dired-mode)
-                            (or (dired-get-marked-files) (read-file))
-                          (read-file)))))))
-                (t `(dispatch-dwim--paths-string
-                     ,(or (ffap-file-at-point)
-                          (read-file)))))))))
-
-(defun dispatch-dwim--determine-url (&optional url)
-  "Determine the URL to which the dwim commands refer in relation to the context."
-  (format "'%s'" (or url
-                     (thing-at-point-url-at-point)
-                     (and (derived-mode-p 'eww-mode)
-                          (shr-url-at-point nil))
-                     (read-string "URL: "))))
-
-(defun dispatch-dwim--paths-string (arg)
-  (pcase arg
-    ((and (pred stringp) (pred file-exists-p) str)
-     (shell-quote-argument (expand-file-name str)))
-    ((and (pred stringp) (pred (string-match-p ffap-url-regexp)) (app (match-string 1) str))
-     (dispatch-dwim--determine-url str))
-    ((and (pred listp) li) (mapconcat #'dispatch-dwim--paths-string li " "))))
-
-(defvar dispatch-dwim--stack-message nil)
-(defvar dispatch-dwim--stacking nil)
-
-(defclass dispatch-dwim-sub-suffix (transient-suffix)
-  ((message   :initarg :message)
-   (format    :initarg :format   :initform " %k %d (%v)")))
-
-(cl-defmethod transient-infix-value ((obj dispatch-dwim-sub-suffix))
-  ""
-  (when (slot-boundp obj :message)
-    (oref obj message)))
-
-(cl-defmethod transient-format-value ((obj dispatch-dwim-sub-suffix))
-  (if (slot-boundp obj :message)
-      (propertize (oref obj message)
-                  'face 'transient-argument)
-    ""))
-
-(cl-defmethod transient-format ((obj dispatch-dwim-sub-suffix))
-  (when (and (not dispatch-dwim--stacking)
-             (stringp dispatch-dwim--stack-message))
-    (oset obj message dispatch-dwim--stack-message)
-    (setq dispatch-dwim--stack-message nil))
-  (format-spec (oref obj format)
-               `((?k . ,(transient-format-key obj))
-                 (?d . ,(transient-format-description obj))
-                 (?v . ,(transient-format-value obj)))))
-
-(transient-define-suffix dispatch-dwim-stack-command ()
-  :class dispatch-dwim-sub-suffix
-  :transient 'transient--do-recurse
-  (interactive)
-  (setq dispatch-dwim--stacking t)
-  (setq dispatch-dwim--stack-message nil)
-  (dispatch-dwim-select))
 
 (defun dispatch-dwim-select ()
   "Execute dispatch-*-dwim command."
@@ -10377,6 +10254,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :CREATED:  [2024-01-24 Wed 13:07]
 :END:
 
+#+NAME: rtcmake-dispatch-dwim
 #+begin_src emacs-lisp
 (transient-define-prefix sleep-dispatch-dwim (&optional number)
   ""
@@ -10389,24 +10267,32 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   (interactive)
   (transient-setup 'sleep-dispatch-dwim))
 
-(transient-define-prefix rtcwake-complex-dispatch-dwim (&optional number)
+(transient-define-prefix option-dispatch-dwim (&rest options)
+  ""
+  [("o" "option" ""
+    :class transient-option
+    :init-value (lambda (obj)
+                  (oset obj choices options)
+                  (oset obj value (car (oref obj choices)))))]
+  [(dispatch-dwim-execute)]
+  (interactive)
+  (transient-setup 'option-dispatch-dwim))
+
+(transient-define-prefix rtcwake-dispatch-dwim (&optional number)
   ""
   :man-page "rtcwake"
   [("-t" "wake-up time" "--date " :prompt "Wake-up time: " :class transient-option
     :allow-empty nil :reader my/transient-read-time :always-read t
     :init-value (lambda (obj) (oset obj value (my/transient-read-time nil "+7h" nil))))]
-  [("p" "pre task" dispatch-dwim-stack-command
-    :message "sleep 30m")
-   ("P" "post task" "" :prompt "Wake-up job: " :class transient-option
-    :choices ("morning.sh" "which system.sh | xargs pwsudo; morning.sh; weekend.sh")
-    :init-value (lambda (obj) (oset obj value (car (oref obj choices)))))
+  [("(" "preceding sleep" dispatch-dwim-sibling-command
+    :prefix sleep-dispatch-dwim :prefix-arg ("30m") :priority 20
+    :default "sleep 30m")
+   (")" "following command" dispatch-dwim-sibling-command
+    :prefix option-dispatch-dwim :prefix-arg ("morning.sh" "which system.sh | xargs pwsudo; morning.sh; weekend.sh")
+    :priority 90 :default "morning.sh")
    (dispatch-dwim-execute
-    :shell-command-string "%p; pwsudo rtcwake -l -m mem -v %d; %P"
-    :format-spec ((?d . (dispatch-shell-command--key-vals '("-t")))
-                  (?P . (dispatch-shell-command--key-vals '("P")))
-                  (?p . (dispatch-shell-command--key-vals '("p")))))]
-  (interactive)
-  (transient-setup 'rtcwake-complex-dispatch-dwim))
+    :shell-command-string "pwsudo rtcwake -l -m mem -v %d"
+    :format-spec ((?d . (dispatch-shell-command--key-vals '("-t")))))])
 
 (defun my/transient-read-time (prompt default-time history)
   "Read time using date command."
@@ -13728,6 +13614,164 @@ Provide a function to Build a clock table summing up time by tag.
     (switch-to-buffer buffer)))
 
 (provide 'weather)
+#+end_src
+
+**** dispatch-dwim
+:PROPERTIES:
+:CREATED:  [2024-03-29 Fri 14:57]
+:END:
+
+#+begin_src emacs-lisp :comments no :tangle (expand-file-name "dispatch-dwim.el" tangle/emacs-sitelisp-dir)
+;; -*- lexical-binding: t -*-
+
+(require 'transient)
+(require 'detached)
+
+;;; Variables
+
+(defvar dispatch-dwim--precedings-followings nil)
+(defvar dispatch-dwim--overriding-method nil)
+
+(defvar dispatch-dwim--default-method 'detached-shell-command)
+
+(add-hook 'transient-exit-hook
+          (lambda () (unless transient--stack
+                   (setq dispatch-dwim--precedings-followings nil
+                         dispatch-dwim--overriding-method nil))))
+
+;;; Classes & Objects
+
+(defclass dispatch-shell-command (transient-suffix)
+  ((shell-command-string :initarg :shell-command-string :initform "%a")
+   (format-spec :initarg :format-spec :initform nil)
+   (dispatch-method :initarg :dispatch-method)))
+
+(cl-defmethod transient-init-value ((obj dispatch-shell-command))
+  (unless (slot-boundp obj :shell-command-string)
+    (oset obj shell-command-string "%a"))
+  (oset obj dispatch-method
+        (cond
+         ((and transient--stack
+               dispatch-dwim--overriding-method))
+         ((eq major-mode 'minibuffer-mode)
+          'insert)
+         (t dispatch-dwim--default-method))))
+
+(transient-define-suffix dispatch-dwim-execute ()
+  :class dispatch-shell-command
+  :transient 'transient--do-return
+  :key "x" :description "execute"
+  (interactive)
+  (let* ((cur-obj (transient-suffix-object))
+         (format-spec (and (slot-boundp cur-obj :format-spec)
+                           (oref cur-obj format-spec)))
+         (main-comm (format-spec
+                     (eval (oref cur-obj shell-command-string))
+                     (append
+                      `((?a . ,(string-join (transient-get-value) " ")))
+                      (when format-spec
+                        (mapcar (lambda (key-val) (cons (car key-val) (eval (cdr key-val))))
+                                format-spec)))))
+         (comm (mapconcat (lambda (elm) (cadr elm))
+                          (sort (append dispatch-dwim--precedings-followings
+                                        `(("@" ,main-comm 50)))
+                                (lambda (a b) (< (nth 2 a) (nth 2 b))))
+                          "; ")))
+    (apply (oref cur-obj dispatch-method)
+           `(,(if transient--stack
+                  main-comm comm)))
+    (unless transient--stack
+      (setq dispatch-dwim--precedings-followings nil))))
+
+(defclass dispatch-dwim-sibling-suffix (transient-suffix)
+  ((prefix :initarg :prefix)
+   (prefix-arg :initarg :prefix-arg :initform nil)
+   (priority :initarg :priority :initform 0)
+   (default :initarg :default)
+   (format :initform " %k %d (%v)")))
+
+(transient-define-suffix dispatch-dwim-sibling-command ()
+  :class dispatch-dwim-sibling-suffix
+  :transient 'transient--do-recurse
+  (interactive)
+  (let ((cur-obj (transient-suffix-object)))
+    (setq dispatch-dwim--overriding-method
+          (lambda (shell-command)
+            (setf (alist-get (oref cur-obj key) dispatch-dwim--precedings-followings)
+                  (list shell-command
+                        (oref cur-obj priority)))))
+    (apply (oref cur-obj prefix)
+           (oref cur-obj prefix-arg))))
+
+(cl-defmethod transient-init-value ((obj dispatch-dwim-sibling-suffix))
+  (when (slot-boundp obj :default)
+    (setf (alist-get (oref obj key) dispatch-dwim--precedings-followings)
+          (list (oref obj default)
+                (oref obj priority)))))
+
+(cl-defmethod transient-format-value ((obj dispatch-dwim-sibling-suffix))
+  (if-let ((comm (assoc (oref obj key)
+                        dispatch-dwim--precedings-followings)))
+      (propertize (cadr comm)
+                  'face 'transient-argument)
+    ""))
+
+(cl-defmethod transient-format ((obj dispatch-dwim-sibling-suffix))
+  (format-spec (oref obj format)
+               `((?k . ,(transient-format-key obj))
+                 (?d . ,(transient-format-description obj))
+                 (?v . ,(transient-format-value obj)))))
+
+(defun dispatch-shell-command--key-vals (keys)
+  (mapconcat 'transient-infix-value
+             (seq-filter (lambda (obj) (and (member (oref obj key) keys) obj))
+                         (transient-suffixes (oref transient-current-prefix command)))
+             " "))
+
+;;; Functions
+
+(defun dispatch-command-dwim/determine-file (&optional file)
+  ""
+  (cl-labels ((read-file ()
+                (read-file-name "File: ")))
+    (apply (or (and file
+                    `(dispatch-dwim--paths-string ,file))
+               (cond
+                ((derived-mode-p 'dired-mode)
+                 `(dispatch-dwim--paths-string ,(dired-get-marked-files)))
+                ((derived-mode-p 'minibuffer-mode)
+                 (cond
+                  ((equal minibuffer-history-variable 'dired-shell-command-history)
+                   '(identity "`?`"))
+                  ((or (member minibuffer-history-variable
+                               '(detached-shell-command-history
+                                 shell-command-history)))
+                   (with-current-buffer (other-buffer nil t)
+                     `(dispatch-dwim--paths-string
+                       ,(if (derived-mode-p 'dired-mode)
+                            (or (dired-get-marked-files) (read-file))
+                          (read-file)))))))
+                (t `(dispatch-dwim--paths-string
+                     ,(or (ffap-file-at-point)
+                          (read-file)))))))))
+
+(defun dispatch-dwim--determine-url (&optional url)
+  "Determine the URL to which the dwim commands refer in relation to the context."
+  (format "'%s'" (or url
+                     (thing-at-point-url-at-point)
+                     (and (derived-mode-p 'eww-mode)
+                          (shr-url-at-point nil))
+                     (read-string "URL: "))))
+
+(defun dispatch-dwim--paths-string (arg)
+  (pcase arg
+    ((and (pred stringp) (pred file-exists-p) str)
+     (shell-quote-argument (expand-file-name str)))
+    ((and (pred stringp) (pred (string-match-p ffap-url-regexp)) (app (match-string 1) str))
+     (dispatch-dwim--determine-url str))
+    ((and (pred listp) li) (mapconcat #'dispatch-dwim--paths-string li " "))))
+
+(provide 'dispatch-dwim)
 #+end_src
 
 ** Findutils
