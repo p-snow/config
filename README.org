@@ -1,20 +1,50 @@
-#+title: @p-snow's home environment
+#+title: p-snow's home configurations
 
-This is my config collection for my personal machine. These configs are applicable for Linux Mint Cinnamon edition and theoretically all distributions which is derived from Ubuntu.
-Actual configs are sitting in [[file:dotfiles.org][dotfiles.org]] which adopts literate configuration. More readable version of this repo is available in [[https://p-snow.github.io/config][this website]].
+This repository holds a collection of my home-use software tweaks stored in the form of literate configuration, mainly focused on Linux and Emacs. All configurations are consolidated in [[file:dotfiles.org][dotfiles.org]], and [[https://p-snow.org/config/dotfiles.html][an intelligible website]] derived from the file is also available.
 
-* Requirements
-- GNU/Emacs 28.1 with native compilation support
+#+begin_src text :exports none
+About:
 
-* Usage
-- extract dotfiles
-  : make tangle
-- export html files
-  : make publish
+A collection of home-use software tweaks stored in the form of literate configuration, mainly focused on Linux and Emacs
+#+end_src
 
-* Configuration
+#+begin_src text :exports none
+Website:
 
-'make tangle' generates dotfiles to
-where tangle/root designate in tangle.el. The default value of tangle/root is "~/dotfiles/" which meets my needs. You can modify the variable's value as you like.
+https://p-snow.org/config/dotfiles.html
+#+end_src
 
-: (setq tangle/root "~/dotfiles/")
+* Literate Configuration
+:PROPERTIES:
+:CREATED:  [2024-03-30 Sat 14:07]
+:END:
+
+Literate configuration is a method derived from Literate programming proposed by D. Knuth, where configurations are located alongside their documentation. In [[file:dotfiles.org][dotfiles.org]], each configuration is diffused into an appropriate org entry and can be extracted to viable dotfiles.
+
+** Dotfile Extraction
+
+Basically, the set of configurations is woven together and tailored specifically for me ([[https://github.com/p-snow][p-snow]]) as the sole user. However, anyone can extract dotfiles by using the following incantation.
+
+: make tangle
+
+- extraction destination
+  With the command above, all dotfiles will be located under ~/dotfiles, which is my preference but can be customized by modifying the following line in [[file:tangle.el][tangle.el]].
+
+  : (setq tangle/home "~/dotfiles/")
+
+* Notable Items
+:PROPERTIES:
+:CREATED:  [2024-03-30 Sat 17:32]
+:END:
+
+** [[https://p-snow.org/config/dotfiles.html#gnu-emacs][Emacs]]
+:PROPERTIES:
+:CREATED:  [2024-03-30 Sat 17:39]
+:END:
+
+*** [[https://p-snow.org/config/dotfiles.html#emacs-language][Language]]
+:PROPERTIES:
+:CREATED:  [2024-03-30 Sat 17:50]
+:END:
+
+I am Japanese, and my first language is Japanese. This section demonstrates how to set up the language environment, locale, and coding systems for non-English speakers, especially Japanese.
