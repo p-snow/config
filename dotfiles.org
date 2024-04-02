@@ -5435,7 +5435,7 @@ Ancestors are looked up If current heading has no CATEGORY."
      (,(regexp-quote "store.steampowered.com")
       (lambda (dom)
         (when-let ((products (dom-search dom (lambda (node) (string-prefix-p "game_area_purchase_game"
-                                                                         (dom-attr node 'class))))))
+                                                                             (dom-attr node 'class))))))
           (dom-text (or (dom-by-class (car products) "game_purchase_price")
                         (dom-by-class (car products) "discount_final_price"))))))
      (,(regexp-quote "www.googleapis.com/youtube/v3/channels")
@@ -10342,7 +10342,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   :man-page "rtcwake"
   [("-t" "wake-up time" "--date " :prompt "Wake-up time: " :class transient-option
     :allow-empty nil :reader my/transient-read-time :always-read t
-    :init-value (lambda (obj) (oset obj value (my/transient-read-time nil "+7h" nil))))]
+    :init-value (lambda (obj) (oset obj value (my/transient-read-time nil "+6h40m" nil))))]
   [("(" "preceding sleep" dispatch-dwim-fraction-command
     :prefix sleep-dispatch-dwim :prefix-arg ("30m") :priority 20
     :default "sleep 30m")
