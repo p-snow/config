@@ -2099,7 +2099,7 @@ Formerly, I used to bind C-h to `backward-delete-char' and M-h to `backward-kill
   :custom
   (savehist-save-minibuffer-history t)
   (savehist-additional-variables '((kill-ring . 1000)
-                                   (register-alist . 200)))
+                                   (compile-command . 1000)))
   (savehist-autosave-interval 180)
   :hook
   (after-init . savehist-mode))
@@ -2342,6 +2342,22 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 
 (defalias 'kmacro-insert-macro 'insert-kbd-macro)
 (define-key kmacro-keymap (kbd "I") #'kmacro-insert-macro)
+#+end_src
+
+****** Register
+:PROPERTIES:
+:CREATED:  [2024-04-06 Sat 16:24]
+:END:
+
+#+begin_src emacs-lisp
+(use-package register
+  :bind ("H-r" . jump-to-register)
+  :custom
+  (register-preview-delay nil)
+  :config
+  (with-eval-after-load 'savehist
+    (add-to-list 'savehist-additional-variables
+                 'register-alist)))
 #+end_src
 
 ***** Editing
