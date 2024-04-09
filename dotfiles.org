@@ -3896,7 +3896,10 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
   (let* ((entry (elfeed-search-selected :single))
          (url (or (caar (elfeed-entry-enclosures entry))
                   (elfeed-entry-link entry))))
-    (let ((my/execute-command-function '(shell-command-to-string string-trim princ)))
+    (let ((dispatch-dwim--default-method
+           (lambda (comm) (princ
+                       (string-trim
+                        (shell-command-to-string comm))))))
       (yt-dlp-dispatch-dwim url nil t)
       (dispatch-execute-macro))))
 #+end_src
