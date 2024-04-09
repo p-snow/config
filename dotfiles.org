@@ -3581,8 +3581,7 @@ if type(out_root_str) is bytes:
 
 #+begin_src emacs-lisp
 (use-package magit
-  :commands (magit magit-status)
-  :bind ("C-x M" . magit-status)
+  :commands (magit magit-status magit-dispatch)
   :config
   (bind-keys :map magit-status-mode-map
              ("/" . magit-file-checkout)
@@ -5670,8 +5669,8 @@ export DISPLAY=:0 && \
   :ensure t
   :defer t
   :after consult
-  :bind (("C-x g f" . consult-ghq-find)
-         ("C-x g g" . consult-ghq-grep)))
+  :bind (("C-c q f" . consult-ghq-find)
+         ("C-c q g" . consult-ghq-grep)))
 #+end_src
 
 ***** embark
