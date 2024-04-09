@@ -8904,7 +8904,22 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
          ("f" . scroll-up-line)
          ("e" . scroll-down-line)
          ("SPC" . my/forward-paragraph)
-         ("E" . my/backward-paragraph))
+         ("E" . my/backward-paragraph)
+         (">" . (lambda () (interactive)
+                  (scroll-left 1)))
+         ("<" . (lambda () (interactive)
+                  (scroll-right 1)))
+         ("H-e" . (lambda ()
+                    "Toggle read only state in `logos-focus-mode'"
+                    (interactive)
+                    (setq logos-buffer-read-only
+                          (not logos-buffer-read-only))
+                    (logos-focus-mode -1)
+                    (logos-focus-mode 1)
+                    (message "Buffer is %s"
+                             (if logos-buffer-read-only
+                                 "read-only"
+                               "editable")))))
   :hook ((help-mode helpful-mode Info-mode eww-mode nov-mode mu4e-view-mode
                     woman-mode mastodon-mode Custom-mode devdocs-mode)
          . logos-focus-mode)
