@@ -212,12 +212,13 @@ initialize-ubuntu-desktop
 
 ** GNU Guix
 
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-("https://github.com/SystemCrafters/guix-installer/releases.atom" soft_update)
-#+end_src
-
+#+NAME: guix/bashrc
 #+begin_src shell :noweb-ref bashrc
 export GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
+export GUIX_LOCPATH="${GUIX_EXTRA_PROFILES}/base/base/lib/locale"
+
+export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/base/base/share:${XDG_DATA_DIRS}
+export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/base/base/share/man
 
 # fill in a variable below like a comment line
 # if you'd like to acticate specific profiles under GUIX_EXTRA_PROFILES
@@ -245,8 +246,6 @@ export GUIX_PROFILE="$HOME/.guix-profile"
 
 export GUIX_PROFILE="$HOME/.config/guix/current"
 . "$GUIX_PROFILE/etc/profile"
-
-export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
 
 
 if [ -v GUIX_ENVIRONMENT ]; then
@@ -281,11 +280,6 @@ fi
 
 *** Manifests
 **** guix base profile
-
-#+begin_src shell :noweb yes :noweb-ref bashrc
-export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/base/base/share:${XDG_DATA_DIRS}
-export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/base/base/share/man
-#+end_src
 
 #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/base.scm")
 (specifications->manifest
@@ -497,6 +491,20 @@ You can use ~/.config/guix/channels.scm to replicate exact packages on another m
 #+begin_src shell :tangle (expand-file-name "update-channels" tangle/local-bin-dir)
 guix pull --channels=$HOME/.config/guix/base-channels.scm \
   && guix describe --format=channels > ~/.config/guix/channels.scm
+#+end_src
+
+*** gnu/packages
+:PROPERTIES:
+:CREATED:  [2024-04-03 Wed 16:08]
+:END:
+
+**** base.scm
+:PROPERTIES:
+:CREATED:  [2024-04-03 Wed 16:10]
+:END:
+
+#+begin_src scheme :noweb-ref guix-base
+"glibc-locales"
 #+end_src
 
 * System Constituents
@@ -6705,6 +6713,22 @@ This subtree holds resources for [[https://p-snow.org/][my blog]].
 (blog-post-macro-accordion (p "Summary: " summary t)
                            (format "{{{accordion-begin(%s)}}}" summary) n
                            "{{{accordion-end}}}")
+#+end_src
+
+***** ox-haunt
+:PROPERTIES:
+:CREATED:  [2024-04-03 Wed 16:37]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-ox-haunt"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package ox-haunt
+  :after ox
+  :custom
+  (ox-haunt-base-dir "~/data/work/20240402_haunt"))
 #+end_src
 
 **** Journaling
@@ -16126,6 +16150,15 @@ They are mostly written in Rust. [[https://github.com/mhoye/moderntools/][modern
 "just"
 "tmux"
 "moreutils"
+#+end_src
+
+** Haunt
+:PROPERTIES:
+:CREATED:  [2024-04-02 Tue 11:15]
+:END:
+
+#+begin_src scheme :noweb-ref guix-base
+"haunt"
 #+end_src
 
 * Development Infrastructures
