@@ -8921,32 +8921,31 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 #+NAME: config/emacs-logos
 #+begin_src emacs-lisp
 (use-package logos
+  :config
+  (require 'fingertip)
+  :preface
+  (defun logos-toggle-read-only ()
+    "Toggle read only state in `logos-focus-mode'"
+    (interactive)
+    (let ((current-ro-state logos-buffer-read-only))
+      (logos-focus-mode -1)
+      (setq logos-buffer-read-only (not current-ro-state))
+      (logos-focus-mode 1)
+      (message "Buffer is %s"
+               (if logos-buffer-read-only
+                   "read-only" "editable"))))
   :bind (("H-;" . logos-focus-mode)
          ("H-n" . logos-narrow-dwim)
          :map logos-focus-mode-map
-         ;; for left hand
-         ("f" . scroll-up-line)
-         ("e" . scroll-down-line)
-         ("SPC" . my/forward-paragraph)
-         ("E" . my/backward-paragraph)
-         (">" . (lambda () (interactive)
-                  (scroll-left 1)))
-         ("<" . (lambda () (interactive)
-                  (scroll-right 1)))
-         ("H-e" . (lambda ()
-                    "Toggle read only state in `logos-focus-mode'"
-                    (interactive)
-                    (setq logos-buffer-read-only
-                          (not logos-buffer-read-only))
-                    (logos-focus-mode -1)
-                    (logos-focus-mode 1)
-                    (message "Buffer is %s"
-                             (if logos-buffer-read-only
-                                 "read-only"
-                               "editable")))))
-  :hook ((help-mode helpful-mode Info-mode eww-mode nov-mode mu4e-view-mode
-                    woman-mode mastodon-mode Custom-mode devdocs-mode)
-         . logos-focus-mode)
+         ("H-e" . logos-toggle-read-only))
+  :hook (((help-mode helpful-mode Info-mode eww-mode nov-mode mu4e-view-mode
+                     woman-mode mastodon-mode Custom-mode devdocs-mode)
+          . logos-focus-mode)
+         (logos-focus-mode
+          . (lambda () (if logos-focus-mode
+                       (fingertip-mode 1)
+                     (setq logos-buffer-read-only t)
+                     (fingertip-mode -1)))))
   :custom
   (logos-scroll-lock nil)
   (logos-variable-pitch nil)
@@ -8955,21 +8954,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
   (logos-hide-buffer-boundaries t)
   (logos-buffer-read-only t)
   (logos-olivetti nil)
-  (logos-hide-fringe t)
-  :preface
-  (defun my/forward-paragraph ()
-    (interactive)
-    (forward-paragraph 2)
-    (backward-paragraph 1)
-    (forward-line 1)
-    (recenter-top-bottom 0))
-  (defun my/backward-paragraph ()
-    (interactive)
-    (backward-paragraph 2)
-    (forward-paragraph 1)
-    (backward-paragraph 1)
-    (forward-line 1)
-    (recenter-top-bottom 0)))
+  (logos-hide-fringe t))
 #+end_src
 
 ***** editorconfig
@@ -13891,6 +13876,91 @@ Provide a function to Build a clock table summing up time by tag.
     ((and (pred listp) li) (mapconcat #'dispatch-dwim--paths-string li " "))))
 
 (provide 'dispatch-dwim)
+#+end_src
+
+**** fingertip mode
+:PROPERTIES:
+:CREATED:  [2024-04-10 Wed 00:24]
+:END:
+
+#+NAME: package/fingertip-mode
+#+begin_src emacs-lisp :comments no :tangle (expand-file-name "fingertip.el" tangle/emacs-sitelisp-dir)
+;;; fingertip.el --- one-handed buffer browsing -*- lexical-binding: t -*-
+
+;; Author: p-snow
+;; Version: 0.0.1
+;; Package-Requires: no
+;; Homepage: homepage
+;; Keywords: files
+
+;; This file is not part of GNU Emacs
+
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; commentary
+
+;;; Code:
+
+(defgroup fingertip nil
+  "Customization group for fingertip minor mode."
+  :group 'text)
+
+(defvar-keymap fingertip-mode-map
+  :doc "Keymap for `fingertip-mode'."
+  "f" #'scroll-up-line
+  "e" #'scroll-down-line
+  "SPC" #'fingertip-forward-paragraph
+  "E" #'fingertip-backward-paragraph
+  ">" #'fingertip-scroll-left-column
+  "<" #'fingertip-scroll-right-column)
+
+;;; Minor modes
+;;;###autoload
+(define-minor-mode fingertip-mode
+  "Buffer-local mode for one-handed file browsing."
+  :init-value nil
+  :global nil
+  :lighter " FGT"
+  :keymap fingertip-mode-map)
+
+(defun fingertip-forward-paragraph ()
+  (interactive)
+  (forward-paragraph 2)
+  (backward-paragraph 1)
+  (forward-line 1)
+  (recenter-top-bottom 0))
+
+(defun fingertip-backward-paragraph ()
+  (interactive)
+  (backward-paragraph 2)
+  (forward-paragraph 1)
+  (backward-paragraph 1)
+  (forward-line 1)
+  (recenter-top-bottom 0))
+
+(defun fingertip-scroll-left-column ()
+  (interactive)
+  (scroll-left 1))
+
+(defun fingertip-scroll-right-column ()
+  (interactive)
+  (scroll-right 1))
+
+(provide 'fingertip)
+;;; fingertip.el ends here
 #+end_src
 
 ** Findutils
