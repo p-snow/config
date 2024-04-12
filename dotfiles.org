@@ -14243,20 +14243,17 @@ build/
 :END:
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-40 */4 * * * <<which(filename="sync-annex-doc")>> 2>&1 | tee <<log-dir()>>/sync-git-annex.log
+40 */4 * * * <<which(filename="bash")>> -ci "sync-annex-doc 2>&1 | tee -a <<log-dir()>>/sync-git-annex.log"
 #+end_src
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name "sync-annex-doc" tangle/local-bin-dir)
-GIT=<<which(filename="git")>>
-ANNEX=<<which(filename="git-annex")>>
+#+begin_src bash :noweb tangle :tangle (expand-file-name "sync-annex-doc" tangle/local-bin-dir)
+(cd /mnt/exdoc/doc/ 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
+(cd /mnt/vt-m/doc/ 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
+(cd /mnt/vt-h/doc/ 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
+(cd /mnt/vt-j/doc/ 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
+(cd <<doc-dir()>> 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync)
 
-(cd /mnt/exdoc/doc/ 2>/dev/null && $GIT rev-parse --is-inside-work-tree 2>/dev/null && $ANNEX sync && $ANNEX get)
-(cd /mnt/vt-m/doc/ 2>/dev/null && $GIT rev-parse --is-inside-work-tree 2>/dev/null && $ANNEX sync && $ANNEX get)
-(cd /mnt/vt-h/doc/ 2>/dev/null && $GIT rev-parse --is-inside-work-tree 2>/dev/null && $ANNEX sync && $ANNEX get)
-(cd /mnt/vt-j/doc/ 2>/dev/null && $GIT rev-parse --is-inside-work-tree 2>/dev/null && $ANNEX sync && $ANNEX get)
-(cd <<doc-dir()>> 2>/dev/null && $GIT rev-parse --is-inside-work-tree 2>/dev/null && $ANNEX sync)
-
-(cd /mnt/exdoc/doc/ 2>/dev/null && $GIT rev-parse --is-inside-work-tree 2>/dev/null && $ANNEX sync)
+(cd /mnt/exdoc/doc/ 2>/dev/null && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync)
 #+end_src
 
 ** ghq
