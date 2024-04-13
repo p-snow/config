@@ -2722,6 +2722,14 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (proced-show-remote-processes t)
   (proced-show-remote-processes t))
 #+end_src
+******* Shell
+:PROPERTIES:
+:CREATED:  [2024-04-13 Sat 16:14]
+:END:
+
+#+begin_src emacs-lisp
+(setopt shell-command-prompt-show-cwd t)
+#+end_src
 
 ****** Browse Url
 
@@ -2760,6 +2768,17 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 (defun my/plocate-make-command-line (search-string)
   (list locate-command "-d" "<<plocate-db()>>" "--ignore-case" "--existing" "--regexp" search-string))
+#+end_src
+
+****** With Editor
+:PROPERTIES:
+:CREATED:  [2024-04-13 Sat 16:11]
+:END:
+
+#+begin_src emacs-lisp
+(use-package with-editor
+  :custom
+  (shell-command-with-editor-mode t))
 #+end_src
 
 ***** Applications
@@ -4025,13 +4044,6 @@ This function needs to be invoked after `rmh-elfeed-org-process' which clear all
 
 **** Terminal Emulators
 
-#+begin_src emacs-lisp
-(setf shell-command-switch "-c")
-(setopt shell-command-prompt-show-cwd t)
-
-(shell-command-with-editor-mode 1)
-#+end_src
-
 ***** shell
 
 #+begin_src emacs-lisp
@@ -4116,6 +4128,7 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
 
 #+begin_src emacs-lisp
 (use-package eshell
+  :commands (eshell)
   :delight " ES"
   :hook
   (eshell-kill . eshell-command-alert)
