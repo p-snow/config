@@ -9103,6 +9103,73 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
   :bind ("M-Q" . unfill-toggle))
 #+end_src
 
+***** htmlize
+:PROPERTIES:
+:CREATED:  [2024-04-13 Sat 14:55]
+:ID:       563c138c-7410-4171-ab3f-15d564677620
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-htmlize"
+#+end_src
+
+#+name: htmlize-dir
+#+begin_src emacs-lisp :noweb yes :eval no-export :tangle no
+(no-littering-expand-var-file-name "htmlize")
+#+end_src
+
+#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+d <<htmlize-dir()>> 0755 - - 14d
+#+end_src
+
+EWW is a nice place for intensive reading. When there are articles or documents in a format other than HTML, I convert them to HTML and browse them in EWW with my/view-htmlized.
+
+#+NAME: config/emacs-htmlize
+#+begin_src emacs-lisp :noweb tangle
+(use-package htmlize
+  :bind ("C-x !" . my/view-htmlized)
+  :custom
+  (Htmlize-force-inline-images t)
+  :init
+  (with-eval-after-load 'org-keys
+    (add-to-list 'org-speed-commands
+                 '("!" . my/view-htmlized)
+                 t))
+  :config
+  (defun my/view-htmlized ()
+    (interactive)
+    (pcase-let* ((`(,fname . ,write-proc)
+                  (if (derived-mode-p 'org-mode)
+                      (cons (format "%s.html"
+                                    (secure-hash 'md5 (org-id-get-create)))
+                            (lambda (file)
+                              (let ((org-export-show-temporary-export-buffer nil)
+                                    (org-export-preserve-breaks t)
+                                    (org-export-use-babel nil))
+                                (org-html-export-as-html nil t nil)
+                                (with-current-buffer "*Org HTML Export*"
+                                  (write-file file)))))
+                    (cons (format "%s.html"
+                                  (secure-hash 'md5
+                                               (apply 'buffer-substring-no-properties
+                                                      (if (region-active-p)
+                                                          (list (region-beginning) (region-end))
+                                                        (list (point-min) (point-max))))))
+                          (lambda (file)
+                            (let ((region-text (apply 'htmlize-region-for-paste
+                                                      (if (region-active-p)
+                                                          (list (region-beginning) (region-end))
+                                                        (list (point-min) (point-max))))))
+                              (with-temp-buffer
+                                (insert region-text)
+                                (write-file file nil)))))))
+                 (file-path (file-name-concat "<<htmlize-dir()>>" fname)))
+      (when (or (not (file-exists-p file-path))
+                (derived-mode-p 'org-mode))
+        (apply write-proc (list file-path)))
+      (browse-url-of-file file-path))))
+#+end_src
+
 *** further extension
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
@@ -11769,48 +11836,6 @@ If property's value matches $(...) format, ... is interpreted as shell command a
       (org-babel-lob-ingest org-file))))
 #+end_src
 
-**** browse org subtree
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 11:11]
-:END:
-
-#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-d <<emacs-var-dir()>>/org/subtree-view 0755 - - 3d
-#+end_src
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org
-  (bind-keys :map org-mode-map
-             ("C-c C-!" . my/org-subtree-view-in-browser))
-  (add-to-list 'org-speed-commands
-               '("!" . my/org-subtree-view-in-browser)
-               t))
-
-(defvar my/org-subtree-view-directory
-  (no-littering-expand-var-file-name "org/subtree-view")
-  "A directory where generated html files are located in `my/org-subtree-view-in-browser'.")
-
-(defun my/org-subtree-view-in-browser ()
-  "Display org subtree at point as HTML.
-
-If cursor points before first heading, all org sub-trees in the buffer will be
-displayed instead."
-  (interactive)
-  (let* ((heading (org-get-heading t t t t))
-         (org-export-show-temporary-export-buffer nil)
-         (export-buf-name "*Org HTML Export*")
-         (org-export-with-broken-links 'mark)
-         (org-export-babel-evaluate t)
-         (org-export-preserve-breaks t)
-         (id (org-id-get))
-         (uuid (downcase (if id id (org-id-uuid))))
-         (html-file (format "%s/%s.html" my/org-subtree-view-directory uuid)))
-    (org-html-export-as-html nil (not (org-before-first-heading-p)) nil)
-    (with-current-buffer export-buf-name
-      (write-file html-file))
-    (browse-url-of-file html-file)))
-#+end_src
-
 **** alter org heading
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 10:55]
@@ -12655,25 +12680,16 @@ Open-file is a feature that allows you to specify the application to open a file
 
 By default, PDF and EPUB files are opened in EWW after converted into HTML. Videos and audio files are played in MPV media player.
 
-#+name: open-file-dir
-#+begin_src emacs-lisp :noweb yes :eval no-export
-(no-littering-expand-var-file-name "open-file")
-#+end_src
-
-#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-d <<open-file-dir()>> 0755 - - 14d
-#+end_src
-
 #+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
 (require 'open-file)
 #+end_src
 
 #+NAME: open-file
-#+begin_src emacs-lisp :tangle (expand-file-name "open-file.el" tangle/emacs-sitelisp-dir)
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "open-file.el" tangle/emacs-sitelisp-dir)
 ;; general functions
 
 (defvar my/open-file-dir
-  (no-littering-expand-var-file-name "open-file")
+  "<<htmlize-dir()>>"
   "Directory where html file is converted into.")
 
 (defvar my/open-file-media-player "mpv"
@@ -12697,12 +12713,7 @@ d <<open-file-dir()>> 0755 - - 14d
                          (if (string-suffix-p ".gpg" ,file)
                              "gpg -d"
                            "cat")))
-          (dir-name
-           (seq-reduce (lambda (str rep)
-                         (string-replace (car rep) (cdr rep) str))
-                       '(("/" . "!")
-                         ("~" . "`"))
-                       ,file))
+          (dir-name (file-name-base ,file))
           (dirname-html
            (expand-file-name
             dir-name
@@ -14012,7 +14023,7 @@ export LOCATE_PATH=<<plocate-db()>>
 . ~/.bashrc
 
 mkdir -p $(dirname <<plocate-db()>>) && \
-  $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> -e <<open-file-dir()>> -o <<plocate-db()>> \
+  $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> -e <<htmlize-dir()>> -o <<plocate-db()>> \
                                                <<updatedb-opt>>
 #+end_src
 
