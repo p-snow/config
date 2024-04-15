@@ -4,7 +4,7 @@
 (require 'ob-ruby)
 
 ;; top directory for all tangled files
-(setq tangle/home "~/dotfiles/")
+(setq tangle/home "~/data/ghq/github.com/p-snow/dotfiles/")
 
 (setq tangle/user-emacs-directory (expand-file-name ".config/emacs" tangle/home)
       tangle/emacs-sitelisp-dir (expand-file-name "site-lisp" tangle/user-emacs-directory)
