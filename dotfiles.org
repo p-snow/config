@@ -4868,7 +4868,8 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 (use-package ob-tangle
   :after ob-core
   :custom
-  (org-babel-tangle-default-file-mode (identity #o444)))
+  (org-babel-tangle-default-file-mode (identity #o444))
+  (org-babel-tangle-use-relative-file-links nil))
 #+end_src
 
 ****** Org ID
@@ -14287,11 +14288,6 @@ build/
 "ghq"
 #+end_src
 
-#+name: ghq-root
-#+begin_src shell :eval no-export
-echo ~/data/ghq
-#+end_src
-
 #+begin_src gitconfig :noweb yes :noweb-ref git-config
 [ghq]
 	root = <<ghq-root()>>
@@ -14305,15 +14301,30 @@ target=github.com
 # username_extractor=entry_name
 #+end_src
 
-- make some projects invisible from plocate command
-  #+NAME: ghq-invisible-projects
-  #+begin_src shell :tangle no
-  ghq list --full-path p-snow/dotfiles
-  #+end_src
+#+NAME: ghq-proj-path
+#+HEADER: :var projname=""
+#+begin_src bash :tangle no
+ghq list --full-path $projname | head -n 1
+#+end_src
 
-  #+begin_src shell :noweb yes :noweb-ref updatedb-opt
-  -e "<<ghq-invisible-projects()>>" \
-  #+end_src
+*** personal ghq environment
+:PROPERTIES:
+:CREATED:  [2024-04-15 Mon 16:41]
+:END:
+
+#+name: ghq-root
+#+begin_src shell :eval no-export
+echo ~/data/ghq
+#+end_src
+
+The Elisp variable below is used in tangling from my personal org repository.
+
+#+begin_src emacs-lisp :noweb yes :noweb-ref elisp-code
+(defvar dotfiles/tangled-dir
+  (file-name-concat
+   "<<ghq-proj-path(projname="p-snow/dotfiles")>>"
+   ".config/emacs/lisp/tangled"))
+#+end_src
 
 ** Pass
 
