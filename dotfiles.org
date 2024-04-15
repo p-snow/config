@@ -8943,6 +8943,8 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
       (logos-focus-mode -1)
       (setq logos-buffer-read-only (not current-ro-state))
       (logos-focus-mode 1)
+      (unless logos-buffer-read-only
+        (fingertip-mode -1))
       (message "Buffer is %s"
                (if logos-buffer-read-only
                    "read-only" "editable"))))
