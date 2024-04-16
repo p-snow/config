@@ -9151,7 +9151,7 @@ EWW is a nice place for intensive reading. When there are articles or documents 
                               (let ((org-export-show-temporary-export-buffer nil)
                                     (org-export-preserve-breaks t)
                                     (org-export-use-babel nil))
-                                (org-html-export-as-html nil t nil)
+                                (org-html-export-as-html nil (if (org-before-first-heading-p) nil t) nil)
                                 (with-current-buffer "*Org HTML Export*"
                                   (write-file file)))))
                     (cons (format "%s.html"
