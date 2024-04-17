@@ -1879,13 +1879,12 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 
 #+begin_src emacs-lisp
 (use-package recentf
-  :defer 30
+  :hook (after-init . recentf-mode)
   :custom
   (recentf-exclude '(".gz" ".xz" ".zip" ".gpg"))
   (recentf-max-saved-items 500)
-  (recentf-auto-cleanup (* 7 60)) ; clean-up when idle time reaches 7 minutes
-  :config
-  (recentf-mode 1))
+  ;; clean-up when idle time reaches 7 minutes
+  (recentf-auto-cleanup (* 7 60)))
 #+end_src
 
 ****** Tramp
@@ -6114,7 +6113,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
          ("\\.guix-authorizations" . scheme-mode)))
 #+end_src
 
-***** c-mode
+***** cc-mode
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
 "tree-sitter-c"
@@ -6122,7 +6121,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 #+begin_src emacs-lisp
 (use-package cc-mode
-  :defer 10
+  :defer t
   :custom
   (c-tab-always-indent t)
   (c-auto-align-backslashes nil)
@@ -6388,7 +6387,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   (my/add-dash-docsets-hook 'js2-mode-hook '("JavaScript")))
 
 (use-package js
-  :defer 10
+  :disabled t
   :delight " JS"
   :custom
   (js-indent-level 2))
@@ -6914,7 +6913,6 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 #+begin_src emacs-lisp
 (use-package chatgpt-shell
   :after engine-mode
-  :defer 7
   :preface
   (defun my/chatgpt-shell-dwim ()
     "docstring"
@@ -6939,11 +6937,12 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
               ("c i" . (lambda (&optional lang)
                          "Ask ChatGPT to interpret into Japanese or some other language if LANG is non-nil."
                          (interactive "P")
-                         (chatgpt-shell-send-region-with-header
-                          (format "Please help me interpret the following sentence into %s:"
-                                  (if (equal lang '(4))
-                                      (completing-read "Langauage: " '("Japanese" "English" "German"))
-                                    "Japanese")))))
+                         (when (require 'chatgpt-shell nil t)
+                           (chatgpt-shell-send-region-with-header
+                            (format "Please help me interpret the following sentence into %s:"
+                                    (if (equal lang '(4))
+                                        (completing-read "Langauage: " '("Japanese" "English" "German"))
+                                      "Japanese"))))))
               :map chatgpt-shell-mode-map
               ("C-M-g" . chatgpt-shell-clear-buffer))
   :custom
