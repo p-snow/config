@@ -6677,6 +6677,24 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
 "emacs-eldev"
 #+end_src
 
+***** package build
+:PROPERTIES:
+:CREATED:  [2024-04-16 Tue 20:50]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-package-build"
+#+end_src
+
+#+begin_src emacs-lisp
+(setopt package-build-recipes-dir
+        (expand-file-name "site-lisp/recipes" user-emacs-directory)
+        package-build-archive-dir
+        (expand-file-name "site-lisp/packages" user-emacs-directory)
+        package-build-working-dir
+        (expand-file-name "site-lisp/working" user-emacs-directory))
+#+end_src
+
 **** Blogging
 :PROPERTIES:
 :CREATED:  [2023-12-29 Fri 14:36]
