@@ -10345,7 +10345,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 ;;; Misc
 
-(defalias 'dispatch-execute-macro (kmacro "x"))
+(defalias 'dispatch-execute-macro (kmacro "RET"))
 
 (defun dispatch-dwim-select ()
   "Execute dispatch-*-dwim command."
@@ -13821,7 +13821,7 @@ Provide a function to Build a clock table summing up time by tag.
 (transient-define-suffix dispatch-dwim-execute ()
   :class dispatch-shell-command
   :transient 'transient--do-return
-  :key "x" :description "execute"
+  :key "RET" :description "execute"
   (interactive)
   (let* ((cur-obj (transient-suffix-object))
          (command-format-spec (and (slot-boundp cur-obj :command-format-spec)
