@@ -6676,16 +6676,8 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
 **** Elisp Package Development
 :PROPERTIES:
 :CREATED:  [2023-06-08 Thu 13:58]
+:header-args+: :tangle (expand-file-name "elisp-devel.el" tangle/emacs-config-dir)
 :END:
-
-***** Eldev
-:PROPERTIES:
-:CREATED:  [2023-06-08 Thu 14:02]
-:END:
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-eldev"
-#+end_src
 
 ***** package build
 :PROPERTIES:
@@ -6697,12 +6689,45 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
 #+end_src
 
 #+begin_src emacs-lisp
-(setopt package-build-recipes-dir
-        (expand-file-name "site-lisp/recipes" user-emacs-directory)
-        package-build-archive-dir
-        (expand-file-name "site-lisp/packages" user-emacs-directory)
-        package-build-working-dir
-        (expand-file-name "site-lisp/working" user-emacs-directory))
+(let ((default-directory package-user-dir))
+  (setopt package-build-recipes-dir
+          (expand-file-name "recipes")
+          package-build-archive-dir
+          (expand-file-name "packages")
+          package-build-working-dir
+          (expand-file-name "working")))
+#+end_src
+
+***** flycheck package
+:PROPERTIES:
+:CREATED:  [2024-04-17 Wed 19:41]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-flycheck-package"
+#+end_src
+
+#+begin_src emacs-lisp
+(eval-after-load 'flycheck
+  '(flycheck-package-setup))
+#+end_src
+
+***** package lint
+:PROPERTIES:
+:CREATED:  [2024-04-17 Wed 19:44]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-package-lint"
+#+end_src
+
+***** makem.sh
+:PROPERTIES:
+:CREATED:  [2024-04-18 Thu 23:15]
+:END:
+
+#+begin_src emacs-lisp
+(require 'makem)
 #+end_src
 
 **** Blogging
