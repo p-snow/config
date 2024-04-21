@@ -5474,7 +5474,12 @@ Ancestors are looked up If current heading has no CATEGORY."
         (message-send-and-exit))))
   :custom
   (org-web-track-selectors-alist
-   `((,(rx "www.amazon.co.jp" (+ anychar) "-ebook")
+   `((,(regexp-quote "www.lenovo.com/jp/ja/p/laptops/thinkpad")
+      (lambda (dom)
+        (when-let ((price-node (car (dom-search dom (lambda (node) (string= "productpromotionprice"
+                                                                        (dom-attr node 'name)))))))
+          (assoc-default 'content (cadr price-node)))))
+     (,(rx "www.amazon.co.jp" (+ anychar) "-ebook")
       "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'")
      (,(regexp-quote "www.amazon.co.jp/product-reviews")
       ([.a-size-base.a-color-secondary] ; num of stars
