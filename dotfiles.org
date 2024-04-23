@@ -9342,19 +9342,20 @@ unit test
 
 #+begin_src emacs-lisp
 (defun org-link-at-point-map (function)
-  "Call `FUNCTION' with url and title obtained from org-link at point."
-  (let* ((context (org-element-lineage
-                   (org-element-context)
-                   '(link)
-                   t))
-         (type (org-element-property :type context))
-         (path (org-element-property :path context))
-         (desc (when-let ((begin (org-element-property :contents-begin context))
-                          (end (org-element-property :contents-end context)))
-                 (buffer-substring begin end))))
+  "Call FUNCTION with a list whose elements are the URL and title
+obtained from the org-link at the current point."
+  (when-let* ((context (org-element-lineage
+                        (org-element-context)
+                        '(link)
+                        t))
+              (type (org-element-property :type context))
+              (path (org-element-property :path context))
+              (desc (when-let ((begin (org-element-property :contents-begin context))
+                               (end (org-element-property :contents-end context)))
+                      (buffer-substring begin end))))
     (cond
      ((string-match-p "https?" type)
-      (funcall function (org-link-unescape (concat type ":" path)) desc))
+      (funcall function (list (org-link-unescape (concat type ":" path)) desc)))
      ((string-match-p "elfeed" type)
       (save-excursion
         (org-open-at-point)
@@ -9362,7 +9363,7 @@ unit test
           (when-let ((url (or (caar (elfeed-entry-enclosures elfeed-show-entry))
                               (elfeed-entry-link elfeed-show-entry)))
                      (title (elfeed-entry-title elfeed-show-entry)))
-            (funcall function url title))
+            (funcall function (list url title)))
           (quit-window)))))))
 #+end_src
 
@@ -13950,6 +13951,8 @@ Provide a function to Build a clock table summing up time by tag.
   "Determine the URL to which the dwim commands refer in relation to the context."
   (format "'%s'" (or url
                      (thing-at-point-url-at-point)
+                     (and (derived-mode-p 'org-mode)
+                          (or (org-link-at-point-map #'car)))
                      (and (derived-mode-p 'eww-mode)
                           (shr-url-at-point nil))
                      (read-string "URL: "))))
