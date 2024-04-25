@@ -13154,6 +13154,7 @@ My workflow for acquiring English words is:
 
 #+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
 (use-package org-drill-english
+  :after org
   :bind (:map my/org-global-map
               ("e e" . my/org-english-capture)
               ("e d" . my/org-english-drill)
@@ -13161,8 +13162,18 @@ My workflow for acquiring English words is:
               ("E" . my/cloze-deletion-replace)
               ("e q" . my/org-english-search)
               :map engine-mode-prefixed-map
-              ("j" . my/english-japanese-translate)
-              ("p" . my/english-pronunciation))
+              ("j" . (lambda (word)
+                       "Copy Japanese translation as well as the pronunciation to `kill-ring'."
+                       (interactive (list (cond
+                                           ((region-active-p)
+                                            (buffer-substring-no-properties (region-beginning) (region-end)))
+                                           (t (read-string "Word: " (word-at-point))))))
+                       (when (if (featurep 'org-drill-english)
+                                 t
+                               (require 'org-drill-english nil t))
+                         (kill-new (message "%s %s"
+                                            (my/english-japanese-translate word t)
+                                            (my/english-pronunciation word t)))))))
   :config
   (with-eval-after-load 'denote
     (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
@@ -13288,11 +13299,7 @@ to existing english word entry."
 SYNC handles whether network access procedure is synchronous.
 Return translation result as a string If SYNC is non-nil.
 If called interactively, display results and add them to kill ring."
-  (interactive `(,(or (when (region-active-p)
-                        (buffer-substring (region-beginning) (region-end)))
-                      (read-string "Word: " nil 'my/define-word-minibuffer-history))))
-  (let ((intr-p (interactive-p))
-        trans)
+  (let (trans)
     (request
       (concat "https://ejje.weblio.jp/content/" (downcase word))
       :sync sync
@@ -13316,8 +13323,7 @@ If called interactively, display results and add them to kill ring."
                                           (category korean)
                                           (category greek))))))
                data)
-              (setq trans (string-trim (match-string 1 data)))
-              (when intr-p (kill-new (princ trans)))))))
+              (setq trans (string-trim (match-string 1 data)))))))
     trans))
 
 (defun my/english-pronunciation (word &optional sync)
@@ -13326,11 +13332,7 @@ If called interactively, display results and add them to kill ring."
 SYNC handles whether network access procedure is synchronous.
 Return search infromation as a string If SYNC is non-nil.
 Display information and add it to kill ring if called interactively."
-  (interactive `(,(or (when (region-active-p)
-                        (buffer-substring (region-beginning) (region-end)))
-                      (read-string "Word: " nil 'my/define-word-minibuffer-history))))
-  (let ((intr-p (interactive-p))
-        pron)
+  (let (pron)
     (request
       (concat "https://eow.alc.co.jp/search?q=" (string-replace " " "+" (downcase word)))
       :sync sync
@@ -13363,8 +13365,7 @@ Display information and add it to kill ring if called interactively."
               (setq pron (replace-regexp-in-string
                           "\\[\\(.\\{2\\}\\)\\]" "【\\1】"
                           (string-trim-right (match-string 0 data)
-                                             "、")))
-              (when intr-p (kill-new (princ pron)))))))
+                                             "、")))))))
     pron))
 
 (defmacro with-org-drill-english-config (&rest body)
