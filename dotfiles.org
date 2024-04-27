@@ -365,7 +365,6 @@ export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/desktop/desktop/share/man
  '("font-adobe-source-han-sans"
    "pulseaudio"
    "gparted"
-   "vlc"
    "gcompris-qt"
    "gnome-disk-utility"
    "wine64"
@@ -373,7 +372,6 @@ export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/desktop/desktop/share/man
    "kdeconnect"
    "dia"
    "inkscape"
-   "krita"
    "shotwell"
    <<guix-desktop>>))
 #+end_src
@@ -15010,15 +15008,17 @@ textlint @textlint/ast-node-types textlint-rule-preset-ja-spacing textlint-rule-
   }
   #+end_src
 
-** xkeysnail
+** xkeysnail                                   :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2024-04-27 Sat 09:39]
+:END:
 
-#+begin_src scheme :noweb-ref guix-desktop
+#+begin_src scheme :noweb-ref no
 "xkeysnail"
 #+end_src
 
 - config.py
-  # #+begin_src python :tangle (expand-file-name ".config/xkeysnail/config.py")
-  #+begin_src python :tangle no
+  #+begin_src python :tangle (expand-file-name ".config/xkeysnail/config.py")
   # -*- coding: utf-8 -*-
 
   import re
@@ -15158,14 +15158,12 @@ textlint @textlint/ast-node-types textlint-rule-preset-ja-spacing textlint-rule-
   #+end_src
 - xkeysnail.service
 
-  # #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
-  #+begin_src conf :tangle no
+  #+begin_src conf :noweb yes :noweb-ref no :tangle no
   systemctl --user enable xkeysnail
   systemctl --user start xkeysnail
   #+end_src
 
-  # #+begin_src conf :tangle (expand-file-name ".config/systemd/user/xkeysnail.service")
-  #+begin_src conf :tangle no
+  #+begin_src conf :tangle (expand-file-name ".config/systemd/user/xkeysnail.service")
   [Unit]
   Description=xkeysnail
 
@@ -15326,9 +15324,12 @@ echo ${dic_uniq}
     && ln -sfv ${data_dir}/${hts_fname%.zip}/Voice ${data_dir}/
   #+end_src
 
-** Jack
+** Jack                                        :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2024-04-27 Sat 09:34]
+:END:
 
-#+begin_src scheme :noweb-ref guix-desktop
+#+begin_src scheme :noweb-ref no
 "qjackctl"
 "qsynth"
 "jack-keyboard"
