@@ -9250,6 +9250,25 @@ EWW is a nice place for intensive reading. When there are articles or documents 
       (browse-url-of-file file-path))))
 #+end_src
 
+***** everywhere                 :frames:convenience:
+:PROPERTIES:
+:CREATED:  [2024-04-28 Sun 12:56]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-everywhere"
+"xdotool"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package emacs-everywhere)
+#+end_src
+
+#+NAME: bash/emacs-everywhere
+#+begin_src bash :noweb tangle :tangle (expand-file-name "emacs-everywhere" tangle/local-bin-dir)
+emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-everywhere)"
+#+end_src
+
 *** further extension
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
