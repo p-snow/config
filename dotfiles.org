@@ -1364,7 +1364,7 @@ no-littering-var-directory
 
 *** basic configuration
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
+:header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir) :tangle-mode (identity #o644)
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
@@ -4685,6 +4685,20 @@ If entry at POM has no clock log time stamp, this function returns 0."
   (org-src-ask-before-returning-to-edit-buffer nil)
   (org-special-ctrl-k t)
   (org-ctrl-k-protect-subtree t)
+  (org-src-lang-modes
+   (mapc (lambda (override-src-lang)
+           (add-to-list 'org-src-lang-modes override-src-lang))
+         '(("bash"   . bash-ts)
+           ("C"      . c)
+           ("ruby"   . ruby)
+           ("python" . python-ts)
+           ("java"   . java)
+           ("rust"   . rust)
+           ("lua"    . lua)
+           ("css"    . css-ts)
+           ("json"   . json-ts)
+           ("dot"    . graphviz-dot)
+           ("yaml"   . yaml-ts))))
   :config
   (mapc (lambda (temp-cons)
           (if-let ((place (assoc (car temp-cons) org-structure-template-alist)))
@@ -4694,11 +4708,6 @@ If entry at POM has no clock log time stamp, this function returns 0."
           ("tx" . "src text")
           ("el" . "src emacs-lisp")
           ("py" . "src python")))
-  (setq org-src-lang-modes
-        (append org-src-lang-modes
-                '(("json" . json-ts)
-                  ("dot"  . graphviz-dot)
-                  ("yaml" . yaml-ts))))
   (advice-add #'org-edit-src-save
               :before
               (lambda (&rest _)
@@ -6058,13 +6067,28 @@ language grammar for toml
   :delight " SH"
   :commands sh-mode
   :mode ("\\.sh$" . sh-mode)
+  :hook ((sh-mode)
+         . (lambda ()
+             (my/add-dash-docsets-hook 'sh-mode-hook '("Bash"))
+             (setq-local devdocs-current-docs '("bash"))))
   :custom
   (sh-basic-offset 2)
   (sh-indent-after-if '+)
   (sh-indent-for-case-label 0)
-  (sh-indent-for-case-alt '+)
-  :config
-  (my/add-dash-docsets-hook 'sh-mode-hook '("Bash")))
+  (sh-indent-for-case-alt '+))
+#+end_src
+
+***** bash-ts-mode
+:PROPERTIES:
+:CREATED:  [2024-04-30 Tue 00:08]
+:END:
+
+#+begin_src emacs-lisp
+(use-package bash-ts-mode
+  :interpreter "bash"
+  :hook ((bash-ts-mode)
+         . (lambda ()
+             (setq-local devdocs-current-docs '("bash")))))
 #+end_src
 
 ***** emacs-lisp-mode
@@ -6149,13 +6173,16 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** cc-mode
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"tree-sitter-c"
-#+end_src
-
 #+begin_src emacs-lisp
 (use-package cc-mode
-  :defer t
+  :mode (("\\.c\\'"   . c-mode)
+         ("\\.cpp\\'" . c++-mode))
+  :hook (((c-mode c-ts-mode)
+          . (lambda ()
+              (setq-local devdocs-current-docs '("c"))))
+         ((c++-mode c++-ts-mode)
+          . (lambda ()
+              (setq-local devdocs-current-docs '("cpp")))))
   :custom
   (c-tab-always-indent t)
   (c-auto-align-backslashes nil)
@@ -6203,7 +6230,24 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
                      (arglist-cont-nonempty . c-lineup-arglist))))))
 #+end_src
 
-***** rustic
+***** rust-mode
+:PROPERTIES:
+:CREATED:  [2024-04-29 Mon 21:35]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-rust-mode"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package rust-mode
+  :mode "\\.rs$"
+  :hook ((rust-mode rust-ts-mode)
+         . (lambda ()
+             (setq-local devdocs-current-docs '("rust")))))
+#+end_src
+
+***** rustic                                :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-02-24 Fri 17:40]
 :END:
@@ -6241,7 +6285,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   :mode "\\.py\\'"
   :interpreter "python"
   :hook
-  ((python-mode inferior-python-mode) .
+  ((python-mode inferior-python-mode python-ts-mode) .
    (lambda ()
      (setq-local flycheck-checker 'python-pylint)
      (setq-local devdocs-current-docs '("python~3.9"))))
@@ -6293,10 +6337,6 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 
 ***** ruby-mode
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"tree-sitter-ruby"
-#+end_src
-
 #+begin_src emacs-lisp :tangle no :noweb-ref major-mode-remap-rule
 (ruby-mode . ruby-ts-mode)
 #+end_src
@@ -6309,13 +6349,13 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   :interpreter (("ruby"    . ruby-mode)
                 ("rbx"     . ruby-mode)
                 ("jruby"   . ruby-mode))
+  :hook ((ruby-mode ruby-ts-mode)
+         . (lambda ()
+             (setq-local flycheck-checker 'ruby-rubocop)
+             (setq-local devdocs-current-docs '("ruby~3.2"))))
   :config
   (setq ruby-indent-level 2)
   (setq ruby-insert-encoding-magic-comment nil)
-  (add-hook 'ruby-mode-hook
-            '(lambda ()
-               (setq-local flycheck-checker 'ruby-rubocop)
-               (setq-local devdocs-current-docs '("ruby~3.2"))))
   (add-to-list 'hs-special-modes-alist
                `(ruby-mode
                  ,(rx (or "def" "class" "module" "do" "if" "{" "[")) ; Block start
@@ -6342,14 +6382,36 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   (setq inf-ruby-prompt-pattern "^\\[[0-9]+\\] pry\\((.*)\\)[>*\"'] *"))
 #+end_src
 
-***** lua-mode
+***** java-ts-mode
+:PROPERTIES:
+:CREATED:  [2024-04-29 Mon 19:58]
+:END:
 
-# #+begin_src scheme :tangle no :noweb-ref guix-emacs
-#   "emacs-lua-mode"
-# #+end_src
+#+begin_src emacs-lisp :tangle no :noweb-ref major-mode-remap-rule
+(java-mode . java-ts-mode)
+#+end_src
 
 #+begin_src emacs-lisp
-(add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-mode))
+(use-package java-ts-mode
+  :mode "\\.java$"
+  :hook (java-ts-mode
+         . (lambda ()
+             (setq-local devdocs-current-docs '("openjdk~21")))))
+#+end_src
+
+***** lua-mode
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+  "emacs-lua-mode"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package lua-mode
+  :mode "\\.lua$"
+  :hook ((lua-mode lua-ts-mode)
+         . (lambda ()
+             (setq-local flycheck-checker 'lua-rubocop)
+             (setq-local devdocs-current-docs '("lua~3.2")))))
 #+end_src
 
 ***** perl-mode
@@ -6392,9 +6454,14 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 ***** css-mode
 
 #+begin_src emacs-lisp
-(with-eval-after-load 'css-mode
-  (setopt css-indent-offset 2)
-  (my/add-dash-docsets-hook 'css-mode-hook '("CSS")))
+(use-package css-mode
+  :mode "\\.css$"
+  :hook ((css-mode css-ts-mode)
+         . (lambda ()
+             (my/add-dash-docsets-hook 'css-mode-hook '("CSS"))
+             (setq-local devdocs-current-docs '("css"))))
+  :custom
+  (css-indent-offset 2))
 #+end_src
 
 ***** js2-mode
@@ -9137,6 +9204,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 
 #+begin_src emacs-lisp :noweb tangle
 (use-package gnuplot
+  :defer t
   :hook
   (gnuplot-mode . (lambda ()
                     (setq-local devdocs-current-docs '("gnuplot")))))
@@ -16372,6 +16440,16 @@ They are mostly written in Rust. [[https://github.com/mhoye/moderntools/][modern
 :CREATED:  [2022-08-04 Thu 14:55]
 :END:
 
+** C/C++
+:PROPERTIES:
+:CREATED:  [2024-04-30 Tue 00:52]
+:END:
+
+#+begin_src scheme :noweb-ref guix-base
+"tree-sitter-c"
+"tree-sitter-cpp"
+#+end_src
+
 ** Python
 
 #+begin_src scheme :noweb-ref guix-base
@@ -16394,6 +16472,7 @@ They are mostly written in Rust. [[https://github.com/mhoye/moderntools/][modern
 "ruby-pry"
 "ruby-rubocop"
 "ruby-thor"
+"tree-sitter-ruby"
 #+end_src
 
 #+begin_src shell :noweb-ref bashrc
@@ -16405,6 +16484,16 @@ if which ruby >/dev/null && which gem >/dev/null; then
 fi
 #+end_src
 
+** Java
+:PROPERTIES:
+:CREATED:  [2024-04-29 Mon 20:17]
+:END:
+
+#+begin_src scheme :noweb-ref guix-base
+"openjdk"
+"tree-sitter-java"
+#+end_src
+
 ** Rust
 :PROPERTIES:
 :CREATED:  [2023-02-24 Fri 18:53]
@@ -16412,6 +16501,16 @@ fi
 
 #+begin_src scheme :noweb-ref guix-base
 "rust"
+"tree-sitter-rust"
+#+end_src
+
+** Lua
+:PROPERTIES:
+:CREATED:  [2024-04-29 Mon 21:50]
+:END:
+
+#+begin_src scheme :noweb-ref guix-base
+"tree-sitter-lua"
 #+end_src
 
 ** Common Lisp
