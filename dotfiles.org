@@ -8386,16 +8386,12 @@ helpful-mode displays more sources compared to help-mode, including callers, deb
               ("n" . my/define-word))
   :preface
   (defvar my/define-word-minibuffer-history nil)
-  (defun my/define-word ()
+  (defun my/define-word (word)
     "Invoke `define-word' with dedicated minibuffer history."
-    (interactive)
-    (let ((word (if (use-region-p)
-                    (buffer-substring-no-properties
-                     (region-beginning)
-                     (region-end))
-                  (read-string "Word: " nil 'my/define-word-minibuffer-history
-                               (word-at-point t)))))
-      (define-word word define-word-default-service)))
+    (interactive (list (if (use-region-p)
+                           (buffer-substring-no-properties (region-beginning) (region-end))
+                         (read-string "Word: " (word-at-point t) 'my/define-word-minibuffer-history))))
+    (define-word word define-word-default-service))
   :custom
   (define-word-displayfn-alist
    '((wordnik . my/define-word--display-in-buffer)
@@ -13305,9 +13301,9 @@ My workflow for acquiring English words is:
   "Capture an english WORD as a `org-mode' entry suitable for org-drill.
 
 Capture URL or file currently visiting as well as a sentence at point."
-  (interactive (list (if (use-region-p)
-                         (buffer-substring (region-beginning) (region-end))
-                       (read-string "Phrase: "))))
+  (interactive (list (if (region-active-p)
+                         (buffer-substring-no-properties (region-beginning) (region-end))
+                       (read-string "Word to capture: " (word-at-point t)))))
   (setq org-english-word (downcase word))
   (setq my/org-english-match-entry nil)
   (let* ((sentence-end-double-space nil)
