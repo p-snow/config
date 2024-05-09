@@ -13270,7 +13270,7 @@ My workflow for acquiring English words is:
                        (interactive (list (cond
                                            ((region-active-p)
                                             (buffer-substring-no-properties (region-beginning) (region-end)))
-                                           (t (read-string "Word: " (word-at-point))))))
+                                           (t (read-string "Word: " (word-at-point t))))))
                        (when (if (featurep 'org-drill-english)
                                  t
                                (require 'org-drill-english nil t))
