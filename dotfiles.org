@@ -4149,7 +4149,6 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
 #+begin_src emacs-lisp
 (use-package eshell
   :commands (eshell)
-  :delight " ES"
   :hook
   (eshell-kill . eshell-command-alert)
   :custom
@@ -4162,7 +4161,14 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
   (eshell-visual-subcommands '(("git" "log" "diff" "show")))
   (eshell-scroll-to-bottom-on-input 'this)
   :config
-  (setq eshell-path-env (getenv "PATH")))
+  (setq eshell-path-env (getenv "PATH"))
+  (keymap-set minibuffer-mode-map
+              "C-h" #'delete-backward-char)
+  (keymap-set minibuffer-mode-map
+              "M-h" #'backward-kill-word)
+  (bind-keys :map eshell-mode-map
+             ("C-h" . delete-backward-char)
+             ("M-h" . backward-kill-word)))
 
 (defun eshell-command-alert (process status)
   "Send `alert' with severity based on STATUS when PROCESS finished."
