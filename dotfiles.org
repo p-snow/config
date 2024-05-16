@@ -8986,8 +8986,8 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
                 (cons #'tempel-expand
                       completion-at-point-functions)))
   :custom
-  (tempel-path (list (no-littering-expand-var-file-name "tempel/templates/*.eld")
-                     (no-littering-expand-var-file-name "tempel/templates/*/*.eld")))
+  (tempel-path (list (no-littering-expand-etc-file-name "tempel/templates/*.eld")
+                     (no-littering-expand-etc-file-name "tempel/templates/*/*.eld")))
   :config
   (bind-keys :map tempel-map
              ("TAB" . tempel-next)
@@ -9002,6 +9002,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
   :ensure t
   :after tempel)
 #+end_src
+
 ***** literate calc mode       :tools:languages:calc:
 :PROPERTIES:
 :CREATED:  [2023-11-09 Thu 21:35]
@@ -9338,6 +9339,30 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
 :header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
+
+**** variables for special needs
+
+***** user elisp code directory
+
+This variable points to the directory where user's Elisp code is stored. The reason why the path starts with "p-snow/dotfiles" instead of simply "~/.config/emacs" is to accommodate the org-babel-tangle-jump-to-org command.
+
+#+begin_src emacs-lisp :noweb tangle
+(defvar dotfiles/user-elisp-dir
+  (file-name-concat
+   "<<ghq-proj-path(projname="p-snow/dotfiles")>>"
+   ".config/emacs/lisp/tangled"))
+#+end_src
+
+***** user tempel template directory
+
+This variable points to the location where user TempEL templates are stored.
+
+#+begin_src emacs-lisp :noweb tangle
+(defvar dotfiles/user-template-dir
+  (file-name-concat
+   "<<ghq-proj-path(projname="p-snow/dotfiles")>>"
+   ".config/emacs/etc/tempel/templates/user"))
+#+end_src
 
 **** utility macros/functions
 :PROPERTIES:
@@ -10796,7 +10821,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                    :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
 #+end_src
 
-**** TempEL templates for modes
+**** TempEL templates for major modes
 :PROPERTIES:
 :CREATED:  [2023-11-07 Tue 20:02]
 :header-args:emacs-lisp: :eval no
@@ -10820,7 +10845,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "fundamental-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/fundamental.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "tempel/templates/fundamental.eld" tangle/emacs-etc-dir)
 (timestamp (my/insert-time-stamp))
 #+end_src
 
@@ -10830,7 +10855,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "text-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/text.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "tempel/templates/text.eld" tangle/emacs-etc-dir)
 (gma "update on " (my/insert-time-stamp))
 #+end_src
 
@@ -10840,7 +10865,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "org-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/org.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "tempel/templates/org.eld" tangle/emacs-etc-dir)
 (call & "#+CALL: " (p "name" name) "(" (s var) "=\"" (s value) "\")")
 (name & "#+NAME: " (p "name" name))
 (/ "[/]" (org-update-statistics-cookies nil))
@@ -10855,7 +10880,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "minibuffer-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/minibuffer.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "tempel/templates/minibuffer.eld" tangle/emacs-etc-dir)
 <<minibuffer-mode-template>>
 
 (guix-search "guix search " (p (my/region-string-trans-buffer)))
@@ -10871,7 +10896,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "emacs-lisp-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/emacs-lisp.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "tempel/templates/emacs-lisp.eld" tangle/emacs-etc-dir)
 <<emacs-lisp-mode-template>>
 
 (require "(require '" (p "feature") ")")
@@ -10895,7 +10920,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "sh-base-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/sh-base.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "tempel/templates/sh-base.eld" tangle/emacs-etc-dir)
 (rf "${" p "}")
 (function "function " (p "name") " {" n> p n "}")
 #+end_src
@@ -10906,7 +10931,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+header: :shebang "mu4e-compose-mode"
-#+begin_src emacs-lisp :noweb yes :tangle (no-littering-expand-var-file-name "tempel/templates/mu4e-compose.eld")
+#+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "tempel/templates/mu4e-compose.eld" tangle/emacs-etc-dir)
 (よろ "よろしくお願いいたします。")
 (いじょう "以上、よろしくお願いいたします。")
 #+end_src
@@ -14481,15 +14506,6 @@ ghq list --full-path $projname | head -n 1
 #+name: ghq-root
 #+begin_src shell :eval no-export
 echo ~/data/ghq
-#+end_src
-
-The Elisp variable below is used in tangling from my personal org repository.
-
-#+begin_src emacs-lisp :noweb yes :noweb-ref elisp-code
-(defvar dotfiles/tangled-dir
-  (file-name-concat
-   "<<ghq-proj-path(projname="p-snow/dotfiles")>>"
-   ".config/emacs/lisp/tangled"))
 #+end_src
 
 ** Pass
