@@ -3324,6 +3324,9 @@ sudo systemctl start dictd
 
 (use-package dired-aux
   :after dired
+  :custom
+  ;; Renaming files in Dired reflects their name in VCSs
+  (dired-vc-rename-file t)
   :config
   (setq dired-compress-files-alist
         (append dired-compress-files-alist
