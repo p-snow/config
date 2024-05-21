@@ -8434,9 +8434,7 @@ helpful-mode displays more sources compared to help-mode, including callers, deb
   (defvar my/define-word-minibuffer-history nil)
   (defun my/define-word (word)
     "Invoke `define-word' with dedicated minibuffer history."
-    (interactive (list (if (use-region-p)
-                           (buffer-substring-no-properties (region-beginning) (region-end))
-                         (read-string "Word: " (word-at-point t) 'my/define-word-minibuffer-history))))
+    (interactive (list (determine-search-word "Word to define: " 'my/define-word-minibuffer-history)))
     (define-word word define-word-default-service))
   :custom
   (define-word-displayfn-alist
@@ -9565,6 +9563,17 @@ The job is executed in the background if BACKGROUND-P is non-nil."
                      sound-file)
                " ")
     (when background-p "&"))))
+#+end_src
+
+***** determine search word macro
+
+#+begin_src emacs-lisp
+(defmacro determine-search-word (&optional prompt history)
+  "Return word at point unless region is active using PROMPT and HISTORY."
+  `(downcase
+    (if (use-region-p)
+        (buffer-substring-no-properties (region-beginning) (region-end))
+      (read-string ,(or prompt "Search word: ") (downcase (word-at-point t)) ,history))))
 #+end_src
 
 **** patches and workarounds
@@ -13334,10 +13343,7 @@ My workflow for acquiring English words is:
               :map engine-mode-prefixed-map
               ("j" . (lambda (word)
                        "Copy Japanese translation as well as the pronunciation to `kill-ring'."
-                       (interactive (list (cond
-                                           ((region-active-p)
-                                            (buffer-substring-no-properties (region-beginning) (region-end)))
-                                           (t (read-string "Word: " (word-at-point t))))))
+                       (interactive (list (determine-search-word)))
                        (when (if (featurep 'org-drill-english)
                                  t
                                (require 'org-drill-english nil t))
@@ -13372,9 +13378,7 @@ My workflow for acquiring English words is:
   "Capture an english WORD as a `org-mode' entry suitable for org-drill.
 
 Capture URL or file currently visiting as well as a sentence at point."
-  (interactive (list (if (region-active-p)
-                         (buffer-substring-no-properties (region-beginning) (region-end))
-                       (read-string "Word to capture: " (word-at-point t)))))
+  (interactive (list (determine-search-word "Word to capture: ")))
   (setq org-english-word (downcase word))
   (setq my/org-english-match-entry nil)
   (let* ((sentence-end-double-space nil)
