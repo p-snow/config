@@ -2065,11 +2065,48 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
 
 #+begin_src emacs-lisp
 (use-package windmove
+  :bind (("C-x C-<left>"    . windmove-left)
+         ("C-x C-<right>"   . windmove-right)
+         ("C-x C-<up>"      . windmove-up)
+         ("C-x C-<down>"    . windmove-down)
+         ("C-x C-S-<left>"  . windmove-swap-states-left)
+         ("C-x C-S-<right>" . windmove-swap-states-right)
+         ("C-x C-S-<up>"    . windmove-swap-states-up)
+         ("C-x C-S-<down>"  . windmove-swap-states-down)
+         ("C-x C-M-<left>"  . windmove-delete-left)
+         ("C-x C-M-<right>" . windmove-delete-right)
+         ("C-x C-M-<up>"    . windmove-delete-up)
+         ("C-x C-M-<down>"  . windmove-delete-down))
   :custom
   (windmove-mode t)
   (windmove-wrap-around t)
   :config
-  (windmove-default-keybindings '(control shift)))
+  (defvar-keymap my/windmove-repeat-map
+    :doc "Keymap to repeat windmove commands."
+    :repeat (:enter (windmove-left
+                     windmove-right
+                     windmove-up
+                     windmove-down
+                     windmove-swap-states-left
+                     windmove-swap-states-right
+                     windmove-swap-states-up
+                     windmove-swap-states-down
+                     windmove-delete-left
+                     windmove-delete-right
+                     windmove-delete-up
+                     windmove-delete-down))
+    "<left>"  #'windmove-left
+    "<right>" #'windmove-right
+    "<up>"    #'windmove-up
+    "<down>"  #'windmove-down
+    "S-<left>"  #'windmove-swap-states-left
+    "S-<right>" #'windmove-swap-states-right
+    "S-<up>"    #'windmove-swap-states-up
+    "S-<down>"  #'windmove-swap-states-down
+    "M-<left>"  #'windmove-delete-left
+    "M-<right>" #'windmove-delete-right
+    "M-<up>"    #'windmove-delete-up
+    "M-<down>"  #'windmove-delete-down))
 #+end_src
 
 ****** Minibuffer
