@@ -10876,6 +10876,23 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                    :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
 #+end_src
 
+***** ghq-get command
+
+#+begin_src emacs-lisp
+(transient-define-prefix ghq-get-dispatch-dwim (&optional url)
+  "Dispatch ghq get command."
+  :man-page "du"
+  [("-s" "shallow clone" "--shallow"
+    :init-value (lambda (obj) (oset obj value "--shallow")))]
+  [(dispatch-dwim-execute
+    :command-format
+    (format "ghq get %%a %s"
+            (plist-get (oref transient-current-prefix scope) 'url)))]
+  (interactive)
+  (transient-setup 'ghq-get-dispatch-dwim nil nil
+                   :scope (plist-put nil 'url (dispatch-dwim--determine-url url))))
+#+end_src
+
 **** TempEL templates for major modes
 :PROPERTIES:
 :CREATED:  [2023-11-07 Tue 20:02]
