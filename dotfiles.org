@@ -13043,6 +13043,9 @@ QUERY must comply to RFC 822 format, which holds attribute/value pairs."
              . browse-url-firefox)
             ((lambda (url) (equal current-prefix-arg '(4)))
              . browse-url-emacs)
+            (ghq-list
+             . (lambda (url &rest args)
+                 (find-file (car (ghq-list url)))))
             ("\\.html\\'"
              . (lambda (url &optional same-window)
                  (cond
@@ -14565,14 +14568,23 @@ target=github.com
 ghq list --full-path $projname | head -n 1
 #+end_src
 
+#+begin_src emacs-lisp :noweb-ref elisp-code
+(defun ghq-list (query)
+  "Return a list containing all ghq repositories matching QUERY."
+  (split-string (string-trim-right
+                 (shell-command-to-string
+                  (format "ghq list --full-path '%s'" query)))
+                "\n" t))
+#+end_src
+
 *** personal ghq environment
 :PROPERTIES:
 :CREATED:  [2024-04-15 Mon 16:41]
 :END:
 
 #+name: ghq-root
-#+begin_src shell :eval no-export
-echo ~/data/ghq
+#+begin_src sh :eval no-export
+ghq root
 #+end_src
 
 ** Pass
