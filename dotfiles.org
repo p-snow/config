@@ -2967,6 +2967,9 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (japanese-holiday-weekend '(0 6))
   (japanese-holiday-weekend-marker
    '(holiday nil nil nil nil nil japanese-holiday-saturday))
+  :custom-face
+  (holiday ((t (:foreground "dark orange" :box t))))
+  (japanese-holiday-saturday ((t (:foreground "blue" :background nil))))
   :config
   (require 'japanese-holidays)
   ;; add 'holiday-general-holidays to calendar-holidays
@@ -10278,13 +10281,14 @@ exit 0
          (date (calendar-date-string (calendar-cursor-to-date)))
          (d (parse-time-string date))
          (year (decoded-time-year d))
-         (files (file-expand-wildcards (file-name-concat org-directory "archive" "archive_*.org")))
+         (files (file-expand-wildcards (file-name-concat org-directory "archive" (format "archive_%d.org" year))))
          (buffer-name-prefix "==")
          (buffer-name (concat buffer-name-prefix date))
          (display-buffer-alist
           `((,buffer-name-prefix
              (display-buffer-reuse-mode-window
-              display-buffer-pop-up-window)))))
+              display-buffer-pop-up-window)
+             (window-height . 7)))))
     (org-ql-search files `(and (or (parent (heading ,date))
                                    (ts-a :on ,date))
                                (not (tags "web" "drill")))
