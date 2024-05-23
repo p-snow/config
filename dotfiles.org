@@ -9579,7 +9579,7 @@ The job is executed in the background if BACKGROUND-P is non-nil."
   `(downcase
     (if (use-region-p)
         (buffer-substring-no-properties (region-beginning) (region-end))
-      (read-string ,(or prompt "Search word: ") (downcase (word-at-point t)) ,history))))
+      (read-string ,(or prompt "Search word: ") (downcase (or (word-at-point t) "")) "" ,history))))
 #+end_src
 
 **** patches and workarounds
