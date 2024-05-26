@@ -4190,11 +4190,14 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
     (apply orig-fun args)))
 #+end_src
 
-***** eshell
+***** Eshell
 
 #+begin_src emacs-lisp
 (use-package eshell
+  :after my-launch-app
   :commands (eshell)
+  :bind (:map my/launch-app-map
+              ("e" . eshell))
   :hook
   (eshell-kill . eshell-command-alert)
   :custom
@@ -4207,14 +4210,7 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
   (eshell-visual-subcommands '(("git" "log" "diff" "show")))
   (eshell-scroll-to-bottom-on-input 'this)
   :config
-  (setq eshell-path-env (getenv "PATH"))
-  (keymap-set minibuffer-mode-map
-              "C-h" #'delete-backward-char)
-  (keymap-set minibuffer-mode-map
-              "M-h" #'backward-kill-word)
-  (bind-keys :map eshell-mode-map
-             ("C-h" . delete-backward-char)
-             ("M-h" . backward-kill-word)))
+  (setq eshell-path-env (getenv "PATH")))
 
 (defun eshell-command-alert (process status)
   "Send `alert' with severity based on STATUS when PROCESS finished."
@@ -8667,8 +8663,9 @@ Aggressively delete successive white spaces.
 #+begin_src emacs-lisp
 (use-package aggressive-indent
   :diminish (aggressive-indent-mode . "ai")
-  :hook (emacs-lisp-mode . aggressive-indent-mode))
+  :hook ((emacs-lisp-mode scheme-mode) . aggressive-indent-mode))
 #+end_src
+
 ***** adaptive-wrap
 
 adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major modes.
@@ -10260,7 +10257,6 @@ exit 0
 (global-set-key (kbd "H-j")
                 (define-keymap
                   :prefix 'my/launch-app-map
-                  "e" #'eshell
                   "v" #'my/multi-vterm
                   "d" #'dired-jump
                   "w" #'eww
