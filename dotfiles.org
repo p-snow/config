@@ -367,8 +367,6 @@ export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/desktop/desktop/share/man
    "gparted"
    "gcompris-qt"
    "gnome-disk-utility"
-   "wine64"
-   "winetricks"
    "kdeconnect"
    "dia"
    "inkscape"
@@ -491,18 +489,37 @@ guix pull --channels=$HOME/.config/guix/base-channels.scm \
   && guix describe --format=channels > ~/.config/guix/channels.scm
 #+end_src
 
-*** gnu/packages
-:PROPERTIES:
-:CREATED:  [2024-04-03 Wed 16:08]
-:END:
+*** Home Configuration
 
-**** base.scm
-:PROPERTIES:
-:CREATED:  [2024-04-03 Wed 16:10]
-:END:
+#+begin_src scheme :noweb tangle :noweb-prefix no :tangle (expand-file-name "guix/home/home-config.scm" tangle/config-dir)
+;; This "home-environment" file can be passed to 'guix home reconfigure'
+;; to reproduce the content of your profile.  This is "symbolic": it only
+;; specifies package names.  To reproduce the exact same profile, you also
+;; need to capture the channels being used, as returned by "guix describe".
+;; See the "Replicating Guix" section in the manual.
 
-#+begin_src scheme :noweb-ref guix-base
-"glibc-locales"
+(use-modules (gnu home)
+             (gnu packages)
+             (gnu packages base)
+             (gnu packages fontutils)
+             (gnu services)
+             (guix gexp)
+             (gnu home services shells))
+
+(home-environment
+ ;; Below is the list of packages that will show up in your
+ ;; Home profile, under ~/.guix-home/profile.
+ ;; (packages (specifications->packages (list "glibc-locales")))
+ (packages (list glibc-locales fontconfig which))
+
+ ;; Below is the list of Home services.  To search for available
+ ;; services, run 'guix home search KEYWORD' in a terminal.
+ (services
+  (list (service home-bash-service-type
+                 (home-bash-configuration
+                  (guix-defaults? #t)
+                  (aliases '(<<print-aliases(lang="scheme")>>))
+                  (bashrc (list (local-file "./.bashrc" "bashrc"))))))))
 #+end_src
 
 * System Constituents
@@ -550,114 +567,26 @@ fc-cache -rvf
 :CREATED:  [2022-09-13 Tue 16:24]
 :END:
 
-#+begin_src scheme
+#+begin_src scheme :tangle no :noweb-ref guix-desktop
 "gnome-font-viewer"
 #+end_src
 
 ** Bash
 
-#+begin_src scheme :noweb-ref guix-base
-"bash"
-#+end_src
+*** bashrc
 
-- bash profile
-  #+BEGIN_SRC shell :tangle (expand-file-name ".bash_profile") :comments no
-  #!/usr/bin/env bash
+#+BEGIN_SRC bash :noweb yes :tangle (expand-file-name "guix/home/.bashrc" tangle/config-dir) :comments no :shebang ""
+export PATH="${HOME}/.local/bin:$PATH"
+export EMAIL="<<email>>"
+export VIEWER=less
+export PS1="[\u@$(uname -n):\\W]\n\$ "
 
-  if [ -f ~/.bashrc ]; then
-    source ~/.bashrc
-  fi
-  #+END_SRC
-- bashrc
-  #+BEGIN_SRC bash :noweb yes :tangle (expand-file-name ".bashrc") :comments no :shebang ""
-  if [ -f ~/.bashrc.secret ]; then
-    source ~/.bashrc.secret
-  fi
+<<bashrc>>
+#+END_SRC
 
-  export EMAIL=<<email>>
-  export VIEWER=less
+*** bash functions                            :ARCHIVE:
 
-  USER_PATHS=(
-    "${HOME}/usr/bin"
-    "${HOME}/.local/bin"
-  )
-  for path in "${USER_PATHS[@]}"; do
-    if [ -d "${path}" ]; then
-      export PATH="${path}:$PATH"
-    fi
-  done
-
-  if [ -e $HOME/.bash_aliases ]; then
-    source $HOME/.bash_aliases
-  fi
-  if [ -e $HOME/.bash_functions ]; then
-    source $HOME/.bash_functions
-  fi
-
-  # prompt
-  MACHINE=$(echo $(uname -n) | awk -F . '{print $1}')
-  PS1="[\u@${MACHINE}:\\W]\n\$ "
-
-  # function/variable used in libvterm/emacs
-  vterm_printf(){
-    if [ -n "$TMUX" ]; then
-      # Tell tmux to pass the escape sequences through
-      # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
-      printf "\ePtmux;\e\e]%s\007\e\\" "$1"
-    elif [ "${TERM%%-*}" = "screen" ]; then
-      # GNU screen (screen, screen-256color, screen-256color-bce)
-      printf "\eP\e]%s\007\e\\" "$1"
-    else
-      printf "\e]%s\e\\" "$1"
-    fi
-  }
-
-  vterm_prompt_end(){
-    vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
-  }
-
-  PROMPT_COMMAND='echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
-
-  case ${TERM} in
-  dumb)
-    ;;
-  xterm-256color)
-    export LANG=en_US.UTF-8
-    PS1=$PS1'\[$(vterm_prompt_end)\]'
-    ;;
-  ,*)
-    export LANG=ja_JP.UTF-8
-    ;;
-  esac
-
-  export WINEARCH=win64
-  export WINEPREFIX=~/.wine
-
-  <<bashrc>>
-  #+END_SRC
-- aliases
-  #+begin_src shell :tangle (expand-file-name ".bash_aliases")
-  alias ..="cd ../"
-  alias l="ls -F"
-  alias ll="l -lh"
-  alias la="l -a"
-  alias lal="l -alh"
-  alias lld="l -ld"
-  alias cp="cp -i"
-  alias mv="mv -i"
-  alias rm="rm -i"
-  alias rmf="rm -rf"
-  alias mkdir="mkdir -pv"
-  alias rmdir="rmdir -v"
-  alias ff='find . -type f -iname'
-
-  alias cputemp='cat /sys/class/thermal/thermal_zone0/temp'
-  alias ipaddr="hostname -I | cut -f1 -d' '"
-
-  alias kem="pkill -kill emacs"
-  #+end_src
-- functions
-  #+begin_src shell :tangle (expand-file-name ".bash_functions")
+#+begin_src sh :tangle (expand-file-name ".bash_functions")
   function cl() {
     DIR="$*";
     # if no DIR given, go home
@@ -729,37 +658,44 @@ fc-cache -rvf
     echo $'\n'$"Uptime:"
     /usr/bin/uptime
   }
-  #+end_src
-- profile
-  #+BEGIN_SRC shell :tangle (expand-file-name ".profile")
-  # ~/.profile: executed by the command interpreter for login shells.
-  # This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
-  # exists.
-  # see /usr/share/doc/bash/examples/startup-files for examples.
-  # the files are located in the bash-doc package.
+#+end_src
 
-  # the default umask is set in /etc/profile; for setting the umask
-  # for ssh logins, install and configure the libpam-umask package.
-  #umask 022
+*** Shell Command Aliases
 
-  # if running bash
-  if [ -n "$BASH_VERSION" ]; then
-    # include .bash_profile if it exists
-    if [ -f "$HOME/.bash_profile" ]; then
-      . "$HOME/.bash_profile"
-    fi
-  fi
+#+NAME: shell-aliases
+| ..     | cd ../                            |    |
+| e      | exit                              |    |
+| l      | ls -F                             | $* |
+| ll     | ls -lh                            | $* |
+| lld    | l -ld                             | $* |
+| la     | l -a                              | $* |
+| lal    | l -alh                            | $* |
+| cp     | cp -i                             | $* |
+| mv     | mv -i                             | $* |
+| rm     | rm -i                             | $* |
+| rmf    | rm -rf                            | $* |
+| mkdir  | mkdir -pv                         | $* |
+| rmdir  | rmdir -v                          | $* |
+| ipad   | hostname -I \vert cut -f1 -d' '       |    |
+| kem    | pkill -kill emacs                 |    |
 
-  # set PATH so it includes user's private bin if it exists
-  if [ -d "$HOME/bin" ] ; then
-    PATH="$HOME/bin:$PATH"
-  fi
+#+NAME: print-aliases
+#+header: :var lang="plain"
+#+begin_src emacs-lisp :results output :var aliases=shell-aliases
+(seq-do-indexed (lambda (alias index)
+                  (let ((ali (car alias))
+                        (def (replace-regexp-in-string "\\\\vert" "|" (cadr alias)))
+                        (param (caddr alias)))
+                    (pcase lang
+                      ('"plain"
+                       (princ (funcall 'string-join `(,ali ,def ,param) " "))
+                       (when (< index (1- (length aliases))) (princ "\n")))
+                      ('"scheme"
+                       (prin1 (funcall 'cons ali def))
+                       (princ "\n")))))
+                aliases)
+#+end_src
 
-  # set PATH so it includes user's private bin if it exists
-  if [ -d "$HOME/.local/bin" ] ; then
-    PATH="$HOME/.local/bin:$PATH"
-  fi
-  #+END_SRC
 ** Systemd
 
 #+begin_src shell :noweb tangle :tangle (expand-file-name "start-systemd-services" tangle/local-bin-dir)
@@ -4147,6 +4083,28 @@ This function needs to be invoked after `rmh-elfeed-org-process' which clear all
 ("https://github.com/suonlight/multi-vterm/releases.atom" soft_update)
 #+end_src
 
+#+begin_src shell :tangle no :noweb-ref bashrc
+# function/variable used in libvterm/emacs
+vterm_printf(){
+  if [ -n "$TMUX" ]; then
+    # Tell tmux to pass the escape sequences through
+    # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
+    printf "\ePtmux;\e\e]%s\007\e\\" "$1"
+  elif [ "${TERM%%-*}" = "screen" ]; then
+    # GNU screen (screen, screen-256color, screen-256color-bce)
+    printf "\eP\e]%s\007\e\\" "$1"
+  else
+    printf "\e]%s\e\\" "$1"
+  fi
+}
+
+vterm_prompt_end(){
+  vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
+}
+
+PROMPT_COMMAND='echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
+#+end_src
+
 #+begin_src emacs-lisp
 (use-package vterm
   :commands (vterm multi-vterm multi-vterm-next)
@@ -4220,6 +4178,14 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
     (if (string-prefix-p "finished" status)
         (alert msg :buffer buffer :severity  'normal)
       (alert msg :buffer buffer :severity 'urgent))))
+#+end_src
+
+****** Eshell Aliases
+
+Aliases for Eshell are shared with Bash.
+
+#+begin_src conf :comments no :noweb tangle :tangle (expand-file-name "eshell/aliases" tangle/emacs-etc-dir)
+alias <<print-aliases(lang="plain")>>
 #+end_src
 
 **** Org Mode
@@ -15373,9 +15339,7 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 #+end_src
 
 #+name: skk-jisyo-path
-#+begin_src bash :noweb tangle :tangle no
-. ${HOME}/.bashrc
-
+#+begin_src shell :noweb tangle :tangle no
 echo "${GUIX_EXTRA_PROFILES}/base/base/share/skk/"
 #+end_src
 
@@ -16180,8 +16144,12 @@ you are required to locate that package where emacs can search.
 
 Documentation is available at [[https://graphviz.org/documentation/][here]] and [[https://graphviz.org/gallery/][gallery]] is also useful.
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
+#+begin_src scheme :tangle no :noweb-ref guix-base
 "graphviz"
+"xdot"
+#+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
 "emacs-graphviz-dot-mode"
 #+end_src
 
@@ -16527,6 +16495,18 @@ They are mostly written in Rust. [[https://github.com/mhoye/moderntools/][modern
 
 #+begin_src scheme :noweb-ref guix-base
 "haunt"
+#+end_src
+
+** Wine
+
+#+begin_src scheme :noweb-ref guix-desktop
+"wine64"
+"winetricks"
+#+end_src
+
+#+begin_src shell :tangle no :noweb-ref bashrc
+export WINEARCH=win64
+export WINEPREFIX=~/.wine
 #+end_src
 
 * Development Infrastructures
