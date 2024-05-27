@@ -255,6 +255,17 @@ if [ -v GUIX_ENVIRONMENT ]; then
 fi
 #+end_src
 
+#+header: :shebang "eshell-mode minibuffer-mode"
+#+begin_src emacs-lisp :tangle no :tangle (expand-file-name "tempel/templates/user/guix.eld" tangle/emacs-etc-dir)
+(guix-search "guix search " (p (my/region-string-trans-buffer)))
+(activate-profiles "activate-profiles "
+                   (completing-read "profiles: "
+                                    (mapcar (lambda (elt)
+                                              (string-join elt " "))
+                                            (my/combinations
+                                             '("base" "desktop" "emacs")))))
+#+end_src
+
 *** Channel definitions
 
 #+begin_src scheme :tangle (expand-file-name ".config/guix/base-channels.scm")
@@ -449,16 +460,6 @@ for profile in $profiles; do
     echo "No profile found at path" $profilePath
   fi
 done
-#+end_src
-
-#+name: template-activate-profiles
-#+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-mode-template
-(activate-profiles "activate-profiles "
-                   (completing-read "profiles: "
-                                    (mapcar (lambda (elt)
-                                              (string-join elt " "))
-                                            (my/combinations
-                                             '("base" "desktop" "emacs")))))
 #+end_src
 
 - Automating Script
@@ -10924,7 +10925,6 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 #+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "tempel/templates/minibuffer.eld" tangle/emacs-etc-dir)
 <<minibuffer-mode-template>>
 
-(guix-search "guix search " (p (my/region-string-trans-buffer)))
 (version (p "command") " --version")
 (curly-bracket-japanese-regexp
  (rx (parened ?｛ (+ (or " "
@@ -10966,7 +10966,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 (function "function " (p "name") " {" n> p n "}")
 #+end_src
 
-***** mu4e-compose-mode
+***** mu4e-compose-mode templates
 :PROPERTIES:
 :CREATED:  [2023-12-04 Mon 19:52]
 :END:
