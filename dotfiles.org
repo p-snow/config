@@ -212,48 +212,7 @@ initialize-ubuntu-desktop
 
 ** GNU Guix
 
-#+NAME: guix/bashrc
-#+begin_src shell :noweb-ref bashrc
-export GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
-export GUIX_LOCPATH="${GUIX_EXTRA_PROFILES}/base/base/lib/locale"
-
-export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/base/base/share:${XDG_DATA_DIRS}
-export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/base/base/share/man
-
-# fill in a variable below like a comment line
-# if you'd like to acticate specific profiles under GUIX_EXTRA_PROFILES
-ACTIVE_PROFILE_NAMES=()
-# ACTIVE_PROFILE_NAMES=(base emacs)
-
-profiles=()
-if [ ${#ACTIVE_PROFILE_NAMES[@]} -eq 0 ]; then
-  profiles="${GUIX_EXTRA_PROFILES}/*"
-else
-  for name in ${ACTIVE_PROFILE_NAMES[@]}; do
-    profiles+=("${GUIX_EXTRA_PROFILES}/${name}")
-  done
-fi
-
-for profile in ${profiles[@]}; do
-  GUIX_PROFILE="${profile}/$(basename ${profile})"
-  if [ -f ${GUIX_PROFILE}/etc/profile ]; then
-    . "${GUIX_PROFILE}"/etc/profile
-  fi
-done
-
-export GUIX_PROFILE="$HOME/.guix-profile"
-. "$GUIX_PROFILE/etc/profile"
-
-export GUIX_PROFILE="$HOME/.config/guix/current"
-. "$GUIX_PROFILE/etc/profile"
-
-
-if [ -v GUIX_ENVIRONMENT ]; then
-  if [[ $PS1 =~ (.*)"\\$" ]]; then
-    PS1="${BASH_REMATCH[1]} [env]\\\$ "
-  fi
-fi
-#+end_src
+Below is Elisp code defining Guix templates for TempEL.
 
 #+header: :shebang "eshell-mode minibuffer-mode"
 #+begin_src emacs-lisp :tangle no :tangle (expand-file-name "tempel/templates/user/guix.eld" tangle/emacs-etc-dir)
@@ -266,7 +225,9 @@ fi
                                              '("base" "desktop" "emacs")))))
 #+end_src
 
-*** Channel definitions
+*** Channels
+
+Guix channels of my choice, providing package definitions.
 
 #+begin_src scheme :tangle (expand-file-name ".config/guix/base-channels.scm")
 (list (channel
@@ -289,7 +250,124 @@ fi
           "CF56 FC53 3AD6 6A67 6FDC  1D73 0D2B AF0E 8AEF 0306")))))
 #+end_src
 
-*** Manifests
+A script for updating channels
+
+This script makes it easy to update all channels to the latest commit based on an original channel file.
+
+: update-channels
+
+#+NAME: guix/update-channels
+#+begin_src shell :tangle (expand-file-name "update-channels" tangle/local-bin-dir)
+guix pull --channels=$HOME/.config/guix/base-channels.scm \
+  && guix describe --format=channels > ~/.config/guix/channels.scm
+#+end_src
+
+*** Profiles
+
+Below is an initialization code for Guix profiles in Bash.
+
+#+NAME: guix/bashrc
+#+begin_src sh :noweb-ref bashrc
+export GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
+
+# fill in a variable below like a comment line
+# if you'd like to acticate specific profiles under GUIX_EXTRA_PROFILES
+ACTIVE_PROFILE_NAMES=()
+# ACTIVE_PROFILE_NAMES=(base emacs)
+
+profiles=()
+if [ ${#ACTIVE_PROFILE_NAMES[@]} -eq 0 ]; then
+  profiles="${GUIX_EXTRA_PROFILES}/*"
+else
+  for name in ${ACTIVE_PROFILE_NAMES[@]}; do
+    profiles+=("${GUIX_EXTRA_PROFILES}/${name}")
+  done
+fi
+
+for profile in ${profiles[@]}; do
+  GUIX_PROFILE="${profile}/$(basename ${profile})"
+  if [ -f ${GUIX_PROFILE}/etc/profile ]; then
+    . "${GUIX_PROFILE}"/etc/profile
+  fi
+  if [ -d ${GUIX_PROFILE}/share ]; then
+    export XDG_DATA_DIRS=${GUIX_PROFILE}/share${XDG_DATA_DIRS:+:}$XDG_DATA_DIRS
+  fi
+  if [ -d ${GUIX_PROFILE}/share/man ]; then
+    export MANPATH=${GUIX_PROFILE}/share/man${MANPATH:+:}$MANPATH
+  fi
+done
+
+export GUIX_PROFILE="$HOME/.guix-profile"
+. "$GUIX_PROFILE/etc/profile"
+
+export GUIX_PROFILE="$HOME/.config/guix/current"
+. "$GUIX_PROFILE/etc/profile"
+
+
+if [ -v GUIX_ENVIRONMENT ]; then
+  if [[ $PS1 =~ (.*)"\\$" ]]; then
+    PS1="${BASH_REMATCH[1]} [env]\\\$ "
+  fi
+fi
+#+end_src
+
+activate-profiles is a script that accepts space-separated profile names, whose packages will be fetched:
+
+: activate-profiles base emacs
+
+#+NAME: guix/activate-profile
+#+begin_src shell :tangle (expand-file-name "activate-profiles" tangle/local-bin-dir)
+GREEN='\033[1;32m'
+RED='\033[1;30m'
+NC='\033[0m'
+GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
+
+profiles=$*
+if [ $# -eq 0 ]; then
+  profiles="$HOME/.config/guix/manifests/*.scm";
+fi
+
+for profile in $profiles; do
+  # Remove the path and file extension, if any
+  profileName=$(basename $profile)
+  profileName="${profileName%.*}"
+  profilePath="$GUIX_EXTRA_PROFILES/$profileName"
+  manifestPath=$HOME/.config/guix/manifests/$profileName.scm
+
+  if [ -f $manifestPath ]; then
+    echo
+    echo -e "${GREEN}Activating profile:" $manifestPath "${NC}"
+    echo
+
+    mkdir -p $profilePath
+    guix package --manifest=$manifestPath --profile="$profilePath/$profileName"
+
+    # Source the new profile
+    GUIX_PROFILE="$profilePath/$profileName"
+    if [ -f $GUIX_PROFILE/etc/profile ]; then
+      . "$GUIX_PROFILE"/etc/profile
+    else
+      echo -e "${RED}Couldn't find profile:" $GUIX_PROFILE/etc/profile "${NC}"
+    fi
+  else
+    echo "No profile found at path" $profilePath
+  fi
+done
+#+end_src
+
+- Automating Script
+  Update packages in base profile at morning
+  #+begin_src shell :eval no :tangle no :noweb-ref morning-batch
+  update-channels && activate-profiles base && guix gc -d 2m -F 20G
+  #+end_src
+  #+begin_src shell :eval no :tangle no :noweb-ref system-batch
+  sudo -i guix pull && systemctl restart guix-daemon.service
+  #+end_src
+  Update packages in desktop and emacs profile every weekend
+  #+begin_src shell :eval no :tangle no :noweb-ref weekend-batch
+  activate-profiles desktop emacs && guix gc -d 2m -F 20G
+  #+end_src
+
 **** guix base profile
 
 #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/base.scm")
@@ -308,6 +386,7 @@ fi
    "sshfs"
    "grep"
    "ripgrep"
+   "man-db"
    "less"
    "pwgen"
    "file"
@@ -366,11 +445,6 @@ fi
 
 **** guix desktop profile
 
-#+begin_src shell :noweb yes :noweb-ref bashrc
-export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/desktop/desktop/share:${XDG_DATA_DIRS}
-export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/desktop/desktop/share/man
-#+end_src
-
 #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/desktop.scm")
 (specifications->manifest
  '("font-adobe-source-han-sans"
@@ -401,11 +475,6 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
 
 **** guix emacs profile
 
-#+begin_src shell :noweb yes :noweb-ref bashrc
-export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/emacs/emacs/share:${XDG_DATA_DIRS}
-export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/emacs/emacs/share/man
-#+end_src
-
 #+begin_src scheme :noweb yes :noweb-prefix no :tangle (expand-file-name ".config/guix/manifests/emacs.scm")
 (specifications->manifest
  '(<<guix-emacs>>
@@ -417,80 +486,10 @@ export MANPATH=${MANPATH}:${GUIX_EXTRA_PROFILES}/emacs/emacs/share/man
    "emacs-compat"))
 #+end_src
 
-*** Activating Profiles
-
-This script accepts a space-separated list of manifest file names (without extension) under the =~/.config/guix/manifests= folder and then installs those profiles for the first time.  For example:
-
-: activate-profiles base emacs
-
-#+begin_src shell :tangle (expand-file-name "activate-profiles" tangle/local-bin-dir)
-GREEN='\033[1;32m'
-RED='\033[1;30m'
-NC='\033[0m'
-GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
-
-profiles=$*
-if [ $# -eq 0 ]; then
-  profiles="$HOME/.config/guix/manifests/*.scm";
-fi
-
-for profile in $profiles; do
-  # Remove the path and file extension, if any
-  profileName=$(basename $profile)
-  profileName="${profileName%.*}"
-  profilePath="$GUIX_EXTRA_PROFILES/$profileName"
-  manifestPath=$HOME/.config/guix/manifests/$profileName.scm
-
-  if [ -f $manifestPath ]; then
-    echo
-    echo -e "${GREEN}Activating profile:" $manifestPath "${NC}"
-    echo
-
-    mkdir -p $profilePath
-    guix package --manifest=$manifestPath --profile="$profilePath/$profileName"
-
-    # Source the new profile
-    GUIX_PROFILE="$profilePath/$profileName"
-    if [ -f $GUIX_PROFILE/etc/profile ]; then
-      . "$GUIX_PROFILE"/etc/profile
-    else
-      echo -e "${RED}Couldn't find profile:" $GUIX_PROFILE/etc/profile "${NC}"
-    fi
-  else
-    echo "No profile found at path" $profilePath
-  fi
-done
-#+end_src
-
-- Automating Script
-  Update packages in base profile at morning
-  #+begin_src shell :eval no :tangle no :noweb-ref morning-batch
-  update-channels && activate-profiles base && guix gc -d 2m -F 20G
-  #+end_src
-  #+begin_src shell :eval no :tangle no :noweb-ref system-batch
-  sudo -i guix pull && systemctl restart guix-daemon.service
-  #+end_src
-  Update packages in desktop and emacs profile every weekend
-  #+begin_src shell :eval no :tangle no :noweb-ref weekend-batch
-  activate-profiles desktop emacs && guix gc -d 2m -F 20G
-  #+end_src
-
-*** Updating Channels
-
-This script makes it easy to update all channels to the latest commit based on an original channel file.
-
-: update-channels
-
-You can use ~/.config/guix/channels.scm to replicate exact packages on another machine with
-
-: guix pull -C ~/.config/guix/channels.scm
-
-#+begin_src shell :tangle (expand-file-name "update-channels" tangle/local-bin-dir)
-guix pull --channels=$HOME/.config/guix/base-channels.scm \
-  && guix describe --format=channels > ~/.config/guix/channels.scm
-#+end_src
-
 *** Home Configuration
+:PROPERTIES:
+:ID:       d882f2f6-c4cf-4d17-87e8-3fc5bbd3cc6b
+:END:
 
 #+begin_src scheme :noweb tangle :noweb-prefix no :tangle (expand-file-name "guix/home/home-config.scm" tangle/config-dir)
 ;; This "home-environment" file can be passed to 'guix home reconfigure'
@@ -502,6 +501,7 @@ guix pull --channels=$HOME/.config/guix/base-channels.scm \
 (use-modules (gnu home)
              (gnu packages)
              (gnu packages base)
+             (gnu packages fonts)
              (gnu packages fontutils)
              (gnu services)
              (guix gexp)
@@ -510,8 +510,8 @@ guix pull --channels=$HOME/.config/guix/base-channels.scm \
 (home-environment
  ;; Below is the list of packages that will show up in your
  ;; Home profile, under ~/.guix-home/profile.
- ;; (packages (specifications->packages (list "glibc-locales")))
- (packages (list glibc-locales fontconfig which))
+ (packages (list glibc-locales fontconfig which
+                 font-iosevka font-ipa font-ipa-ex font-google-noto font-inconsolata))
 
  ;; Below is the list of Home services.  To search for available
  ;; services, run 'guix home search KEYWORD' in a terminal.
@@ -523,28 +523,23 @@ guix pull --channels=$HOME/.config/guix/base-channels.scm \
                   (bashrc (list (local-file "./.bashrc" "bashrc"))))))))
 #+end_src
 
+A script for activating home configuration
+
+#+begin_src shell :tangle (expand-file-name "activate-home" tangle/local-bin-dir)
+guix home container ~/.config/guix/home/home-config.scm
+#+end_src
+
 * System Constituents
 :PROPERTIES:
 :CREATED:  [2022-09-13 Tue 16:14]
 :END:
-** Font
-:PROPERTIES:
-:CREATED:  [2022-09-07 Wed 19:08]
-:END:
+** Fontconfig                                 :ARCHIVE:
 
-#+begin_src scheme :noweb-ref guix-base
-"font-ipa"
-"font-ipa-ex"
-"font-google-noto"
-"font-inconsolata"
-"font-iosevka"
-#+end_src
+Fontconfig settings moved to Guix dissolved into [[id:d882f2f6-c4cf-4d17-87e8-3fc5bbd3cc6b][Home Configuration]].
 
-*** Fontconfig
-
-#+begin_src scheme :noweb-ref guix-base
-"fontconfig"
-#+end_src
+# #+begin_src scheme :noweb-ref guix-base
+# "fontconfig"
+# #+end_src
 
 # #+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
 #   fonts-ipafont-mincho fonts-ipafont-gothic
@@ -559,17 +554,8 @@ guix pull --channels=$HOME/.config/guix/base-channels.scm \
 #+end_src
 
 install available fonts by rescanning font directories
-#+begin_src conf :noweb yes :noweb-ref ubuntu-setup :tangle no
+#+begin_src conf :noweb yes :tangle no
 fc-cache -rvf
-#+end_src
-
-*** Font Viewer
-:PROPERTIES:
-:CREATED:  [2022-09-13 Tue 16:24]
-:END:
-
-#+begin_src scheme :tangle no :noweb-ref guix-desktop
-"gnome-font-viewer"
 #+end_src
 
 ** Bash
@@ -16507,6 +16493,15 @@ They are mostly written in Rust. [[https://github.com/mhoye/moderntools/][modern
 #+begin_src shell :tangle no :noweb-ref bashrc
 export WINEARCH=win64
 export WINEPREFIX=~/.wine
+#+end_src
+
+** Font Viewer
+:PROPERTIES:
+:CREATED:  [2022-09-13 Tue 16:24]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-desktop
+"gnome-font-viewer"
 #+end_src
 
 * Development Infrastructures
