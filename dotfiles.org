@@ -499,10 +499,13 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
 ;; See the "Replicating Guix" section in the manual.
 
 (use-modules (gnu home)
+             (gnu home services)
              (gnu packages)
              (gnu packages base)
              (gnu packages fonts)
              (gnu packages fontutils)
+             (gnu packages emacs)
+             (gnu packages vim)
              (gnu services)
              (guix gexp)
              (gnu home services shells))
@@ -510,17 +513,23 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
 (home-environment
  ;; Below is the list of packages that will show up in your
  ;; Home profile, under ~/.guix-home/profile.
- (packages (list glibc-locales fontconfig which
+ (packages (list glibc-locales fontconfig which emacs vim
                  font-iosevka font-ipa font-ipa-ex font-google-noto font-inconsolata))
 
  ;; Below is the list of Home services.  To search for available
  ;; services, run 'guix home search KEYWORD' in a terminal.
  (services
-  (list (service home-bash-service-type
-                 (home-bash-configuration
-                  (guix-defaults? #t)
-                  (aliases '(<<print-aliases(lang="scheme")>>))
-                  (bashrc (list (local-file "./.bashrc" "bashrc"))))))))
+  (list
+   (simple-service 'basic-env-vars-service
+                   home-environment-variables-service-type
+                   `(("EMAIL" . "<<email>>")
+                     ("VIEWER" . "less")
+                     ("EDITOR" . "emacsclient -c -a emacs")))
+   (service home-bash-service-type
+            (home-bash-configuration
+             (guix-defaults? #t)
+             (aliases '(<<print-aliases(lang="scheme")>>))
+             (bashrc (list (local-file "./.bashrc" "bashrc"))))))))
 #+end_src
 
 A script for activating home configuration
@@ -564,8 +573,6 @@ fc-cache -rvf
 
 #+BEGIN_SRC bash :noweb yes :tangle (expand-file-name "guix/home/.bashrc" tangle/config-dir) :comments no :shebang ""
 export PATH="${HOME}/.local/bin:$PATH"
-export EMAIL="<<email>>"
-export VIEWER=less
 export PS1="[\u@$(uname -n):\\W]\n\$ "
 
 <<bashrc>>
@@ -1271,14 +1278,10 @@ HOLD: KEY_RIGHTSHIFT
 :CUSTOM_ID: gnu-emacs
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs"
-;; "emacs-next"
-#+end_src
-
-#+begin_src shell :noweb yes :noweb-ref bashrc
-export EDITOR="emacsclient -c -a emacs"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs"
+# ;; "emacs-next"
+# #+end_src
 
 #+NAME: emacs-var-dir
 #+begin_src emacs-lisp :tangle no
