@@ -506,7 +506,8 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
              (gnu packages gnupg)
              (gnu services)
              (guix gexp)
-             (gnu home services shells))
+             (gnu home services shells)
+             (gnu home services ssh))
 
 (home-environment
  ;; Below is the list of packages that will show up in your
@@ -528,7 +529,13 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
             (home-bash-configuration
              (guix-defaults? #t)
              (aliases '(<<print-aliases(lang="scheme")>>))
-             (bashrc (list (local-file "./.bashrc" "bashrc"))))))))
+             (bashrc (list (local-file "./.bashrc" "bashrc")))))
+   (service home-openssh-service-type
+            (home-openssh-configuration
+             (hosts
+              (list (openssh-host (name "pc02")
+                                  (host-name "192.168.100.127")
+                                  ))))))))
 #+end_src
 
 A script for activating home configuration
@@ -14244,20 +14251,6 @@ mkdir -p $(dirname <<plocate-db()>>) && \
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
 ,*/20 * * * * <<which(filename="bash")>> -ci "updatedb-home"
-#+end_src
-
-** OpenSSH
-
-[[https://www.openssh.com/][OpenSSH]] is client and server side of ssh implementation.
-
-#+begin_src scheme :noweb-ref guix-base
-"openssh"
-#+end_src
-
-#+begin_src conf  :tangle (expand-file-name ".ssh/config")
-Include config.d/*
-
-Compression yes
 #+end_src
 
 ** Git
