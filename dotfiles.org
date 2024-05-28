@@ -447,8 +447,7 @@ done
 
 #+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/desktop.scm")
 (specifications->manifest
- '("font-adobe-source-han-sans"
-   "pulseaudio"
+ '("pulseaudio"
    "gparted"
    "gcompris-qt"
    "gnome-disk-utility"
@@ -504,8 +503,7 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
              (gnu packages base)
              (gnu packages fonts)
              (gnu packages fontutils)
-             (gnu packages emacs)
-             (gnu packages vim)
+             (gnu packages gnupg)
              (gnu services)
              (guix gexp)
              (gnu home services shells))
@@ -513,8 +511,9 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
 (home-environment
  ;; Below is the list of packages that will show up in your
  ;; Home profile, under ~/.guix-home/profile.
- (packages (list glibc-locales fontconfig which emacs vim
-                 font-iosevka font-ipa font-ipa-ex font-google-noto font-inconsolata))
+ (packages (list glibc-locales fontconfig which pinentry
+                 font-iosevka font-ipa font-ipa-ex font-google-noto font-inconsolata
+                 font-adobe-source-han-sans))
 
  ;; Below is the list of Home services.  To search for available
  ;; services, run 'guix home search KEYWORD' in a terminal.
@@ -932,7 +931,7 @@ I've chosen to use gpg/gpg-agent and pass on Ubuntu system since pass (password-
 - gpg-agent config
   #+begin_src conf :noweb tangle :tangle (expand-file-name ".gnupg/gpg-agent.conf")
   # pinentry-program /usr/bin/pinentry-curses
-  pinentry-program /usr/bin/pinentry
+  pinentry-program <<which(filename="pinentry")>>
   allow-emacs-pinentry
   allow-loopback-pinentry
   enable-ssh-support
@@ -1274,10 +1273,10 @@ HOLD: KEY_RIGHTSHIFT
 :CUSTOM_ID: gnu-emacs
 :END:
 
-# #+begin_src scheme :tangle no :noweb-ref guix-emacs
-# "emacs"
-# ;; "emacs-next"
-# #+end_src
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs"
+;; "emacs-next"
+#+end_src
 
 #+NAME: emacs-var-dir
 #+begin_src emacs-lisp :tangle no
