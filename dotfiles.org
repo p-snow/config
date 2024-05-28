@@ -538,7 +538,7 @@ A script for activating home configuration
 guix home container ~/.config/guix/home/home-config.scm
 #+end_src
 
-* System Constituents
+* Home Environment
 :PROPERTIES:
 :CREATED:  [2022-09-13 Tue 16:14]
 :END:
@@ -554,7 +554,8 @@ Fontconfig settings moved to Guix dissolved into [[id:d882f2f6-c4cf-4d17-87e8-3f
 #   fonts-ipafont-mincho fonts-ipafont-gothic
 # #+end_src
 
-#+begin_src xml :noweb tangle :tangle (expand-file-name ".config/fontconfig/fonts.conf")
+fontconfig/fonts.conf
+#+begin_src xml :noweb tangle :tangle no
 <?xml version='1.0'?>
 <!DOCTYPE fontconfig SYSTEM 'fonts.dtd'>
 <fontconfig>
@@ -950,11 +951,6 @@ I've chosen to use gpg/gpg-agent and pass on Ubuntu system since pass (password-
 
   #+begin_src conf :tangle (expand-file-name ".ssh/config")
   Match host * exec "gpg-connect-agent UPDATESTARTUPTTY /bye"
-  #+end_src
-- utility
-  #+name: hours-in-sec
-  #+begin_src emacs-lisp :var h=1
-  (* h 60 60)
   #+end_src
 
 ** Key Remappers
@@ -17473,6 +17469,13 @@ return random number between 0 and max
 #+header: :var max=10
 #+begin_src emacs-lisp
 (calc-eval (format "random(%d)" (1+ max)))
+#+end_src
+
+** Hours in seconds
+
+#+name: hours-in-sec
+#+begin_src emacs-lisp :var h=1
+(* h 60 60)
 #+end_src
 
 * Specialized Scripts
