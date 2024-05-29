@@ -955,10 +955,6 @@ I've chosen to use gpg/gpg-agent and pass on Ubuntu system since pass (password-
   gpg-connect-agent updatestartuptty /bye >/dev/null
   #+end_src
 
-  #+begin_src conf :tangle (expand-file-name ".ssh/config")
-  Match host * exec "gpg-connect-agent UPDATESTARTUPTTY /bye"
-  #+end_src
-
 ** Key Remappers
 :PROPERTIES:
 :CREATED:  [2023-02-23 Thu 17:44]
@@ -14242,8 +14238,6 @@ export LOCATE_PATH=<<plocate-db()>>
 #+end_src
 
 #+begin_src bash :noweb tangle :tangle (expand-file-name "updatedb-home" tangle/local-bin-dir)
-. ~/.bashrc
-
 mkdir -p $(dirname <<plocate-db()>>) && \
   $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> -e <<htmlize-dir()>> -o <<plocate-db()>> \
                                                <<updatedb-opt>>
