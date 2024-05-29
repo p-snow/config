@@ -20,13 +20,8 @@ echo "${HOME}"
 
 #+name: doc-dir
 #+begin_src emacs-lisp :eval no-export :noweb yes
-(let* ((sep "-")
-       (node (split-string "<<laptop-node()>>" sep)))
-  (expand-file-name
-   (file-name-concat "~/"
-                     (string-join (list (concat (car node) "doc") (cadr node))
-                                  sep)
-                     "doc/")))
+(expand-file-name
+ (file-name-concat "~/" "<<laptop-node()>>" "doc"))
 #+end_src
 
 *** share directory
