@@ -14232,6 +14232,7 @@ Provide a function to Build a clock table summing up time by tag.
 export LOCATE_PATH=<<plocate-db()>>
 #+end_src
 
+#+name: bin/updatedb-home
 #+begin_src bash :noweb tangle :tangle (expand-file-name "updatedb-home" tangle/local-bin-dir)
 mkdir -p $(dirname <<plocate-db()>>) && \
   $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> -e <<htmlize-dir()>> -o <<plocate-db()>> \
@@ -14498,7 +14499,7 @@ target=github.com
 #+end_src
 
 #+NAME: ghq-proj-path
-#+HEADER: :var projname=""
+#+HEADER: :var projname="p-snow/guix-channel"
 #+begin_src bash :tangle no
 ghq list --full-path $projname | head -n 1
 #+end_src
