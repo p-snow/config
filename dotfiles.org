@@ -771,12 +771,16 @@ snapshot_preserve 36h 3d 2w
 #snapshot_create ondemand
 
 target_preserve_min latest
-target_preserve 8w 6m *y
 
 snapshot_dir snapshots
-volume /mnt/home
+volume /mnt/homes
 target /mnt/exbak/<<laptop-node()>>
-subvolume home
+
+target_preserve 2w 3m
+subvolume home-mint
+
+target_preserve 8w 6m 2y
+subvolume data
 #+end_src
 
 **** snapshot/backup script
