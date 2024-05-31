@@ -5596,11 +5596,11 @@ export DISPLAY=:0 && \
   emacs -Q --batch \
         -l $XDG_CONFIG_HOME/emacs/early-init.el \
         -l $XDG_CONFIG_HOME/emacs/lisp/my-org-web-track.el \
-        -l $XDG_CONFIG_HOME/emacs/lisp/batch/org-web-track-mail.el \
+        -l $XDG_CONFIG_HOME/emacs/batch/org-web-track-mail.el \
         -f my/org-web-track-mail
 #+end_src
 
-#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "batch/org-web-track-mail.el" tangle/emacs-config-dir)
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "batch/org-web-track-mail.el" tangle/user-emacs-directory)
 (provide 'my/org-mode-init)
 (define-keymap :prefix 'my/org-global-map)
 (provide 'my-org-global-map)
@@ -12379,36 +12379,6 @@ The hook functions, which is commented out, provoke malfunction failing to creat
                                          org-ts-regexp-inactive)))))
         (when (featurep 'org-clock)
           (org-clock-remove-empty-clock-drawer))))))
-#+end_src
-
-***** batch blob flushing                    :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-10-30 Mon 21:05]
-:END:
-
-#+begin_src shell :eval no :tangle no
-export DISPLAY=:0 && \
-  emacs -Q \
-        -l ~/.emacs.d/early-init.el \
-        -l ~/.emacs.d/elisp/config/my-org-flush-blobs.el \
-        -l ~/.emacs.d/elisp/config/batch/org-flush-blobs.el \
-        -f my/org-flush-blobs-in-habits
-#+end_src
-
-#+begin_src emacs-lisp :noweb tangle
-(require 'org-habit)
-(require 'org-clock)
-
-(setq org-agenda-files '("~/org/agenda/"))
-
-(defun my/org-flush-blobs-in-habits ()
-  "Flush old blobs for habit tasks in `org-agenda-files'."
-  (org-map-entries (lambda () (when (org-is-habit-p)
-                                (my/org-flush-blobs)))
-                   nil
-                   'agenda)
-  (org-save-all-org-buffers)
-  (save-buffers-kill-emacs t))
 #+end_src
 
 **** pad non-clocking time with break task
