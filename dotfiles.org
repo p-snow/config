@@ -1598,6 +1598,7 @@ Settings in this section are influenced a great deal by my personal preference. 
 (global-set-key (kbd "C-c j") #'join-line)
 (global-set-key (kbd "C-c M-d") #'copy-from-above-command)
 (global-set-key (kbd "M-z") #'zap-up-to-char)
+(global-set-key (kbd "C-z") #'repeat)
 
 (global-set-key (kbd "C-c k") #'kill-this-buffer)
 (global-set-key (kbd "C-x M-r") #'rename-visited-file)
@@ -2008,8 +2009,8 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
 
 #+begin_src emacs-lisp
 (use-package winner
-  :bind (("C-z" . winner-undo)
-         ("C-M-z" . winner-redo))
+  :bind (("H-z" . winner-undo)
+         ("H-M-z" . winner-redo))
   :custom
   (winner-mode t)
   :config
