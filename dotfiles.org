@@ -191,13 +191,13 @@ initialize-ubuntu-desktop
 #+end_src
 
 - Back-up Cinnamon Desktop Configuration
-  #+begin_src shell :eval no :tangle no :noweb-ref morning-batch
-  dconf dump /org/cinnamon/ > ~/.config/linuxmint/cinnamon.conf
+  #+begin_src shell :eval no :noweb yes :tangle no :noweb-ref morning-batch
+  dconf dump /org/cinnamon/ > <<home-dir()>>/.local/state/cinnamon/desktop.conf
   #+end_src
 
   To thaw backed up config
   #+begin_src conf :noweb yes :noweb-ref linuxmint-setup
-  dconf load /org/cinnamon/ < <<home-dir()>>/.config/linuxmint/cinnamon.conf
+  dconf load /org/cinnamon/ < <<home-dir()>>/.local/state/cinnamon/desktop.conf
   #+end_src
 
 - Commands/Applications that need to use LinuxMint comfortably
