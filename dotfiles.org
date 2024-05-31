@@ -24,6 +24,13 @@ echo "${HOME}"
  (file-name-concat "~/" "<<laptop-node()>>" "doc"))
 #+end_src
 
+*** data directory
+
+#+name: data-dir
+#+begin_src shell :eval no-export
+realpath "${HOME}/data"
+#+end_src
+
 *** share directory
 
 My share directory is where my variable data stay.
@@ -494,15 +501,16 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
 
 (use-modules (gnu home)
              (gnu home services)
+             (gnu home services shells)
+             (gnu home services ssh)
+             (gnu home services dotfiles)
              (gnu packages)
              (gnu packages base)
              (gnu packages fonts)
              (gnu packages fontutils)
              (gnu packages gnupg)
              (gnu services)
-             (guix gexp)
-             (gnu home services shells)
-             (gnu home services ssh))
+             (guix gexp))
 
 (home-environment
  ;; Below is the list of packages that will show up in your
@@ -530,7 +538,12 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
              (hosts
               (list (openssh-host (name "pc02")
                                   (host-name "192.168.100.127")
-                                  ))))))))
+                                  )))))
+   (service home-dotfiles-service-type
+            (home-dotfiles-configuration
+             (layout 'plain)
+             (source-directory "<<ghq-proj-path(name="p-snow/environment")>>")
+             (directories '("./home")))))))
 #+end_src
 
 A script for activating home configuration
@@ -14375,7 +14388,7 @@ build/
 	gpgsign = true
 [credential]
 	helper = <<which(filename="pass-git-helper")>> -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
-	<<git-config>>
+<<git-config>>
 #+END_SRC
 *** git attributes
 
@@ -14460,10 +14473,10 @@ build/
 
 #+begin_src gitconfig :noweb yes :noweb-ref git-config
 [ghq]
-	root = <<ghq-root()>>
+	root = <<data-dir()>>/ghq
 #+end_src
 
-#+begin_src conf :tangle (expand-file-name ".config/ghq")
+#+begin_src conf :tangle (expand-file-name "ghq" tangle/config-dir)
 [github.com*]
 username_extractor=specific_line
 line_username=2
@@ -14472,9 +14485,9 @@ target=github.com
 #+end_src
 
 #+NAME: ghq-proj-path
-#+HEADER: :var projname="p-snow/guix-channel"
-#+begin_src bash :tangle no
-ghq list --full-path $projname | head -n 1
+#+HEADER: :var name="p-snow/guix-channel"
+#+begin_src shell :tangle no
+ghq list --full-path $name | head -n 1
 #+end_src
 
 #+begin_src emacs-lisp :noweb-ref elisp-code
