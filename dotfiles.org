@@ -43,8 +43,13 @@ realpath "${HOME}/data/share"
 *** media directory
 
 #+name: media-dir
-#+begin_src shell :noweb yes :eval no-export
-realpath "<<home-dir()>>/data/audiovisual"
+#+begin_src sh :noweb yes :eval no-export
+VIDEO_DIR=~/.local/share/video
+if [ ! -d $VIDEO_DIR ]; then
+  mkdir -p $VIDEO_DIR
+fi
+
+echo -n $VIDEO_DIR
 #+end_src
 
 *** trash directory
