@@ -5,7 +5,8 @@
   (setopt org-confirm-babel-evaluate nil)
   (setopt org-babel-load-languages '((shell      . t)
                                      (emacs-lisp . t)
-                                     (python     . t)))
+                                     (python     . t)
+                                     (ruby       . t)))
   (setf org-babel-default-header-args
         (append org-babel-default-header-args
                 '((:mkdirp . t)
@@ -26,13 +27,15 @@
                `(:tangle-mode . ,(identity #o444))))
 
 (with-eval-after-load 'ob-python
-  (setf org-babel-default-header-args:python
-        (append org-babel-default-header-args:python
-                `((:tangle-mode . ,(identity #o555))
-                  (:shebang . "#!/usr/bin/env python3")))))
+  (mapc (lambda (header-arg)
+          (add-to-list 'org-babel-default-header-args:python
+                       header-arg))
+        `((:tangle-mode . ,(identity #o555))
+          (:shebang . "#!/usr/bin/env python3"))))
 
 (with-eval-after-load 'ob-ruby
-  (setf org-babel-default-header-args:ruby
-        (append org-babel-default-header-args:ruby
-                `((:tangle-mode . ,(identity #o555))
-                  (:shebang . "#!/usr/bin/env ruby")))))
+  (mapc (lambda (header-arg)
+          (add-to-list 'org-babel-default-header-args:ruby
+                       header-arg))
+        `((:tangle-mode . ,(identity #o555))
+          (:shebang . "#!/usr/bin/env ruby"))))

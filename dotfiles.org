@@ -1287,13 +1287,13 @@ no-littering-var-directory
 
 *** basic configuration
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir) :tangle-mode (identity #o644)
+:header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
 **** early-init.el
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "early-init.el" user-emacs-directory) :tangle-mode (identity #o644)
+:header-args+: :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory) :tangle-mode (identity #o644)
 :END:
 
 Early init file defines fundamental variables used from both normal Emacs session and batch mode.
@@ -3535,8 +3535,6 @@ This is handy if you would like to check a page index comfortably."
 ***** extract_headings
 
 #+begin_src python :tangle (expand-file-name "extract_headings" tangle/local-bin-dir)
-# This script extract most probable page heading.
-
 import sys
 import lxml.html as html
 from lxml import etree
@@ -9330,7 +9328,7 @@ EWW is a nice place for intensive reading. When there are articles or documents 
 #+end_src
 
 #+NAME: bash/emacs-everywhere
-#+begin_src bash :noweb tangle :tangle (expand-file-name "emacs-everywhere" tangle/local-bin-dir)
+#+begin_src shell :noweb tangle :tangle (expand-file-name "emacs-everywhere" tangle/local-bin-dir)
 emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-everywhere)"
 #+end_src
 
@@ -10444,7 +10442,8 @@ I'd share this babel config between literate configuration and main Emacs sessio
   (setopt org-confirm-babel-evaluate nil)
   (setopt org-babel-load-languages '((shell      . t)
                                      (emacs-lisp . t)
-                                     (python     . t)))
+                                     (python     . t)
+                                     (ruby       . t)))
   (setf org-babel-default-header-args
         (append org-babel-default-header-args
                 '((:mkdirp . t)
@@ -10465,16 +10464,18 @@ I'd share this babel config between literate configuration and main Emacs sessio
                `(:tangle-mode . ,(identity #o444))))
 
 (with-eval-after-load 'ob-python
-  (setf org-babel-default-header-args:python
-        (append org-babel-default-header-args:python
-                `((:tangle-mode . ,(identity #o555))
-                  (:shebang . "#!/usr/bin/env python3")))))
+  (mapc (lambda (header-arg)
+          (add-to-list 'org-babel-default-header-args:python
+                       header-arg))
+        `((:tangle-mode . ,(identity #o555))
+          (:shebang . "#!/usr/bin/env python3"))))
 
 (with-eval-after-load 'ob-ruby
-  (setf org-babel-default-header-args:ruby
-        (append org-babel-default-header-args:ruby
-                `((:tangle-mode . ,(identity #o555))
-                  (:shebang . "#!/usr/bin/env ruby")))))
+  (mapc (lambda (header-arg)
+          (add-to-list 'org-babel-default-header-args:ruby
+                       header-arg))
+        `((:tangle-mode . ,(identity #o555))
+          (:shebang . "#!/usr/bin/env ruby"))))
 #+end_src
 
 **** custom RX definitions
