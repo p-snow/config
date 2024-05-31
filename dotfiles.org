@@ -210,7 +210,7 @@ initialize-ubuntu-desktop
 Below is Elisp code defining Guix templates for TempEL.
 
 #+header: :shebang "eshell-mode minibuffer-mode"
-#+begin_src emacs-lisp :tangle no :tangle (expand-file-name "tempel/templates/user/guix.eld" tangle/emacs-etc-dir)
+#+begin_src emacs-lisp :tangle no :tangle (expand-file-name "guix.eld" tangle/dedicated-template-dir)
 (guix-search "guix search " (p (my/region-string-trans-buffer)))
 (activate-profiles "activate-profiles "
                    (completing-read "profiles: "
@@ -1298,6 +1298,28 @@ no-littering-var-directory
 
 Early init file defines fundamental variables used from both normal Emacs session and batch mode.
 
+***** paths for tangling
+
+#+begin_src emacs-lisp
+(setf tangle/repo "~/data/ghq/github.com/p-snow/environment/")
+
+(setf tangle/system (expand-file-name "system" tangle/repo)
+      tangle/home (expand-file-name "home" tangle/repo)
+      tangle/config-dir (expand-file-name ".config" tangle/home)
+      tangle/user-emacs-directory (expand-file-name ".config/emacs" tangle/home)
+      tangle/emacs-sitelisp-dir (expand-file-name "site-lisp" tangle/user-emacs-directory)
+      tangle/emacs-config-dir (expand-file-name "lisp" tangle/user-emacs-directory)
+      tangle/emacs-etc-dir (expand-file-name "etc" tangle/user-emacs-directory)
+      tangle/emacs-var-dir (expand-file-name "var" tangle/user-emacs-directory)
+      tangle/local-bin-dir (expand-file-name ".local/bin/" tangle/home)
+      tangle/proj-dir (expand-file-name "./"))
+
+(setf tangle/dedicated-elisp-dir
+      (expand-file-name "lisp/dedicated" tangle/user-emacs-directory)
+      tangle/dedicated-template-dir
+      (expand-file-name "tempel/templates/dedicated" tangle/emacs-etc-dir))
+#+end_src
+
 ***** no-littering
 :PROPERTIES:
 :CREATED:  [2024-02-04 Sun 16:29]
@@ -1472,14 +1494,14 @@ Following hook statements are likely written in .dir-locals.el at the top level 
 
 init.el devote itself to call for remaining config files.
 
-#+begin_src emacs-lisp :tangle (expand-file-name "init.el" user-emacs-directory)
+#+begin_src emacs-lisp :tangle (expand-file-name "init.el" tangle/user-emacs-directory)
 (push (file-name-concat user-emacs-directory "lisp") load-path)
 (push (file-name-concat user-emacs-directory "site-lisp") load-path)
 
 (let ((load-match "\\.el$"))
   (mapc #'load-file
         (append (directory-files (file-name-concat user-emacs-directory "lisp") t load-match)
-                (directory-files (file-name-concat user-emacs-directory "lisp/tangled") t load-match))))
+                (directory-files (file-name-concat user-emacs-directory "lisp/dedicated") t load-match))))
 #+end_src
 
 **** Themes
@@ -2482,7 +2504,7 @@ If GC time at Emacs init is problematic, checking [[help:gcs-done][gcs-done]] an
 [[https://emacsconf.org/2023/talks/gc/][
 This presentation]] advise to increase gc-cons-threshold to 20-80Mb if you have Emacs with slow startup, and to increase consult--gc-percentage to 0.2-1.0 if you have slow and frequent GC.
 
-#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" user-emacs-directory)
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
 (setq gc-cons-threshold (* 30 gc-cons-threshold)
       gc-cons-percentage 0.3)
 #+end_src
@@ -9338,30 +9360,6 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
-**** variables for special needs
-
-***** user elisp code directory
-
-This variable points to the directory where user's Elisp code is stored. The reason why the path starts with "p-snow/dotfiles" instead of simply "~/.config/emacs" is to accommodate the org-babel-tangle-jump-to-org command.
-
-#+begin_src emacs-lisp :noweb tangle
-(defvar dotfiles/user-elisp-dir
-  (file-name-concat
-   "<<ghq-proj-path(projname="p-snow/dotfiles")>>"
-   ".config/emacs/lisp/tangled"))
-#+end_src
-
-***** user tempel template directory
-
-This variable points to the location where user TempEL templates are stored.
-
-#+begin_src emacs-lisp :noweb tangle
-(defvar dotfiles/user-template-dir
-  (file-name-concat
-   "<<ghq-proj-path(projname="p-snow/dotfiles")>>"
-   ".config/emacs/etc/tempel/templates/user"))
-#+end_src
-
 **** utility macros/functions
 :PROPERTIES:
 :CREATED:  [2023-01-19 Thu 16:56]
@@ -9552,7 +9550,7 @@ As of 28.1, Emacs won't steal keyboard focus at startup which means we can use e
 
 [[https://github.com/skk-dev/ddskk/issues/190][Cursor colour no longer changes to match hiragana/katakana mode. · Issue #190 · skk-dev/ddskk · GitHub]]
 
-#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" user-emacs-directory)
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
 (require 'facemenu)
 #+end_src
 
