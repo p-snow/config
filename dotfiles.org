@@ -14457,13 +14457,22 @@ build/
 #+end_src
 
 #+begin_src bash :noweb tangle :tangle (expand-file-name "sync-annex-doc" tangle/local-bin-dir)
-(cd /mnt/exdoc/doc/ && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
-(cd /mnt/vt-m/doc/ && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
-(cd /mnt/vt-h/doc/ && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
-(cd /mnt/vt-j/doc/ && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
-(cd <<doc-dir()>> && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync)
+function sync_doc {
+  if cd $1; then
+    if [ $2 -ne 0 ]; then
+      (git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
+    else
+      (git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync)
+    fi
+  fi
+}
 
-(cd /mnt/exdoc/doc/ && git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync)
+sync_doc /mnt/exdoc/doc/ 1
+sync_doc /mnt/vt-m/doc/ 1
+sync_doc /mnt/vt-h/doc/ 1
+sync_doc /mnt/vt-j/doc/ 1
+sync_doc <<doc-dir()>> 0
+sync_doc /mnt/exdoc/doc/ 0
 #+end_src
 
 ** ghq
