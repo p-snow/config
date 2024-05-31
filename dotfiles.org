@@ -16255,7 +16255,7 @@ uri_default = "qemu:///system"
 --trim-filenames 70
 #+end_src
 
-** rTorrent
+** rTorrent                                    :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2022-10-05 Wed 15:26]
 :ID:       bdc987ad-419b-4f36-922d-de75207d85c0
@@ -16273,23 +16273,28 @@ rtorrent
 
 #+name: rtorrent-sock
 #+begin_src emacs-lisp :eval no-export
-(expand-file-name "~/.local/share/rtorrent-rpc.socket")
+(expand-file-name "~/.local/share/rtorrent/rpc.socket")
 #+end_src
 
-#+begin_src conf :noweb tangle :tangle (expand-file-name ".rtorrent.rc")
+#+begin_src conf :noweb tangle :tangle (expand-file-name ".rtorrent.rc" tangle/home)
 network.scgi.open_local = <<rtorrent-sock()>>
 execute.nothrow = chmod,770,<<rtorrent-sock()>>
 encoding.add = utf8
 #+end_src
 
-#+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
-systemctl --user enable rtorrent.service
-systemctl --user start rtorrent.service
-#+end_src
+# #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+# systemctl --user enable rtorrent.service
+# systemctl --user start rtorrent.service
+# #+end_src
 
 #+name: torrent-dir
-#+begin_src shell :noweb yes :eval no-export
-realpath "<<share-dir()>>/torrent"
+#+begin_src sh :noweb yes :eval no-export
+TORRENT_DIR=~/.local/share/rtorrent/files
+# if [ ! -d $TORRENT_DIR ]; then
+#   mkdir -p $TORRENT_DIR
+# fi
+
+realpath $TORRENT_DIR
 #+end_src
 
 #+begin_src conf :noweb tangle :tangle (expand-file-name ".config/systemd/user/rtorrent.service")
