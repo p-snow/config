@@ -63,10 +63,6 @@ delete file which lives longer than 1 week in trash directory.
 d <<trash-dir()>>/files 0700 - - 1w
 #+end_src
 
-#+begin_src shell :noweb yes :noweb-ref updatedb-opt
--e "<<trash-dir()>>" \
-#+end_src
-
 *** log file directory
 :PROPERTIES:
 :CREATED:  [2023-11-03 Fri 08:56]
@@ -8334,10 +8330,6 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
 d <<undo-tree-hist-dir()>> 0755 - - 3w
 #+end_src
 
-#+begin_src shell :noweb yes :noweb-ref updatedb-opt :tangle no
--e "<<undo-tree-hist-dir()>>" \
-#+end_src
-
 #+begin_src emacs-lisp :noweb tangle
 (use-package undo-tree
   :diminish undo-tree-mode
@@ -14212,8 +14204,13 @@ Provide a function to Build a clock table summing up time by tag.
 #+end_src
 
 #+name: plocate-db
-#+begin_src emacs-lisp :noweb yes
-(file-name-concat "<<share-dir()>>" "plocate/plocate.db")
+#+begin_src sh :noweb yes :tangle no :results output
+PLOCATE_DB=~/.local/share/plocate/plocate.db
+if [ ! -d $(dirname $PLOCATE_DB) ]; then
+  mkdir -p $(dirname $PLOCATE_DB)
+fi
+
+echo -n $PLOCATE_DB
 #+end_src
 
 #+begin_src shell :noweb yes :noweb-ref bashrc
@@ -14222,9 +14219,7 @@ export LOCATE_PATH=<<plocate-db()>>
 
 #+name: bin/updatedb-home
 #+begin_src bash :noweb tangle :tangle (expand-file-name "updatedb-home" tangle/local-bin-dir)
-mkdir -p $(dirname <<plocate-db()>>) && \
-  $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> -e <<htmlize-dir()>> -o <<plocate-db()>> \
-                                               <<updatedb-opt>>
+$GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> -e <<htmlize-dir()>> -e <<trash-dir()>> -o <<plocate-db()>>
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
