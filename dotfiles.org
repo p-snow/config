@@ -708,11 +708,6 @@ export PS1="[\u@$(uname -n):\\W]\n\$ "
 ** Systemd
 
 #+begin_src shell :noweb tangle :tangle (expand-file-name "start-systemd-services" tangle/local-bin-dir)
-cd ~/.config/systemd/system/ && \
-  for sys_service in $(ls ./*); do
-    sudo cp -f ${sys_service} /etc/systemd/system
-  done
-
 <<systemd-service>>
 #+end_src
 
@@ -1125,7 +1120,7 @@ sudo systemctl enable xremap
 sudo systemctl start xremap
 #+end_src
 
-#+begin_src conf :noweb tangle :tangle (expand-file-name ".config/systemd/system/xremap.service")
+#+begin_src conf :noweb tangle :tangle (expand-file-name "etc/systemd/system/xremap.service" tangle/system)
 [Unit]
 Description=xremap daemon
 
