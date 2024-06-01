@@ -37,7 +37,7 @@ My share directory is where my variable data stay.
 
 #+name: share-dir
 #+begin_src shell :eval no-export
-realpath "${HOME}/data/share"
+realpath "${HOME}/.local/share"
 #+end_src
 
 *** media directory
@@ -1313,7 +1313,7 @@ Early init file defines fundamental variables used from both normal Emacs sessio
 :END:
 
 #+begin_src emacs-lisp
-(setf tangle/repo "~/data/ghq/github.com/p-snow/environment/")
+(setf tangle/repo "~/.local/share/ghq/github.com/p-snow/environment/")
 
 (setf tangle/system (expand-file-name "system" tangle/repo)
       tangle/home (expand-file-name "home" tangle/repo)
@@ -14485,7 +14485,7 @@ sync_doc /mnt/exdoc/doc/ 0
 
 #+begin_src gitconfig :noweb yes :noweb-ref git-config
 [ghq]
-	root = <<data-dir()>>/ghq
+	root = <<home-dir()>>/.local/share/ghq
 #+end_src
 
 #+begin_src conf :tangle (expand-file-name "ghq" tangle/config-dir)
@@ -16307,9 +16307,9 @@ encoding.add = utf8
 #+name: torrent-dir
 #+begin_src sh :noweb yes :eval no-export
 TORRENT_DIR=~/.local/share/rtorrent/files
-# if [ ! -d $TORRENT_DIR ]; then
-#   mkdir -p $TORRENT_DIR
-# fi
+if [ ! -d $TORRENT_DIR ]; then
+  mkdir -p $TORRENT_DIR
+fi
 
 realpath $TORRENT_DIR
 #+end_src
