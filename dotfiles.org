@@ -2900,47 +2900,50 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 [[https://github.com/emacs-jp/japanese-holidays/releases.atom][japanese-holidays]]
 
 #+begin_src emacs-lisp
-(use-package japanese-holidays
-  :ensure t)
-
 (use-package calendar
   :commands calendar
-  :ensure japanese-holidays
   :hook
-  ((calendar-today-visible calendar-today-invisible) . japanese-holiday-mark-weekend)
   (calendar-today-visible . calendar-mark-today)
-  (calendar-move . my/japanese-holiday-show)
   :custom
   (calendar-left-margin 0)
   (calendar-right-margin 0)
   (calendar-intermonth-spacing 1)
   (calendar-mark-holidays-flag t)
-  (japanese-holiday-weekend '(0 6))
-  (japanese-holiday-weekend-marker
-   '(holiday nil nil nil nil nil japanese-holiday-saturday))
   ;; Below is lat/lon for Japna used in sunrise-sunset command
   (calendar-latitude 36.2)
   (calendar-longitude 138.3)
   :custom-face
   (holiday ((t (:foreground "dark orange" :box t))))
-  (japanese-holiday-saturday ((t (:foreground "blue" :background nil))))
   :config
-  (require 'japanese-holidays)
   ;; add 'holiday-general-holidays to calendar-holidays
   ;; if you want holidays in the U.S. to be counted as your holidays.
-  (setf calendar-holidays
-        (append japanese-holidays holiday-local-holidays holiday-other-holidays))
   (bind-keys :map calendar-mode-map
              ("v" . my/calendar-show-items)))
 
-(defun my/japanese-holiday-show (&rest _args)
-  "Show holiday information in mini buffer if date on which the cursor is any holidays."
-  (let* ((date (calendar-cursor-to-date t))
-         (calendar-date-display-form '((format "%s年 %s月 %s日（%s）" year month day dayname)))
-         (date-string (calendar-date-string date))
-         (holiday-list (calendar-check-holidays date)))
-    (when holiday-list
-      (message "%s: %s" date-string (mapconcat #'identity holiday-list "; ")))))
+(use-package japanese-holidays
+  :ensure t
+  :after calendar
+  :preface
+  (defun my/japanese-holiday-show (&rest _args)
+    "Show holiday information in mini buffer if date on which the cursor is any holidays."
+    (let* ((date (calendar-cursor-to-date t))
+           (calendar-date-display-form '((format "%s年 %s月 %s日（%s）" year month day dayname)))
+           (date-string (calendar-date-string date))
+           (holiday-list (calendar-check-holidays date)))
+      (when holiday-list
+        (message "%s: %s" date-string (mapconcat #'identity holiday-list "; ")))))
+  :custom-face
+  (japanese-holiday-saturday ((t (:foreground "blue" :background nil))))
+  :hook
+  ((calendar-today-visible calendar-today-invisible) . japanese-holiday-mark-weekend)
+  (calendar-move . my/japanese-holiday-show)
+  :custom
+  (japanese-holiday-weekend '(0 6))
+  (japanese-holiday-weekend-marker
+   '(holiday nil nil nil nil nil japanese-holiday-saturday))
+  :config
+  (setf calendar-holidays
+        (append japanese-holidays holiday-local-holidays holiday-other-holidays)))
 #+end_src
 
 ******* Midnight
