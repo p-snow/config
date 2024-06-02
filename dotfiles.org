@@ -10,7 +10,13 @@
 
 #+name: home-dir
 #+begin_src shell :eval no-export
-echo "${HOME}"
+echo -n '~'
+#+end_src
+*** config directory
+
+#+name: conf-dir
+#+begin_src shell :eval no-export
+echo '~/.config'
 #+end_src
 
 *** document directory
@@ -20,8 +26,7 @@ echo "${HOME}"
 
 #+name: doc-dir
 #+begin_src emacs-lisp :eval no-export :noweb yes
-(expand-file-name
- (file-name-concat "~/" "<<laptop-node()>>" "doc"))
+(file-name-concat "~/" "<<laptop-node()>>" "doc")
 #+end_src
 
 *** data directory
@@ -37,19 +42,18 @@ My share directory is where my variable data stay.
 
 #+name: share-dir
 #+begin_src shell :eval no-export
-realpath "${HOME}/.local/share"
+echo -n '~/.local/share'
 #+end_src
 
 *** media directory
 
+#+begin_src shell :noweb yes :noweb-ref make-dir :tangle no
+<<media-dir()>>
+#+end_src
+
 #+name: media-dir
 #+begin_src sh :noweb yes :eval no-export
-VIDEO_DIR=~/.local/share/video
-if [ ! -d $VIDEO_DIR ]; then
-  mkdir -p $VIDEO_DIR
-fi
-
-echo -n $VIDEO_DIR
+echo -n '~/.local/share/video'
 #+end_src
 
 *** trash directory
@@ -59,7 +63,7 @@ echo -n $VIDEO_DIR
 
 #+name: trash-dir
 #+begin_src shell :eval no-export
-echo "${XDG_DATA_HOME}/Trash"
+echo -n '~/.local/share/Trash'
 #+end_src
 
 delete file which lives longer than 1 week in trash directory.
@@ -75,7 +79,11 @@ d <<trash-dir()>>/files 0700 - - 1w
 
 #+name: log-dir
 #+begin_src shell :eval no-export
-echo "${XDG_STATE_HOME}/log"
+echo -n '~/.local/state/log'
+#+end_src
+
+#+begin_src shell :noweb yes :noweb-ref make-dir
+<<log-dir()>>
 #+end_src
 
 ** Email Settings
@@ -161,7 +169,9 @@ uname -n
 
 initialization script for a ubuntu account
 
-#+begin_src bash :noweb tangle :noweb-sep "\n\n" :tangle (expand-file-name "initialize-ubuntu-desktop" tangle/local-bin-dir)
+#+begin_src bash :noweb yes :noweb-sep "\n\n" :tangle (expand-file-name "setup-ubuntu-desktop" tangle/local-bin-dir)
+mkdir -p <<make-dir>>
+
 apt-install
 npm-install
 start-systemd-services
@@ -190,22 +200,9 @@ start-systemd-services
 :ID:       f3cd9a3b-9ff5-4cc8-807e-846f3f04c97a
 :END:
 
-initialization script for a linuxmint account
-
-#+begin_src shell :noweb tangle :tangle (expand-file-name "initialize-linuxmint-desktop" tangle/local-bin-dir)
-initialize-ubuntu-desktop
-
-<<linuxmint-setup>>
-#+end_src
-
 - Back-up Cinnamon Desktop Configuration
   #+begin_src shell :eval no :noweb yes :tangle no :noweb-ref morning-batch
   dconf dump /org/cinnamon/ > <<home-dir()>>/.local/state/cinnamon/desktop.conf
-  #+end_src
-
-  To thaw backed up config
-  #+begin_src conf :noweb yes :noweb-ref linuxmint-setup
-  dconf load /org/cinnamon/ < <<home-dir()>>/.local/state/cinnamon/desktop.conf
   #+end_src
 
 - Commands/Applications that need to use LinuxMint comfortably
@@ -269,9 +266,14 @@ guix pull --channels=$HOME/.config/guix/base-channels.scm \
 
 Below is an initialization code for Guix profiles in Bash.
 
+#+NAME: guix/ex-prof
+#+begin_src sh
+echo -n '~/.guix-extra-profiles'
+#+end_src
+
 #+NAME: guix/bashrc
-#+begin_src sh :noweb-ref bashrc
-export GUIX_EXTRA_PROFILES=$HOME/.guix-extra-profiles
+#+begin_src sh :noweb yes :noweb-ref bashrc
+export GUIX_EXTRA_PROFILES=<<guix/ex-prof()>>
 
 # fill in a variable below like a comment line
 # if you'd like to acticate specific profiles under GUIX_EXTRA_PROFILES
@@ -543,8 +545,12 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
    (service home-dotfiles-service-type
             (home-dotfiles-configuration
              (layout 'plain)
-             (source-directory "<<ghq-proj-path(name="p-snow/environment")>>")
-             (directories '("./home")))))))
+             (source-directory
+              (let ((path "<<ghq-proj-path(name="p-snow/environment")>>"))
+                (if (string-prefix? "~" path)
+                    (string-append (getenv "HOME") (substring path 1))
+                    path)))
+             (directories '("home")))))))
 #+end_src
 
 A script for activating home configuration
@@ -723,7 +729,7 @@ You may need to enable systemd-tmpfiles service for user
 systemctl --user enable systemd-tmpfiles-setup.service systemd-tmpfiles-clean.timer
 #+end_src
 
-#+begin_src conf :comments no :noweb tangle :tangle (expand-file-name ".config/user-tmpfiles.d/cleanup.conf")
+#+begin_src conf :comments no :noweb tangle :tangle (expand-file-name "user-tmpfiles.d/cleanup.conf" tangle/config-dir)
 d <<home-dir()>>/tmp 0755 - - 5d
 d <<home-dir()>>/Downloads 0755 - - 4w
 <<tmpfiles-cleanup>>
@@ -792,16 +798,10 @@ target_preserve 8w 6m 2y
 subvolume data
 #+end_src
 
-**** snapshot/backup script
-
-#+begin_src shell :noweb tangle :tangle (expand-file-name "btrbkhome" tangle/local-bin-dir)
-BTRBK_CONF=<<home-dir()>>/.config/btrbk/btrbk.conf
-
-<<which(filename="btrbk")>> --config "${BTRBK_CONF}" run
-#+end_src
+**** snapshot/backup cron job
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-,*/15 * * * * <<which(filename="pwsudo")>> <<which(filename="btrbkhome")>>
+,*/15 * * * * /usr/bin/bash -ci "which btrbk | xargs -I _ pwsudo _ --config ~/.config/btrbk/btrbk.conf run"
 #+end_src
 
 *** snapshots management                      :ARCHIVE:
@@ -911,11 +911,6 @@ backup_subvol "${MNT_SSD}"/snapshots/doc "${MNT_SSD}"/backups/doc "${MNT_HDD}"/b
 
 #+begin_src scheme :noweb-ref guix-base
 "xdg-utils"
-#+end_src
-
-#+name: conf-dir
-#+begin_src shell :eval no-export
-echo "${XDG_CONFIG_HOME}"
 #+end_src
 
 *** xdg-mime
@@ -1296,7 +1291,7 @@ no-littering-var-directory
 
 *** basic configuration
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
+:header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir) :tangle-mode (identity #o644)
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
@@ -1343,10 +1338,8 @@ Early init file defines fundamental variables used from both normal Emacs sessio
 
 #+NAME: config/emacs-no-littering
 #+begin_src emacs-lisp :noweb tangle
-(when (fboundp 'startup-redirect-eln-cache)
-  (startup-redirect-eln-cache
-   (convert-standard-filename
-    (expand-file-name  "var/eln-cache/" user-emacs-directory))))
+(setq no-littering-var-directory
+      (file-name-concat "<<share-dir()>>" "emacs/var/"))
 
 (require 'no-littering)
 #+end_src
@@ -1355,9 +1348,6 @@ Early init file defines fundamental variables used from both normal Emacs sessio
 
 #+begin_src emacs-lisp
 (require 'package)
-
-(setopt package-user-dir
-        (no-littering-expand-var-file-name "elpa"))
 
 (setopt package-archives
         '(("gnu" . "https://elpa.gnu.org/packages/")
@@ -2764,11 +2754,11 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   :custom
   (locate-command "plocate")
   (locate-make-command-line #'my/plocate-make-command-line)
-  (locate-fcodes-file "<<plocate-db()>>")
+  (locate-fcodes-file (expand-file-name "<<plocate-db()>>"))
   (locate-update-path (expand-file-name "~/")))
 
 (defun my/plocate-make-command-line (search-string)
-  (list locate-command "-d" "<<plocate-db()>>" "--ignore-case" "--existing" "--regexp" search-string))
+  (list locate-command "-d" (expand-file-name "<<plocate-db()>>") "--ignore-case" "--existing" "--regexp" search-string))
 #+end_src
 
 ****** With Editor
@@ -3420,7 +3410,7 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 
 #+NAME: eww-org-dir
 #+begin_src emacs-lisp
-(no-littering-expand-var-file-name "eww/org")
+(file-name-concat no-littering-var-directory "eww/org")
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
@@ -5736,7 +5726,8 @@ export DISPLAY=:0 && \
   (consult-widen-key ">")
   (consult-line-start-from-top t)
   (consult-project-root-function #'project-root-function)
-  (consult-locate-args "plocate -d <<plocate-db()>> --ignore-case --existing --regexp")
+  (consult-locate-args (format "plocate -d %s --ignore-case --existing --regexp"
+                               (expand-file-name "<<plocate-db()>>")))
   :init
   ;; use consult for completion unless Corfu is active
   (setq completion-in-region-function
@@ -8329,7 +8320,7 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
 
 #+name: undo-tree-hist-dir
 #+begin_src emacs-lisp :tangle no :eval no-export
-(no-littering-expand-var-file-name "undo-tree")
+(file-name-concat no-littering-var-directory "undo-tree")
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
@@ -8575,8 +8566,6 @@ migemo allows me to search incrementally Japanese words using roma-ji expression
   (migemo-options '("-q" "--emacs"))
   (migemo-directory
    (file-name-concat "<<migemo-dict-path()>>" "utf-8"))
-  (migemo-dictionary
-   (file-name-concat "<<migemo-dict-path()>>" "utf-8/migemo-dict"))
   (migemo-user-dictionary nil)
   (migemo-coding-system 'utf-8-unix)
   (migemo-regex-dictionary nil)
@@ -9293,7 +9282,11 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 
 #+name: htmlize-dir
 #+begin_src emacs-lisp :noweb yes :eval no-export :tangle no
-(no-littering-expand-var-file-name "htmlize")
+(file-name-concat no-littering-var-directory "htmlize")
+#+end_src
+
+#+begin_src shell :noweb yes :noweb-ref make-dir :tangle no
+<<htmlize-dir()>>
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
@@ -14211,12 +14204,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 #+name: plocate-db
 #+begin_src sh :noweb yes :tangle no :results output
-PLOCATE_DB=~/.local/share/plocate/plocate.db
-if [ ! -d $(dirname $PLOCATE_DB) ]; then
-  mkdir -p $(dirname $PLOCATE_DB)
-fi
-
-echo -n $PLOCATE_DB
+echo -n '<<share-dir()>>/plocate/plocate.db'
 #+end_src
 
 #+begin_src shell :noweb yes :noweb-ref bashrc
@@ -14229,7 +14217,7 @@ $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> -e <<htmlize
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-,*/20 * * * * <<which(filename="bash")>> -ci "updatedb-home"
+,*/20 * * * * /usr/bin/bash -ci "updatedb-home"
 #+end_src
 
 ** Git
@@ -14453,7 +14441,7 @@ build/
 :END:
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-40 */4 * * * <<which(filename="bash")>> -ci "sync-annex-doc 2>&1 | tee -a <<log-dir()>>/sync-git-annex.log"
+40 */4 * * * /usr/bin/bash -ci "sync-annex-doc 2>&1 | tee -a <<log-dir()>>/sync-git-annex.log"
 #+end_src
 
 #+begin_src bash :noweb tangle :tangle (expand-file-name "sync-annex-doc" tangle/local-bin-dir)
@@ -14485,7 +14473,7 @@ sync_doc /mnt/exdoc/doc/ 0
 
 #+begin_src gitconfig :noweb yes :noweb-ref git-config
 [ghq]
-	root = <<home-dir()>>/.local/share/ghq
+	root = <<ghq-root()>>
 #+end_src
 
 #+begin_src conf :tangle (expand-file-name "ghq" tangle/config-dir)
@@ -14499,7 +14487,7 @@ target=github.com
 #+NAME: ghq-proj-path
 #+HEADER: :var name="p-snow/guix-channel"
 #+begin_src shell :tangle no
-ghq list --full-path $name | head -n 1
+ghq list --full-path $name | head -n 1 | sed "s:$HOME:~:"
 #+end_src
 
 #+begin_src emacs-lisp :noweb-ref elisp-code
@@ -14517,8 +14505,8 @@ ghq list --full-path $name | head -n 1
 :END:
 
 #+name: ghq-root
-#+begin_src sh :eval no-export
-ghq root
+#+begin_src sh :noweb yes :eval no-export
+echo -n '<<share-dir()>>/ghq'
 #+end_src
 
 ** Pass
@@ -15304,8 +15292,8 @@ SKK is Simple Kana to Kanji conversion program, an input method of Japanese.
 #+end_src
 
 #+name: skk-jisyo-path
-#+begin_src shell :noweb tangle :tangle no
-echo "${GUIX_EXTRA_PROFILES}/base/base/share/skk/"
+#+begin_src shell :noweb yes :tangle no
+echo -n '<<guix/ex-prof()>>/base/base/share/skk/'
 #+end_src
 
 - TODO: following programs have no guix package.
@@ -15348,15 +15336,18 @@ echo ${dic_uniq}
 #+end_src
 
 - configuration
-  #+begin_src scheme :noweb tangle :tangle (expand-file-name ".festivalrc")
-  ;; -*- mode:scheme; -*-
+  #+begin_src scheme :noweb tangle :tangle (expand-file-name ".festivalrc" tangle/home) :shebang ";; -*- mode:scheme; -*-"
   (Parameter.set 'Audio_Required_Format 'aiff)
   (Parameter.set 'Audio_Method 'Audio_Command)
   (Parameter.set 'Audio_Command "paplay $FILE --client-name=Festival --stream-name=Speech")
 
   ;; add SLT voice and use it as a default one
   (voice-location 'cmu_us_slt_cg
-                  (path-as-directory "<<home-dir()>>/.local/share/festival/lib/voices/us/cmu_us_slt_cg")
+                  (path-as-directory
+                   (let ((path "~/.local/share/festival/lib/voices/us/cmu_us_slt_cg"))
+                     (if (string-equal (substring path 0 1) "~")
+                         (string-append (getenv "HOME") (substring path 1 (length path)))
+                         path)))
                   "English American Female")
   (set! voice_default voice_cmu_us_slt_cg)
   #+end_src
@@ -15406,7 +15397,11 @@ echo ${dic_uniq}
 
 #+name: hts-voice-dir
 #+begin_src emacs-lisp :noweb yes
-(expand-file-name "~/.local/share/hts-voice")
+(file-name-concat "<<share-dir()>>" "hts-voice")
+#+end_src
+
+#+begin_src shell :noweb yes :noweb-ref make-dir
+<<hts-voice-dir()>>
 #+end_src
 
 - install on Ubuntu
@@ -15490,10 +15485,8 @@ XRandR is a command line utility for changing display options without restarting
 #+end_src
 
 #+name: migemo-dict-path
-#+begin_src shell :noweb tangle :tangle no
-source ~/.bashrc
-
-echo "${GUIX_EXTRA_PROFILES}/emacs/emacs/share/migemo/"
+#+begin_src shell :noweb yes :tangle no
+echo -n '<<guix/ex-prof()>>/emacs/emacs/share/migemo/'
 #+end_src
 
 *** C/Migemo in apt                           :ARCHIVE:
@@ -16225,7 +16218,7 @@ systemctl enable libvirtd
 systemctl start libvirtd
 #+end_src
 
-#+begin_src conf :tangle (expand-file-name ".config/libvirt/libvirt.conf")
+#+begin_src conf :tangle (expand-file-name "libvirt/libvirt.conf" tangle/config-dir)
 uri_default = "qemu:///system"
 #+end_src
 
@@ -16234,7 +16227,7 @@ uri_default = "qemu:///system"
   : $ virsh pool-autostart local
   : $ virsh pool-start local
 
-  #+begin_src xml :noweb tangle :tangle (expand-file-name ".config/libvirt/pool.xml")
+  #+begin_src xml :noweb tangle :tangle (expand-file-name "libvirt/pool.xml" tangle/config-dir)
   <pool type='dir'>
     <name>local</name>
     <source>
@@ -16289,8 +16282,8 @@ rtorrent
 #+end_src
 
 #+name: rtorrent-sock
-#+begin_src emacs-lisp :eval no-export
-(expand-file-name "~/.local/share/rtorrent/rpc.socket")
+#+begin_src emacs-lisp :eval no-export :noweb yes
+(file-name-concat "<<share-dir()>>" "rtorrent/rpc.socket")
 #+end_src
 
 #+begin_src conf :noweb tangle :tangle (expand-file-name ".rtorrent.rc" tangle/home)
@@ -16306,15 +16299,10 @@ encoding.add = utf8
 
 #+name: torrent-dir
 #+begin_src sh :noweb yes :eval no-export
-TORRENT_DIR=~/.local/share/rtorrent/files
-if [ ! -d $TORRENT_DIR ]; then
-  mkdir -p $TORRENT_DIR
-fi
-
-realpath $TORRENT_DIR
+echo -n '~/.local/share/rtorrent/files'
 #+end_src
 
-#+begin_src conf :noweb tangle :tangle (expand-file-name ".config/systemd/user/rtorrent.service")
+#+begin_src conf :noweb tangle :tangle (expand-file-name "systemd/user/rtorrent.service" tangle/config-dir)
 [Unit]
 Description=rTorrent
 After=network.target
@@ -16583,7 +16571,7 @@ fi
 
 #+name: npm-prefix
 #+begin_src shell :eval no-export
-echo ${HOME}/.npm-global
+echo -n '~/.npm-global'
 #+end_src
 
 #+begin_src scheme :noweb-ref guix-base
@@ -16965,7 +16953,7 @@ OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
 :END:
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-0 */2 * * * <<which(filename="bash")>> -ci "ghq-sync >> $LOG_DIR/ghq-sync.log 2>&1"
+0 */2 * * * /usr/bin/bash -ci "ghq-sync >> $LOG_DIR/ghq-sync.log 2>&1"
 #+end_src
 
 #+name: ghq-sync
@@ -17423,11 +17411,11 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(progn (yt-d
 :END:
 ** which path
 
-return absolute path for file using which command
+Return the absolute path for the 'filename' without expansion, allowing for user-agnostic configuration.
 
 #+name: which
 #+begin_src bash :var filename=""
-which ${filename}
+which ${filename} | sed "s:$HOME:~:"
 #+end_src
 
 ** Generate hash string
