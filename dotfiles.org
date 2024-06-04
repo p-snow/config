@@ -722,9 +722,6 @@ export PS1="[\u@$(uname -n):\\W]\n\$ "
 
 [[https://www.freedesktop.org/software/systemd/man/systemd-tmpfiles-setup.service.html][systemd-tmpfiles]] manages file creation and deletion. In this section, all settings focus on user level file cleanup and deletion under /home directory.
 
-You may need to enable systemd-tmpfiles service for user
-: $ cd /usr/lib/systemd/user
-: $ cp systemd-tmpfiles-* ~/.config/systemd/user/
 #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
 systemctl --user enable systemd-tmpfiles-setup.service systemd-tmpfiles-clean.timer
 #+end_src
