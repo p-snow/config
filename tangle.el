@@ -1,4 +1,5 @@
 (require 'org)
+(require 'org-crypt)
 (require 'ob-core)
 (require 'ob-shell)
 (require 'ob-python)
@@ -27,5 +28,5 @@
          (python-indent-guess-indent-offset nil)
          (org-id-locations-file nil))
     (org-babel-lob-ingest)
-    (org-decrypt-entries)
-    (org-babel-tangle)))
+    (unwind-protect (org-decrypt-entries)
+      (org-babel-tangle))))
