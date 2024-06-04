@@ -536,7 +536,7 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
 (home-environment
  ;; Below is the list of packages that will show up in your
  ;; Home profile, under ~/.guix-home/profile.
- (packages (list glibc-locales fontconfig which pinentry
+ (packages (list glibc-locales fontconfig which
                  font-iosevka font-ipa font-ipa-ex font-google-noto font-inconsolata
                  font-adobe-source-han-sans))
 
@@ -955,8 +955,7 @@ I've chosen to use gpg/gpg-agent and pass on Ubuntu system since pass (password-
   #+end_src
 - gpg-agent config
   #+begin_src conf :noweb tangle :tangle (expand-file-name ".gnupg/gpg-agent.conf")
-  # pinentry-program /usr/bin/pinentry-curses
-  pinentry-program <<which(filename="pinentry")>>
+  pinentry-program /usr/bin/pinentry-curses
   allow-emacs-pinentry
   allow-loopback-pinentry
   enable-ssh-support
