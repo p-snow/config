@@ -4,8 +4,20 @@
 (require 'ob-python)
 (require 'ob-ruby)
 
-;; (load-file (expand-file-name "org-babel-config.el" tangle/emacs-config-dir))
-(load-file "./org-babel-config.el")
+(setf tangle/home "~/.local/share/ghq/github.com/p-snow/environment/home")
+
+(setf tangle/system (file-name-concat tangle/home "../system")
+      tangle/config-dir (file-name-concat tangle/home ".config")
+      tangle/user-emacs-directory (file-name-concat tangle/config-dir "emacs")
+      tangle/emacs-sitelisp-dir (file-name-concat tangle/user-emacs-directory "site-lisp")
+      tangle/emacs-config-dir (file-name-concat tangle/user-emacs-directory "lisp")
+      tangle/emacs-etc-dir (file-name-concat tangle/user-emacs-directory "etc")
+      tangle/local-bin-dir (file-name-concat tangle/home ".local/bin/")
+      tangle/dedicated-elisp-dir
+      (file-name-concat tangle/user-emacs-directory "lisp/dedicated")
+      tangle/dedicated-template-dir
+      (file-name-concat tangle/emacs-etc-dir "tempel/templates/dedicated"))
+
 (remove-hook 'org-babel-pre-tangle-hook
              'save-buffer)
 
