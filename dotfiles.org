@@ -2551,6 +2551,9 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
 
 #+begin_src emacs-lisp
 (use-package comp
+  :init
+  ;; enable asynchronous native compilation
+  (setq native-comp-jit-compilation t)
   :custom
   (native-comp-async-report-warnings-errors 'silent)
   (native-comp-async-query-on-exit t)
