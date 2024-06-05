@@ -5,7 +5,7 @@
 (require 'ob-python)
 (require 'ob-ruby)
 
-(setf tangle/home "~/.local/share/ghq/github.com/p-snow/environment/home")
+(setf tangle/home "~/environment/home")
 
 (setf tangle/system (file-name-concat tangle/home "../system")
       tangle/config-dir (file-name-concat tangle/home ".config")
