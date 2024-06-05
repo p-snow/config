@@ -62,14 +62,15 @@ echo -n '~/.local/share/video'
 :END:
 
 #+name: trash-dir
-#+begin_src shell :eval no-export
-echo -n '~/.local/share/Trash'
+#+begin_src emacs-lisp :eval no-export :var full-path=0
+(funcall (if (= full-path 0) #'identity #'expand-file-name)
+         "~/.local/share/Trash")
 #+end_src
 
 delete file which lives longer than 1 week in trash directory.
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-d <<trash-dir()>>/files 0700 - - 1w
+d <<trash-dir(full-path=1)>>/files - - - 1w
 #+end_src
 
 *** log file directory
@@ -738,15 +739,19 @@ export PS1="[\u@$(uname -n):\\W]\n\$ "
 
 *** systemd-tmpfiles
 
-[[https://www.freedesktop.org/software/systemd/man/systemd-tmpfiles-setup.service.html][systemd-tmpfiles]] manages file creation and deletion. In this section, all settings focus on user level file cleanup and deletion under /home directory.
+[[https://www.freedesktop.org/software/systemd/man/systemd-tmpfiles-setup.service.html][systemd-tmpfiles]] manages file creation and deletion. I mainly use systemd-tmpfiles to delete obsolete files in specific directories by running the following command.
+
+: $ systemd-tmpfiles --user --clean
+
+or set up timer shown below.
 
 #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
-systemctl --user enable systemd-tmpfiles-setup.service systemd-tmpfiles-clean.timer
+systemctl --user enable systemd-tmpfiles-clean.timer
 #+end_src
 
 #+begin_src conf :comments no :noweb tangle :tangle (expand-file-name "user-tmpfiles.d/cleanup.conf" tangle/config-dir)
-d <<home-dir()>>/tmp 0755 - - 5d
-d <<home-dir()>>/Downloads 0755 - - 4w
+d /home/<<login-name()>>/tmp - - - 5d
+d /home/<<login-name()>>/Downloads - - - 4w
 <<tmpfiles-cleanup>>
 #+end_src
 
@@ -3425,12 +3430,13 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 **** EWW
 
 #+NAME: eww-org-dir
-#+begin_src emacs-lisp
-(file-name-concat no-littering-var-directory "eww/org")
+#+begin_src emacs-lisp :var full-path=0
+(funcall (if (= full-path 0) #'identity #'expand-file-name)
+         (file-name-concat no-littering-var-directory "eww/org"))
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-d <<eww-org-dir()>> 0755 - - 3d
+d <<eww-org-dir(full-path=1)>> - - - 3d
 #+end_src
 
 #+begin_src emacs-lisp
@@ -3494,7 +3500,7 @@ This is handy if you would like to check a page index comfortably."
   (interactive)
   (let ((source (plist-get eww-data :source))
         (src-html (make-temp-file "source-"))
-        (dst-org (no-littering-expand-var-file-name
+        (dst-org (expand-file-name
                   (format "<<eww-org-dir()>>/%s.org" (org-id-uuid))))
         (coding-system-for-write 'utf-8-unix)
         (org-startup-folded t))
@@ -8337,8 +8343,8 @@ Disclaimers: An unexpected incident might occur if twittering-icon-mode call lay
 (file-name-concat no-littering-var-directory "undo-tree")
 #+end_src
 
-#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-d <<undo-tree-hist-dir()>> 0755 - - 3w
+#+begin_src conf :noweb yes :noweb-ref no :tangle no
+d <<undo-tree-hist-dir()>> - - - 3w
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle
@@ -9295,8 +9301,10 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 #+end_src
 
 #+name: htmlize-dir
+#+header: :var full-path=0
 #+begin_src emacs-lisp :noweb yes :eval no-export :tangle no
-(file-name-concat no-littering-var-directory "htmlize")
+(funcall (if (= full-path 0) #'identity #'expand-file-name)
+         (file-name-concat no-littering-var-directory "htmlize"))
 #+end_src
 
 #+begin_src shell :noweb yes :noweb-ref make-dir :tangle no
@@ -9304,7 +9312,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-d <<htmlize-dir()>> 0755 - - 5d
+d <<htmlize-dir(full-path=1)>> - - - 5d
 #+end_src
 
 EWW is a nice place for intensive reading. When there are articles or documents in a format other than HTML, I convert them to HTML and browse them in EWW with my/view-htmlized.
