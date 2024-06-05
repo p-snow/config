@@ -9381,6 +9381,18 @@ EWW is a nice place for intensive reading. When there are articles or documents 
 emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-everywhere)"
 #+end_src
 
+***** Eat
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-eat"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package eat
+  :commands (eat eat-eshell-mode)
+  :hook (eshell-load . eat-eshell-mode))
+#+end_src
+
 *** further extension
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
