@@ -573,8 +573,9 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
 
 A script for activating home configuration
 
-#+begin_src bash :tangle (expand-file-name "activate-home" tangle/local-bin-dir)
-cd ~/environment && make
+#+header: :shebang "eshell-mode minibuffer-mode"
+#+begin_src emacs-lisp :tangle no :tangle (expand-file-name "activate-home.eld" tangle/dedicated-template-dir)
+(activate-home "cd ~/environment && make")
 #+end_src
 
 * Home Environment
