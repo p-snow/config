@@ -418,7 +418,6 @@ done
    "lsof"
    "tree"
    "poppler"
-   "pass-git-helper"
    "stow"
    "pandoc"
    "nss-certs"
@@ -14400,8 +14399,6 @@ build/
 	signingkey = BDAF62D24445EFD3
 [commit]
 	gpgsign = true
-[credential]
-	helper = <<which(filename="pass-git-helper")>> -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini
 <<git-config>>
 #+END_SRC
 *** git attributes
@@ -14431,6 +14428,19 @@ build/
 ,*.lisp diff=common-lisp
 ,*.el diff=elisp
 #+END_SRC
+
+** pass-git-helper
+
+[[https://github.com/languitar/pass-git-helper][pass-git-helper]] is a utility program that allows users to use password-store's passwords for git credentials.
+
+#+begin_src scheme :noweb-ref guix-base
+"pass-git-helper"
+#+end_src
+
+#+begin_src gitconfig :noweb yes :tangle no :noweb-ref git-config
+[credential]
+	helper = !pass-git-helper -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini $@
+#+end_src
 
 ** git-annex
 
