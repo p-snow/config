@@ -209,8 +209,8 @@ start-systemd-services
        <<apt-pkg>>
   #+end_src
 - update apt packages every weekend
-  #+begin_src shell :eval no :tangle no :noweb-ref system-batch
-  apt update && apt upgrade --yes
+  #+begin_src sh :eval no :tangle no :noweb-ref midnight-batch
+  pwsudo apt update && pwsudo apt upgrade --yes
   #+end_src
 
 ** Linux Mint (Cinnamon DE)
@@ -381,15 +381,9 @@ done
 
 - Automating Script
   Update packages in base profile at morning
-  #+begin_src shell :eval no :tangle no :noweb-ref morning-batch
-  update-channels && activate-profiles base && guix gc -d 2m -F 20G
-  #+end_src
-  #+begin_src shell :eval no :tangle no :noweb-ref system-batch
-  sudo -i guix pull && systemctl restart guix-daemon.service
-  #+end_src
-  Update packages in desktop and emacs profile every weekend
-  #+begin_src shell :eval no :tangle no :noweb-ref weekend-batch
-  activate-profiles desktop emacs && guix gc -d 2m -F 20G
+  #+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
+  pwsudo -i guix pull && pwsudo systemctl restart guix-daemon.service
+  update-channels && activate-profiles base desktop emacs && guix gc -d 2m -F 30G
   #+end_src
 
 **** guix base profile
@@ -558,8 +552,7 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
             (home-openssh-configuration
              (hosts
               (list (openssh-host (name "pc02")
-                                  (host-name "192.168.100.127")
-                                  )))))
+                                  (host-name "192.168.100.127"))))))
    (service home-dotfiles-service-type
             (home-dotfiles-configuration
              (layout 'plain)
@@ -2978,7 +2971,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   :defer t
   :custom
   (midnight-mode t)
-  (midnight-delay "<<morning-hour>>:00"))
+  (midnight-delay "4:00"))
 #+end_src
 
 ****** Package
@@ -10708,12 +10701,15 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   :man-page "rtcwake"
   [("-t" "wake-up time" "--date " :prompt "Wake-up time: " :class transient-option
     :allow-empty nil :reader my/transient-read-time :always-read t
-    :init-value (lambda (obj) (oset obj value (my/transient-read-time nil "+6h40m" nil))))]
-  [("(" "preceding sleep" dispatch-dwim-fraction-command
-    :prefix sleep-dispatch-dwim :prefix-arg ("30m") :priority 20
-    :default "sleep 30m")
-   (")" "following command" dispatch-dwim-fraction-command
-    :prefix option-dispatch-dwim :prefix-arg ("morning.sh" "which system.sh | xargs pwsudo; morning.sh; weekend.sh")
+    :init-value (lambda (obj) (oset obj value (my/transient-read-time nil "+6h30m" nil))))]
+  [("{" "preceding sleep" dispatch-dwim-fraction-command
+    :prefix sleep-dispatch-dwim :prefix-arg ("10m") :priority 20
+    :default "sleep 10m")
+   ("[" "following command" dispatch-dwim-fraction-command
+    :prefix option-dispatch-dwim :prefix-arg ("midnight.sh")
+    :priority 30 :default "midnight.sh")
+   ("]" "following command" dispatch-dwim-fraction-command
+    :prefix option-dispatch-dwim :prefix-arg ("morning.sh")
     :priority 90 :default "morning.sh")
    (dispatch-dwim-execute
     :command-format "pwsudo rtcwake -l -m mem -v %d"
@@ -11566,7 +11562,6 @@ This mechanism precedes [[id:cd86fe03-b295-4cde-8b7c-68d5705b843a][dispatch-dwim
               (p "Extension to sleep: " ext t)
               (my/command-system-sleep wake ext))
 (morning-job "morning.sh;")
-(weekend-job "which system.sh | xargs pwsudo; morning.sh; weekend.sh;")
 #+end_src
 
 ****** download video/audio                  :ARCHIVE:
@@ -16720,34 +16715,18 @@ bash-language-server
 :CREATED:  [2023-10-31 Tue 14:03]
 :END:
 
-- when to dispatch morning batch
-  #+name: morning-hour
-  #+begin_src text
-  4
-  #+end_src
+#+NAME: morning-batch
+#+begin_src bash :noweb tangle :tangle (expand-file-name "morning.sh" tangle/local-bin-dir)
+<<morning-batch>>
+#+end_src
 
-- morning.sh: morning batch script
-  #+NAME: morning-batch
-  #+begin_src bash :noweb tangle :tangle (expand-file-name "morning.sh" tangle/local-bin-dir)
-  <<morning-batch>>
-  #+end_src
-
-*** Weekend Batch
+*** Midnight Batch
 :PROPERTIES:
 :CREATED:  [2023-10-31 Tue 14:03]
 :END:
 
-#+begin_src bash :noweb tangle :tangle (expand-file-name "weekend.sh" tangle/local-bin-dir)
-<<weekend-batch>>
-#+end_src
-
-*** System Batch
-:PROPERTIES:
-:CREATED:  [2023-11-17 Fri 17:17]
-:END:
-
-#+begin_src shell :noweb tangle :tangle (expand-file-name "system.sh" tangle/local-bin-dir)
-<<system-batch>>
+#+begin_src bash :noweb tangle :tangle (expand-file-name "midnight.sh" tangle/local-bin-dir)
+<<midnight-batch>>
 #+end_src
 
 ** Transcode Video Files
@@ -18968,8 +18947,8 @@ _userid=$(whoami)
 _hostname=$(hostname)
 
 pas=$(pass show "${_hostname}/${_userid}" 2>/dev/null) \
-  && ( echo "${pas}" | head -1 | sudo -sES -p "" "$@" ) \
-  || sudo -sES "$@"
+  && ( echo "${pas}" | head -1 | sudo -S -p "" "$@" ) \
+  || sudo -S "$@"
 
 exit $?
 #+end_src
