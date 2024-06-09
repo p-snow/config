@@ -10876,9 +10876,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 #+begin_src emacs-lisp
 (transient-define-prefix ghq-get-dispatch-dwim (&optional url)
   "Dispatch ghq get command."
-  :man-page "du"
-  [("-s" "shallow clone" "--shallow"
-    :init-value (lambda (obj) (oset obj value "--shallow")))]
+  [("-s" "shallow clone" "--shallow")]
   [(dispatch-dwim-execute
     :command-format
     (format "ghq get %%a %s"
@@ -14112,7 +14110,8 @@ Provide a function to Build a clock table summing up time by tag.
                      (and (derived-mode-p 'org-mode)
                           (or (org-link-at-point-map #'car)))
                      (and (derived-mode-p 'eww-mode)
-                          (shr-url-at-point nil))
+                          (or (shr-url-at-point nil)
+                              (plist-get eww-data :url)))
                      (read-string "URL: "))))
 
 (defun dispatch-dwim--paths-string (arg)
