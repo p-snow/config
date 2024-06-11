@@ -10133,77 +10133,109 @@ If optional argument `FILENAME' is given use this as a filename."
               #'my/download-video))
 #+end_src
 
-***** text to speech
+***** Text-to-Speech using AI (tts.el)
+:PROPERTIES:
+:CREATED:  [2024-06-11 Tue 14:16]
+:END:
+
+tts.el provides functions to say out given text using [[https://platform.openai.com/docs/guides/text-to-speech][the OpenAI Text to Speech service]] through its API.  The vips project is referenced when implementation.  The [[https://github.com/marcklemp/vips][vips]] project was helpful during the implementation process.
+
+#+header: :shebang ";; -*- lexical-binding: t -*-"
+#+begin_src emacs-lisp :tangle (expand-file-name "tts.el" tangle/emacs-sitelisp-dir)
+;;; tts.el --- Text to speech -*- lexical-binding: t -*-
+
+;; Author: p-snow
+;; Version: 0.0.1
+;; Package-Requires: ((emacs "29.1") (request "0.3.0"))
+;; Homepage: https://github.com/p-snow/tts
+;; Keywords: media
+
+;; This file is not part of GNU Emacs
+
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; commentary
+
+;;; Code:
+
+(require 'request)
+
+(defun tts-openai-request (api-key input action)
+  "Return audio file content from OpenAI API and save it to OUTPUT-FILE or play it.
+INPUT is the text string sent to the API.
+RESPONSE-FORMAT is the format of the audio file, defaults to 'mp3'.
+ACTION is either 'save or 'play, determining what to do with the response."
+  (let* ((auth-value (format "Bearer %s" api-key))
+         (model "tts-1")
+         (voice "nova")
+         (speed nil)
+         (response-format "opus")
+         (url "https://api.openai.com/v1/audio/speech")
+         (data (json-encode `(("model" . ,model)
+                              ("input" . ,input)
+                              ("voice" . ,voice)
+                              ,@(when response-format `(("response_format" . ,response-format)))
+                              ,@(when speed `(("speed" . ,speed)))))))
+    (request
+      url
+      :type "POST"
+      :data data
+      :headers `(("Authorization" . ,auth-value) ("Content-Type" . "application/json"))
+      :parser 'buffer-string
+      :success (cl-function
+                (lambda (&key data &allow-other-keys)
+                  (let ((coding-system-for-write 'binary)
+                        (speech-file (make-temp-file "tts-" nil ".opus")))
+                    (with-temp-file speech-file
+                      (insert data))
+                    (when action (funcall action speech-file)))))
+      :error (cl-function
+              (lambda (&key error-thrown &allow-other-keys)
+                (message "Error: %S" error-thrown))))))
+
+(defun tts-play (speech-file)
+  ""
+  (play-sound-file speech-file))
+
+(provide 'tts)
+;;; tts.el ends here
+#+end_src
 
 #+begin_src emacs-lisp :noweb tangle
-(defcustom my/say-maximum-duration 30
-  "Maximum speech duration in second for `my/say'.")
-(defvar my/say--timer nil "Timer used to cancel speech process.")
-(defvar my/say--open-jtalk-process "Say<Open-JTalk>"
-  "Fixed name for a process running Open JTalk.")
+(require 'tts)
 
-(defun my/say (string)
-  "Say out `STRING'.
-
-If an argument is given as `STRING', speech that text. Otherwise the buffer text
- is spoken unless region is active.
-
-As of now, English and Japanese are supported for speech. Spoken language is
- determined by a string, specifically a string entirely consists of ASCII
- characters is identified as English. Otherwise the string is spoken in Japanese."
-  (interactive (list (if (region-active-p)
-                         (buffer-substring (region-beginning) (region-end))
-                       (buffer-string))))
-  (when-let ((fest (require 'festival nil t))
-             (my/say-lang 'en))
-    (if (string-match-p
-         (format "\\`[%s]+\\'" "[:ascii:]’“”–") string)
-        ;; festival-say-string is unusable if region is active
-        (if (region-active-p)
-            (festival-say-region (region-beginning) (region-end))
-          (festival-say-string string))
-      (my/say--open-jtalk string)
-      (setq my/say-lang 'ja))
-    (setq my/say--timer
-          (cond
-           ((eq my/say-lang 'en)
-            (run-with-timer my/say-maximum-duration nil
-                            (lambda ()
-                              (festival-kill-process)
-                              (setq my/say--timer nil))))
-           ((eq my/say-lang 'ja)
-            (run-with-timer my/say-maximum-duration nil
-                            (lambda ()
-                              (and (get-process my/say--open-jtalk-process)
-                                   (interrupt-process my/say--open-jtalk-process))
-                              (setq my/say--timer nil))))))))
-(with-eval-after-load 'engine-mode
-  (keymap-set engine-mode-prefixed-map (kbd "\"")
-              #'my/say))
-
-(defun my/say-cancel ()
-  "Cancel speech process that has started by `my/say'."
-  (interactive)
-  (and (require 'festival nil t)
-       my/say--timer
-       (progn (cancel-timer my/say--timer)
-              (setq my/say--timer nil)))
-  (if (and festival-process
-           (string= (process-status festival-process)
-                    "run"))
-      (festival-kill-process)
-    (and (get-process my/say--open-jtalk-process)
-         (interrupt-process my/say--open-jtalk-process))))
-(global-set-key (kbd "C-x C-\"") #'my/say-cancel)
+(keymap-global-set "C-x C-\"" #'my/tts-say-it)
 (with-eval-after-load 'embark
-  (define-key embark-region-map "\"" #'my/say))
+  (define-key embark-region-map "\"" #'my/tts-say-it))
 
-(defun my/say--open-jtalk (text)
-  "Speech TEXT in Japanese using Open JTalk."
-  (start-process-shell-command
-   my/say--open-jtalk-process nil
-   (format "echo %s | open_jtalk -x /var/lib/mecab/dic/open-jtalk/naist-jdic -m <<hts-voice-dir()>>/Voice/mei/mei_angry.htsvoice -ow /tmp/a.wav && aplay /tmp/a.wav"
-           (replace-regexp-in-string "[\t\r\n\v\f]+" " " text))))
+(defun my/tts-say-it (text)
+  ""
+  (interactive (list (cond
+                      ((region-active-p)
+                       (buffer-substring-no-properties (region-beginning) (region-end)))
+                      (sentence-at-point))))
+  (tts-openai-request
+   (cdr (assoc "API key" (auth-source-pass-parse-entry "openai.com")))
+   text
+   #'my/tts-play))
+
+(defun my/tts-play (speech-file)
+  ""
+  (start-process-shell-command "tts" nil (format "mpv --keep-open=no --no-pause --force-window=no %1$s; rm -f %1$s"
+                                                 (shell-quote-argument speech-file))))
 #+end_src
 
 ****** jsay                                :ARCHIVE:
@@ -11740,6 +11772,111 @@ during the previous playback."
 #+begin_src scheme :noweb-ref guix-base
 "weasyprint"
 #+end_src
+
+***** text to speech with Festival and OpenJTalk :ARCHIVE:
+
+#+begin_src emacs-lisp :noweb tangle
+(defcustom my/say-maximum-duration 30
+  "Maximum speech duration in second for `my/say'.")
+(defvar my/say--timer nil "Timer used to cancel speech process.")
+(defvar my/say--open-jtalk-process "Say<Open-JTalk>"
+  "Fixed name for a process running Open JTalk.")
+
+(defun my/say (string)
+  "Say out `STRING'.
+
+If an argument is given as `STRING', speech that text. Otherwise the buffer text
+ is spoken unless region is active.
+
+As of now, English and Japanese are supported for speech. Spoken language is
+ determined by a string, specifically a string entirely consists of ASCII
+ characters is identified as English. Otherwise the string is spoken in Japanese."
+  (interactive (list (if (region-active-p)
+                         (buffer-substring (region-beginning) (region-end))
+                       (buffer-string))))
+  (when-let ((fest (require 'festival nil t))
+             (my/say-lang 'en))
+    (if (string-match-p
+         (format "\\`[%s]+\\'" "[:ascii:]’“”–") string)
+        ;; festival-say-string is unusable if region is active
+        (if (region-active-p)
+            (festival-say-region (region-beginning) (region-end))
+          (festival-say-string string))
+      (my/say--open-jtalk string)
+      (setq my/say-lang 'ja))
+    (setq my/say--timer
+          (cond
+           ((eq my/say-lang 'en)
+            (run-with-timer my/say-maximum-duration nil
+                            (lambda ()
+                              (festival-kill-process)
+                              (setq my/say--timer nil))))
+           ((eq my/say-lang 'ja)
+            (run-with-timer my/say-maximum-duration nil
+                            (lambda ()
+                              (and (get-process my/say--open-jtalk-process)
+                                   (interrupt-process my/say--open-jtalk-process))
+                              (setq my/say--timer nil))))))))
+(with-eval-after-load 'engine-mode
+  (keymap-set engine-mode-prefixed-map (kbd "\"")
+              #'my/say))
+
+(defun my/say-cancel ()
+  "Cancel speech process that has started by `my/say'."
+  (interactive)
+  (and (require 'festival nil t)
+       my/say--timer
+       (progn (cancel-timer my/say--timer)
+              (setq my/say--timer nil)))
+  (if (and festival-process
+           (string= (process-status festival-process)
+                    "run"))
+      (festival-kill-process)
+    (and (get-process my/say--open-jtalk-process)
+         (interrupt-process my/say--open-jtalk-process))))
+(global-set-key (kbd "C-x C-\"") #'my/say-cancel)
+(with-eval-after-load 'embark
+  (define-key embark-region-map "\"" #'my/say))
+
+(defun my/say--open-jtalk (text)
+  "Speech TEXT in Japanese using Open JTalk."
+  (start-process-shell-command
+   my/say--open-jtalk-process nil
+   (format "echo %s | open_jtalk -x /var/lib/mecab/dic/open-jtalk/naist-jdic -m <<hts-voice-dir()>>/Voice/mei/mei_angry.htsvoice -ow /tmp/a.wav && aplay /tmp/a.wav"
+           (replace-regexp-in-string "[\t\r\n\v\f]+" " " text))))
+#+end_src
+
+****** jsay                                :ARCHIVE:
+
+#+begin_src shell :tangle (expand-file-name ".local/bin/jsay") :tangle-mode (identity #o755)
+#!/usr/bin/env bash
+
+readonly DIC="${HOME}/usr/share/hts/dic"
+readonly VOICE="${HOME}/usr/share/hts/voice/mei_normal.htsvoice"
+readonly AUDIO_FILE=`mktemp ${HOME}/tmp/jsay_XXXXXXXX.wav`
+
+open_jtalk -x ${DIC} -m ${VOICE} -ow ${AUDIO_FILE}
+aplay --quiet ${AUDIO_FILE}
+rm -f ${AUDIO_FILE}
+
+exit 0
+#+end_src
+
+****** esay                                :ARCHIVE:
+
+#+begin_src shell :tangle (expand-file-name ".local/bin/esay") :tangle-mode (identity #o755)
+#!/usr/bin/env bash
+
+readonly VOICE="${HOME}/usr/share/hts/voice/cmu_us_arctic_slt.htsvoice"
+readonly AUDIO_FILE=`mktemp ${HOME}/tmp/esay_XXXXXXXX.wav`
+
+flite_hts_engine -m ${VOICE} -o ${AUDIO_FILE}
+aplay --quiet ${AUDIO_FILE}
+rm -f ${AUDIO_FILE}
+
+exit 0
+#+end_src
+
 
 *** bespoke org tweaks
 :PROPERTIES:
