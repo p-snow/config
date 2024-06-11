@@ -9370,7 +9370,10 @@ EWW is a nice place for intensive reading. When there are articles or documents 
 #+end_src
 
 #+begin_src emacs-lisp
-(use-package emacs-everywhere)
+(use-package emacs-everywhere
+  :hook (emacs-everywhere-mode
+         . (lambda () (when emacs-everywhere-mode
+                    (set-frame-parameter nil 'fullscreen 'fullboth)))))
 #+end_src
 
 #+NAME: bash/emacs-everywhere
@@ -9752,7 +9755,7 @@ Every frame will be spawn in maximized and initial frame will be full screen at 
   (add-to-list 'after-make-frame-functions
                (lambda (frame) (set-frame-parameter frame 'fullscreen 'maximized)))
   :hook
-  (after-init . (lambda () (set-frame-parameter nil 'fullscreen 'fullboth))))
+  (emacs-startup . (lambda () (set-frame-parameter nil 'fullscreen 'fullboth))))
 #+end_src
 
 ***** prune old .eln files at shut down     :ARCHIVE:
