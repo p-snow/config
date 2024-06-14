@@ -5643,6 +5643,19 @@ export DISPLAY=:0 && \
   (save-buffers-kill-emacs t))
 #+end_src
 
+****** org-tidy
+:PROPERTIES:
+:CREATED:  [2024-06-14 Fri 10:32]
+:END:
+
+[[https://github.com/jxq0/org-tidy][org-tidy]] attentively conceals all org drawers. I use it in [[id:2bd0c5d2-faed-43d9-b054-3e1ad9b51a76][my English drill session]].
+
+#+begin_src emacs-lisp
+(use-package org-tidy
+  :ensure t
+  :bind ("C-c t" . org-tidy-mode))
+#+end_src
+
 **** Completion
 
 ***** vertico
@@ -13445,6 +13458,9 @@ If region is active, send the string in the region instead."
 #+end_src
 
 **** learning english words/phrases
+:PROPERTIES:
+:ID:       2bd0c5d2-faed-43d9-b054-3e1ad9b51a76
+:END:
 
 My workflow for acquiring English words is:
 1. Capture a word which come across in the article I'm reading with my/org-english-capture
@@ -13698,7 +13714,6 @@ Display information and add it to kill ring if called interactively."
        (text-scale-set -1)
        (logos-focus-mode 1)
        ,@body)
-     (save-buffer)
      (org-indent-mode 1)
      (text-scale-set 0)
      (visual-line-mode -1)
