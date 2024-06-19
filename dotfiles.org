@@ -13489,6 +13489,7 @@ My workflow for acquiring English words is:
               ("e e" . my/org-english-capture)
               ("e d" . my/org-english-drill)
               ("e r" . my/org-english-drill-resume)
+              ("e l" . my/org-english-link)
               ("E" . my/cloze-deletion-replace)
               ("e q" . my/org-english-search)
               :map engine-mode-prefixed-map
@@ -13512,6 +13513,7 @@ My workflow for acquiring English words is:
 (require 'define-word)
 (require 'org)
 (require 'org-drill)
+(require 'org-super-links)
 (require 'cl)
 (require 'request)
 (require 'logos)
@@ -13744,15 +13746,28 @@ Display information and add it to kill ring if called interactively."
   (interactive)
   (with-org-drill-english-config (org-drill-resume)))
 
+(defun my/org-english-link ()
+  "Make a link as well as a backlink from current word to the target with context."
+  (interactive)
+  (when org-tidy-mode
+    (org-tidy-untidy-buffer))
+  (let* ((contexts '("synonym" "antonym"
+                     "distinct" "similar" "akin" "relevant"
+                     "morphological" "derivative"))
+         (context (completing-read "Context: " contexts))
+         (org-super-links-link-postfix (format " <%s>" context))
+         (org-super-links-backlink-postfix (format " <%s>\n" context)))
+    (org-super-links-quick-insert-drawer-link)))
+
 (defun my/org-english-list-undrilled ()
   "List english words which haven't been tested before in level ascending order."
   (interactive)
   (with-current-buffer (find-file-noselect my/org-english-file)
     (org-ql-search my/org-english-file
-      '(and (tags "drill")
-            (tags "fd_en")
-            (not (property "DRILL_LAST_REVIEWED")))
-      :sort 'my/org-ql--english-level<)))
+                   '(and (tags "drill")
+                         (tags "fd_en")
+                         (not (property "DRILL_LAST_REVIEWED")))
+                   :sort 'my/org-ql--english-level<)))
 
 (defun my/org-english-search (word)
   "Look up WORD in my archive files using `org-ql-search'."
