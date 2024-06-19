@@ -10739,7 +10739,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 (transient-define-prefix sleep-dispatch-dwim (&optional number)
   ""
   :man-page "sleep"
-  [("-b" "time before sleep" "" :prompt "amount of time [s/m/h/d]: "
+  [("n" "Number[SUFFIX]" "" :prompt "amount of time [s/m/h/d]: "
     :class transient-option :always-read t :allow-empty nil
     :init-value (lambda (obj) (oset obj value (or number "0"))))]
   [(dispatch-dwim-execute
@@ -14204,11 +14204,12 @@ Provide a function to Build a clock table summing up time by tag.
                       (when command-format-spec
                         (mapcar (lambda (key-val) (cons (car key-val) (eval (cdr key-val))))
                                 command-format-spec)))))
-         (comm (mapconcat (lambda (elm) (cadr elm))
+         (comm (mapconcat (lambda (elm)
+                            (when (length> (cadr elm) 0)
+                              (concat (cadr elm) "; ")))
                           (sort (append dispatch-dwim--precedings-followings
                                         `(("@" ,main-comm 50)))
-                                (lambda (a b) (< (nth 2 a) (nth 2 b))))
-                          "; ")))
+                                (lambda (a b) (< (nth 2 a) (nth 2 b)))))))
     (apply (oref cur-obj dispatch-method)
            `(,(if transient--stack
                   main-comm comm)))
