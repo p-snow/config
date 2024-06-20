@@ -12808,8 +12808,6 @@ If archiving location is datetree, it supposed to be iso week tree."
             (format "%s::* let go tasks"
                     (expand-file-name "archive/agenda/let-goes.org" org-directory))))))
     (when (stringp org-archive-location)
-      (and (require 'org-relate nil t)
-           (org-relate-interrelate))
       (advice-add #'org-datetree-find-date-create :override
                   #'org-datetree-find-iso-week-create)
       (apply oldfun r)
@@ -12928,6 +12926,25 @@ If called interactively, it prompt the user to select the date to find."
                          (mapc #'find-file-noselect
                                (list (denote-get-path-by-id "20230605T170959")
                                      (file-name-concat org-directory (format-time-string "archive/archive_%Y.org")))))))
+#+end_src
+
+**** Creating Links betweeb Project-Task Items
+
+#+begin_src emacs-lisp
+(defun my/insert-project-link ()
+  "Insert drawer links by `org-super-links' indicating project-task relationship."
+  (interactive)
+  (when (and (require 'org-super-links nil t)
+             (org-get-todo-state))
+    (let ((org-super-links-link-postfix " <project>")
+          (org-super-links-backlink-postfix " <project>\n")
+          (org-refile-targets `((nil :tag . "project")
+                                (nil :tag . "refile"))))
+      (org-super-links-quick-insert-drawer-link))))
+
+(with-eval-after-load 'org-refile
+  (add-hook 'org-after-refile-insert-hook
+            #'my/insert-project-link))
 #+end_src
 
 *** would-be packages
@@ -13965,7 +13982,7 @@ test code
                    "【レベル】8、【発音！】《名・形》trǽvəːrs 《動》trəvʌ́rs、【＠】トゥラヴァース、トラバース")))
 #+end_src
 
-**** org-relate
+**** org-relate                              :ARCHIVE:
 
 #+begin_src emacs-lisp :tangle (expand-file-name "org-relate.el" tangle/emacs-sitelisp-dir)
 (require 'thingatpt)
