@@ -3009,7 +3009,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp
 (use-package view
-  :diminish view-mode "vw")
+  :defer t)
 #+end_src
 
 ***** Hypermedia
@@ -4220,6 +4220,8 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
 Aliases for Eshell are shared with Bash.
 
 #+begin_src conf :comments no :noweb tangle :tangle (expand-file-name "eshell/aliases" tangle/emacs-etc-dir)
+alias v view-file $1
+alias vo view-file-other-window $1
 alias <<print-aliases(lang="plain")>>
 #+end_src
 
