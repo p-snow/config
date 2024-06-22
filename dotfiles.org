@@ -5163,10 +5163,10 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 (use-package org-transclusion
   :after org
   :bind (:map my/org-global-map
-              ("t a" . org-transclusion-add)
-              ("t A" . org-transclusion-add-all)
-              ("t n" . org-transclusion-make-from-link)
-              ("t t" . org-transclusion-activate)))
+              ("% a" . org-transclusion-add)
+              ("% A" . org-transclusion-add-all)
+              ("% n" . org-transclusion-make-from-link)
+              ("% t" . org-transclusion-activate)))
 #+end_src
 
 ****** org-edna
@@ -5659,7 +5659,9 @@ export DISPLAY=:0 && \
 #+begin_src emacs-lisp
 (use-package org-tidy
   :ensure t
-  :bind ("C-c t" . org-tidy-mode))
+  :after my-org-global-map
+  :bind (:map my/org-global-map
+              ("t" . org-tidy-mode)))
 #+end_src
 
 ****** org-super-links
@@ -13647,6 +13649,7 @@ My workflow for acquiring English words is:
 (require 'cl)
 (require 'request)
 (require 'logos)
+(require 'org-tidy)
 
 (defvar my/org-english-file "~/documents/english.org"
   "A file where all english words to learn locate.")
@@ -13879,8 +13882,7 @@ Display information and add it to kill ring if called interactively."
 (defun my/org-english-link ()
   "Make a link as well as a backlink from current word to the target with context."
   (interactive)
-  (when org-tidy-mode
-    (org-tidy-untidy-buffer))
+  (org-tidy-mode -1)
   (let* ((contexts '("synonym" "antonym"
                      "distinct" "similar" "akin" "relevant"
                      "morphological" "derivative"))
