@@ -3308,7 +3308,10 @@ sudo systemctl start dictd
                 '(("\\.tar\\.7z\\'" . "tar cf - %i | 7z a -si %o")
                   ("\\.7z\\'" . "7z a %o %i"))))
   (add-to-list 'dired-compress-file-suffixes
-               '("\\.tar\\.7z\\'" "" "7z x -so %i | tar xf -")))
+               '("\\.tar\\.7z\\'" "" "7z x -so %i | tar xf -"))
+  ;; submit "M-s f" to consult-find
+  (bind-keys :map dired-mode-map
+             ("M-s f" . nil)))
 
 (defun my/advice-dired-control-deletion (oldfun &rest r)
   "Enable file deleting functions to control deleting procedure
@@ -5746,6 +5749,7 @@ export DISPLAY=:0 && \
          ("M-s e" . consult-isearch-history)
          ("M-s \\" . consult-locate)
          ("M-s f" . consult-find)
+         ("M-s F" . consult-fd)
          ("M-s g" . consult-grep)
          ("M-s G" . consult-git-grep)
          ("M-s r" . consult-ripgrep)
@@ -5776,6 +5780,10 @@ export DISPLAY=:0 && \
   (consult-project-root-function #'project-root-function)
   (consult-locate-args (format "plocate -d %s --ignore-case --existing --regexp"
                                (expand-file-name "<<plocate-db()>>")))
+  (consult-find-args "find . ")
+  (consult-fd-args '((if (executable-find "fdfind" 'remote)
+                         "fdfind" "fd")
+                     "--hidden --full-path --color=never"))
   :init
   ;; use consult for completion unless Corfu is active
   (setq completion-in-region-function
