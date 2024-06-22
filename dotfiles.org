@@ -12904,32 +12904,20 @@ If called interactively, it prompt the user to select the date to find."
               #'my/org-ql-search-under))
 #+end_src
 
-**** read well-used org files insidiously
+**** Opening Large Well-Accessed Org Files Stealthily
 :PROPERTIES:
 :CREATED:  [2023-11-28 Tue 07:38]
 :END:
 
 #+begin_src emacs-lisp
-(use-package read-org-agenda-files
-  :no-require t
-  :after org
-  :config
-  (run-with-idle-timer (* 30) nil
-                       (lambda ()
-                         "Read org agenda files."
-                         (mapc #'find-file-noselect
-                               (org-agenda-files)))))
-
-(use-package read-large-org-file
-  :no-require t
-  :after (org denote)
-  :config
-  (run-with-idle-timer (* 3 60) nil
-                       (lambda ()
-                         "Read large org files."
-                         (mapc #'find-file-noselect
-                               (list (denote-get-path-by-id "20230605T170959")
-                                     (file-name-concat org-directory (format-time-string "archive/archive_%Y.org")))))))
+(with-eval-after-load 'org
+  (when (require 'denote nil t)
+    (run-with-idle-timer (* 1 60) nil
+                         (lambda ()
+                           "Open large org files."
+                           (mapc #'find-file-noselect
+                                 (list (denote-get-path-by-id "20230605T170959")
+                                       (file-name-concat org-directory (format-time-string "archive/archive_%Y.org"))))))))
 #+end_src
 
 **** Creating Links betweeb Project-Task Items
