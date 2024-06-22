@@ -4049,12 +4049,12 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
 
 #+begin_src emacs-lisp
 (use-package elfeed-org
-  :after (elfeed org denote)
+  :after (elfeed org)
   :custom
   (rmh-elfeed-org-ignore-tag "ARCHIVE")
   (rmh-elfeed-org-auto-ignore-invalid-feeds nil)
   :config
-  (with-eval-after-load 'denote
+  (when (require 'denote nil t)
     (setq rmh-elfeed-org-files
           (list (denote-get-path-by-id "20230605T173315")))
     (elfeed-org)))
@@ -5230,10 +5230,10 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
               ("q f n" . my/org-ql-find-in-notes)
               ("q /" . org-ql-sparse-tree))
   :preface
-  (with-eval-after-load 'denote
-    (defun my/org-ql-find-in-notes ()
-      "Call 'org-ql-find' on 'denote-all-files'."
-      (interactive)
+  (defun my/org-ql-find-in-notes ()
+    "Call 'org-ql-find' on 'denote-all-files'."
+    (interactive)
+    (when (require 'denote nil t)
       (org-ql-find (denote-all-files))))
   :custom
   (org-ql-search-directories-files-regexp "\\.org\\(?:\\.gpg\\)?$")
@@ -7793,6 +7793,8 @@ Typical file downloading workflow:
 #+begin_src emacs-lisp
 (use-package denote
   :after my/org-mode-init
+  :bind (("C-c n n" . denote)
+         ("C-c n o" . denote-open-or-create))
   :custom
   (denote-directory (expand-file-name "~/org/notes"))
   :config
@@ -13635,7 +13637,7 @@ My workflow for acquiring English words is:
                                             (my/english-japanese-translate word t)
                                             (my/english-pronunciation word t)))))))
   :config
-  (with-eval-after-load 'denote
+  (when (require 'denote nil t)
     (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
 #+end_src
 
