@@ -5312,11 +5312,12 @@ Ancestors are looked up If current heading has no CATEGORY."
 
 #+begin_src emacs-lisp
 (use-package org-contacts
-  :after (org denote)
+  :after org
   :commands (org-contacts-anniversaries)
-  :init
-  (setq org-contacts-files
-        (list (denote-get-path-by-id "20230605T173003"))))
+  :config
+  (when (require 'denote nil t)
+    (setq org-contacts-files
+          (list (denote-get-path-by-id "20230605T173003")))))
 #+end_src
 
 ****** org-ml                              :ARCHIVE:
@@ -12921,7 +12922,7 @@ If called interactively, it prompt the user to select the date to find."
 #+begin_src emacs-lisp
 (with-eval-after-load 'org
   (when (require 'denote nil t)
-    (run-with-idle-timer (* 1 60) nil
+    (run-with-idle-timer (* 3 60) nil
                          (lambda ()
                            "Open large org files."
                            (mapc #'find-file-noselect
