@@ -14457,7 +14457,7 @@ Provide a function to Build a clock table summing up time by tag.
      (shell-quote-argument (expand-file-name str)))
     ((and (pred stringp) (pred (string-match-p ffap-url-regexp)) (app (match-string 1) str))
      (dispatch-dwim--determine-url str))
-    ((and (pred listp) li) (mapconcat #'dispatch-dwim--paths-string li " "))))
+    ((and (pred listp) li) (mapcar #'dispatch-dwim--paths-string li))))
 
 (provide 'dispatch-dwim)
 #+end_src
