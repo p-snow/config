@@ -10933,38 +10933,37 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 #+name: pandoc-command
 #+begin_src emacs-lisp
-(transient-define-prefix pandoc-dispatch-dwim (&optional file)
+(transient-define-prefix pandoc-dispatch-dwim (file)
   ""
-  [(my/pandoc-to)]
+  :man-page "pandoc"
+  [("-t" "Ootput format" "--to="
+    :class transient-option
+    :always-read t
+    :choices ("org" "pdf" "epub" "rst" "texinfo" "odt" "docx" "markdown" "asciidoc" "plain")
+    :init-value (lambda (obj) (oset obj value (car (oref obj choices)))))]
   [(dispatch-dwim-execute
     :command-format
-    (format "parallel pandoc %%a '{}' ::: %s"
-            (plist-get (oref transient-current-prefix scope) 'file)))]
-  (interactive)
+    (format "parallel pandoc %%t %%o '{}' ::: %s"
+            (plist-get (oref transient-current-prefix scope) 'file))
+    :command-format-spec ((?t . (dispatch-shell-command--key-vals '("-t")))
+                          (?o . (seq-some (lambda (obj)
+                                            (when (and (string= (oref obj key) "-t")
+                                                       (string-match "--to=\\(.+\\)" (transient-infix-value obj)))
+                                              (let ((out-ext (pcase (match-string 1 (transient-infix-value obj))
+                                                               ("markdown" "md")
+                                                               ("texinfo" "texi")
+                                                               ("asciidoc" "adoc")
+                                                               ("plain" "txt")
+                                                               (x x))))
+                                                (concat (format "--output='{.}'.%s" out-ext)
+                                                        (when (string= out-ext "pdf")
+                                                          " --pdf-engine weasyprint")))))
+                                          (transient-suffixes (oref transient-current-prefix command))))))]
+  (interactive (list (or (unless (equal current-prefix-arg '(4))
+                           (dispatch-dwim-determine-file-name))
+                         (read-file-name "File to convert: "))))
   (transient-setup 'pandoc-dispatch-dwim nil nil
-                   :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
-
-(defclass my/transient-option (transient-option)
-  ())
-
-(transient-define-infix my/pandoc-to ()
-  :class my/transient-option
-  :transient t
-  :prompt "To format: "
-  :key "-t"
-  :description "To Format"
-  :argument "--to="
-  :allow-empty nil
-  :always-read t
-  :init-value (lambda (obj) (oset obj value (car (oref obj choices))))
-  :choices '("org" "pdf" "epub" "rst" "texinfo" "odt" "docx"))
-
-(cl-defmethod transient-infix-value ((obj my/transient-option))
-  ""
-  (let ((fmt (oref obj value)))
-    (concat (format "-o '{.}'.%s" fmt)
-            (when (string= fmt "pdf")
-              " --pdf-engine weasyprint"))))
+                   :scope (plist-put nil 'file file)))
 #+end_src
 
 ***** yt-dlp command
