@@ -148,6 +148,31 @@ This is a dummy email address that serves as a fallback when the genuine (encryp
   user@dummy.com
 #+end_src
 
+*** Full Name                                   :crypt:
+
+-----BEGIN PGP MESSAGE-----
+
+hQEMA9uWvE5LJ2ejAQf/fpFgrhLTsuuXLWW4RU3WzAee1B+bBReCkH3mBbS/YWhO
+8Cdle+MnLNbZ9WMOxZuSA8Zrb+6GM9rijC5UEwkT172KlmikttltCUyn4If6M/R3
+zGyWy0Y0CAYL5QT7v/IMnBgwjo5nPvfjXQASbuvf/PhNZvl1Gi3Zcz+VAQGtFkhU
+JK6h+HRb//NyzkwqY9WhXPxQePRxF2xQcFJnWLSg+viV5fid6ANRMBVPZAUhj1pg
+Ew/uj4a4jGK14L2zrlhbtzYygpo3TrOiJRPJ2g8nmr9g6CBb7qAFo+27kqTPHk2P
+qsZENoKtr3yzbLLL9SOOO0OD6A+bzH775hRySkt2ONJ/Ae8d3Fl+tke/QjaLpjC1
+I17sR6dQ3Qz24BdNkg4rC5DvOftdqppf2vxJXN5Th7izSAmZHly6KGauoMi+qdnH
+foMOc7y5cb5uQiPYIfNQICKo4Ut9yWjfnI79b94LUZopRTJpcVc7uCbcZ0E2iHTG
+Kk2NxYDwNZELB7iqDq9mbQ==
+=O5aZ
+-----END PGP MESSAGE-----
+
+*** Dummy Full Name
+
+This is a dummy full name that serves as a fallback when the genuine (encrypted above) is absent or not available.
+
+#+name: full-name
+#+begin_src text :eval no
+taro.yamada
+#+end_src
+
 *** My Login Name
 
 #+name: login-name
@@ -5135,8 +5160,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   (org-ai-default-chat-model "gpt-3.5-turbo")
   (org-ai-default-max-tokens 150)
   (org-ai-image-directory (expand-file-name "org-ai-images"
-                                            user-emacs-directory))
-  (org-ai-openai-api-token "<<openai-api-key()>>"))
+                                            user-emacs-directory)))
 #+end_src
 
 ****** org-modern
@@ -7151,21 +7175,15 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
     (if (use-region-p)
         (chatgpt-shell-prompt-compose)
       (chatgpt-shell)))
-  (defun my/openai-key ()
-    "Return my openai key."
-    (or (cdr (assoc "API key" (auth-source-pass-parse-entry "openai.com")))
-        (let ((sec (plist-get (car (auth-source-search :host "openai.com")) :secret)))
-          (if (functionp sec)
-              (funcall sec) sec))))
   :bind (:map engine-mode-prefixed-map
-              ("c c" . my/chatgpt-shell-dwim)
-              ("c C" . chatgpt-shell-prompt)
-              ("c e" . chatgpt-shell-explain-code)
-              ("c d" . chatgpt-shell-describe-code)
-              ("c p" . chatgpt-shell-proofread-region)
-              ("c g" . chatgpt-shell-write-git-commit)
-              ("c u" . chatgpt-shell-generate-unit-test)
-              ("c i" . (lambda (&optional lang)
+              ("p c" . my/chatgpt-shell-dwim)
+              ("p C" . chatgpt-shell-prompt)
+              ("p e" . chatgpt-shell-explain-code)
+              ("p d" . chatgpt-shell-describe-code)
+              ("p p" . chatgpt-shell-proofread-region)
+              ("p g" . chatgpt-shell-write-git-commit)
+              ("p u" . chatgpt-shell-generate-unit-test)
+              ("p i" . (lambda (&optional lang)
                          "Ask ChatGPT to interpret into Japanese or some other language if LANG is non-nil."
                          (interactive "P")
                          (when (require 'chatgpt-shell nil t)
@@ -7177,7 +7195,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
               :map chatgpt-shell-mode-map
               ("C-M-g" . chatgpt-shell-clear-buffer))
   :custom
-  (chatgpt-shell-openai-key 'my/openai-key)
+  (chatgpt-shell-openai-key 'my/apikey)
   (chatgpt-shell-system-prompt 3)
   (chatgpt-shell-model-temperature 0.6))
 
@@ -7192,7 +7210,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 (use-package dall-e-shell
   :commands dall-e-shell
   :custom
-  (dall-e-shell-openai-key 'my/openai-key))
+  (dall-e-shell-openai-key 'my/apikey))
 #+end_src
 
 ***** async
@@ -7382,17 +7400,46 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 (use-package gptel
   :after engine-mode
   :bind (:map engine-mode-prefixed-map
-              ("C" . gptel))
+              ("i i" . gptel-send)
+              ("i <RET>" . gptel)
+              ("i m" . gptel-menu))
+  :preface
+  (defun my/apikey (&optional host key)
+    "Return API key for HOST or OpenAI."
+    (let ((host-fixed (or host "openai.com"))
+          (key-fixed (or key "apikey")))
+      (or (cdr (assoc key-fixed (auth-source-pass-parse-entry host-fixed)))
+          (let ((sec (plist-get (car (auth-source-search :host host-fixed)) :secret)))
+            (if (functionp sec)
+                (funcall sec) sec)))))
   :custom
-  (gptel-api-key "<<openai-api-key()>>")
+  (gptel-api-key 'my/apikey)
   (gptel-max-tokens 500)
   (gptel-model "gpt-3.5-turbo")
-  (gptel-default-mode 'org-mode))
-#+end_src
-
-#+name: openai-api-key
-#+begin_src emacs-lisp
-(auth-source-pass-get "API key" "openai.com")
+  (gptel-default-mode 'org-mode)
+  (gptel-org-branching-context t)
+  :config
+  (cl-pushnew '(proofreading . "Please help me proofread the following text with English.")
+              gptel-directives)
+  (cl-pushnew '(japanese . "Please help me interpret the following sentence into Japanese.")
+              gptel-directives)
+  (cl-pushnew '(english . "Please help me interpret the following sentence into English.")
+              gptel-directives)
+  (gptel-make-gemini "Gemini"
+    :key (apply-partially 'my/apikey "www.google.com/<<full-name>>" "gemini apikey")
+    :stream t)
+  (gptel-make-openai "Perplexity"
+    :host "api.perplexity.ai"
+    :key (apply-partially 'my/apikey "perplexity.ai")
+    :endpoint "/chat/completions"
+    :stream t
+    :models '("llama-3-sonar-small-32k-chat"
+              "llama-3-sonar-small-32k-online"
+              "llama-3-sonar-large-32k-chat"
+              "llama-3-sonar-large-32k-online"
+              "llama-3-8b-instruct"
+              "llama-3-70b-instruct"
+              "mixtral-8x7b-instruct")))
 #+end_src
 
 ***** engine-mode
@@ -7425,9 +7472,6 @@ Default to the symbol at point."
   (defengine google
     "https://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
     :keybinding "g")
-  (defengine google-images
-    "https://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s"
-    :keybinding "i")
   (defengine duckduckgo
     "https://duckduckgo.com/?q=%s"
     :keybinding "d")
@@ -10274,10 +10318,9 @@ ACTION is either 'save or 'play, determining what to do with the response."
                       ((region-active-p)
                        (buffer-substring-no-properties (region-beginning) (region-end)))
                       (sentence-at-point))))
-  (tts-openai-request
-   (cdr (assoc "API key" (auth-source-pass-parse-entry "openai.com")))
-   text
-   #'my/tts-play))
+  (tts-openai-request (my/apikey)
+                      text
+                      #'my/tts-play))
 
 (defun my/tts-play (speech-file)
   ""
