@@ -10689,7 +10689,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+begin_src emacs-lisp
-(transient-define-prefix mpv-dispatch-dwim (&optional file no-resume start end)
+(transient-define-prefix mpv-dispatch-dwim (file &optional no-resume start end)
   ""
   :man-page "mpv"
   [("-R" "noresume" "--no-resume-playback"
@@ -10701,11 +10701,12 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   [(dispatch-dwim-execute
     :command-format
     (format "mpv %%a %s"
-            (plist-get (oref transient-current-prefix scope) 'file)))]
-  (interactive)
-  (setq my/detached-bury-buffer t)
+            (shell-quote-argument (plist-get (oref transient-current-prefix scope) 'file))))]
+  (interactive (list (or (unless (equal current-prefix-arg '(4))
+                           (dispatch-dwim-determine-file-name))
+                         (read-file-name "File to play: "))))
   (transient-setup 'mpv-dispatch-dwim nil nil
-                   :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
+                   :scope (plist-put nil 'file file)))
 
 (with-eval-after-load 'embark
   (mapc (lambda (map)
@@ -10745,7 +10746,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+begin_src emacs-lisp
-(transient-define-prefix ffmpeg-opus-dispatch-dwim (&optional file)
+(transient-define-prefix ffmpeg-opus-dispatch-dwim (file)
   ""
   [("-b" "bitrate" "-b:a " :prompt "bitrate: " :class transient-option
     :init-value (lambda (obj) (oset obj value "64k")))
@@ -10753,10 +10754,12 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   [(dispatch-dwim-execute
     :command-format
     (format "parallel ffmpeg -i '{}' -c:a libopus -ac 2 %%a '{.}'.opus ::: %s"
-            (plist-get (oref transient-current-prefix scope) 'file)))]
-  (interactive)
+            (shell-quote-argument (plist-get (oref transient-current-prefix scope) 'file))))]
+  (interactive (list (or (unless (equal current-prefix-arg '(4))
+                           (dispatch-dwim-determine-file-name))
+                         (read-file-name "File to convert to opus: "))))
   (transient-setup 'ffmpeg-opus-dispatch-dwim nil nil
-                   :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
+                   :scope (plist-put nil 'file file)))
 #+end_src
 
 ***** ffmpeg-vp9 command
@@ -10783,7 +10786,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
            "-pass 2 -map_metadata 0"
            "-c:a libopus %b -ac 2"
            (let ((f (plist-get (oref transient-current-prefix scope) 'file)))
-             (list f (file-name-base f))))
+             (mapcar #'shell-quote-argument
+                     (list f (file-name-base f)))))
     :command-format-spec ((?b . (dispatch-shell-command--key-vals '("-B")))
                           (?c . (dispatch-shell-command--key-vals '("-c")))
                           (?S . (dispatch-shell-command--key-vals '("-ss" "-to")))))]
@@ -10858,7 +10862,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   [(dispatch-dwim-execute
     :command-format
     (format "HandBrakeCLI --input %s %%a"
-            (plist-get (oref transient-current-prefix scope) 'file)))]
+            (shell-quote-argument (plist-get (oref transient-current-prefix scope) 'file))))]
   (interactive (list (or (unless (equal current-prefix-arg '(4))
                            (dispatch-dwim-determine-file-name))
                          (read-file-name "Input device or directory: "))))
@@ -10987,7 +10991,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   [(dispatch-dwim-execute
     :command-format
     (format "parallel pandoc %%t %%o '{}' ::: %s"
-            (plist-get (oref transient-current-prefix scope) 'file))
+            (shell-quote-argument (plist-get (oref transient-current-prefix scope) 'file)))
     :command-format-spec ((?t . (dispatch-shell-command--key-vals '("-t")))
                           (?o . (seq-some (lambda (obj)
                                             (when (and (string= (oref obj key) "-t")
@@ -11082,7 +11086,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+begin_src emacs-lisp
-(transient-define-prefix du-dispatch-dwim (&optional file)
+(transient-define-prefix du-dispatch-dwim (file)
   "Dispatch du command."
   :man-page "du"
   [("-s" "summarize" "--summarize"
@@ -11096,10 +11100,12 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   [(dispatch-dwim-execute
     :command-format
     (format "ionice -c2 -n7 nice -n19 du %%a %s"
-            (plist-get (oref transient-current-prefix scope) 'file)))]
-  (interactive)
+            (shell-quote-argument (plist-get (oref transient-current-prefix scope) 'file))))]
+  (interactive (list (or (unless (equal current-prefix-arg '(4))
+                           (dispatch-dwim-determine-file-name))
+                         (read-file-name "File: "))))
   (transient-setup 'du-dispatch-dwim nil nil
-                   :scope (plist-put nil 'file (dispatch-command-dwim/determine-file file))))
+                   :scope (plist-put nil 'file file)))
 #+end_src
 
 ***** ghq-get command
@@ -14437,31 +14443,6 @@ Provide a function to Build a clock table summing up time by tag.
 
 ;;; Functions
 
-(defun dispatch-command-dwim/determine-file (&optional file)
-  "This is obsolete. Use `dispatch-dwim-determine-file-name'."
-  (cl-labels ((read-file ()
-                (read-file-name "File: ")))
-    (apply (or (and file
-                    `(dispatch-dwim--paths-string ,file))
-               (cond
-                ((derived-mode-p 'dired-mode)
-                 `(dispatch-dwim--paths-string ,(dired-get-marked-files)))
-                ((derived-mode-p 'minibuffer-mode)
-                 (cond
-                  ((equal minibuffer-history-variable 'dired-shell-command-history)
-                   '(identity "`?`"))
-                  ((or (member minibuffer-history-variable
-                               '(detached-shell-command-history
-                                 shell-command-history)))
-                   (with-current-buffer (other-buffer nil t)
-                     `(dispatch-dwim--paths-string
-                       ,(if (derived-mode-p 'dired-mode)
-                            (or (dired-get-marked-files) (read-file))
-                          (read-file)))))))
-                (t `(dispatch-dwim--paths-string
-                     ,(or (ffap-file-at-point)
-                          (read-file)))))))))
-
 (defmacro dispatch-dwim-determine-file-name ()
   "Determine the available file name depending on the condition."
   `(cond
@@ -14496,7 +14477,7 @@ Provide a function to Build a clock table summing up time by tag.
 (defun dispatch-dwim--paths-string (arg)
   (pcase arg
     ((and (pred stringp) (pred file-exists-p) str)
-     (shell-quote-argument (expand-file-name str)))
+     (expand-file-name str))
     ((and (pred stringp) (pred (string-match-p ffap-url-regexp)) (app (match-string 1) str))
      (dispatch-dwim--determine-url str))
     ((and (pred listp) li) (mapconcat #'dispatch-dwim--paths-string li " "))))
