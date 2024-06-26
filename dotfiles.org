@@ -13017,7 +13017,10 @@ lfile is an extended org link type for files in local machine. It is inspired by
 It is implemented using abbrev mechanism since functionality of file: link type such as inline image or exporting can be easily imparted.
 
 #+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
-(require 'lfile)
+(use-package lfile
+  :after org
+  :config
+  (put 'lfile-locate 'org-link-abbrev-safe t))
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "lfile.el" tangle/emacs-sitelisp-dir)
