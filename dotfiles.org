@@ -4345,32 +4345,29 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 :PROPERTIES:
 :CREATED:  [2023-01-24 Tue 16:14]
 :END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load "org-macs"
+  (setopt org-sort-function 'org-sort-function-fallback))
+#+end_src
+
 ****** Org Agenda
 
 #+begin_src emacs-lisp
-(use-package org
-  :no-require t
-  :defer t
-  :init
-  (setq org-agenda-files
-        (list (file-name-as-directory
-               (expand-file-name
-                (file-name-concat org-directory "agenda")))))
-  :custom
-  (org-agenda-inhibit-startup t))
-
 (use-package org-agenda
-  :commands org-agenda
-  :init
-  (with-eval-after-load 'my-org-global-map
-    (keymap-set my/org-global-map "a"
-                'org-agenda))
+  :after (org my-org-global-map)
+  :bind (:map my/org-global-map
+              ("a" . org-agenda))
   :hook
   (org-agenda-mode . (lambda ()
                        ;; TODO: this can be rewritten with `display-buffer'
                        (delete-other-windows)
                        (org-agenda-to-appt t '((category "appt")))))
   :custom
+  (org-agenda-files
+   `(,(file-name-as-directory
+       (file-name-concat org-directory "agenda"))))
+  (org-agenda-inhibit-startup t)
   (org-agenda-use-tag-inheritance nil)
   :config
   (bind-keys :map org-agenda-mode-map
