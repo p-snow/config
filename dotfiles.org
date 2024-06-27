@@ -10784,11 +10784,10 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
            "-pass 1 -an -f null"
            "-pass 2 -map_metadata 0"
            "-c:a libopus %b -ac 2"
-           (let ((f (plist-get (oref transient-current-prefix scope) 'file)))
-             (list (dispatch-dwim-shell-argument f)
-                   (if (file-exists-p f)
-                       (file-name-base f)
-                     "out"))))
+           (let* ((f (plist-get (oref transient-current-prefix scope) 'file))
+                  (valid-f (dispatch-dwim-shell-argument f)))
+             (list valid-f
+                   (file-name-base valid-f))))
     :command-format-spec ((?b . (dispatch-shell-command--key-vals '("-B")))
                           (?c . (dispatch-shell-command--key-vals '("-c")))
                           (?S . (dispatch-shell-command--key-vals '("-ss" "-to")))))]
