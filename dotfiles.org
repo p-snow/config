@@ -14613,7 +14613,11 @@ export LOCATE_PATH=<<plocate-db()>>
 
 #+name: bin/updatedb-home
 #+begin_src bash :noweb tangle :tangle (expand-file-name "updatedb-home" tangle/local-bin-dir)
-$GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> --prune-bind-mounts 0 -e <<htmlize-dir()>> -e <<trash-dir()>> -o <<plocate-db()>>
+$GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> --prune-bind-mounts 0 \
+                                             -e <<htmlize-dir()>> \
+                                             -e <<trash-dir()>> \
+                                             -e <<data-dir()>> \
+                                             -o <<plocate-db()>>
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
