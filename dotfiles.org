@@ -14383,7 +14383,9 @@ Provide a function to Build a clock table summing up time by tag.
          (command-format-spec (and (slot-boundp cur-obj :command-format-spec)
                                    (oref cur-obj command-format-spec)))
          (main-comm (format-spec
-                     (eval (oref cur-obj command-format))
+                     (replace-regexp-in-string
+                      "\\\\\%" "\\\\\%\%" ; avoid replacing "\%" in shell argument
+                      (eval (oref cur-obj command-format)))
                      (append
                       `((?a . ,(string-join (transient-get-value) " ")))
                       (when command-format-spec
