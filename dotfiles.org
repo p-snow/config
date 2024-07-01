@@ -1619,20 +1619,20 @@ Settings in this section are influenced a great deal by my personal preference. 
 ***** Basic Key Bindings
 
 #+begin_src emacs-lisp
-(global-set-key (kbd "M-F") #'forward-to-word)
-(global-set-key (kbd "M-B") #'backward-to-word)
-(global-set-key (kbd "C-c d") #'duplicate-dwim)
-(global-set-key (kbd "C-c j") #'join-line)
-(global-set-key (kbd "C-c M-d") #'copy-from-above-command)
-(global-set-key (kbd "M-z") #'zap-up-to-char)
-(global-set-key (kbd "C-z") #'repeat)
+(keymap-global-set "M-F" #'forward-to-word)
+(keymap-global-set "M-B" #'backward-to-word)
+(keymap-global-set "C-c d" #'duplicate-dwim)
+(keymap-global-set "C-c j" #'join-line)
+(keymap-global-set "C-c M-d" #'copy-from-above-command)
+(keymap-global-set "M-z" #'zap-up-to-char)
+(keymap-global-set "C-z" #'repeat)
 (keymap-global-set "C-x M-t" #'transpose-sentences)
 (keymap-global-set "M-T" #'transpose-paragraphs)
 
-(global-set-key (kbd "C-c k") #'kill-this-buffer)
-(global-set-key (kbd "C-x M-r") #'rename-visited-file)
-(global-set-key (kbd "C-M-<delete>") #'restart-emacs)
-(global-set-key (kbd "C-M-S-<delete>") #'save-buffers-kill-emacs)
+(keymap-global-set "C-c k" #'kill-this-buffer)
+(keymap-global-set "C-x M-r" #'rename-visited-file)
+(keymap-global-set "C-M-<delete>" #'restart-emacs)
+(keymap-global-set "C-M-S-<delete>" #'save-buffers-kill-emacs)
 
 (substitute-key-definition 'upcase-region
                            'upcase-dwim
@@ -1640,7 +1640,7 @@ Settings in this section are influenced a great deal by my personal preference. 
 (substitute-key-definition 'downcase-region
                            'downcase-dwim
                            global-map)
-(global-set-key (kbd "C-x C-c") #'capitalize-dwim)
+(keymap-global-set "C-x C-c" #'capitalize-dwim)
 #+end_src
 
 - Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
@@ -2769,7 +2769,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+begin_src emacs-lisp
 (use-package browse-url
   :init
-  (global-set-key (kbd "C-c C-o") #'browse-url-at-point)
+  (keymap-global-set "C-c C-o" #'browse-url-at-point)
   :custom
   (browse-url-new-window-flag t)
   (browse-url-browser-function 'eww-browse-url)
@@ -6762,7 +6762,7 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
   (let ((grep-find-command '("rga --with-filename --no-heading --line-number --color never -e '' ./* ./**/*" . 66)))
     (call-interactively 'grep-find)))
 
-(global-set-key (kbd "M-s R") 'my/grep-ripgrep-all)
+(keymap-global-set "M-s R" 'my/grep-ripgrep-all)
 #+end_src
 
 ***** executable
@@ -9535,7 +9535,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   (let ((line-number (number-to-string (line-number-at-pos))))
     (message "Line number: %s" line-number)
     (kill-new line-number)))
-(global-set-key (kbd "C-M-S-w") 'my/copy-line-number)
+(keymap-global-set "C-M-S-w" 'my/copy-line-number)
 #+end_src
 
 ***** expand shorthand time string
@@ -9885,8 +9885,8 @@ decremented instead."
   (interactive)
   (my/operate-number #'1-))
 
-(global-set-key (kbd "C-x <up>") #'my/increment-number-at-point)
-(global-set-key (kbd "C-x <down>") #'my/decrement-number-at-point)
+(keymap-global-set "C-x <up>" #'my/increment-number-at-point)
+(keymap-global-set "C-x <down>" #'my/decrement-number-at-point)
 (defvar-keymap my/operate-number-repeat-map
   :doc "Keymap to repeat operating a number."
   :repeat (:enter (my/increment-number-at-point
@@ -9911,7 +9911,7 @@ my/sudo-edit-local-file is inspired by [[https://emacsredux.com/blog/2013/04/21/
      (concat "/sudo:root@localhost:"
              buffer-file-name))))
 
-(global-set-key (kbd "C-x C-#") #'my/sudo-edit-local-file)
+(keymap-global-set "C-x C-#" #'my/sudo-edit-local-file)
 #+end_src
 
 ***** power management
@@ -10354,18 +10354,18 @@ exit 0
 ***** wrap up launch app commands in single keymap
 
 #+begin_src emacs-lisp
-(global-set-key (kbd "H-j")
-                (define-keymap
-                  :prefix 'my/launch-app-map
-                  "v" #'my/multi-vterm
-                  "d" #'dired-jump
-                  "w" #'eww
-                  "m" #'mu4e
-                  "p" #'proced
-                  "P" #'list-processes
-                  "?" #'woman
-                  "l" (define-keymap
-                        :prefix 'my/invoke-list-command-map)))
+(keymap-global-set "H-j"
+                   (define-keymap
+                     :prefix 'my/launch-app-map
+                     "v" #'my/multi-vterm
+                     "d" #'dired-jump
+                     "w" #'eww
+                     "m" #'mu4e
+                     "p" #'proced
+                     "P" #'list-processes
+                     "?" #'woman
+                     "l" (define-keymap
+                           :prefix 'my/invoke-list-command-map)))
 
 (provide 'my-launch-app)
 #+end_src
@@ -10444,7 +10444,7 @@ surrounded by word boundaries."
 
 (define-key reb-mode-map (kbd "RET") #'reb-replace-regexp)
 (define-key reb-lisp-mode-map (kbd "RET") #'reb-replace-regexp)
-(global-set-key (kbd "C-%") #'re-builder)
+(keymap-global-set "C-%" #'re-builder)
 #+end_src
 
 ***** mark and open a file in one go in Dired
@@ -10497,7 +10497,7 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
   (interactive)
   (transpose-lines 1)
   (previous-line 2))
-(global-set-key (kbd "M-S-<up>") 'my/drag-line-backward)
+(keymap-global-set "M-S-<up>" 'my/drag-line-backward)
 
 (defun my/drag-line-forward ()
   "Drag down current line for one."
@@ -10505,7 +10505,7 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
   (next-line 1)
   (transpose-lines 1)
   (previous-line 1))
-(global-set-key (kbd "M-S-<down>") 'my/drag-line-forward)
+(keymap-global-set "M-S-<down>" 'my/drag-line-forward)
 
 (defun my/comment-box (b e)
   "Draw a box comment around the region but arrange for the region
@@ -12092,15 +12092,15 @@ exit 0
 :END:
 
 #+begin_src emacs-lisp
-(global-set-key (kbd "H-o")
-                (define-keymap
-                  :prefix 'my/org-global-map
-                  "o" #'org-open-at-point
-                  "C-s" #'org-save-all-org-buffers
-                  "J" #'org-babel-tangle-jump-to-org
-                  "i" #'org-info-find-node
-                  "m" #'org-mark-ring-goto
-                  "@" #'org-previous-link))
+(keymap-global-set "H-o"
+                   (define-keymap
+                     :prefix 'my/org-global-map
+                     "o" #'org-open-at-point
+                     "C-s" #'org-save-all-org-buffers
+                     "J" #'org-babel-tangle-jump-to-org
+                     "i" #'org-info-find-node
+                     "m" #'org-mark-ring-goto
+                     "@" #'org-previous-link))
 
 (provide 'my-org-global-map)
 #+end_src
@@ -12210,7 +12210,7 @@ These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea
                                              '("agenda" "notes"))))
       `(link ,(or id heading))
       :super-groups '((:auto-parent)))))
-(global-set-key (kbd "C-c b b") #'my/org-backlink-entry)
+(keymap-global-set "C-c b b" #'my/org-backlink-entry)
 
 (defun my/org-backlink-by-tag ()
   "Show all entries that share tag with the entry at point."
@@ -12226,7 +12226,7 @@ These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea
                                              '("agenda" "notes"))))
       `(tags ,@tags)
       :super-groups '((:auto-tags)))))
-(global-set-key (kbd "C-c b t") #'my/org-backlink-by-tag)
+(keymap-global-set "C-c b t" #'my/org-backlink-by-tag)
 #+end_src
 
 **** set timer at clocking in
