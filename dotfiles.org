@@ -1654,7 +1654,7 @@ Settings in this section are influenced a great deal by my personal preference. 
   #+begin_src emacs-lisp
   (find-function-setup-keys)
 
-  (define-key ctl-x-map "C" 'finder-commentary)
+  (keymap-set ctl-x-map "C" 'finder-commentary)
   #+end_src
 
 ***** Unleash Disabled Commands
@@ -2379,7 +2379,7 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 (require 'kmacro)
 
 (defalias 'kmacro-insert-macro 'insert-kbd-macro)
-(define-key kmacro-keymap (kbd "I") #'kmacro-insert-macro)
+(keymap-set kmacro-keymap "I" #'kmacro-insert-macro)
 #+end_src
 
 ****** Register
@@ -4016,7 +4016,7 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
   (elfeed-score-enable)
   (setq elfeed-search-sort-function #'my/elfeed-score-sort-descending)
   (setq elfeed-search-print-entry-function #'my/elfeed-score-search-print-entry)
-  (define-key elfeed-search-mode-map "=" elfeed-score-map)
+  (keymap-set elfeed-search-mode-map "=" #'elfeed-score-map)
   (bind-keys :map elfeed-search-mode-map
              ("C-c =" . my/elfeed-score-apply))
   :preface
@@ -4327,20 +4327,20 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 #+begin_src emacs-lisp
 (with-eval-after-load 'org
   (let ((map org-mode-map))
-    (define-key map (kbd "C-j") #'org-return)
-    (define-key map (kbd "C-M-j") #'org-return-indent)
-    (define-key map (kbd "M-j") #'org-meta-return)
-    (define-key map (kbd "C-S-p") #'org-previous-item)
-    (define-key map (kbd "C-S-n") #'org-next-item)
-    (define-key map (kbd "C-S-u") #'org-up-element)
-    (define-key map (kbd "C-M-d") #'org-down-element)
-    (define-key map (kbd "C-<") #'org-previous-link)
-    (define-key map (kbd "C->") #'org-next-link)
-    (define-key map (kbd "C-c @") #'org-mark-element)
-    (define-key map (kbd "C-c C-SPC") #'org-mark-subtree)
-    (define-key map (kbd "C-c C-a") nil)
-    (define-key map (kbd "C-,") nil)
-    (define-key map (kbd "M-h") nil)))
+    (keymap-set map "C-j" #'org-return)
+    (keymap-set map "C-M-j" #'org-return-indent)
+    (keymap-set map "M-j" #'org-meta-return)
+    (keymap-set map "C-S-p" #'org-previous-item)
+    (keymap-set map "C-S-n" #'org-next-item)
+    (keymap-set map "C-S-u" #'org-up-element)
+    (keymap-set map "C-M-d" #'org-down-element)
+    (keymap-set map "C-<" #'org-previous-link)
+    (keymap-set map "C->" #'org-next-link)
+    (keymap-set map "C-c @" #'org-mark-element)
+    (keymap-set map "C-c C-SPC" #'org-mark-subtree)
+    (keymap-set map "C-c C-a" nil)
+    (keymap-set map "C-," nil)
+    (keymap-set map "M-h" nil)))
 #+end_src
 
 ***** org core feature setup
@@ -6231,8 +6231,8 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
   (message "Evaluated buffer")
   (eval-buffer))
 
-(define-key emacs-lisp-mode-map (kbd "C-c C-c") #'my/elisp-mode-eval-buffer)
-(define-key lisp-interaction-mode-map (kbd "C-c C-c") #'my/elisp-mode-eval-buffer)
+(keymap-set emacs-lisp-mode-map "C-c C-c" #'my/elisp-mode-eval-buffer)
+(keymap-set lisp-interaction-mode-map "C-c C-c" #'my/elisp-mode-eval-buffer)
 #+end_src
 
 ***** lisp-mode
@@ -6676,7 +6676,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 ***** special mode
 
 #+begin_src emacs-lisp
-(define-key special-mode-map (kbd "C-j") #'push-button)
+(keymap-set special-mode-map "C-j" #'push-button)
 #+end_src
 
 ***** help
@@ -10302,7 +10302,7 @@ ACTION is either 'save or 'play, determining what to do with the response."
 
 (keymap-global-set "C-x C-\"" #'my/tts-say-it)
 (with-eval-after-load 'embark
-  (define-key embark-region-map "\"" #'my/tts-say-it))
+  (keymap-set embark-region-map "\"" #'my/tts-say-it))
 
 (defun my/tts-say-it (text)
   ""
@@ -10442,8 +10442,8 @@ surrounded by word boundaries."
       (reb-quit)
       (query-replace-regexp re replacement delimited beg end))))
 
-(define-key reb-mode-map (kbd "RET") #'reb-replace-regexp)
-(define-key reb-lisp-mode-map (kbd "RET") #'reb-replace-regexp)
+(keymap-set reb-mode-map "RET" #'reb-replace-regexp)
+(keymap-set reb-lisp-mode-map "RET" #'reb-replace-regexp)
 (keymap-global-set "C-%" #'re-builder)
 #+end_src
 
@@ -12039,7 +12039,7 @@ As of now, English and Japanese are supported for speech. Spoken language is
          (interrupt-process my/say--open-jtalk-process))))
 (global-set-key (kbd "C-x C-\"") #'my/say-cancel)
 (with-eval-after-load 'embark
-  (define-key embark-region-map "\"" #'my/say))
+  (keymap-set embark-region-map "\"" #'my/say))
 
 (defun my/say--open-jtalk (text)
   "Speech TEXT in Japanese using Open JTalk."
@@ -12875,10 +12875,10 @@ If archiving location is datetree, it supposed to be iso week tree."
                      #'org-datetree-find-iso-week-create))))
 
 (with-eval-after-load 'org-agenda
-  (define-key org-agenda-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
+  (keymap-set org-agenda-mode-map "C" #'my/org-archive-find--iso-datetree))
 
 (with-eval-after-load 'calendar
-  (define-key calendar-mode-map (kbd "C") #'my/org-archive-find--iso-datetree))
+  (keymap-set calendar-mode-map "C" #'my/org-archive-find--iso-datetree))
 
 ;;;###autoload
 (defun my/org-archive-find--iso-datetree (date)
