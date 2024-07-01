@@ -1626,6 +1626,8 @@ Settings in this section are influenced a great deal by my personal preference. 
 (global-set-key (kbd "C-c M-d") #'copy-from-above-command)
 (global-set-key (kbd "M-z") #'zap-up-to-char)
 (global-set-key (kbd "C-z") #'repeat)
+(keymap-global-set "C-x M-t" #'transpose-sentences)
+(keymap-global-set "M-T" #'transpose-paragraphs)
 
 (global-set-key (kbd "C-c k") #'kill-this-buffer)
 (global-set-key (kbd "C-x M-r") #'rename-visited-file)
@@ -7509,14 +7511,8 @@ Default to the symbol at point."
 #+begin_src emacs-lisp
 (use-package tmr
   :after my-launch-app
-  :bind (("C-x M-t t"   . tmr)
-         ("C-x M-t M-t" . tmr)
-         ("C-x M-t x"   . tmr-cancel)
-         ("C-x M-t k"   . tmr-remove)
-         ("C-x M-t s"   . tmr-reschedule)
-         ("C-x M-t l"   . tmr-tabulated-view)
-         :map my/launch-app-map
-         ("t" . tmr)))
+  :bind (:map my/launch-app-map
+              ("t" . tmr)))
 #+end_src
 
 ***** beframe
