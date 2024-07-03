@@ -5696,7 +5696,7 @@ export DISPLAY=:0 && \
               ("C-c t" . org-tidy-mode)))
 #+end_src
 
-****** org-super-links
+****** org-super-links                     :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2024-06-17 Mon 18:52]
 :END:
@@ -13718,7 +13718,6 @@ My workflow for acquiring English words is:
 (require 'define-word)
 (require 'org)
 (require 'org-drill)
-(require 'org-super-links)
 (require 'cl)
 (require 'request)
 (require 'logos)
@@ -13953,16 +13952,26 @@ Display information and add it to kill ring if called interactively."
   (with-org-drill-english-config (org-drill-resume)))
 
 (defun my/org-english-link ()
-  "Make a link as well as a backlink from current word to the target with context."
+  "Make a link pointing the word with context."
   (interactive)
-  (org-tidy-mode -1)
+  (save-excursion
+    (let ((current-prefix-arg '(4)))
+      (call-interactively #'org-refile ))
+    (call-interactively #'org-store-link))
   (let* ((contexts '("synonym" "antonym" "collocation"
                      "distinct" "similar" "akin" "relevant"
                      "morphological" "derivative"))
          (context (completing-read "Context: " contexts))
-         (org-super-links-link-postfix (format " <%s>" context))
-         (org-super-links-backlink-postfix (format " <%s>\n" context)))
-    (org-super-links-quick-insert-drawer-link)))
+         (org-log-note-headings (append `((context . ,(format "<%s> %%s %%t" context)))
+                                        org-log-note-headings))
+         (link-str (with-temp-buffer
+                     (call-interactively #'org-insert-last-stored-link)
+                     (concat " " ; workaround for org-ql failing to recognize org-link with preceding "
+                             (buffer-substring-no-properties (point-min) (1- (point-max)))
+                             " "))))
+    (org-add-log-setup 'context link-str
+                       nil 'state (format-time-string (org-time-stamp-format t t)))
+    (run-hooks 'post-command-hook)))
 
 (defun my/org-english-list-undrilled ()
   "List english words which haven't been tested before in level ascending order."
