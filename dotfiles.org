@@ -4654,7 +4654,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
                my/org-todo-keyword--todo))
      ("p" "Project"
       entry (id "58e12e3e-da50-4089-9d22-565986637121")
-      "* %? [/] :project:\n#+CALL: project-tasks(id=\"\")"
+      "* %? [/] :project:\n"
       :jump-to-captured t)
      ("M" "Append memo to clocking task"
       item (clock)
@@ -12980,23 +12980,43 @@ If called interactively, it prompt the user to select the date to find."
                                        (file-name-concat org-directory (format-time-string "archive/archive_%Y.org"))))))))
 #+end_src
 
-**** Creating Links betweeb Project-Task Items
+**** Creating and showing project-task relationship
+:PROPERTIES:
+:ID:       6d6c13c6-a724-4476-9f60-84c29e3d41b4
+:END:
 
 #+begin_src emacs-lisp
-(defun my/insert-project-link ()
-  "Insert drawer links by `org-super-links' indicating project-task relationship."
+(defun my/project-insert-link ()
+  "Insert a org-link pointing to the project entry which locates upper position."
   (interactive)
-  (when (and (require 'org-super-links nil t)
-             (org-get-todo-state))
-    (let ((org-super-links-link-postfix " <project>")
-          (org-super-links-backlink-postfix " <project>\n")
-          (org-refile-targets `((nil :tag . "project")
-                                (nil :tag . "refile"))))
-      (org-super-links-quick-insert-drawer-link))))
+  (when (org-get-todo-state)
+    (save-excursion
+      (outline-up-heading 1)
+      (call-interactively #'org-store-link))
+    (let ((org-log-note-headings (append '((project . "project %s %t"))
+                                         org-log-note-headings))
+          (link-str (with-temp-buffer
+                      (call-interactively #'org-insert-last-stored-link)
+                      (concat " " ; workaround for org-ql failing to recognize org-link with preceding "
+                              (buffer-substring-no-properties (point-min) (1- (point-max)))
+                              " "))))
+      (org-add-log-setup 'project link-str
+                         nil 'state (format-time-string (org-time-stamp-format t t)))
+      (run-hooks 'post-command-hook))))
+
+(defun my/project-list-tasks ()
+  "Show a list of tasks belonging to the current project."
+  (interactive)
+  (when (require 'org-ql nil t)
+    (when-let ((id (org-id-get)))
+      (org-ql-search
+        (append (file-expand-wildcards (file-name-concat org-directory "archive" "archive_*.org"))
+                (org-agenda-files))
+        `(link :target ,(format "id:%s" id))))))
 
 (with-eval-after-load 'org-refile
   (add-hook 'org-after-refile-insert-hook
-            #'my/insert-project-link))
+            #'my/project-insert-link))
 #+end_src
 
 *** would-be packages
