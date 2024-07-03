@@ -2516,7 +2516,15 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
 #+begin_src emacs-lisp
 (use-package xref
   :custom
-  (xref-show-definitions-function 'xref-show-definitions-completing-read))
+  (xref-show-definitions-function 'xref-show-definitions-completing-read)
+  (xref-search-program (cond
+                        ((or (executable-find "ripgrep")
+                             (executable-find "rg"))
+                         'ripgrep)
+                        ((executable-find "ugrep")
+                         'ugrep)
+                        (t
+                         'grep))))
 #+end_src
 
 ******* Ediff
