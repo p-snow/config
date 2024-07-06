@@ -4023,17 +4023,7 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
   (setq elfeed-search-sort-function #'my/elfeed-score-sort-descending)
   (setq elfeed-search-print-entry-function #'my/elfeed-score-search-print-entry)
   (keymap-set elfeed-search-mode-map "=" #'elfeed-score-map)
-  (bind-keys :map elfeed-search-mode-map
-             ("C-c =" . my/elfeed-score-apply))
   :preface
-  (defun my/elfeed-score-apply ()
-    "Apply score rule from user managed score file."
-    (interactive)
-    (when (featurep 'elfeed-score)
-      (elfeed-score-load-score-file elfeed-score-serde-score-file)
-      (when (eq major-mode 'elfeed-search-mode)
-        (elfeed-score-score-search))
-      (elfeed-score-serde-write-score-file elfeed-score-serde-score-file)))
   (defun my/elfeed-score-sort-descending (a b)
     "Return non-nil if A should sort after B."
     (let ((a-score (elfeed-score-scoring-get-score-from-entry a))
