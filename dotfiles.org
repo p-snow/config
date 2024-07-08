@@ -8016,16 +8016,12 @@ Tree-sitter module for Elisp had been incorporated into Emacs core since Emacs 2
 
 #+begin_src emacs-lisp
 (use-package dumb-jump
-  :hook (prog-mode . (lambda ()
-                       (add-to-list 'xref-backend-functions
-                                    #'dumb-jump-xref-activate
-                                    t)))
+  :after xref
   :config
-  (bind-keys ("M-g o" . dumb-jump-go-other-window)
-             ("M-g j" . dumb-jump-go)
-             ("M-g x" . dumb-jump-go-prefer-external)
-             ("M-g z" . dumb-jump-go-prefer-external-other-window)
-             ("M-g /" . dumb-jump-back)
+  (add-to-list 'xref-backend-functions
+               #'dumb-jump-xref-activate)
+  (bind-keys ("M-g ." . dumb-jump-go)
+             ("M-g ," . dumb-jump-back)
              ("M-g l" . dumb-jump-quick-look)))
 #+end_src
 
