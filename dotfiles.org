@@ -4857,7 +4857,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
      (,(cl-remove-if-not (lambda (f)
                            (member "refile"
                                    (denote-extract-keywords-from-path f)))
-                         (denote-all-files))
+                         (denote-directory-files))
       :tag . "refile"))))
 #+end_src
 
@@ -5255,7 +5255,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
     "Call 'org-ql-find' on 'denote-all-files'."
     (interactive)
     (when (require 'denote nil t)
-      (org-ql-find (denote-all-files))))
+      (org-ql-find (denote-directory-files))))
   :custom
   (org-ql-search-directories-files-regexp "\\.org\\(?:\\.gpg\\)?$")
   (org-ql-search-directories-files-recursive t)
