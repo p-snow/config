@@ -1362,23 +1362,6 @@ Variables that start with "tangle/" and are used during the tangling process are
   syms)
 #+end_src
 
-***** no-littering
-:PROPERTIES:
-:CREATED:  [2024-02-04 Sun 16:29]
-:END:
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-no-littering"
-#+end_src
-
-#+NAME: config/emacs-no-littering
-#+begin_src emacs-lisp :noweb tangle
-(setq no-littering-var-directory
-      (file-name-concat "<<share-dir()>>" "emacs/var/"))
-
-(require 'no-littering)
-#+end_src
-
 ***** package.el
 
 #+begin_src emacs-lisp
@@ -1394,8 +1377,6 @@ Variables that start with "tangle/" and are used during the tangling process are
           ("melpa" . 2)
           ("nongnu" . 1)))
 (setopt package-enable-at-startup t)
-(setopt package-gnupghome-dir
-        (no-littering-expand-var-file-name "elpa/gnupg"))
 
 (require 'package-vc)
 
@@ -1507,6 +1488,23 @@ Following hook statements are likely written in .dir-locals.el at the top level 
 (add-to-list 'safe-local-eval-forms
              '(remove-hook 'find-file-hook
                            (lambda () (setq-local buffer-save-without-query t))))
+#+end_src
+
+***** no-littering
+:PROPERTIES:
+:CREATED:  [2024-02-04 Sun 16:29]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-no-littering"
+#+end_src
+
+#+NAME: config/emacs-no-littering
+#+begin_src emacs-lisp :noweb tangle
+(setq no-littering-var-directory
+      (file-name-concat "<<share-dir()>>" "emacs/var/"))
+
+(require 'no-littering)
 #+end_src
 
 **** loading sequence
@@ -5856,7 +5854,6 @@ export DISPLAY=:0 && \
 #+begin_src emacs-lisp
 (use-package consult-ghq
   :ensure t
-  :defer t
   :after consult
   :bind (("M-s q f" . consult-ghq-find)
          ("M-s q g" . consult-ghq-grep))
