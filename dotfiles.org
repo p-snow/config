@@ -2943,11 +2943,10 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+end_src
 
 ****** Calendar
-[[https://github.com/emacs-jp/japanese-holidays/releases.atom][japanese-holidays]]
 
 #+begin_src emacs-lisp
 (use-package calendar
-  :commands calendar
+  :commands (calendar)
   :hook
   (calendar-today-visible . calendar-mark-today)
   :custom
@@ -2959,37 +2958,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (calendar-latitude 36.2)
   (calendar-longitude 138.3)
   :custom-face
-  (holiday ((t (:foreground "dark orange" :box t))))
-  :config
-  ;; add 'holiday-general-holidays to calendar-holidays
-  ;; if you want holidays in the U.S. to be counted as your holidays.
-  (bind-keys :map calendar-mode-map
-             ("v" . my/calendar-show-items)))
-
-(use-package japanese-holidays
-  :ensure t
-  :after calendar
-  :preface
-  (defun my/japanese-holiday-show (&rest _args)
-    "Show holiday information in mini buffer if date on which the cursor is any holidays."
-    (let* ((date (calendar-cursor-to-date t))
-           (calendar-date-display-form '((format "%s年 %s月 %s日（%s）" year month day dayname)))
-           (date-string (calendar-date-string date))
-           (holiday-list (calendar-check-holidays date)))
-      (when holiday-list
-        (message "%s: %s" date-string (mapconcat #'identity holiday-list "; ")))))
-  :custom-face
-  (japanese-holiday-saturday ((t (:foreground "blue" :background nil))))
-  :hook
-  ((calendar-today-visible calendar-today-invisible) . japanese-holiday-mark-weekend)
-  (calendar-move . my/japanese-holiday-show)
-  :custom
-  (japanese-holiday-weekend '(0 6))
-  (japanese-holiday-weekend-marker
-   '(holiday nil nil nil nil nil japanese-holiday-saturday))
-  :config
-  (setf calendar-holidays
-        (append japanese-holidays holiday-local-holidays holiday-other-holidays)))
+  (holiday ((t (:foreground "dark orange" :box t)))))
 #+end_src
 
 ******* Midnight
@@ -9461,6 +9430,40 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   :hook (eshell-load . eat-eshell-mode))
 #+end_src
 
+***** japanese-holidays                    :calendar:
+
+[[https://github.com/emacs-jp/japanese-holidays/releases.atom][japanese-holidays]]
+
+#+begin_src emacs-lisp
+(use-package japanese-holidays
+  :ensure t
+  :preface
+  (defun my/japanese-holiday-show (&rest _args)
+    "Show holiday information in mini buffer if date on which the cursor is any holidays."
+    (let* ((date (calendar-cursor-to-date t))
+           (calendar-date-display-form '((format "%s年 %s月 %s日（%s）" year month day dayname)))
+           (date-string (calendar-date-string date))
+           (holiday-list (calendar-check-holidays date)))
+      (when holiday-list
+        (message "%s: %s" date-string (mapconcat #'identity holiday-list "; ")))))
+  :custom-face
+  (japanese-holiday-saturday ((t (:foreground "blue" :background nil))))
+  :custom
+  (japanese-holiday-weekend '(0 6))
+  (japanese-holiday-weekend-marker
+   '(holiday nil nil nil nil nil japanese-holiday-saturday))
+  :config
+  (setf calendar-holidays
+        (append japanese-holidays holiday-local-holidays holiday-other-holidays))
+  (with-eval-after-load 'calendar
+    (add-hook 'calendar-today-visible-hook
+              #'japanese-holiday-mark-weekend)
+    (add-hook 'calendar-today-invisible-hook
+              #'japanese-holiday-mark-weekend)
+    (add-hook 'calendar-move-hook
+              #'my/japanese-holiday-show)))
+#+end_src
+
 *** further extension
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
@@ -10379,8 +10382,12 @@ exit 0
     (org-ql-search files `(and (or (parent (heading ,date))
                                    (ts-a :on ,date))
                                (not (tags "web" "drill")))
-      :buffer buffer-name)
+                   :buffer buffer-name)
     (other-window 1)))
+
+(with-eval-after-load 'calendar
+  (bind-keys :map calendar-mode-map
+             ("v" . my/calendar-show-items)))
 #+end_src
 
 ***** replace regexp with re-builder and query-replace-regexp trick
