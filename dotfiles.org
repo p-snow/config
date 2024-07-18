@@ -7352,12 +7352,11 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 :CREATED:  [2023-03-28 Tue 13:53]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-gptel"
-#+end_src
+[[https://github.com/karthink/gptel][gptel]] is my go-to AI frontend in Emacs as of [2024-07-19 Fri]. It supports a large number of services (LLM models).
 
 #+begin_src emacs-lisp :noweb tangle
 (use-package gptel
+  :ensure t
   :after engine-mode
   :bind (:map engine-mode-prefixed-map
               ("i i" . gptel-send)
