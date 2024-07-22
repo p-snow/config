@@ -7359,11 +7359,15 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 (use-package gptel
   :ensure t
   :after engine-mode
-  :bind (:map engine-mode-prefixed-map
-              ("i i" . gptel-send)
-              ("i <RET>" . gptel)
-              ("i m" . gptel-menu))
+  :bind ("H-Q" . my/gpeel-invoke)
   :preface
+  (defun my/gpeel-invoke (&optional arg)
+    "Enable users to call gptel/gptel-menu/gptel-send by changing prefix argument."
+    (interactive "P")
+    (call-interactively (pcase arg
+                          ('(16) #'gptel)
+                          ('(4) #'gptel-menu)
+                          (default #'gptel-send))))
   (defun my/apikey (&optional host key)
     "Return API key for HOST or OpenAI."
     (let ((host-fixed (or host "openai.com"))
