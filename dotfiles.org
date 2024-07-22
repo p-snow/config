@@ -3747,10 +3747,8 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
 
 #+begin_src emacs-lisp
 (use-package mu4e
-  :defer t
-  :hook (after-init . (lambda ()
-                        (mu4e t)
-                        (mu4e-update-mail-and-index t)))
+  :commands (mu4e)
+  :hook (emacs-startup . (lambda () (mu4e t)))
   :delight
   (mu4e-main-mode    " MU")
   (mu4e-headers-mode " MU")
