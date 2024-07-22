@@ -9844,50 +9844,53 @@ Every frame will be spawn in maximized and initial frame will be full screen at 
             #'native-compile-prune-cache))
 #+end_src
 
-***** operate the number at point
+***** Increasing a number at point preserving pad
 :PROPERTIES:
 :CREATED:  [2023-09-06 Wed 21:53]
 :END:
+:LOGBOOK:
+- State "Increasing a number at point" from "operate the number at point" [2024-07-22 Mon 16:56]
+:END:
 
-[[https://www.emacswiki.org/emacs/IncrementNumber][EmacsWiki: Increment Number]]
+Org Mode offers handy commands, namely org-increase-number-at-point and org-decrease-number-at-point. I often find myself handling zero-padded numbers such as '010'. I thought it would be nice if there was a command that could increase a number at point while preserving the preceding zeros - and this is the solution.
 
 #+begin_src emacs-lisp
-(defmacro my/operate-number (operation)
-  `(save-excursion
-     (save-restriction
-       (when (use-region-p)
-         (narrow-to-region (region-beginning) (region-end)))
-       (skip-chars-backward "0-9")
-       (skip-chars-forward "0")
-       (or (looking-at "[0-9]+")
-           (error "No number at point"))
-       (replace-match (number-to-string
-                       (apply ,operation (list (string-to-number (match-string 0)))))))))
+(defun my/increase-number-at-point-preserve-pad (&optional inc)
+  "Increment the number at point while preserving zero padding.
+With an optional prefix numeric argument INC, increment using
+this numeric value.
 
-(defun my/increment-number-at-point ()
-  "Increment the number at point.
+This command is a homage to org-increase-number-at-point."
+  (interactive "p")
+  (if (not (number-at-point))
+      (user-error "Not on a number")
+    (unless inc (setq inc 1))
+    (let* ((pos (point))
+           (digit-chars "-+0-9")
+           (beg (skip-chars-backward digit-chars))
+           (end (skip-chars-forward digit-chars))
+           (nap (buffer-substring-no-properties
+                 (+ pos beg) (+ pos beg end)))
+           (digit-count (length nap)))
+      (delete-region (+ pos beg) (+ pos beg end))
+      (insert (format (concat "%0" (format "%d" digit-count) "d")
+                      (+ (string-to-number nap) inc))))))
 
-If there is a region which embrace a number, that number will be
-incremented instead."
-  (interactive)
-  (my/operate-number #'1+))
+(defun my/decrease-number-at-point-preserve-pad (&optional inc)
+  "Decrement the number at point while preserving zero padding.
+With an optional prefix numeric argument INC, decrement using
+this numeric value."
+  (interactive "p")
+  (my/increase-number-at-point-preserve-pad (- (or inc 1))))
 
-(defun my/decrement-number-at-point ()
-  "Decrement the number at point.
-
-If there is a region which embrace a number, that number will be
-decremented instead."
-  (interactive)
-  (my/operate-number #'1-))
-
-(keymap-global-set "C-x <up>" #'my/increment-number-at-point)
-(keymap-global-set "C-x <down>" #'my/decrement-number-at-point)
-(defvar-keymap my/operate-number-repeat-map
-  :doc "Keymap to repeat operating a number."
-  :repeat (:enter (my/increment-number-at-point
-                   my/decrement-number-at-point))
-  "<up>" #'my/increment-number-at-point
-  "<down>" #'my/decrement-number-at-point)
+(keymap-global-set "C-x <up>" #'my/increase-number-at-point-preserve-pad)
+(keymap-global-set "C-x <down>" #'my/decrease-number-at-point-preserve-pad)
+(defvar-keymap my/increase-number-repeat-map
+  :doc "Keymap to repeat increasing a number."
+  :repeat (:enter (my/increase-number-at-point-preserve-pad
+                   my/decrease-number-at-point-preserve-pad))
+  "<up>" #'my/increase-number-at-point-preserve-pad
+  "<down>" #'my/decrease-number-at-point-preserve-pad)
 #+end_src
 
 ***** edit local file as root (sudo)
