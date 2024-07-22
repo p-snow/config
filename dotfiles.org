@@ -11015,6 +11015,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :reader transient-read-existing-directory
     :init-value (lambda (obj) (oset obj value "<<media-dir()>>")))
    ("-a" "audio" "-x --embed-thumbnail")
+   ("-F" "free format" "--prefer-free-formats"
+    :init-value (lambda (obj) (oset obj value "--prefer-free-formats")))
    ("-d" "duration" "--get-duration --no-warnings"
     :init-value (lambda (obj) (oset obj value (and duration-p (oref obj argument)))))
    ("-p" "play" "--exec 'mpv --no-pause {}\; rm {}'"
@@ -11024,7 +11026,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :init-value (lambda (obj) (oset obj value "'bestvideo*+bestaudio/best'")))
    ("-S" "format sort" "--format-sort "
     :class transient-option
-    :init-value (lambda (obj) (oset obj value "'filesize:1.5G'")))
+    :init-value (lambda (obj) (oset obj value "'codec,ext,size:1.5G'")))
    ("-o" "output" "--output "
     :class transient-option :reader dispatch-dwim-read-yt-dlp-output
     :prompt "Output file name without extension: "
