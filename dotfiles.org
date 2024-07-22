@@ -5512,10 +5512,10 @@ Ancestors are looked up If current heading has no CATEGORY."
             'org-web-track-display-values)
       (when (require 'org-ql nil t)
         (org-ql-search org-web-track-files
-                       `(property ,org-web-track-url)
-                       :super-groups '((:tag "book") (:tag "food")
-                                       (:tag "tool") (:tag "supply"))
-                       :buffer (current-buffer)))))
+          `(property ,org-web-track-url)
+          :super-groups '((:tag "book") (:tag "food")
+                          (:tag "tool") (:tag "supply"))
+          :buffer (current-buffer)))))
   (defun my/org-web-track-update-all-and-notify ()
     "Update all web tracking items in `org-web-track-files'
  and send an email if any of them has changed its value."
@@ -5550,7 +5550,8 @@ Ancestors are looked up If current heading has no CATEGORY."
        [.a-size-medium.a-color-base])) ; rating
      (,(regexp-quote "www.amazon.co.jp")
       ([.a-price.aok-align-center > .a-offscreen]
-       [div:availability span])) ; availability
+       [div:availability span]) ; availability
+      )
      (,(regexp-quote "www.yodobashi.com/product")
       [:js_scl_unitPrice])
      (,(regexp-quote "kakaku.com/item")
@@ -5558,7 +5559,7 @@ Ancestors are looked up If current heading has no CATEGORY."
      (,(regexp-quote "store.steampowered.com")
       (lambda (dom)
         (when-let ((products (dom-search dom (lambda (node) (string-prefix-p "game_area_purchase_game"
-                                                                             (dom-attr node 'class))))))
+                                                                         (dom-attr node 'class))))))
           (dom-text (or (dom-by-class (car products) "game_purchase_price")
                         (dom-by-class (car products) "discount_final_price"))))))
      (,(regexp-quote "www.googleapis.com/youtube/v3/channels")
@@ -5585,7 +5586,8 @@ Ancestors are looked up If current heading has no CATEGORY."
      (,(regexp-quote "map.kaldi.co.jp/kaldi")
       "pup 'div[class=\"shop_bnr news\"] ul li text{}' | xargs echo -n")
      (,(regexp-quote "www.seijoishii.com")
-      [.price > .total])))
+      [.price > .total])
+     ("localhost" identity)))
   (org-agenda-bulk-custom-functions
    '((?U org-web-track-agenda-update)))
   (org-web-track-item-column-width 16)
