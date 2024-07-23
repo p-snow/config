@@ -5179,16 +5179,13 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 
 [[https://gitlab.com/phillord/org-drill][org-drill]] helps me to learn english words and phrases. [[https://youtu.be/SGzdFtN_NqE][This video]] introduces how I use org-drill.
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-org-drill"
-#+end_src
-
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
 ("https://gitlab.com/phillord/org-drill/-/tags?format=atom" soft_update)
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
 (use-package org-drill
+  :ensure t
   :after org
   :bind (:map org-mode-map
               ("C-c D" . org-drill-tree))
@@ -13923,6 +13920,7 @@ Display information and add it to kill ring if called interactively."
            (org-drill-adjust-intervals-for-early-and-late-repetitions-p t)
            ;; Adjusting item difficulty globally
            (org-drill-learn-fraction 0.43) ; intend not to reschedule drastically forward in 10th+ interval
+           (org-drill-leech-method nil)
            (org-startup-indented nil)
            (logos-hide-cursor t)
            (logos-hide-mode-line t)
