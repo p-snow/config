@@ -5557,8 +5557,11 @@ Ancestors are looked up If current heading has no CATEGORY."
       (lambda (dom)
         (when-let ((products (dom-search dom (lambda (node) (string-prefix-p "game_area_purchase_game"
                                                                          (dom-attr node 'class))))))
-          (dom-text (or (dom-by-class (car products) "game_purchase_price")
-                        (dom-by-class (car products) "discount_final_price"))))))
+          (seq-some (lambda (prod)
+                      (let ((text (dom-text (or (dom-by-class prod "game_purchase_price")
+                                                (dom-by-class prod "discount_final_price")))))
+                        (if (length= text 0) nil text)))
+                    products))))
      (,(regexp-quote "www.googleapis.com/youtube/v3/channels")
       (lambda (json)
         (assoc-default 'subscriberCount
