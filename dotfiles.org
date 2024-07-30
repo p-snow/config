@@ -12089,7 +12089,7 @@ exit 0
 #+end_src
 
 
-*** bespoke org tweaks
+*** Org Tweaks for Specific Purposes
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
 :END:
@@ -12802,15 +12802,15 @@ The hook functions, which is commented out, provoke malfunction failing to creat
     (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil)))))
 #+end_src
 
-**** show outline path for the entry at point
+**** Showing an Outline Path for the Entry
 :PROPERTIES:
 :CREATED:  [2023-11-01 Wed 14:48]
 :END:
 
 #+begin_src emacs-lisp
-(defun my/org-show-outline-path ()
-  "Show sparse tree for the entry at point to represent outline path."
-  (interactive)
+(defun my/org-show-outline-path (pom)
+  "Display a sparse tree that shows an outline path for the entry at POM."
+  (interactive (list (point)))
   (save-excursion
     (cl-labels ((lookup-parent ()
                   (let* ((heading-raw (substring-no-properties
@@ -12827,7 +12827,7 @@ The hook functions, which is commented out, provoke malfunction failing to creat
                                              (lookup-parent)
                                              " "))))))
 
-(with-eval-after-load 'my/org-mode-init
+(with-eval-after-load 'org-ql
   (keymap-set org-mode-map "C-c M-/"
               #'my/org-show-outline-path))
 #+end_src
