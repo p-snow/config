@@ -4399,7 +4399,8 @@ If entry at POM has no clock log time stamp, this function returns 0."
            ((org-agenda-skip-function #'my/org-agenda-skip-on-hold-task)))
           ("l" "Log entries in a week"
            agenda ""
-           ((org-agenda-span (if (equal current-prefix-arg '(4))
+           ((org-agenda-skip-function #'my/org-agenda-skip-on-hold-task)
+            (org-agenda-span (if (equal current-prefix-arg '(4))
                                  'day 'week))
             (org-agenda-start-with-log-mode t)
             (org-agenda-start-with-clockreport-mode t)
@@ -4412,7 +4413,8 @@ If entry at POM has no clock log time stamp, this function returns 0."
                priority-down))))
           ("L" "Log entry timeline on today with default org-agenda-prefix-format"
            agenda ""
-           ((org-agenda-prefix-format (eval (car (get 'org-agenda-prefix-format 'standard-value))))
+           ((org-agenda-skip-function #'my/org-agenda-skip-on-hold-task)
+            (org-agenda-prefix-format (eval (car (get 'org-agenda-prefix-format 'standard-value))))
             (org-agenda-span (if (equal current-prefix-arg '(4))
                                  'day 'week))
             (org-agenda-start-with-clockreport-mode t)
