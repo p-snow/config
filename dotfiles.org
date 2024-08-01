@@ -9471,6 +9471,20 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
               #'my/japanese-holiday-show)))
 #+end_src
 
+***** consult-denote
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-consult-denote"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package consult-denote
+  :after (consult denote)
+  :init (consult-denote-mode)
+  :bind (("C-c n f" . consult-denote-find)
+         ("C-c n g" . consult-denote-grep)))
+#+end_src
+
 *** further extension
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
