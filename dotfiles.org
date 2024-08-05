@@ -1313,6 +1313,7 @@ HOLD: KEY_RIGHTSHIFT
 :PROPERTIES:
 :CREATED:  [2023-01-20 Fri 10:22]
 :CUSTOM_ID: gnu-emacs
+:header-args:emacs-lisp+: :tangle-mode (identity #o644)
 :END:
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
@@ -1327,13 +1328,13 @@ no-littering-var-directory
 
 *** basic configuration
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir) :tangle-mode (identity #o644)
+:header-args:emacs-lisp+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
 **** early-init.el
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory) :tangle-mode (identity #o644)
+:header-args:emacs-lisp+: :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
 :END:
 
 Early init file defines fundamental variables used from both normal Emacs session and batch mode.
@@ -4221,7 +4222,7 @@ alias <<print-aliases(lang="plain")>>
 **** Org Mode
 :PROPERTIES:
 :CREATED:  [2023-01-24 Tue 16:02]
-:header-args+: :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
+:header-args:emacs-lisp+: :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
 :END:
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
@@ -6840,7 +6841,7 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
 **** Elisp Package Development
 :PROPERTIES:
 :CREATED:  [2023-06-08 Thu 13:58]
-:header-args+: :tangle (expand-file-name "elisp-devel.el" tangle/emacs-config-dir)
+:header-args:emacs-lisp+: :tangle (expand-file-name "elisp-devel.el" tangle/emacs-config-dir)
 :END:
 
 ***** package build
@@ -7004,7 +7005,7 @@ This subtree holds resources for [[https://p-snow.org/][my blog]].
     "#+end:")
 #+end_src
 
-**** emacs external packages
+**** External Emacs Packages
 
 Packages below are out of categories above. Packages which have ARCHIVE tag is no longer in use. Keywords which package gives in its description are set to tag.
 
@@ -9483,6 +9484,67 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   :init (consult-denote-mode)
   :bind (("C-c n f" . consult-denote-find)
          ("C-c n g" . consult-denote-grep)))
+#+end_src
+
+**** My Emacs Packages
+
+***** lfile
+
+#+begin_src emacs-lisp
+(use-package lfile
+  :after org
+  :config
+  (put 'lfile-locate 'org-link-abbrev-safe t))
+#+end_src
+
+***** open-file
+
+#+begin_src emacs-lisp
+(require 'open-file)
+#+end_src
+
+***** org-password-store
+
+#+begin_src emacs-lisp
+(use-package org-password-store
+  :after org
+  :bind (:map org-mode-map
+              ("C-c p c c" . my/password-store-copy)
+              ("C-c p c f" . my/password-store-copy-field)
+              ("C-c p s" . my/password-store-show-field)
+              ("C-c p w" . my/password-store-url)
+              ("C-c p l" . my/password-store-web-login)
+              ("C-c p n" . my/password-store-create)
+              ("C-c p e" . my/password-store-edit)
+              ("C-c p v" . my/password-store-edit)
+              ("C-c p k" . my/password-store-remove)))
+#+end_src
+
+***** org-drill-english
+
+#+begin_src emacs-lisp
+(use-package org-drill-english
+  :after org
+  :bind (:map my/org-global-map
+              ("e e" . my/org-english-capture)
+              ("e d" . my/org-english-drill)
+              ("e r" . my/org-english-drill-resume)
+              ("e l" . my/org-english-link)
+              ("E" . my/cloze-deletion-replace)
+              ("e q" . my/org-english-search)
+              :map engine-mode-prefixed-map
+              ("j" . (lambda (word)
+                       "Copy Japanese translation as well as the pronunciation to `kill-ring'."
+                       (interactive (list (determine-search-word)))
+                       (when (if (featurep 'org-drill-english)
+                                 t
+                               (require 'org-drill-english nil t))
+                         (kill-new (message "%s %s"
+                                            (my/english-japanese-translate word t)
+                                            (my/english-pronunciation word t)))))))
+  :config
+  (when (require 'denote nil t)
+    (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
 #+end_src
 
 *** further extension
@@ -12101,7 +12163,6 @@ rm -f ${AUDIO_FILE}
 exit 0
 #+end_src
 
-
 *** Org Tweaks for Specific Purposes
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
@@ -13042,8 +13103,10 @@ If called interactively, it prompt the user to select the date to find."
 *** would-be packages
 :PROPERTIES:
 :CREATED:  [2023-01-12 Thu 14:14]
+:header-args:emacs-lisp+: :shebang ";; -*- lexical-binding: t -*-"
 :END:
-**** lfile (custom org link type)
+
+**** Package: lfile (custom org link type)
 :PROPERTIES:
 :CREATED:  [2023-04-14 Fri 14:24]
 :ID:       6c7027a8-b023-4752-967d-c6c0a8834d2c
@@ -13051,13 +13114,6 @@ If called interactively, it prompt the user to select the date to find."
 
 lfile is an extended org link type for files in local machine. It is inspired by [[https://karl-voit.at/2022/02/10/lfile/][Kerl Voit's implementation]].
 It is implemented using abbrev mechanism since functionality of file: link type such as inline image or exporting can be easily imparted.
-
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
-(use-package lfile
-  :after org
-  :config
-  (put 'lfile-locate 'org-link-abbrev-safe t))
-#+end_src
 
 #+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "lfile.el" tangle/emacs-sitelisp-dir)
 (require 'ol)
@@ -13285,7 +13341,7 @@ A link consists of LINK and DESCRIPTION."
 (provide 'lfile)
 #+end_src
 
-**** open-file
+**** Package: open-file
 :PROPERTIES:
 :CREATED:  [2023-01-28 Sat 13:58]
 :END:
@@ -13293,10 +13349,6 @@ A link consists of LINK and DESCRIPTION."
 Open-file is a feature that allows you to specify the application to open a file based on its type.
 
 By default, PDF and EPUB files are opened in EWW after converted into HTML. Videos and audio files are played in MPV media player.
-
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
-(require 'open-file)
-#+end_src
 
 #+NAME: open-file
 #+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "open-file.el" tangle/emacs-sitelisp-dir)
@@ -13389,6 +13441,13 @@ QUERY must comply to RFC 822 format, which holds attribute/value pairs."
 
 ;; ==============================================
 ;; browse-url handling
+
+(defun ghq-list (query)
+  "Return a list containing all ghq repositories matching QUERY."
+  (split-string (string-trim-right
+                 (shell-command-to-string
+                  (format "ghq list --full-path '%s'" query)))
+                "\n" t))
 
 (with-eval-after-load 'browse-url
   (setopt browse-url-handlers
@@ -13526,25 +13585,10 @@ a `dired-open-file' call with `C-u' or `C-u C-u'."
         (princ (replace-regexp-in-string regex rep html)))))
   #+end_src
 
-**** org-password-store
+**** Package: org-password-store
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 17:48]
 :END:
-
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
-(use-package org-password-store
-  :after org
-  :bind (:map org-mode-map
-              ("C-c p c c" . my/password-store-copy)
-              ("C-c p c f" . my/password-store-copy-field)
-              ("C-c p s" . my/password-store-show-field)
-              ("C-c p w" . my/password-store-url)
-              ("C-c p l" . my/password-store-web-login)
-              ("C-c p n" . my/password-store-create)
-              ("C-c p e" . my/password-store-edit)
-              ("C-c p v" . my/password-store-edit)
-              ("C-c p k" . my/password-store-remove)))
-#+end_src
 
 #+begin_src emacs-lisp :tangle (expand-file-name "org-password-store.el" tangle/emacs-sitelisp-dir)
 (require 'password-store)
@@ -13707,34 +13751,7 @@ My workflow for acquiring English words is:
 2. Review my English word list with my/org-english-drill everyday
    - Org-drill ask questions to level up my vocabulary
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
-(use-package org-drill-english
-  :after org
-  :bind (:map my/org-global-map
-              ("e e" . my/org-english-capture)
-              ("e d" . my/org-english-drill)
-              ("e r" . my/org-english-drill-resume)
-              ("e l" . my/org-english-link)
-              ("E" . my/cloze-deletion-replace)
-              ("e q" . my/org-english-search)
-              :map engine-mode-prefixed-map
-              ("j" . (lambda (word)
-                       "Copy Japanese translation as well as the pronunciation to `kill-ring'."
-                       (interactive (list (determine-search-word)))
-                       (when (if (featurep 'org-drill-english)
-                                 t
-                               (require 'org-drill-english nil t))
-                         (kill-new (message "%s %s"
-                                            (my/english-japanese-translate word t)
-                                            (my/english-pronunciation word t)))))))
-  :config
-  (when (require 'denote nil t)
-    (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
-#+end_src
-
 #+begin_src emacs-lisp  :tangle (expand-file-name "org-drill-english.el" tangle/emacs-sitelisp-dir) :comments no
-;; -*- lexical-binding: t -*-
-
 (require 'define-word)
 (require 'org)
 (require 'org-drill)
@@ -14382,15 +14399,13 @@ Provide a function to Build a clock table summing up time by tag.
 (provide 'weather)
 #+end_src
 
-**** dispatch-dwim
+**** Package: dispatch-dwim
 :PROPERTIES:
 :CREATED:  [2024-03-29 Fri 14:57]
 :END:
 
 #+NAME: package/dispatch-dwim
 #+begin_src emacs-lisp :comments no :tangle (expand-file-name "dispatch-dwim.el" tangle/emacs-sitelisp-dir)
-;; -*- lexical-binding: t -*-
-
 (require 'transient)
 (require 'detached)
 
@@ -14541,12 +14556,13 @@ Provide a function to Build a clock table summing up time by tag.
 (provide 'dispatch-dwim)
 #+end_src
 
-**** fingertip mode
+**** Package: fingertip mode
 :PROPERTIES:
 :CREATED:  [2024-04-10 Wed 00:24]
 :END:
 
 #+NAME: package/fingertip-mode
+#+header: :shebang ""
 #+begin_src emacs-lisp :comments no :tangle (expand-file-name "fingertip.el" tangle/emacs-sitelisp-dir)
 ;;; fingertip.el --- one-handed buffer browsing -*- lexical-binding: t -*-
 
@@ -14951,15 +14967,6 @@ target=github.com
 #+HEADER: :var name="p-snow/guix-channel"
 #+begin_src shell :tangle no
 ghq list --full-path $name | head -n 1 | sed "s:$HOME:~:"
-#+end_src
-
-#+begin_src emacs-lisp :noweb-ref elisp-code
-(defun ghq-list (query)
-  "Return a list containing all ghq repositories matching QUERY."
-  (split-string (string-trim-right
-                 (shell-command-to-string
-                  (format "ghq list --full-path '%s'" query)))
-                "\n" t))
 #+end_src
 
 *** personal ghq environment
