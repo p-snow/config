@@ -12449,7 +12449,7 @@ If property's value matches $(...) format, ... is interpreted as shell command a
       (org-babel-lob-ingest org-file))))
 #+end_src
 
-**** alter org heading
+**** Altering the Org Heading Text
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 10:55]
 :END:
@@ -12459,21 +12459,24 @@ If property's value matches $(...) format, ... is interpreted as shell command a
 #+begin_src emacs-lisp
 (with-eval-after-load 'org
   (bind-keys :map org-mode-map
-             ("C-c C-% h" . my/org-change-heading)))
+             ("C-c C-%" . my/org-alter-heading)))
 
-(defun my/org-change-heading ()
-  "CHange the heading of the entry at `point'.
+(defun my/org-alter-heading ()
+  "CHange the heading text of the entry at point.
 
-The previous name will be stored along with the execution date."
+The previous heading is logged as a log note."
   (interactive)
   (let* ((old-heading (org-get-heading t t t t))
-         (new-heading (read-string "Heading: " old-heading)))
+         (new-heading (read-string "Heading: " old-heading))
+         (org-log-note-headings (append '((heading . "Heading %-12s from %-12S %t"))
+                                        org-log-note-headings)))
     (save-excursion
       (org-back-to-heading t)
       (replace-string old-heading new-heading nil
                       (line-beginning-position) (line-end-position))
       (org-align-tags))
-    (org-add-log-setup 'state new-heading old-heading 'state)))
+    (org-add-log-setup 'heading new-heading old-heading 'state)
+    (run-hooks 'post-command-hook)))
 #+end_src
 
 **** download media files in org             :ARCHIVE:
