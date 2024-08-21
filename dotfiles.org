@@ -5536,6 +5536,41 @@ Ancestors are looked up If current heading has no CATEGORY."
         (message-goto-body)
         (insert mail-msg)
         (message-send-and-exit))))
+  (defvar my/usd-exchange-rates nil)
+  (defun my/usd-excange-rate (currency)
+    "Return the exchange rate between CURRENCY and the US dollar.
+
+This function also Update `my/usd-exchange-rates', a list of
+exchange rate against US dollar."
+    (or my/usd-exchange-rates
+        (request (concat "https://openexchangerates.org/api/latest.json?app_id="
+                         (my/credential-info "openexchangerates.org" "app id"))
+          :sync t
+          :success
+          (cl-function
+           (lambda (&key response &allow-other-keys)
+             (let ((content (request-response-data response)))
+               (setq my/usd-exchange-rates (json-parse-string content :object-type 'alist)))))
+          :complete
+          (cl-function
+           (lambda (&key data &allow-other-keys)
+             data))))
+    (assoc-default currency
+                   (assoc-default 'rates my/usd-exchange-rates)))
+  (defun my/convert-currency (target-currency amount)
+    "Convert AMOUNT into TARGET-CURRENCY."
+    (let* ((currs '(("$" . USD) ("€" . EUR) ("£" . GBP) ("₹" . INR)
+                    ("¥" . JPY) ("¥" . CNY) ("₩" . KRW) ("₽" . RUB)))
+           (curr-re (rx-to-string `(seq (group-n 1 (or ,@(mapcar 'car currs)))
+                                        (group-n 2 (1+ digit))))))
+      (when (string-match curr-re amount)
+        (let ((amt-in-usd (string-to-number (match-string 2 amount)))
+              (to-usd-rate (my/usd-excange-rate
+                            (assoc-default (match-string 1 amount) currs)))
+              (from-usd-rate (my/usd-excange-rate target-currency)))
+          (format "%s%.2f"
+                  (car (rassq target-currency currs))
+                  (/ (* amt-in-usd from-usd-rate) to-usd-rate))))))
   :custom
   (org-web-track-selectors-alist
    `((,(regexp-quote "www.lenovo.com/jp/ja/p/laptops/thinkpad")
@@ -5600,7 +5635,8 @@ Ancestors are looked up If current heading has no CATEGORY."
       (lambda (dom)
         (when-let* ((price-w (car (dom-by-class dom "product-info__header_price-wrapper")))
                     (price (car (dom-by-class price-w "tw-text-save-color"))))
-          (dom-text price))))))
+          (dom-text price)))
+      ,(apply-partially #'my/convert-currency 'JPY))))
   (org-agenda-bulk-custom-functions
    '((?U org-web-track-agenda-update)))
   (org-web-track-item-column-width 16)
@@ -10539,12 +10575,14 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
 :END:
 
 #+begin_src emacs-lisp
-(defun my/credential-info (host key)
-  "Return API key for HOST or OpenAI."
-  (or (cdr (assoc key (auth-source-pass-parse-entry host)))
-      (let ((sec (plist-get (car (auth-source-search :host host)) :secret)))
-        (if (functionp sec)
-            (funcall sec) sec))))
+(when (require 'auth-source-pass nil t)
+  (auth-source-pass-enable)
+  (defun my/credential-info (host key)
+    "Return API key for HOST or OpenAI."
+    (or (cdr (assoc key (auth-source-pass-parse-entry host)))
+        (let ((sec (plist-get (car (auth-source-search :host host)) :secret)))
+          (if (functionp sec)
+              (funcall sec) sec)))))
 #+end_src
 
 ***** miscellaneous functions/commands
