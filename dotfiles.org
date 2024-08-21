@@ -1326,9 +1326,9 @@ HOLD: KEY_RIGHTSHIFT
 no-littering-var-directory
 #+end_src
 
-*** basic configuration
+*** Basic Configuration
 :PROPERTIES:
-:header-args:emacs-lisp+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
+:header-args:emacs-lisp+: :tangle (expand-file-name "basic-config.el" tangle/emacs-config-dir)
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
@@ -4222,7 +4222,7 @@ alias <<print-aliases(lang="plain")>>
 **** Org Mode
 :PROPERTIES:
 :CREATED:  [2023-01-24 Tue 16:02]
-:header-args:emacs-lisp+: :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
+:header-args:emacs-lisp+: :tangle (expand-file-name "org-config.el" tangle/emacs-config-dir)
 :END:
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
@@ -5487,7 +5487,7 @@ Ancestors are looked up If current heading has no CATEGORY."
 
 [[help:my/org-web-track-update-all-and-notify][org-web-track-update-all-and-notify]] seems not to suit midnight-hook.
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-web-track.el" tangle/emacs-config-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "org-web-track-config.el" tangle/emacs-config-dir)
 (use-package org-web-track
   :ensure t
   :after (my/org-mode-init my-org-global-map)
@@ -5512,10 +5512,10 @@ Ancestors are looked up If current heading has no CATEGORY."
             'org-web-track-display-values)
       (when (require 'org-ql nil t)
         (org-ql-search org-web-track-files
-          `(property ,org-web-track-url)
-          :super-groups '((:tag "book") (:tag "food")
-                          (:tag "tool") (:tag "supply"))
-          :buffer (current-buffer)))))
+                       `(property ,org-web-track-url)
+                       :super-groups '((:tag "book") (:tag "food")
+                                       (:tag "tool") (:tag "supply"))
+                       :buffer (current-buffer)))))
   (defun my/org-web-track-update-all-and-notify ()
     "Update all web tracking items in `org-web-track-files'
  and send an email if any of them has changed its value."
@@ -5626,7 +5626,8 @@ Ancestors are looked up If current heading has no CATEGORY."
 export DISPLAY=:0 && \
   emacs -Q --batch \
         -l $XDG_CONFIG_HOME/emacs/early-init.el \
-        -l $XDG_CONFIG_HOME/emacs/lisp/my-org-web-track.el \
+        -l $XDG_CONFIG_HOME/emacs/lisp/ext-config.el \
+        -l $XDG_CONFIG_HOME/emacs/lisp/org-web-track-config.el \
         -l $XDG_CONFIG_HOME/emacs/batch/org-web-track-mail.el \
         -f my/org-web-track-mail
 #+end_src
@@ -9549,9 +9550,9 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
     (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
 #+end_src
 
-*** further extension
+*** Additiional Extensive Configuration
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "my-config.el" tangle/emacs-config-dir)
+:header-args+: :tangle (expand-file-name "ext-config.el" tangle/emacs-config-dir)
 :CREATED:  [2023-01-20 Fri 10:22]
 :END:
 
@@ -9648,38 +9649,6 @@ unit test
                    "1minute 20second"))
   (should (string= (my/expand-shorthand-time " 2h10m ")
                    " 2hour10minute ")))
-#+end_src
-
-***** org link at point map
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 14:58]
-:END:
-
-#+begin_src emacs-lisp
-(defun org-link-at-point-map (function)
-  "Call FUNCTION with a list whose elements are the URL and title
-obtained from the org-link at the current point."
-  (when-let* ((context (org-element-lineage
-                        (org-element-context)
-                        '(link)
-                        t))
-              (type (org-element-property :type context))
-              (path (org-element-property :path context))
-              (desc (when-let ((begin (org-element-property :contents-begin context))
-                               (end (org-element-property :contents-end context)))
-                      (buffer-substring begin end))))
-    (cond
-     ((string-match-p "https?" type)
-      (funcall function (list (org-link-unescape (concat type ":" path)) desc)))
-     ((string-match-p "elfeed" type)
-      (save-excursion
-        (org-open-at-point)
-        (when (eq major-mode 'elfeed-show-mode)
-          (when-let ((url (or (caar (elfeed-entry-enclosures elfeed-show-entry))
-                              (elfeed-entry-link elfeed-show-entry)))
-                     (title (elfeed-entry-title elfeed-show-entry)))
-            (funcall function (list url title)))
-          (quit-window)))))))
 #+end_src
 
 ***** play sound
@@ -10377,11 +10346,10 @@ ACTION is either 'save or 'play, determining what to do with the response."
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle
-(require 'tts)
-
-(keymap-global-set "C-x C-\"" #'my/tts-say-it)
-(with-eval-after-load 'embark
-  (keymap-set embark-region-map "\"" #'my/tts-say-it))
+(when (require 'tts nil t)
+  (keymap-global-set "C-x C-\"" #'my/tts-say-it)
+  (with-eval-after-load 'embark
+    (keymap-set embark-region-map "\"" #'my/tts-say-it)))
 
 (defun my/tts-say-it (text)
   ""
@@ -10389,7 +10357,7 @@ ACTION is either 'save or 'play, determining what to do with the response."
                       ((region-active-p)
                        (buffer-substring-no-properties (region-beginning) (region-end)))
                       (sentence-at-point))))
-  (tts-openai-request (my/credential-info)
+  (tts-openai-request (my/credential-info "openai.com" "apikey")
                       text
                       #'my/tts-play))
 
@@ -10525,9 +10493,10 @@ surrounded by word boundaries."
       (reb-quit)
       (query-replace-regexp re replacement delimited beg end))))
 
-(keymap-set reb-mode-map "RET" #'reb-replace-regexp)
-(keymap-set reb-lisp-mode-map "RET" #'reb-replace-regexp)
-(keymap-global-set "C-%" #'re-builder)
+(when (require 'rebuilder nil t)
+  (keymap-set reb-mode-map "RET" #'reb-replace-regexp)
+  (keymap-set reb-lisp-mode-map "RET" #'reb-replace-regexp)
+  (keymap-global-set "C-%" #'re-builder))
 #+end_src
 
 ***** mark and open a file in one go in Dired
@@ -10754,7 +10723,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+begin_src emacs-lisp
-(require 'dispatch-dwim)
+(require 'dispatch-dwim nil t)
 
 ;;; Misc
 
@@ -12181,8 +12150,40 @@ exit 0
 
 *** Org Tweaks for Specific Purposes
 :PROPERTIES:
-:header-args+: :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
+:header-args+: :tangle (expand-file-name "org-config.el" tangle/emacs-config-dir)
 :END:
+
+**** org link at point map
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 14:58]
+:END:
+
+#+begin_src emacs-lisp
+(defun org-link-at-point-map (function)
+  "Call FUNCTION with a list whose elements are the URL and title
+obtained from the org-link at the current point."
+  (when-let* ((context (org-element-lineage
+                        (org-element-context)
+                        '(link)
+                        t))
+              (type (org-element-property :type context))
+              (path (org-element-property :path context))
+              (desc (when-let ((begin (org-element-property :contents-begin context))
+                               (end (org-element-property :contents-end context)))
+                      (buffer-substring begin end))))
+    (cond
+     ((string-match-p "https?" type)
+      (funcall function (list (org-link-unescape (concat type ":" path)) desc)))
+     ((string-match-p "elfeed" type)
+      (save-excursion
+        (org-open-at-point)
+        (when (eq major-mode 'elfeed-show-mode)
+          (when-let ((url (or (caar (elfeed-entry-enclosures elfeed-show-entry))
+                              (elfeed-entry-link elfeed-show-entry)))
+                     (title (elfeed-entry-title elfeed-show-entry)))
+            (funcall function (list url title)))
+          (quit-window)))))))
+#+end_src
 
 **** keymap for global org commands
 :PROPERTIES:
@@ -14280,7 +14281,7 @@ This command must be called in parent node which should have one of `org-relate-
 
 Provide a function to Build a clock table summing up time by tag.
 
-#+begin_src emacs-lisp :tangle (expand-file-name "my-org-config.el" tangle/emacs-config-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "org-config.el" tangle/emacs-config-dir)
 (with-eval-after-load 'org
   (require 'org-clocktable-by-tag))
 #+end_src
