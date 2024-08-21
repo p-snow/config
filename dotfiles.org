@@ -7168,7 +7168,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
               :map chatgpt-shell-mode-map
               ("C-M-g" . chatgpt-shell-clear-buffer))
   :custom
-  (chatgpt-shell-openai-key 'my/apikey)
+  (chatgpt-shell-openai-key 'my/credential-info)
   (chatgpt-shell-system-prompt 3)
   (chatgpt-shell-model-temperature 0.6))
 
@@ -7183,7 +7183,7 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 (use-package dall-e-shell
   :commands dall-e-shell
   :custom
-  (dall-e-shell-openai-key 'my/apikey))
+  (dall-e-shell-openai-key 'my/credential-info))
 #+end_src
 
 ***** async
@@ -7381,16 +7381,8 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
                           ('(16) #'gptel)
                           ('(4) #'gptel-menu)
                           (default #'gptel-send))))
-  (defun my/apikey (&optional host key)
-    "Return API key for HOST or OpenAI."
-    (let ((host-fixed (or host "openai.com"))
-          (key-fixed (or key "apikey")))
-      (or (cdr (assoc key-fixed (auth-source-pass-parse-entry host-fixed)))
-          (let ((sec (plist-get (car (auth-source-search :host host-fixed)) :secret)))
-            (if (functionp sec)
-                (funcall sec) sec)))))
   :custom
-  (gptel-api-key 'my/apikey)
+  (gptel-api-key (apply-partially #'my/credential-info "openai.com" "apikey"))
   (gptel-max-tokens 500)
   (gptel-model "gpt-4o-mini")
   (gptel-default-mode 'org-mode)
@@ -7404,11 +7396,11 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
   (cl-pushnew '(english . "Please help me interpret the following sentence into English.")
               gptel-directives)
   (gptel-make-gemini "Gemini"
-    :key (apply-partially 'my/apikey "www.google.com/<<full-name>>" "gemini apikey")
+    :key (apply-partially 'my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
     :stream t)
   (gptel-make-openai "Perplexity"
     :host "api.perplexity.ai"
-    :key (apply-partially 'my/apikey "perplexity.ai")
+    :key (apply-partially 'my/credential-info "perplexity.ai")
     :endpoint "/chat/completions"
     :stream t
     :models '("llama-3.1-sonar-small-128k-online"
@@ -10397,7 +10389,7 @@ ACTION is either 'save or 'play, determining what to do with the response."
                       ((region-active-p)
                        (buffer-substring-no-properties (region-beginning) (region-end)))
                       (sentence-at-point))))
-  (tts-openai-request (my/apikey)
+  (tts-openai-request (my/credential-info)
                       text
                       #'my/tts-play))
 
@@ -10570,6 +10562,20 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
   (insert " ")
   (backward-char 1))
 (keymap-global-set "M-o" 'my/open-space)
+#+end_src
+
+***** Retrieving Credential Information
+:PROPERTIES:
+:CREATED:  [2024-08-21 Wed 14:18]
+:END:
+
+#+begin_src emacs-lisp
+(defun my/credential-info (host key)
+  "Return API key for HOST or OpenAI."
+  (or (cdr (assoc key (auth-source-pass-parse-entry host)))
+      (let ((sec (plist-get (car (auth-source-search :host host)) :secret)))
+        (if (functionp sec)
+            (funcall sec) sec))))
 #+end_src
 
 ***** miscellaneous functions/commands
