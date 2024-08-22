@@ -10585,6 +10585,34 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
               (funcall sec) sec)))))
 #+end_src
 
+***** Binding Saved Kmacro under H-k
+:PROPERTIES:
+:CREATED:  [2024-08-22 Thu 16:44]
+:END:
+
+#+begin_src emacs-lisp
+(keymap-global-set "H-k"
+                   (define-keymap
+                     :prefix 'my/kmacro-map))
+
+(defun my/insert-last-kbd-macro (macroname keys)
+  "Customized `insert-kbd-macro' to bind last recorded kbd macro to `my/kmacro-map'.."
+  (interactive (list (read-string "Macro name: ")
+                     (read-string "Keys (following H-k): ")))
+  (kmacro-name-last-macro (intern macroname))
+  (insert-kbd-macro (intern macroname))
+  (insert "(keymap-set my/kmacro-map")
+  (insert (format " \"%s\"" keys))
+  (insert (format " #'%s)" macroname)))
+
+(keymap-global-set "C-x C-k i" #'my/insert-last-kbd-macro)
+
+(mapc #'load-file
+      (file-expand-wildcards
+       (concat (no-littering-expand-etc-file-name "kmacro")
+               "/*.el")))
+#+end_src
+
 ***** miscellaneous functions/commands
 
 #+begin_src emacs-lisp
