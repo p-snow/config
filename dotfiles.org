@@ -9525,6 +9525,16 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
          ("C-c n g" . consult-denote-grep)))
 #+end_src
 
+***** capf-autosuggest
+
+[[https://repo.or.cz/emacs-capf-autosuggest.git][capf-autosuggest]] provides auto-suggestion functionality in Eshell and major modes, which is derived from Comint mode. In =capf-autosuggest-mode=, you can use =C-e= to complete the entire command suggested as a placeholder, and =M-f= to complete a single word.
+
+#+begin_src emacs-lisp
+(use-package capf-autosuggest
+  :ensure t
+  :hook ((eshell-mode comint-mode) . capf-autosuggest-mode))
+#+end_src
+
 **** My Emacs Packages
 
 ***** lfile
