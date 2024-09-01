@@ -4192,12 +4192,18 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
   (eshell-prompt-regexp "[#$] ")
   (eshell-visual-subcommands '(("git" "log" "diff" "show")))
   (eshell-scroll-to-bottom-on-input 'this)
+  (eshell-history-size 2500)
+  (eshell-hist-ignoredups t)
   :config
   (require 'em-prompt)
   (bind-keys :map eshell-prompt-mode-map
              ("C-h" . delete-backward-char)
              ("M-h" . backward-kill-word))
-  (setq eshell-path-env (getenv "PATH")))
+  (setq eshell-path-env (getenv "PATH"))
+  (with-eval-after-load 'consult
+    ;; narrow down eshell history using vertico
+    (bind-keys :map eshell-hist-mode-map
+               ("C-M-n" . consult-history))))
 
 (defun eshell-command-alert (process status)
   "Send `alert' with severity based on STATUS when PROCESS finished."
