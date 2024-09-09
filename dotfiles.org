@@ -4043,14 +4043,15 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
 #+begin_src emacs-lisp
 (use-package elfeed-org
   :after (elfeed org)
+  :init
+  (with-eval-after-load 'denote
+    (setq rmh-elfeed-org-files
+          (list (denote-get-path-by-id "20230605T173315"))))
   :custom
   (rmh-elfeed-org-ignore-tag "ARCHIVE")
   (rmh-elfeed-org-auto-ignore-invalid-feeds nil)
   :config
-  (when (require 'denote nil t)
-    (setq rmh-elfeed-org-files
-          (list (denote-get-path-by-id "20230605T173315")))
-    (elfeed-org)))
+  (elfeed-org))
 #+end_src
 
 Packages managed by other than guix (i.e. straight.el or apt) are encouraged to register feed since updating information channel is desirable to exist.
