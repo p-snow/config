@@ -4205,8 +4205,9 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
   (setq eshell-path-env (getenv "PATH"))
   (with-eval-after-load 'consult
     ;; narrow down eshell history using vertico
-    (bind-keys :map eshell-hist-mode-map
-               ("C-M-n" . consult-history))))
+    (when (require 'em-hist nil t)
+      (bind-keys :map eshell-hist-mode-map
+                 ("C-M-n" . consult-history)))))
 
 (defun eshell-command-alert (process status)
   "Send `alert' with severity based on STATUS when PROCESS finished."
