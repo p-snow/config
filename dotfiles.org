@@ -3244,7 +3244,9 @@ sudo systemctl start dictd
 
 #+begin_src emacs-lisp
 (use-package dired
-  :bind (:map dired-mode-map
+  :bind (:map global-map
+              ("C-x d" . dired-jump)
+              :map dired-mode-map
               ("C-j" . dired-find-file)
               ("^" . dired-up-directory)
               ("(" . dired-hide-details-mode)
