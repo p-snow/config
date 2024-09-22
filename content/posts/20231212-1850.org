@@ -1,0 +1,59 @@
+#+title: 新たなスペルチェッカー Jinx
+#+date: <2023-12-12 Tue 18:50>
+#+description:
+#+filetags: japanese spellcheck
+
+#+SETUPFILE: content/header
+
+この記事は [[https://qiita.com/advent-calendar/2023/emacs][Emacs Advent Calendar 2023]] の13日目の記事です。
+
+{{{preview-begin}}}
+みなさんEmacsで英文、書いてますか？
+
+最近、個人的に英語での情報発信欲が高まっていて、このサイトでもいくつか英文記事を書きました。海外からいろいろレスポンスをもらえるのは楽しいです。
+英文執筆ではChatGPTの存在が頼もしく、私の稚拙な英語表現もおおむね正しく直してくれるので、間違いを恐れずガンガン書き進めていけるのがよいです。
+ChatGPT利用には主に [[https://github.com/xenodium/chatgpt-shell][chatgpt-shell]] パッケージを使っています。M-x chatgpt-shell-proofread-region すれば校閲結果を返してくれます。
+{{{preview-end}}}
+
+今日は私の英文執筆時のもうひとつのミカタ、英単語スペルチェッカー Jinx を紹介してみたいとおもいます。
+
+Emacs でスペルチェッカーと言うとビルトインの ispell/flyspell がありますが、個人的にはうまく使えずにいました。M-$ (ispell-word) を押しても自分が使っている completion framework (vertico) が使えなかったり、などなど。
+Jinxは動作が機敏で単語修正候補に好みの補完フレームワークが使えるので個人的に満足しています。
+
+Jinxはバックエンドとして[[https://abiword.github.io/enchant/][Enchant]]を使います。Enchantは統一的なスペルチェック用APIを提供するライブラリです。その裏ではHunspellやAspellなどのスペルチェックプログラムをユーザが指定する順序で呼び出しています。
+なのでJinxを動作させるには、Jinx自身をインストール・設定することに加えて、Enchantとスペルチェッカーもインストールする必要があります。
+
+以下、関連パッケージのインストール例
+- Jinxインストール時にlibenchantを使ってモジュールをコンパイルするのでpkgconf/pkg-configが必要
+- スペルチェッカーはEnchantでデフォルトチェッカーになっている Hunspell だけあれば事足りる印象
+- macOSでは[[https://github.com/minad/jinx/issues/48][フリーズするケースがある]]そうなのでご注意を
+
+Ubuntu/Debian
+#+begin_src shell
+  apt install libenchant-2-dev pkgconf enchant-2 hunspell hunspell-en-us
+#+end_src
+
+Guix
+#+begin_src shell
+  guix install emacs-jinx enchant hunspell hunspell-dict-en hunspell-dict-en-us
+#+end_src
+
+Enchantは、ユーザコンフィグディレクトリ(~/.config/enchant など)にユーザ辞書(en_US.dic)などを置いて checker agnostic に設定することができます。
+
+Jinxは GNU ELPA/melpa にあるので問題なくインストールできます。M-$ を ispell-word に代わって jinx-correct に割り当てています。
+
+{{{accordion-begin(Elisp Code)}}}
+#+begin_src emacs-lisp
+  (use-package jinx
+    :ensure t
+    :bind (("M-$" . jinx-correct)
+           ("C-M-$" . jinx-languages))
+    :hook ((prog-mode conf-mode) . jinx-mode)
+    :config
+    (bind-keys :map jinx-mode-map
+               ("M-n" . jinx-next)
+               ("M-p" . jinx-previous)))
+#+end_src
+{{{accordion-end}}}
+
+これで M-$ を押せばJinxがスペルミスした単語を見つけだし修正候補を提示してくれます。スペルミスした単語にポイントを置き M-n/M-p で次/前の候補に移動してどんどん修正できます。超快適！

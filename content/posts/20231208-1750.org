@@ -1,0 +1,24 @@
+#+title: git-annex resolves the issue of org and binary file separation
+#+date: <2023-12-08 Sun 17:50>
+#+description:
+#+filetags: english org git
+
+#+SETUPFILE: content/header
+
+{{{preview-begin}}}
+If you are an avid Org Mode user and a life logger like me, chances are you have your Org files stored in a Git repository. Even if you manage to represent your life in textual data, there are often cases where you should or need to utilize a more eloquent data format. Notifications from the municipality are often in PDF format, memories of your family members are typically stored as JPEG or MKV files, and the program on which your research relies is an EXE file. It is impractical to include these binary files in your Git repository. But how do we manage them in conjunction with Org files? This is where [[https://git-annex.branchable.com/][git-annex]] comes to the rescue.
+{{{preview-end}}}
+
+Similar to [[https://git-lfs.com/][Git LFS]], git-annex is designed to deal with binary data in Git repository. With git-annex, your existing Git repository can handle binary data in addition to managing text data in a familiar way. With your upgraded binary-ready Git repository, you can use hyperlinks or [[https://orgmode.org/manual/Attachments.html][org-attach]] in Org files where both the referrer (org) and the referent (binary) are in the same hierarchy.
+
+Since binary files tend to increase in size, some Git repository instances may not have enough space to store all the binary files themselves. git-annex can address this issue by managing the number of copies for each binary file. For example, the Git repository on the NAS at home contains copies of all binary files, while the one in cloud storage only includes the smaller, more significant files. git-annex implements this feature by utilizing Un*x symlink mechanism. git-annex also offers a wide range of functionalities. You can explore some of them by following this [[https://git-annex.branchable.com/walkthrough/][walkthrough]].
+
+Our esteemed editor, Emacs, has a reliable package for managing git-annex within Emacs. The package's name is quite straightforward: "[[https://github.com/jwiegley/git-annex-el][git-annex]]". With this package, you can easily manage annexed files in Dired, making it extremely user-friendly.
+
+#+begin_src emacs-lisp
+  (use-package git-annex
+    :ensure t
+    :after dired)
+#+end_src
+
+If you are facing difficulties in finding a suitable place for your valuable yet large binary files, give git-annex a try!

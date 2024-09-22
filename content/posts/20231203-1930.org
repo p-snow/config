@@ -1,0 +1,39 @@
+#+title: Emacsでroot所有のファイルを編集する
+#+date: <2023-12-03 Sun 19:30>
+#+description:
+#+filetags: emacs japanese
+
+#+SETUPFILE: content/header
+
+{{{preview-begin}}}
+EmacsでPC内のrootユーザ所有のファイルを編集したいという場面は、特にLinuxをお使いなら、けっこうあるのではないでしょうか。もしすでにEmacsが起動していればC-x C-fを押して、ミニバッファに以下を入力するとよいです。(ログインユーザがsudoerであることが前提です)
+{{{preview-end}}}
+
+#+begin_src text
+/sudo:root@localhost:<ファイルパス>
+#+end_src
+
+すでに開いているファイルをroot権限で編集したければ次のようなコマンドを用意してみるのもよいかも。
+
+{{{accordion-begin(Elisp Code)}}}
+#+begin_src emacs-lisp
+  (defun my/sudo-edit-local-file ()
+    "Reopen the current buffer file with root privileges."
+    (interactive)
+    (when (file-exists-p buffer-file-name)
+      (find-alternate-file
+       (concat "/sudo:root@localhost:"
+               buffer-file-name))))
+#+end_src
+{{{accordion-end}}}
+
+以上のような方法でファイルを開こうとするとパスワードを尋ねられるわけですが、auth sourceの仕組みを使って予めパスワードをEmacsが見られるようにしておけば入力せずに済みます。私の場合はpass(password-store)を使っているので以下のような感じ。
+
+#+begin_src emacs-lisp
+  (require 'auth-source)
+  (require 'auth-source-pass)
+
+  (auth-source-pass-enable)
+#+end_src
+
+あとは ~/.password-store/<hostname>/<username>.gpg の一行目にログインパスワードを書けばOK。

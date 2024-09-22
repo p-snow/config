@@ -1,0 +1,37 @@
+#+title: TempEL, an Emacs package for managing templates
+#+date: <2023-11-21 Tue>
+#+filetags: emacs english
+
+#+SETUPFILE: content/header
+
+{{{preview-begin}}}
+[[https://github.com/joaotavora/yasnippet#start-of-content][YASnippet]] had been my go-to package until I came across [[https://www.reddit.com/r/emacs/comments/yuyqqj/can_tempel_replace_yasnippet/][this thread]]. Now I'm excited about yet another Emacs template system named "[[https://github.com/minad/tempel][TempEL]]". YASnippet is undoubtedly a great package for handling snippets formatted like in TextMate. The only drawback I often encounter is that the package manages each snippet in a separate file, and acquiring the snippet format can be slightly challenging. TempEL addressed this concern with the 'tempo' format, which has been around in Emacs for decades.
+{{{preview-end}}}
+
+The following two templates are used to create the same skeleton for a blog post in Org-mode, using YASnippet and TempEL as the respective tools.
+
+{{{accordion-begin(YASnippet)}}}
+#+begin_src text
+  # -*- mode: snippet -*-
+  # name: blog-post
+  # key: blog
+  # --
+  ,* ${1:blog_title}
+  SCHEDULED: ${2:`(format-time-string "<%Y-%m-%d %a>")`}
+  :PROPERTIES:
+  :EXPORT_FILE_NAME: ${3:`(format-time-string "%Y%m%d_%H%M")`}
+  :END:
+  ${0:`(org-expiry-insert-created)`}
+#+end_src
+{{{accordion-end}}}
+
+{{{accordion-begin(TempEL)}}}
+#+begin_src emacs-lisp
+(blog & (org-insert-heading-after-current)
+      (p "blog title: " title t) (insert title)
+      (prog1 nil (org-schedule nil (current-time)))
+      (org-entry-put (point) "EXPORT_FILE_NAME" (format-time-string "%Y%m%d_%H%M")))
+#+end_src
+{{{accordion-end}}}
+
+As you can see, the TempEL format allows you to write templates in full Lisp data code, whereas YASnippet's format permits the use of Lisp code to a limited extent, as long as the code does not directly manipulate buffer contents. That's the point I'd like to recommend TempEL to Lispers and Emacs enthusiasts. You can see [[https://github.com/p-snow/config/blob/main/dotfiles.org#my-tempel-templates-in-modes][my TempEL templates]] being incorporated into [[https://www.p-snow.org/config/dotfiles.html][my configuration collection]].
