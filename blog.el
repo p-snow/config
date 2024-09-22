@@ -37,7 +37,6 @@
       (concat "<header><nav>"
               "<a href=\"https://www.p-snow.org\">Home</a>"
               "<a href=\"https://www.p-snow.org/config/blog/tag-english.html\">Posts</a>"
-              "<a href=\"https://www.p-snow.org/config/blog/tag-japanese.html\">日本語記事</a>"
               "<a href=\"https://www.p-snow.org/config/blog/about.html\">About</a>"
               "<a href=\"https://www.p-snow.org/config/blog/rss.xml\">RSS</a>"
               "</nav><h1>.dot life</h1><p>by p-snow</p></header>"))
