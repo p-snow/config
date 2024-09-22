@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="alternate"
+      type="application/rss+xml"
+      href="https://www.p-snow.org/config/blog/rss.xml"
+      title="RSS feed for https://www.p-snow.org/config/blog">
+<title>Emacsでroot所有のファイルを編集する</title>
+<meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="https://cdn.simplecss.org/simple.css"><link rel="stylesheet" href="./assets/css/style.css"></head>
+<body>
+<div id="preamble" class="status"><header><nav><a href="https://www.p-snow.org">Home</a><a href="https://www.p-snow.org/config/dotfiles.html#gnu-emacs">Emacs Config</a><a href="https://www.p-snow.org/tag-english.html">Posts</a><a href="https://www.p-snow.org/tag-japanese.html">日本語記事</a><a href="https://www.p-snow.org/about.html">About</a><a href="https://www.p-snow.org/rss.xml">RSS</a></nav><h1>.dot life</h1><p>by p-snow</p></header></div>
+<div id="content">
+<div class="post-date">03 Dec 2023</div><h1 class="post-title"><a href="https://www.p-snow.org/config/blog/20231203-1930.html">Emacsでroot所有のファイルを編集する</a></h1>
+<p>
+<preview>
+EmacsでPC内のrootユーザ所有のファイルを編集したいという場面は、特にLinuxをお使いなら、けっこうあるのではないでしょうか。もしすでにEmacsが起動していればC-x C-fを押して、ミニバッファに以下を入力するとよいです。(ログインユーザがsudoerであることが前提です)
+</preview>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-text">/sudo:root@localhost:&lt;&#12501;&#12449;&#12452;&#12523;&#12497;&#12473;&gt;
+</pre>
+</div>
+
+<p>
+すでに開いているファイルをroot権限で編集したければ次のようなコマンドを用意してみるのもよいかも。
+</p>
+
+<p>
+<details><summary>Elisp Code</summary><p>
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/sudo-edit-local-file</span> ()
+  <span style="font-style: italic;">"Reopen the current buffer file with root privileges."</span>
+  (<span style="font-weight: bold;">interactive</span>)
+  (<span style="font-weight: bold;">when</span> (file-exists-p buffer-file-name)
+    (find-alternate-file
+     (concat <span style="font-style: italic;">"/sudo:root@localhost:"</span>
+             buffer-file-name))))
+</pre>
+</div>
+<p>
+</p></details>
+</p>
+
+<p>
+以上のような方法でファイルを開こうとするとパスワードを尋ねられるわけですが、auth sourceの仕組みを使って予めパスワードをEmacsが見られるようにしておけば入力せずに済みます。私の場合はpass(password-store)を使っているので以下のような感じ。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">require</span> '<span style="font-weight: bold; text-decoration: underline;">auth-source</span>)
+(<span style="font-weight: bold;">require</span> '<span style="font-weight: bold; text-decoration: underline;">auth-source-pass</span>)
+
+(auth-source-pass-enable)
+</pre>
+</div>
+
+<p>
+あとは ~/.password-store/&lt;hostname&gt;/&lt;username&gt;.gpg の一行目にログインパスワードを書けばOK。
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/blog/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/blog/tag-emacs.html">emacs</a> <a href="https://www.p-snow.org/config/blog/tag-japanese.html">japanese</a> </div></div>
+<div id="postamble" class="status"></div>
+</body>
+</html>
