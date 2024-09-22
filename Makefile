@@ -19,6 +19,6 @@ publish: $(PUBLISH_EL)
 blog: $(BLOG_EL)
 	$(EMACS) -Q --batch -l $<
 
-.PHONY: tangle
+.PHONY: tangle blog
 
 ### Makefile ends here
