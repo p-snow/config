@@ -17,8 +17,8 @@
 
 (require 'org-static-blog)
 (setq org-static-blog-publish-title ".dot life")
-(setq org-static-blog-publish-url "https://www.p-snow.org")
-(setq org-static-blog-publish-directory "./public/")
+(setq org-static-blog-publish-url "https://www.p-snow.org/config/blog")
+(setq org-static-blog-publish-directory "./public/blog/")
 (setq org-static-blog-posts-directory "./content/posts/")
 (setq org-static-blog-drafts-directory "./content/drafts/")
 (setq org-static-blog-enable-tags t)
