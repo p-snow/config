@@ -16,7 +16,7 @@
 
 
 (require 'org-static-blog)
-(setq org-static-blog-publish-title ".dot life")
+(setq org-static-blog-publish-title ".dotlife")
 (setq org-static-blog-publish-url "https://www.p-snow.org/config/blog")
 (setq org-static-blog-publish-directory "./public/blog/")
 (setq org-static-blog-posts-directory "./blog/content/posts/")
