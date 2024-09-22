@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="alternate"
+      type="application/rss+xml"
+      href="https://www.p-snow.org/config/blog/rss.xml"
+      title="RSS feed for https://www.p-snow.org/config/blog">
+<title>新たなスペルチェッカー Jinx</title>
+<meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="https://cdn.simplecss.org/simple.css"><link rel="stylesheet" href="./assets/css/style.css"></head>
+<body>
+<div id="preamble" class="status"><header><nav><a href="https://www.p-snow.org">Home</a><a href="https://www.p-snow.org/config/blog/tag-english.html">Posts</a><a href="https://www.p-snow.org/config/blog/tag-japanese.html">日本語記事</a><a href="https://www.p-snow.org/config/blog/about.html">About</a><a href="https://www.p-snow.org/config/blog/rss.xml">RSS</a></nav><h1>.dot life</h1><p>by p-snow</p></header></div>
+<div id="content">
+<div class="post-date">12 Dec 2023</div><h1 class="post-title"><a href="https://www.p-snow.org/config/blog/20231212-1850.html">新たなスペルチェッカー Jinx</a></h1>
+<p>
+この記事は <a href="https://qiita.com/advent-calendar/2023/emacs">Emacs Advent Calendar 2023</a> の13日目の記事です。
+</p>
+
+<p>
+<preview>
+みなさんEmacsで英文、書いてますか？
+</p>
+
+<p>
+最近、個人的に英語での情報発信欲が高まっていて、このサイトでもいくつか英文記事を書きました。海外からいろいろレスポンスをもらえるのは楽しいです。
+英文執筆ではChatGPTの存在が頼もしく、私の稚拙な英語表現もおおむね正しく直してくれるので、間違いを恐れずガンガン書き進めていけるのがよいです。
+ChatGPT利用には主に <a href="https://github.com/xenodium/chatgpt-shell">chatgpt-shell</a> パッケージを使っています。M-x chatgpt-shell-proofread-region すれば校閲結果を返してくれます。
+</preview>
+</p>
+
+<p>
+今日は私の英文執筆時のもうひとつのミカタ、英単語スペルチェッカー Jinx を紹介してみたいとおもいます。
+</p>
+
+<p>
+Emacs でスペルチェッカーと言うとビルトインの ispell/flyspell がありますが、個人的にはうまく使えずにいました。M-$ (ispell-word) を押しても自分が使っている completion framework (vertico) が使えなかったり、などなど。
+Jinxは動作が機敏で単語修正候補に好みの補完フレームワークが使えるので個人的に満足しています。
+</p>
+
+<p>
+Jinxはバックエンドとして<a href="https://abiword.github.io/enchant/">Enchant</a>を使います。Enchantは統一的なスペルチェック用APIを提供するライブラリです。その裏ではHunspellやAspellなどのスペルチェックプログラムをユーザが指定する順序で呼び出しています。
+なのでJinxを動作させるには、Jinx自身をインストール・設定することに加えて、Enchantとスペルチェッカーもインストールする必要があります。
+</p>
+
+<p>
+以下、関連パッケージのインストール例
+</p>
+<ul class="org-ul">
+<li>Jinxインストール時にlibenchantを使ってモジュールをコンパイルするのでpkgconf/pkg-configが必要</li>
+<li>スペルチェッカーはEnchantでデフォルトチェッカーになっている Hunspell だけあれば事足りる印象</li>
+<li>macOSでは<a href="https://github.com/minad/jinx/issues/48">フリーズするケースがある</a>そうなのでご注意を</li>
+</ul>
+
+<p>
+Ubuntu/Debian
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">apt install libenchant-2-dev pkgconf enchant-2 hunspell hunspell-en-us
+</pre>
+</div>
+
+<p>
+Guix
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">guix install emacs-jinx enchant hunspell hunspell-dict-en hunspell-dict-en-us
+</pre>
+</div>
+
+<p>
+Enchantは、ユーザコンフィグディレクトリ(~/.config/enchant など)にユーザ辞書(en<sub>US.dic</sub>)などを置いて checker agnostic に設定することができます。
+</p>
+
+<p>
+Jinxは GNU ELPA/melpa にあるので問題なくインストールできます。M-$ を ispell-word に代わって jinx-correct に割り当てています。
+</p>
+
+<p>
+<details><summary>Elisp Code</summary><p>
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">use-package</span> jinx
+  <span style="font-weight: bold;">:ensure</span> t
+  <span style="font-weight: bold;">:bind</span> ((<span style="font-style: italic;">"M-$"</span> . jinx-correct)
+         (<span style="font-style: italic;">"C-M-$"</span> . jinx-languages))
+  <span style="font-weight: bold;">:hook</span> ((prog-mode conf-mode) . jinx-mode)
+  <span style="font-weight: bold;">:config</span>
+  (<span style="font-weight: bold;">bind-keys</span> <span style="font-weight: bold;">:map</span> jinx-mode-map
+             (<span style="font-style: italic;">"M-n"</span> . jinx-next)
+             (<span style="font-style: italic;">"M-p"</span> . jinx-previous)))
+</pre>
+</div>
+<p>
+</p></details>
+</p>
+
+<p>
+これで M-$ を押せばJinxがスペルミスした単語を見つけだし修正候補を提示してくれます。スペルミスした単語にポイントを置き M-n/M-p で次/前の候補に移動してどんどん修正できます。超快適！
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/blog/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/blog/tag-japanese.html">japanese</a> <a href="https://www.p-snow.org/config/blog/tag-spellcheck.html">spellcheck</a> </div></div>
+<div id="postamble" class="status"></div>
+</body>
+</html>
