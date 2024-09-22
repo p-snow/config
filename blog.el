@@ -39,7 +39,7 @@
               "<a href=\"https://www.p-snow.org/config/blog/tag-english.html\">Posts</a>"
               "<a href=\"https://www.p-snow.org/config/blog/about.html\">About</a>"
               "<a href=\"https://www.p-snow.org/config/blog/rss.xml\">RSS</a>"
-              "</nav><h1>.dot life</h1><p>by p-snow</p></header>"))
+              "</nav><h1>.dotlife</h1><p>by p-snow</p></header>"))
 (setq org-static-blog-no-post-tag "nonpost")
 (setq org-static-blog-rss-excluded-tag "nonrss")
 
