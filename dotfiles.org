@@ -5646,7 +5646,11 @@ exchange rate against US dollar."
         (when-let* ((price-w (car (dom-by-class dom "product-info__header_price-wrapper")))
                     (price (car (dom-by-class price-w "tw-text-save-color"))))
           (dom-text price)))
-      ,(apply-partially #'my/convert-currency 'JPY))))
+      ,(apply-partially #'my/convert-currency 'JPY))
+     (,(regexp-quote "api.github.com/repos")
+      (lambda (json)
+        (number-to-string
+         (assoc-default 'stargazers_count json))))))
   (org-agenda-bulk-custom-functions
    '((?U org-web-track-agenda-update)))
   (org-web-track-item-column-width 16)
