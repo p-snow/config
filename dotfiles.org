@@ -5444,7 +5444,11 @@ Ancestors are looked up If current heading has no CATEGORY."
   (with-eval-after-load 'org-capture
     (add-hook 'org-capture-prepare-finalize-hook
               #'org-expiry-insert-created))
-  (org-expiry-insinuate))
+  ;; Workaround for the malfunction of org-expiry-insinuate
+  (unless (ignore-errors (org-expiry-insinuate))
+    (add-hook 'org-insert-heading-hook 'org-expiry-insert-created)
+    (add-hook 'org-after-todo-state-change-hook 'org-expiry-insert-created)
+    (add-hook 'org-after-tags-change-hook 'org-expiry-insert-created)))
 #+end_src
 
 ****** ob-async                            :ARCHIVE:
