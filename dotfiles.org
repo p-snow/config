@@ -2427,11 +2427,14 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
 
 ****** Killing
 
+The =save-interprogram-paste-before-kill= variable controls whether clipboard text is moved to the kill-ring when some text is killed in Emacs. This is something I've been longing for!
+
 #+begin_src emacs-lisp
 (setopt yank-pop-change-selection t)
 (setopt delete-active-region 'kill)
 (setopt kill-do-not-save-duplicates nil)
 (setopt kill-whole-line nil)
+(setopt save-interprogram-paste-before-kill (expt 2 16))
 #+end_src
 
 ****** Undo
