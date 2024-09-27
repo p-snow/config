@@ -4263,11 +4263,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
                 (unless my/org-initialized
                   (setq my/org-initialized t)
                   (run-hooks 'my/org-mode-init-hook)
-                  (provide 'my/org-mode-init))))
-  :config
-  (bind-keys :map org-mode-map
-             ("C-c F" . org-next-block)
-             ("C-c B" . org-previous-block)))
+                  (provide 'my/org-mode-init)))))
 
 (defvar my/org-todo-keyword--urgent "UG"
   "TODO keyword acronym standing for 'UrGent'")
@@ -4308,7 +4304,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (keymap-set map "C-S-p" #'org-previous-item)
     (keymap-set map "C-S-n" #'org-next-item)
     (keymap-set map "C-S-u" #'org-up-element)
-    (keymap-set map "C-M-d" #'org-down-element)
+    (keymap-set map "C-S-d" #'org-down-element)
     (keymap-set map "C-<" #'org-previous-link)
     (keymap-set map "C->" #'org-next-link)
     (keymap-set map "C-c @" #'org-mark-element)
@@ -12400,12 +12396,10 @@ minibuffer ran."
   "b" #'org-backward-element
   ">" #'org-next-link
   "<" #'org-previous-link
-  "F" #'org-next-block
-  "B" #'org-previous-block
   "M-f" #'org-next-block
   "M-b" #'org-previous-block
-  "M-n" #'org-babel-next-src-block
-  "M-p" #'org-babel-previous-src-block)
+  "M-F" #'org-babel-next-src-block
+  "M-B" #'org-babel-previous-src-block)
 #+end_src
 
 **** show org entries pointing to the current (backlink)
