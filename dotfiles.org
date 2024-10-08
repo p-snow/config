@@ -2158,30 +2158,30 @@ Formerly, I used to bind C-h to `backward-delete-char' and M-h to `backward-kill
 (setopt line-number-mode nil
         column-number-mode nil
         mode-line-compact t)
-(setopt
- mode-line-format
- '("%e"
-   mode-line-front-space
-   (:eval
-    (let ((mode-line-buffer-name
-           (replace-regexp-in-string " %\\([[:ascii:]]\\)" " %%\\1"
-                                     (truncate-string-to-width
-                                      (buffer-name) my/mode-line-buffer-name-length-max nil ? t))))
-      (cond
-       (buffer-read-only
-        (propertize mode-line-buffer-name 'face 'underline))
-       ((buffer-modified-p)
-        (propertize mode-line-buffer-name 'face 'warning))
-       (mode-line-buffer-name))))
-   (:eval
-    (cond
-     ((and line-number-mode
-           column-number-mode)
-      mode-line-position-column-line-format)
-     (line-number-mode mode-line-position-line-format)
-     (column-number-mode mode-line-position-column-format)))
-   " "
-   global-mode-string))
+(setopt mode-line-format
+        '("%e"
+          (:eval (my/tab-bar-mode-line-string))
+          mode-line-front-space
+          (:eval
+           (let ((mode-line-buffer-name
+                  (replace-regexp-in-string " %\\([[:ascii:]]\\)" " %%\\1"
+                                            (truncate-string-to-width
+                                             (buffer-name) my/mode-line-buffer-name-length-max nil ? t))))
+             (cond
+              (buffer-read-only
+               (propertize mode-line-buffer-name 'face 'underline))
+              ((buffer-modified-p)
+               (propertize mode-line-buffer-name 'face 'warning))
+              (mode-line-buffer-name))))
+          (:eval
+           (cond
+            ((and line-number-mode
+                  column-number-mode)
+             mode-line-position-column-line-format)
+            (line-number-mode mode-line-position-line-format)
+            (column-number-mode mode-line-position-column-format)))
+          " "
+          global-mode-string))
 #+end_src
 
 ******* Display Time
@@ -2353,11 +2353,19 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
   (tab-bar-tab-hints t)
   (tab-bar-tab-name-function (apply-partially #'my/project-root-path t))
   :preface
+  (defun my/tab-bar-mode-line-string ()
+    "Return the first 3 characters of the name for the current tab."
+    (substring
+     (assoc-default 'name
+                    (assoc-default 'current-tab
+                                   (funcall tab-bar-tabs-function)))
+     0 3))
   (defun my/project-root-path (&optional base-name)
     "Return an absolute path for `project-current' or base name if BASE-NAME is non-nil."
-    (when-let (project (project-current))
-      (funcall (if base-name #'file-name-nondirectory #'identity)
-               (directory-file-name (project-root project)))))
+    (if-let (project (project-current))
+        (funcall (if base-name #'file-name-nondirectory #'identity)
+                 (directory-file-name (project-root project)))
+      (buffer-name)))
   :config
   (with-eval-after-load 'consult
     (bind-keys :map tab-prefix-map
