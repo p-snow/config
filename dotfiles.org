@@ -5610,11 +5610,11 @@ exchange rate against US dollar."
      (,(rx "www.amazon.co.jp" (+ anychar) "-ebook")
       "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'")
      (,(regexp-quote "www.amazon.co.jp/product-reviews")
-      ([.a-size-base.a-color-secondary] ; num of stars
-       [.a-size-medium.a-color-base])) ; rating
+      [.a-size-base.a-color-secondary] ; num of stars
+      [.a-size-medium.a-color-base])  ; rating
      (,(regexp-quote "www.amazon.co.jp")
-      ([.a-price.aok-align-center > .a-offscreen]
-       [div:availability span]) ; availability
+      [.a-price.aok-align-center > .a-offscreen]
+      [div:availability span]         ; availability
       )
      (,(regexp-quote "www.yodobashi.com/product")
       [:js_scl_unitPrice])
