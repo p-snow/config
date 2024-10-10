@@ -5601,8 +5601,25 @@ exchange rate against US dollar."
                   (car (rassq target-currency currs))
                   (/ (* amt-in-usd from-usd-rate) to-usd-rate))))))
   :custom
+  (org-web-track-use-curl nil)
+  (org-web-track-content-fetcher-alist
+   `((,(regexp-quote "melpa.org/#/") .
+      (lambda (url)
+        (shell-command-to-string
+         (format "~/tmp/fetch-content-simple.py %s"
+                 (shell-quote-argument url)))))))
   (org-web-track-selectors-alist
-   `((,(regexp-quote "www.lenovo.com/jp/ja/p/laptops/thinkpad")
+   `((,(regexp-quote "melpa\.org/#/") .
+      (lambda (dom)
+        (-> dom
+            (dom-by-class "dl-horizontal")
+            (car)
+            (dom-by-tag 'dd)
+            (car)
+            (dom-text)
+            (split-string)
+            (car))))
+     (,(regexp-quote "www.lenovo.com/jp/ja/p/laptops/thinkpad")
       (lambda (dom)
         (when-let ((price-node (car (dom-search dom (lambda (node) (string= "productpromotionprice"
                                                                         (dom-attr node 'name)))))))
@@ -5646,10 +5663,9 @@ exchange rate against US dollar."
                   (assoc-default 'commentCount stat))))))
      (,(regexp-quote "openexchangerates.org/api/latest")
       (lambda (json)
-        (number-to-string
-         (assoc-default 'JPY
-                        (assoc-default 'rates json))))
-      (lambda (rate) (format "%.3f" (string-to-number rate))))
+        (format "%.3f"
+                (assoc-default 'JPY
+                               (assoc-default 'rates json)))))
      (,(regexp-quote "map.kaldi.co.jp/kaldi")
       "pup 'div[class=\"shop_bnr news\"] ul li text{}' | xargs echo -n")
      (,(regexp-quote "www.seijoishii.com")
@@ -5666,9 +5682,7 @@ exchange rate against US dollar."
                     (price (car (dom-by-class price-w "tw-text-save-color"))))
           (my/convert-currency 'JPY (dom-text price)))))
      (,(regexp-quote "api.github.com/repos")
-      (lambda (json)
-        (number-to-string
-         (assoc-default 'stargazers_count json))))))
+      ,(apply-partially 'assoc-default 'stargazers_count))))
   (org-agenda-bulk-custom-functions
    '((?U org-web-track-agenda-update)))
   (org-web-track-item-column-width 16)
