@@ -5664,8 +5664,7 @@ exchange rate against US dollar."
       (lambda (dom)
         (when-let* ((price-w (car (dom-by-class dom "product-info__header_price-wrapper")))
                     (price (car (dom-by-class price-w "tw-text-save-color"))))
-          (dom-text price)))
-      ,(apply-partially #'my/convert-currency 'JPY))
+          (my/convert-currency 'JPY (dom-text price)))))
      (,(regexp-quote "api.github.com/repos")
       (lambda (json)
         (number-to-string
