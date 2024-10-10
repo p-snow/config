@@ -631,7 +631,7 @@ fc-cache -rvf
 *** bashrc
 
 #+BEGIN_SRC bash :noweb yes :tangle (expand-file-name "guix/home/.bashrc" tangle/config-dir) :comments no :shebang ""
-export PATH="${HOME}/.local/bin:${HOME}/.cargo/bin:$PATH"
+export PATH="${HOME}/bin:${HOME}/.local/bin:${HOME}/.cargo/bin:$PATH"
 export PS1="[\u@$(uname -n):\\W]\n\$ "
 
 <<bashrc>>
@@ -5607,7 +5607,7 @@ exchange rate against US dollar."
    `((,(regexp-quote "melpa.org/#/") .
       (lambda (url)
         (shell-command-to-string
-         (format "~/tmp/fetch-content-simple.py %s"
+         (format "fetch-dynamic-page.py %s"
                  (shell-quote-argument url)))))))
   (org-web-track-selectors-alist
    `((,(regexp-quote "melpa\.org/#/") .
@@ -5682,7 +5682,7 @@ exchange rate against US dollar."
         (when-let* ((price-w (car (dom-by-class dom "product-info__header_price-wrapper")))
                     (price (car (dom-by-class price-w "tw-text-save-color"))))
           (my/convert-currency 'JPY (dom-text price)))))
-     (,(regexp-quote "api.github.com/repos")
+     (,(regexp-quote "api.github.com/repos") .
       ,(apply-partially 'assoc-default 'stargazers_count))))
   (org-agenda-bulk-custom-functions
    '((?U org-web-track-agenda-update)))
