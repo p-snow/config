@@ -18,9 +18,9 @@
 (require 'org-static-blog)
 (setq org-static-blog-publish-title ".dotlife")
 (setq org-static-blog-publish-url "https://www.p-snow.org/config/blog")
-(setq org-static-blog-publish-directory "./public/blog/")
-(setq org-static-blog-posts-directory "./blog/content/posts/")
-(setq org-static-blog-drafts-directory "./blog/content/drafts/")
+(setq org-static-blog-publish-directory "./public/diary/")
+(setq org-static-blog-posts-directory "./diary/posts/")
+(setq org-static-blog-drafts-directory "./diary/drafts/")
 (setq org-static-blog-enable-tags t)
 (setq org-static-blog-use-preview t)
 (setq org-static-blog-preview-start "<preview>")
@@ -36,9 +36,9 @@
 (setq org-static-blog-page-preamble
       (concat "<header><nav>"
               "<a href=\"https://www.p-snow.org\">Home</a>"
-              "<a href=\"https://www.p-snow.org/config/blog/tag-english.html\">Posts</a>"
-              "<a href=\"https://www.p-snow.org/config/blog/about.html\">About</a>"
-              "<a href=\"https://www.p-snow.org/config/blog/rss.xml\">RSS</a>"
+              "<a href=\"https://www.p-snow.org/config/diary/tag-english.html\">Posts</a>"
+              "<a href=\"https://www.p-snow.org/config/diary/about.html\">About</a>"
+              "<a href=\"https://www.p-snow.org/config/diary/rss.xml\">RSS</a>"
               "</nav><h1>.dotlife</h1><p>by p-snow</p></header>"))
 (setq org-static-blog-no-post-tag "nonpost")
 (setq org-static-blog-rss-excluded-tag "nonrss")
@@ -53,7 +53,7 @@
       org-html-head-include-default-style nil
       org-html-head "<link rel=\"stylesheet\" href=\"https://cdn.simplecss.org/simple.min.css\" />")
 
-(org-static-blog-publish-file "./blog/content/drafts/about.org")
+;; (org-static-blog-publish-file "./blog/content/drafts/about.org")
 (org-static-blog-publish)
 
 (message "Build complete!")
