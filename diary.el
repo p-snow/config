@@ -16,8 +16,8 @@
 
 
 (require 'org-static-blog)
-(setq org-static-blog-publish-title ".dotlife")
-(setq org-static-blog-publish-url "https://www.p-snow.org/config/blog")
+(setq org-static-blog-publish-title "ティンカラー日記")
+(setq org-static-blog-publish-url "https://www.p-snow.org/config/diary")
 (setq org-static-blog-publish-directory "./public/diary/")
 (setq org-static-blog-posts-directory "./diary/posts/")
 (setq org-static-blog-drafts-directory "./diary/drafts/")
