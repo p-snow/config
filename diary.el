@@ -36,7 +36,6 @@
 (setq org-static-blog-page-preamble
       (concat "<header><nav>"
               "<a href=\"https://www.p-snow.org\">Home</a>"
-              "<a href=\"https://www.p-snow.org/config/diary/tag-english.html\">Posts</a>"
               "<a href=\"https://www.p-snow.org/config/diary/about.html\">About</a>"
               "<a href=\"https://www.p-snow.org/config/diary/rss.xml\">RSS</a>"
               "</nav><h1>ティンカラー日記</h1><p>こなゆき</p></header>"))
