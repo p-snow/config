@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title><![CDATA[.dotlife]]></title>
+<description><![CDATA[.dotlife]]></description>
+<link>https://www.p-snow.org/config/blog</link>
+<lastBuildDate>Sun, 13 Oct 2024 13:46:36 +0000</lastBuildDate>
+<item>
+  <title><![CDATA[新たなスペルチェッカー Jinx]]></title>
+  <description><![CDATA[
+<p>
+この記事は <a href="https://qiita.com/advent-calendar/2023/emacs">Emacs Advent Calendar 2023</a> の13日目の記事です。
+</p>
+
+<p>
+<preview>
+みなさんEmacsで英文、書いてますか？
+</p>
+
+<p>
+最近、個人的に英語での情報発信欲が高まっていて、このサイトでもいくつか英文記事を書きました。海外からいろいろレスポンスをもらえるのは楽しいです。
+英文執筆ではChatGPTの存在が頼もしく、私の稚拙な英語表現もおおむね正しく直してくれるので、間違いを恐れずガンガン書き進めていけるのがよいです。
+ChatGPT利用には主に <a href="https://github.com/xenodium/chatgpt-shell">chatgpt-shell</a> パッケージを使っています。M-x chatgpt-shell-proofread-region すれば校閲結果を返してくれます。
+</preview>
+</p>
+
+<p>
+今日は私の英文執筆時のもうひとつのミカタ、英単語スペルチェッカー Jinx を紹介してみたいとおもいます。
+</p>
+
+<p>
+Emacs でスペルチェッカーと言うとビルトインの ispell/flyspell がありますが、個人的にはうまく使えずにいました。M-$ (ispell-word) を押しても自分が使っている completion framework (vertico) が使えなかったり、などなど。
+Jinxは動作が機敏で単語修正候補に好みの補完フレームワークが使えるので個人的に満足しています。
+</p>
+
+<p>
+Jinxはバックエンドとして<a href="https://abiword.github.io/enchant/">Enchant</a>を使います。Enchantは統一的なスペルチェック用APIを提供するライブラリです。その裏ではHunspellやAspellなどのスペルチェックプログラムをユーザが指定する順序で呼び出しています。
+なのでJinxを動作させるには、Jinx自身をインストール・設定することに加えて、Enchantとスペルチェッカーもインストールする必要があります。
+</p>
+
+<p>
+以下、関連パッケージのインストール例
+</p>
+<ul class="org-ul">
+<li>Jinxインストール時にlibenchantを使ってモジュールをコンパイルするのでpkgconf/pkg-configが必要</li>
+<li>スペルチェッカーはEnchantでデフォルトチェッカーになっている Hunspell だけあれば事足りる印象</li>
+<li>macOSでは<a href="https://github.com/minad/jinx/issues/48">フリーズするケースがある</a>そうなのでご注意を</li>
+</ul>
+
+<p>
+Ubuntu/Debian
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">apt install libenchant-2-dev pkgconf enchant-2 hunspell hunspell-en-us
+</pre>
+</div>
+
+<p>
+Guix
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">guix install emacs-jinx enchant hunspell hunspell-dict-en hunspell-dict-en-us
+</pre>
+</div>
+
+<p>
+Enchantは、ユーザコンフィグディレクトリ(~/.config/enchant など)にユーザ辞書(en<sub>US.dic</sub>)などを置いて checker agnostic に設定することができます。
+</p>
+
+<p>
+Jinxは GNU ELPA/melpa にあるので問題なくインストールできます。M-$ を ispell-word に代わって jinx-correct に割り当てています。
+</p>
+
+<p>
+<details><summary>Elisp Code</summary><p>
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">use-package</span> jinx
+  <span style="font-weight: bold;">:ensure</span> t
+  <span style="font-weight: bold;">:bind</span> ((<span style="font-style: italic;">"M-$"</span> . jinx-correct)
+         (<span style="font-style: italic;">"C-M-$"</span> . jinx-languages))
+  <span style="font-weight: bold;">:hook</span> ((prog-mode conf-mode) . jinx-mode)
+  <span style="font-weight: bold;">:config</span>
+  (<span style="font-weight: bold;">bind-keys</span> <span style="font-weight: bold;">:map</span> jinx-mode-map
+             (<span style="font-style: italic;">"M-n"</span> . jinx-next)
+             (<span style="font-style: italic;">"M-p"</span> . jinx-previous)))
+</pre>
+</div>
+<p>
+</p></details>
+</p>
+
+<p>
+これで M-$ を押せばJinxがスペルミスした単語を見つけだし修正候補を提示してくれます。スペルミスした単語にポイントを置き M-n/M-p で次/前の候補に移動してどんどん修正できます。超快適！
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/blog/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/blog/tag-japanese.html">japanese</a> <a href="https://www.p-snow.org/config/blog/tag-spellcheck.html">spellcheck</a> </div>]]></description>
+  <category><![CDATA[japanese]]></category>
+  <category><![CDATA[spellcheck]]></category>
+  <link>https://www.p-snow.org/config/blog/20231212-1850.html</link>
+  <guid>https://www.p-snow.org/config/blog/20231212-1850.html</guid>
+  <pubDate>Tue, 12 Dec 2023 18:50:00 +0000</pubDate>
+</item>
+<item>
+  <title><![CDATA[Org-modeは九龍城砦]]></title>
+  <description><![CDATA[
+<p>
+<preview>
+以下の記事を興味深く読みました。
+</p>
+
+<p>
+<a href="https://rashita.net/blog/?org-mode%E3%81%A8%E3%81%84%E3%81%86%E4%BC%9D%E7%B5%B1">https://rashita.net/blog/?org-mode%E3%81%A8%E3%81%84%E3%81%86%E4%BC%9D%E7%B5%B1</a>
+</p>
+
+<p>
+Logseq や Obsidian に org-mode が提供する機能(のいくつか)が取り入れられて、多くのユーザに支持されているようで、個人的には喜ばしいことだなと思っています。(すいません、どちらも使ったことはありません。)この現象をみていると私は、org-modeで提供されているある機能と、それを参考にして実装された他アプリの機能は同じなのか、ということをよく考えます。いや、機能としては確かにほぼ同等だろうとは思います。もちろん優劣の話でもありません。以下に展開してみましょう。
+</preview>
+</p>
+
+<p>
+org-modeは、確かに出来ることを列挙していくと「重厚な思想に基づいてつくられた巨大なシステム」のように見えますが、その実体は細かいピースの集合体です。そのピースとは何か。それは、ユーザが自由に弄ることのできる設定項目と、設定を反映しながら少し気の利いたことをしてくれるコマンドもしくは関数です。
+</p>
+
+
+<p>
+これらのピースは、長い年月をかけてユーザの「こういうのあったらいいよね」を具現化して積み上げられてきました。自由闊達に。昔、誰かがブログでorg-modeを評して、「欲しい機能を好き勝手に入れ込んで積み上げられた九龍城砦のような違法建築」と言っていて、言い得て妙だなと思いました。この表現が適切かは分かりませんが、一定程度は的を射ているとおもいます。
+</p>
+
+<p>
+<a href="https://www.youtube.com/watch?v=No_vQ8FiQiw">Kowloon walled city 九龍城砦 - YouTube</a>
+</p>
+
+<p>
+一方でorg-mode全体として整合性をとる必要はもちろんあるので、現メンテナのBastien Guerryの苦労は推して知るべし、かなと思っています。結果としてorg-modeは、細かいところまで設定できる柔軟性をもつ反面、ユーザに一定以上のリテラシを要求するものに仕上がったのだとおもいます。さらに言えば、この複雑な仕様ゆえにMarkdownのように標準化が進まず、結果として他のプラットフォームへの進出が芳しくない状態になっているのではないかと推察します。
+</p>
+
+<p>
+つまり私がおもうのは、org-modeは、Big Pictureから精緻にデザインされたのではなく、ユーザのニーズに応え続けた「結果」であるということです。我々がorg-modeに抱く「思想」や「システム性」は後付けでしかないのではないか、と。(もちろんEmacsから受け継ぐ、特にテキスト編集における、ある種の「思想」はあります)
+</p>
+
+<p>
+さて、最初の話に戻りましょう。org-modeの機能の一部を他のアプリが実装することだけを考えれば、それはそれほどむずかしいことではないかもしれません。しかし、org-modeにおける機能と機能の複雑な連携を考慮に入れようとすると、とたんに難易度が爆上がりする気がします。
+</p>
+
+<p>
+加えて、機能と(キーボードメインの)ユーザ操作が独特のつながりをもつEmacsというプラットフォーム上での「体験」という点を考えれば、やはり両者はベツモノと考えた方がいいのではないか。現時点での私は、今のノートアプリ界隈の流れを見てそんなことを考えています。
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/blog/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/blog/tag-org.html">org</a> </div>]]></description>
+  <category><![CDATA[org]]></category>
+  <link>https://www.p-snow.org/config/blog/20230713-1703.html</link>
+  <guid>https://www.p-snow.org/config/blog/20230713-1703.html</guid>
+  <pubDate>Thu, 13 Jul 2023 17:03:00 +0000</pubDate>
+</item>
+</channel>
+</rss>
