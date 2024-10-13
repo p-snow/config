@@ -1,0 +1,34 @@
+#+title: Org内でタスク名のヒストリを残す
+#+date: <2023-11-21 Tue 18:58>
+#+description:
+#+filetags: org
+
+#+SETUPFILE: diary/header
+
+{{{preview-begin}}}
+タスクとは、生まれて実施されて終えられて捨てられる。そんな存在。たとえ賞味の実施期間は短くとも、タスクのライフサイクル全体を見れば、管理する当人も驚くくらいに長くなっていたなんてことはザラにあるのではないでしょうか。長い時間というものはいろいろなものを変え得る可能性を秘めています。ビジネスの風向きが変わることもあれば、生活環境が変わることもあるでしょう。そんな変化を経てもタスクだけは絶対に不変であるなんてことはもちろんありません。もしかしたらタスクの中身、つまりやることは不変だったとしても、タスク管理者のタスクに対するまなざしが変わっていたなんてこともあるでしょう。そんなときにおもうのです。「このタスク名、何か変じゃね」と。
+{{{preview-end}}}
+
+タスク名を変える。行為としてはこんな簡単なことはありません。でも私はこれが苦手でした。なぜでしょうか。ひとつには、改名するにあたり経年したタスクと真剣に向き合い直す必要があり、メンタル負荷的にこれを避けたいという心理がはたらいていたのかもしれません。もう一つは、改名することで前のタスク名が完全に消されてしまい、タスクの時間的な変遷が隠れてしまうことを惜しんでいたフシがあるような気がします。タスクを作成した当初はこういう意図や動機があってこう名付けたが、事情や事態が変わってああいうタスク名になった、というような情報は個人的には軽視できないメタ情報だとおもいます。タスク内にメモすればいいわけですが、改名のワークフローとフォーマットは統一されていた方が自分好みなので下のようなコードを書きました。新しいタスク名を入力するとタスクが改名されると同時に一つ前のタスク名は日付情報とともにヒストリとして保存されます。
+
+{{{accordion-begin(Elisp Code)}}}
+#+begin_src emacs-lisp
+  (setq org-log-into-drawer t)
+
+  (defun my/org-change-heading ()
+    "CHange the heading of the entry at `point'.
+
+  The previous name will be stored along with the execution date."
+    (interactive)
+    (let* ((old-heading (org-get-heading t t t t))
+           (new-heading (read-string "Heading: " old-heading)))
+      (save-excursion
+        (org-back-to-heading t)
+        (replace-string old-heading new-heading nil
+                        (line-beginning-position) (line-end-position))
+        (org-align-tags))
+      (org-add-log-setup 'state new-heading old-heading 'state)))
+#+end_src
+{{{accordion-end}}}
+
+この機能を使うようになってからタスクの作成と改名が軽快におこなえるようになった気がします。「会議で提案されたアレをやっておく」のようなタスクが作成できるようになって、後で修正すせばいいからとタスク作成の心理的な負荷が軽減される一方で、修正後に残されたヒストリを見て「発生時にはアレと呼ばなければならないくらい、このタスクはあの時点では自分にとって新規性の高いものだったんだな」などと振り返ることができるのです。
