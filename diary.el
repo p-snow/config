@@ -39,7 +39,7 @@
               "<a href=\"https://www.p-snow.org/config/diary/tag-english.html\">Posts</a>"
               "<a href=\"https://www.p-snow.org/config/diary/about.html\">About</a>"
               "<a href=\"https://www.p-snow.org/config/diary/rss.xml\">RSS</a>"
-              "</nav><h1>.dotlife</h1><p>by p-snow</p></header>"))
+              "</nav><h1>ティンカラー日記</h1><p>こなゆき</p></header>"))
 (setq org-static-blog-no-post-tag "nonpost")
 (setq org-static-blog-rss-excluded-tag "nonrss")
 
@@ -53,7 +53,7 @@
       org-html-head-include-default-style nil
       org-html-head "<link rel=\"stylesheet\" href=\"https://cdn.simplecss.org/simple.min.css\" />")
 
-;; (org-static-blog-publish-file "./blog/content/drafts/about.org")
+(org-static-blog-publish-file "./diary/drafts/about.org")
 (org-static-blog-publish)
 
 (message "Build complete!")
