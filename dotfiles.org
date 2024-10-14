@@ -5605,21 +5605,10 @@ exchange rate against US dollar."
   (org-web-track-use-curl nil)
   (org-web-track-content-fetcher-alist
    `((,(regexp-quote "melpa.org/#/") .
-      (lambda (url)
-        (shell-command-to-string
-         (format "fetch-dynamic-page.py %s"
-                 (shell-quote-argument url)))))))
+      "fetch-dynamic-page.py %s")))
   (org-web-track-selectors-alist
    `((,(regexp-quote "melpa\.org/#/") .
-      (lambda (dom)
-        (-> dom
-            (dom-by-class "dl-horizontal")
-            (car)
-            (dom-by-tag 'dd)
-            (car)
-            (dom-text)
-            (split-string)
-            (car))))
+      "htmlq --text dd | head -n 1 | cut -d ' ' -f 1")
      (,(regexp-quote "www.lenovo.com/jp/ja/p/laptops/thinkpad")
       (lambda (dom)
         (when-let ((price-node (car (dom-search dom (lambda (node) (string= "productpromotionprice"
