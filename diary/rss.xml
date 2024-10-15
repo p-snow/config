@@ -4,7 +4,96 @@
 <title><![CDATA[ティンカラー日記]]></title>
 <description><![CDATA[ティンカラー日記]]></description>
 <link>https://www.p-snow.org/config/diary</link>
-<lastBuildDate>Sun, 13 Oct 2024 14:56:29 +0000</lastBuildDate>
+<lastBuildDate>Tue, 15 Oct 2024 15:44:42 +0000</lastBuildDate>
+<item>
+  <title><![CDATA[実は奥深い「締切り」の世界]]></title>
+  <description><![CDATA[
+<p>
+<preview>
+「хххというタスク管理アプリでは締切りの管理が難しい」という声をたまたま耳にしました。個人的に締切りの遵守にあまり自信がある方ではありませんが、Org Modeではタスクの期限をどうあつかえるのかをいい機会なのでまとめてみようと思います。
+</preview>
+</p>
+
+<p>
+Org Modeでは、締切りはタスク項目とセットで機能します。TODO ステートのついたOrgエントリの上でM-x org-deadlineを実行して締切日を指定すれば、以下のような期限(DEADLINE)をもつタスクができあがります。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-org"><span style="font-weight: bold;">* </span><span style="font-weight: bold;">TODO</span><span style="font-weight: bold;"> &#20837;&#37329;</span>
+<span style="font-weight: bold;">DEADLINE:</span> <span style="text-decoration: underline;">&lt;2024-10-31 Thu&gt;</span>
+</pre>
+</div>
+
+<p>
+では、Org Modeはどうやってこのタスクをリマインドしてくれるのでしょうか。それは、org-agendaを実行したきに次のような一行を表示することで教えてくれます。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-text">In   15 d.:  &#20837;&#37329;
+</pre>
+</div>
+
+<p>
+毎日org-agendaを実行していれば「14 d.」「13 d.」となり、心の準備をすることができ、もし期日前までにやっておかなければならないことがあれば実行するというステップが踏めるわけです。
+</p>
+
+<p>
+期限の数日前に無事、入金が完了しました。でもそのままではその後も毎日、期限までリマインドは繰り返されます。この表示を止めるには以下の設定をして「入金」項目のTODOステートをDONEにします。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setq</span> org-agenda-skip-deadline-if-done t)
+</pre>
+</div>
+
+<p>
+ちなみに、org-agendaで締切りの何日前からリマインド表示するかは以下の設定で調整できます。この場合は２週間前から表示してくれます。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setq</span> org-deadline-warning-days 14)
+</pre>
+</div>
+
+<p>
+この設定はすべてのタスクに共通して適用されるのですが、タスクによっては別の値を設定したいこともありますよね。例えば、「原稿の提出」など、期限までに２週間では終わらない作業を終わらせなければならない場合は以下のように個別にリマインド開始日を指定することができます。これで２ヶ月前からお知らせしてくれます。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-org"><span style="font-weight: bold;">* </span><span style="font-weight: bold;">TODO</span><span style="font-weight: bold;"> &#21407;&#31295;&#12398;&#25552;&#20986;</span>
+<span style="font-weight: bold;">DEADLINE:</span> <span style="text-decoration: underline;">&lt;2024-10-31 Thu -2m&gt;</span>
+</pre>
+</div>
+
+<p>
+ところで、原稿の執筆に集中して取り組みはじめた後は、今度はリマインドが邪魔という事態が起こったりします。そんなときはタスクにSCHEDULED属性に執筆開始日を入れて以下の設定をします。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-org"><span style="font-weight: bold;">* </span><span style="font-weight: bold;">TODO</span><span style="font-weight: bold;"> &#21407;&#31295;&#12398;&#25552;&#20986;</span>
+<span style="font-weight: bold;">SCHEDULED:</span> <span style="text-decoration: underline;">&lt;2024-10-01 Tue&gt;</span> <span style="font-weight: bold;">DEADLINE:</span> <span style="text-decoration: underline;">&lt;2024-10-31 Thu&gt;</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setq</span> org-agenda-skip-deadline-prewarning-if-scheduled 'pre-scheduled)
+</pre>
+</div>
+
+<p>
+これでシステムには、このタスクに着手したことを伝えて事前のリマインド表示は中止させるのです。
+</p>
+
+<p>
+このように締切りと一口に言ってもいろいろな背景を考え合わせる必要があり、それをコンピュータ上で管理しようとするとけっこう難しい課題につきあたることがわかります。万人に有効な解決策をタスク管理アプリが提供することはけっこうな高難度なのでしょう。結果的に冒頭で紹介したようなユーザの声が聞こえてくるのも、ある意味では無理からぬことなのかなと個人的には感じています。
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-org.html">org</a> <a href="https://www.p-snow.org/config/diary/tag-agenda.html">agenda</a> </div>]]></description>
+  <category><![CDATA[org]]></category>
+  <category><![CDATA[agenda]]></category>
+  <link>https://www.p-snow.org/config/diary/20241015-1415.html</link>
+  <guid>https://www.p-snow.org/config/diary/20241015-1415.html</guid>
+  <pubDate>Tue, 15 Oct 2024 14:15:00 +0000</pubDate>
+</item>
 <item>
   <title><![CDATA[新たなスペルチェッカー Jinx]]></title>
   <description><![CDATA[
@@ -93,8 +182,7 @@ Jinxは GNU ELPA/melpa にあるので問題なくインストールできます
 <p>
 これで M-$ を押せばJinxがスペルミスした単語を見つけだし修正候補を提示してくれます。スペルミスした単語にポイントを置き M-n/M-p で次/前の候補に移動してどんどん修正できます。超快適！
 </p>
-<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-japanese.html">japanese</a> <a href="https://www.p-snow.org/config/diary/tag-spellcheck.html">spellcheck</a> </div>]]></description>
-  <category><![CDATA[japanese]]></category>
+<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-spellcheck.html">spellcheck</a> </div>]]></description>
   <category><![CDATA[spellcheck]]></category>
   <link>https://www.p-snow.org/config/diary/20231212-1850.html</link>
   <guid>https://www.p-snow.org/config/diary/20231212-1850.html</guid>

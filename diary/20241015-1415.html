@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="alternate"
+      type="application/rss+xml"
+      href="https://www.p-snow.org/config/diary/rss.xml"
+      title="RSS feed for https://www.p-snow.org/config/diary">
+<title>実は奥深い「締切り」の世界</title>
+<meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="https://cdn.simplecss.org/simple.css"><link rel="stylesheet" href="./assets/css/style.css"></head>
+<body>
+<div id="preamble" class="status"><header><nav><a href="https://www.p-snow.org/config/diary">ホーム</a><a href="https://www.p-snow.org/config/diary/about.html">あばうと</a><a href="https://www.p-snow.org/config/diary/rss.xml">RSS</a></nav><h1>ティンカラー日記</h1><p>こなゆき(a.k.a. p-snow)</p></header></div>
+<div id="content">
+<div class="post-date">15 Oct 2024</div><h1 class="post-title"><a href="https://www.p-snow.org/config/diary/20241015-1415.html">実は奥深い「締切り」の世界</a></h1>
+<p>
+<preview>
+「хххというタスク管理アプリでは締切りの管理が難しい」という声をたまたま耳にしました。個人的に締切りの遵守にあまり自信がある方ではありませんが、Org Modeではタスクの期限をどうあつかえるのかをいい機会なのでまとめてみようと思います。
+</preview>
+</p>
+
+<p>
+Org Modeでは、締切りはタスク項目とセットで機能します。TODO ステートのついたOrgエントリの上でM-x org-deadlineを実行して締切日を指定すれば、以下のような期限(DEADLINE)をもつタスクができあがります。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-org"><span style="font-weight: bold;">* </span><span style="font-weight: bold;">TODO</span><span style="font-weight: bold;"> &#20837;&#37329;</span>
+<span style="font-weight: bold;">DEADLINE:</span> <span style="text-decoration: underline;">&lt;2024-10-31 Thu&gt;</span>
+</pre>
+</div>
+
+<p>
+では、Org Modeはどうやってこのタスクをリマインドしてくれるのでしょうか。それは、org-agendaを実行したきに次のような一行を表示することで教えてくれます。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-text">In   15 d.:  &#20837;&#37329;
+</pre>
+</div>
+
+<p>
+毎日org-agendaを実行していれば「14 d.」「13 d.」となり、心の準備をすることができ、もし期日前までにやっておかなければならないことがあれば実行するというステップが踏めるわけです。
+</p>
+
+<p>
+期限の数日前に無事、入金が完了しました。でもそのままではその後も毎日、期限までリマインドは繰り返されます。この表示を止めるには以下の設定をして「入金」項目のTODOステートをDONEにします。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setq</span> org-agenda-skip-deadline-if-done t)
+</pre>
+</div>
+
+<p>
+ちなみに、org-agendaで締切りの何日前からリマインド表示するかは以下の設定で調整できます。この場合は２週間前から表示してくれます。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setq</span> org-deadline-warning-days 14)
+</pre>
+</div>
+
+<p>
+この設定はすべてのタスクに共通して適用されるのですが、タスクによっては別の値を設定したいこともありますよね。例えば、「原稿の提出」など、期限までに２週間では終わらない作業を終わらせなければならない場合は以下のように個別にリマインド開始日を指定することができます。これで２ヶ月前からお知らせしてくれます。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-org"><span style="font-weight: bold;">* </span><span style="font-weight: bold;">TODO</span><span style="font-weight: bold;"> &#21407;&#31295;&#12398;&#25552;&#20986;</span>
+<span style="font-weight: bold;">DEADLINE:</span> <span style="text-decoration: underline;">&lt;2024-10-31 Thu -2m&gt;</span>
+</pre>
+</div>
+
+<p>
+ところで、原稿の執筆に集中して取り組みはじめた後は、今度はリマインドが邪魔という事態が起こったりします。そんなときはタスクにSCHEDULED属性に執筆開始日を入れて以下の設定をします。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-org"><span style="font-weight: bold;">* </span><span style="font-weight: bold;">TODO</span><span style="font-weight: bold;"> &#21407;&#31295;&#12398;&#25552;&#20986;</span>
+<span style="font-weight: bold;">SCHEDULED:</span> <span style="text-decoration: underline;">&lt;2024-10-01 Tue&gt;</span> <span style="font-weight: bold;">DEADLINE:</span> <span style="text-decoration: underline;">&lt;2024-10-31 Thu&gt;</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setq</span> org-agenda-skip-deadline-prewarning-if-scheduled 'pre-scheduled)
+</pre>
+</div>
+
+<p>
+これでシステムには、このタスクに着手したことを伝えて事前のリマインド表示は中止させるのです。
+</p>
+
+<p>
+このように締切りと一口に言ってもいろいろな背景を考え合わせる必要があり、それをコンピュータ上で管理しようとするとけっこう難しい課題につきあたることがわかります。万人に有効な解決策をタスク管理アプリが提供することはけっこうな高難度なのでしょう。結果的に冒頭で紹介したようなユーザの声が聞こえてくるのも、ある意味では無理からぬことなのかなと個人的には感じています。
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-org.html">org</a> <a href="https://www.p-snow.org/config/diary/tag-agenda.html">agenda</a> </div></div>
+<div id="postamble" class="status"></div>
+</body>
+</html>
