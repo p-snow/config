@@ -36,9 +36,9 @@
 (setq org-static-blog-page-preamble
       (concat "<header><nav>"
               "<a href=\"https://www.p-snow.org/config/diary\">ホーム</a>"
-              "<a href=\"https://www.p-snow.org/config/diary/about.html\">こなゆき</a>"
+              "<a href=\"https://www.p-snow.org/config/diary/about.html\">あばうと</a>"
               "<a href=\"https://www.p-snow.org/config/diary/rss.xml\">RSS</a>"
-              "</nav><h1>ティンカラー日記</h1><p>こなゆき</p></header>"))
+              "</nav><h1>ティンカラー日記</h1><p>こなゆき(a.k.a. p-snow)</p></header>"))
 (setq org-static-blog-no-post-tag "nonpost")
 (setq org-static-blog-rss-excluded-tag "nonrss")
 
