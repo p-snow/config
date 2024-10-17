@@ -17976,21 +17976,34 @@ case "$(sync_state)" in
 esac
 #+end_src
 
-** Download media at anywhere in desktop
+** Controlling Emacs from Desktop
 :PROPERTIES:
 :CREATED:  [2024-01-30 Tue 21:11]
 :END:
 
-I prefer using mpv, the video file player, instead of watching YouTube videos in a browser. I can download a video file from the internet by executing this shell script using a shortcut key. The script calls the Emacs dispatch-yt-dlp-dwim function using a client/server scheme.
+Using the Emacs server capability, the following actions can be executed from a Linux desktop:
+- Download media files
+- Browse URLs in EWW
 
-#+NAME: bash/emacs-yt-dlp
-#+begin_src bash :noweb tangle :tangle (expand-file-name "emacs-yt-dlp" tangle/local-bin-dir)
-if [ $# -ge 1 ]; then
-  arg=" nil nil t"
-else
-  arg=""
-fi
-emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(progn (yt-dlp-dispatch-dwim \"$(xclip -out)\"${arg})(dispatch-execute-macro))"
+#+NAME: bash/emacs-server
+#+begin_src bash :noweb tangle :tangle (expand-file-name "emacs-server" tangle/local-bin-dir)
+command=$1
+opt=$(xclip -out)
+
+emacsclient -s server-<<hash-string(seed="server", len=6)>> \
+            --eval "(my/emacs-batch \"${command}\" \"${opt}\")"
+#+end_src
+
+#+NAME: elisp/emacs-batch
+#+begin_src emacs-lisp :noweb-ref elisp-code
+(defun my/emacs-batch (command &optional args)
+  ""
+  (pcase command
+    ("download"
+     (yt-dlp-dispatch-dwim args)
+     (dispatch-execute-macro))
+    ("browse"
+     (eww args))))
 #+end_src
 
 * Babel Utility Functions
