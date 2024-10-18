@@ -4,7 +4,39 @@
 <title><![CDATA[ティンカラー日記]]></title>
 <description><![CDATA[ティンカラー日記]]></description>
 <link>https://www.p-snow.org/config/diary</link>
-<lastBuildDate>Tue, 15 Oct 2024 15:44:42 +0000</lastBuildDate>
+<lastBuildDate>Fri, 18 Oct 2024 09:05:48 +0000</lastBuildDate>
+<item>
+  <title><![CDATA[ミニバッファのフォントサイズを小さくする]]></title>
+  <description><![CDATA[
+<p>
+<preview>
+Prot こと Protesilaos Stavrou 氏(相変わらず発音できない…)が彼のEmacsパッケージ fontaine のユーザからの質問「ミニバッファのフォントサイズを変えるにはどうしたらいいか」への答えを載せていた。
+</p>
+
+<p>
+<a href="https://protesilaos.com/codelog/2024-10-17-emacs-remap-minibuffer-face/">Emacs: remap font size in the minibuffer | Protesilaos Stavrou</a>
+</preview>
+</p>
+
+<p>
+なるほど、と思いながら読み進めるうちに、そう言えば自分も昔、同じような設定をしたなと調べてみたら<a href="https://p-snow.org/config/dotfiles.html#emacs-minibuffer">あった</a>。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setq-local</span> face-remapping-alist '((default <span style="font-weight: bold;">:height</span> 0.9)))
+</pre>
+</div>
+
+<p>
+Protは face-remap の関数 face-remap-add-relative を使っていたのに対し、自分はCの変数 face-remapping-alist を直接 setq-local で弄っていた。コードを追っていくと何のことはない face-remap-add-relative 内で face-remapping-alist を設定していた。こりゃ Prot のコードの方が行儀がよいですな。
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-org.html">org</a> <a href="https://www.p-snow.org/config/diary/tag-minibuffer.html">minibuffer</a> </div>]]></description>
+  <category><![CDATA[org]]></category>
+  <category><![CDATA[minibuffer]]></category>
+  <link>https://www.p-snow.org/config/diary/20241018-1753.html</link>
+  <guid>https://www.p-snow.org/config/diary/20241018-1753.html</guid>
+  <pubDate>Fri, 18 Oct 2024 17:53:00 +0000</pubDate>
+</item>
 <item>
   <title><![CDATA[実は奥深い「締切り」の世界]]></title>
   <description><![CDATA[
