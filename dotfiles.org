@@ -2096,16 +2096,9 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
 #+end_src
 
 ****** Minibuffer
-
-Formerly, I used to bind C-h to `backward-delete-char' and M-h to `backward-kill-word', which was very comfortable. However, I realized that C-h must be a help key, as many Emacs packages are developed based on the assumption that "C-h is a help key". Having said that, in the minibuffer where a help key does not necessarily play a significant role, I decided to bind C-h to `backward-delete-char'.
-
-#+begin_src emacs-lisp
-(keymap-set minibuffer-mode-map
-            "C-h" #'delete-backward-char)
-(keymap-set minibuffer-mode-map
-            "M-h" #'backward-kill-word)
-(keymap-set minibuffer-mode-map "TAB" 'minibuffer-complete)
-#+end_src
+:PROPERTIES:
+:CUSTOM_ID: emacs-minibuffer
+:END:
 
 #+begin_src emacs-lisp
 (setopt history-length 1500)
@@ -2125,6 +2118,16 @@ Formerly, I used to bind C-h to `backward-delete-char' and M-h to `backward-kill
     (deactivate-input-method))
   ;; decrease font size to 90% in minibuffer
   (setq-local face-remapping-alist '((default :height 0.9))))
+#+end_src
+
+Formerly, I used to bind C-h to =backward-delete-char= and M-h to =backward-kill-word=, which was very comfortable. However, I realized that C-h should be a help key, as many Emacs packages are developed with the assumption that "C-h is a help key." That said, in the minibuffer where a help key does not necessarily play a significant role, I decided to bind C-h to =backward-delete-char=.
+
+#+begin_src emacs-lisp
+(keymap-set minibuffer-mode-map
+            "C-h" #'delete-backward-char)
+(keymap-set minibuffer-mode-map
+            "M-h" #'backward-kill-word)
+(keymap-set minibuffer-mode-map "TAB" 'minibuffer-complete)
 #+end_src
 
 ******* Savehist

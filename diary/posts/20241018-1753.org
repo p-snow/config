@@ -1,0 +1,20 @@
+#+title: ミニバッファのフォントサイズを小さくする
+#+date: <2024-10-18 Fri 17:53>
+#+description:
+#+filetags: org minibuffer
+
+#+SETUPFILE: diary/header
+
+{{{preview-begin}}}
+Prot こと Protesilaos Stavrou 氏(相変わらず発音できない…)が彼のEmacsパッケージ fontaine のユーザからの質問「ミニバッファのフォントサイズを変えるにはどうしたらいいか」への答えを載せていた。
+
+[[https://protesilaos.com/codelog/2024-10-17-emacs-remap-minibuffer-face/][Emacs: remap font size in the minibuffer | Protesilaos Stavrou]]
+{{{preview-end}}}
+
+なるほど、と思いながら読み進めるうちに、そう言えば自分も昔、同じような設定をしたなと調べてみたら[[https://p-snow.org/config/dotfiles.html#emacs-minibuffer][あった]]。
+
+#+begin_src emacs-lisp
+(setq-local face-remapping-alist '((default :height 0.9)))
+#+end_src
+
+Protは face-remap の関数 face-remap-add-relative を使っていたのに対し、自分はCの変数 face-remapping-alist を直接 setq-local で弄っていた。コードを追っていくと何のことはない face-remap-add-relative 内で face-remapping-alist を設定していた。こりゃ Prot のコードの方が行儀がよいですな。
