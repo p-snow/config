@@ -4,7 +4,7 @@
 <title><![CDATA[ティンカラー日記]]></title>
 <description><![CDATA[ティンカラー日記]]></description>
 <link>https://www.p-snow.org/config/diary</link>
-<lastBuildDate>Sun, 20 Oct 2024 08:29:13 +0000</lastBuildDate>
+<lastBuildDate>Sun, 20 Oct 2024 08:40:27 +0000</lastBuildDate>
 <item>
   <title><![CDATA[バッファ内のテキストをAIに喋らせる]]></title>
   <description><![CDATA[
@@ -23,7 +23,53 @@ AIブーム前夜まではローカルに用意したエンジンに喋っても
 </p>
 
 <p>
-しかし今や、音声合成の技術の発達とともに、AIの力で行われる圧倒的な構文解釈能力をベースにして驚くほどに人間に近い発話が可能になりました。なので、API経由でリージョン内のテキストをChatGPTに喋らせるコードを書きました。OpenAIとの通信を行うコードが<a href="https://p-snow.org/config/dotfiles.html#emacs-package-tts">ここ</a>で、それを使ってリージョン内のテキストを読ませるコードが<a href="https://p-snow.org/config/dotfiles.html#emacs-tts">ここ</a>。ちゃっかりパッケージ化を目論んだ書き方になってますね。もしご所望の方がおられましたらご一報ください。
+しかし今や、音声合成の技術の発達とともに、AIの力で行われる圧倒的な構文解釈能力をベースにして驚くほどに人間に近い発話が可能になりました。なので、API経由でリージョン内のテキストをChatGPTに喋らせる<a href="https://p-snow.org/config/dotfiles.html#emacs-package-tts">コードを書きました</a>。
+</p>
+
+<p>
+<details><summary>Elisp Code for Text to Speech</summary><p>
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">tts-openai-request</span> (api-key input action)
+  <span style="font-style: italic;">"Return audio file content from OpenAI API and save it to OUTPUT-FILE or play it.</span>
+<span style="font-style: italic;">INPUT is the text string sent to the API.</span>
+<span style="font-style: italic;">RESPONSE-FORMAT is the format of the audio file, defaults to '</span><span style="font-weight: bold; font-style: italic; text-decoration: underline;">mp3</span><span style="font-style: italic;">'.</span>
+<span style="font-style: italic;">ACTION is either 'save or 'play, determining what to do with the response."</span>
+  (<span style="font-weight: bold;">let*</span> ((auth-value (format <span style="font-style: italic;">"Bearer %s"</span> api-key))
+         (model <span style="font-style: italic;">"tts-1"</span>)
+         (voice <span style="font-style: italic;">"nova"</span>)
+         (speed nil)
+         (response-format <span style="font-style: italic;">"opus"</span>)
+         (url <span style="font-style: italic;">"https://api.openai.com/v1/audio/speech"</span>)
+         (data (json-encode `((<span style="font-style: italic;">"model"</span> . ,model)
+                              (<span style="font-style: italic;">"input"</span> . ,input)
+                              (<span style="font-style: italic;">"voice"</span> . ,voice)
+                              ,@(<span style="font-weight: bold;">when</span> response-format `((<span style="font-style: italic;">"response_format"</span> . ,response-format)))
+                              ,@(<span style="font-weight: bold;">when</span> speed `((<span style="font-style: italic;">"speed"</span> . ,speed)))))))
+    (request
+      url
+      <span style="font-weight: bold;">:type</span> <span style="font-style: italic;">"POST"</span>
+      <span style="font-weight: bold;">:data</span> data
+      <span style="font-weight: bold;">:headers</span> `((<span style="font-style: italic;">"Authorization"</span> . ,auth-value) (<span style="font-style: italic;">"Content-Type"</span> . <span style="font-style: italic;">"application/json"</span>))
+      <span style="font-weight: bold;">:parser</span> 'buffer-string
+      <span style="font-weight: bold;">:success</span> (<span style="font-weight: bold;">cl-function</span>
+                (<span style="font-weight: bold;">lambda</span> (<span style="font-weight: bold; text-decoration: underline;">&amp;key</span> data <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>)
+                  (<span style="font-weight: bold;">let</span> ((coding-system-for-write 'binary)
+                        (speech-file (make-temp-file <span style="font-style: italic;">"tts-"</span> nil <span style="font-style: italic;">".opus"</span>)))
+                    (<span style="font-weight: bold;">with-temp-file</span> speech-file
+                      (insert data))
+                    (<span style="font-weight: bold;">when</span> action (funcall action speech-file)))))
+      <span style="font-weight: bold;">:error</span> (<span style="font-weight: bold;">cl-function</span>
+              (<span style="font-weight: bold;">lambda</span> (<span style="font-weight: bold; text-decoration: underline;">&amp;key</span> error-thrown <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>)
+                (message <span style="font-style: italic;">"Error: %S"</span> error-thrown))))))
+</pre>
+</div>
+<p>
+</p></details>
+</p>
+
+<p>
+はい。書き方を見ればおわかりのとおり、ちゃっかりパッケージ化を目論んだ書き方になってますね。もしご所望の方がおられましたらご一報ください。がんばってみます。
 </p>
 <div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-ai.html">ai</a> <a href="https://www.p-snow.org/config/diary/tag-speech.html">speech</a> </div>]]></description>
   <category><![CDATA[ai]]></category>
