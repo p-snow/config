@@ -7043,7 +7043,10 @@ This subtree holds resources for [[https://p-snow.org/][my blog]].
                     "#+date:" n
                     "#+description:" n
                     "#+filetags:" n n
-                    "#+SETUPFILE: content/header")
+                    "#+SETUPFILE: "
+                    (pcase (file-name-base (directory-file-name default-directory))
+                      ("posts" "diary/header")
+                      ("org-content" "header")))
 (blog-post-macro-preview "{{{preview-begin}}}" n
                          "{{{preview-end}}}")
 (blog-post-macro-accordion (p "Summary: " summary t)
