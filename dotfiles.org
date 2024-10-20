@@ -7049,6 +7049,7 @@ This subtree holds resources for [[https://p-snow.org/][my blog]].
 (blog-post-macro-accordion (p "Summary: " summary t)
                            (format "{{{accordion-begin(%s)}}}" summary) n
                            "{{{accordion-end}}}")
+(blog-post-dotfile-url "https://p-snow.org/config/dotfiles.html#" p)
 #+end_src
 
 ***** ox-haunt
@@ -10375,6 +10376,7 @@ If optional argument `FILENAME' is given use this as a filename."
 ***** Text-to-Speech using AI (tts.el)
 :PROPERTIES:
 :CREATED:  [2024-06-11 Tue 14:16]
+:CUSTOM_ID: emacs-package-tts
 :END:
 
 tts.el provides functions to say out given text using [[https://platform.openai.com/docs/guides/text-to-speech][the OpenAI Text to Speech service]] through its API.  The vips project is referenced when implementation.  The [[https://github.com/marcklemp/vips][vips]] project was helpful during the implementation process.
@@ -12185,6 +12187,9 @@ during the previous playback."
 #+end_src
 
 ***** text to speech with Festival and OpenJTalk :ARCHIVE:
+:PROPERTIES:
+:CUSTOM_ID: emacs-tts-old
+:END:
 
 #+begin_src emacs-lisp :noweb tangle
 (defcustom my/say-maximum-duration 30

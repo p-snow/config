@@ -1,0 +1,16 @@
+#+title: バッファ内のテキストをAIに喋らせる
+#+date: <2024-10-20 Sun 15:18>
+#+description:
+#+filetags: ai speech
+
+#+SETUPFILE: content/header
+
+{{{preview-begin}}}
+Emacs内のテキストをマシンに喋らせるということは、これまでもけっこう拘ってやってきました。いくつか理由はあります。自分が弱視なのでスクリーンリーダー代わりに使いたいという欲求もありましたし、他のことに目を使っている間に耳で情報を摂取したいというズボラな動機もありました。
+{{{preview-end}}}
+
+最近では、難しい英単語のより正確な発音を知りたいというのもあります。まあ、ブラウザ内で検索すればGoogle先生が即座にその願いを叶えてくれますが、バッファ内で完結するのがEmacserの矜持というものです。はい。
+
+AIブーム前夜まではローカルに用意したエンジンに喋ってもらっていました。[[https://p-snow.org/config/dotfiles.html#emacs-tts-old][日本語なら OpenJTalk に、英語なら Festival に。]]
+
+しかし今や、音声合成の技術の発達とともに、AIの力で行われる圧倒的な構文解釈能力をベースにして驚くほどに人間に近い発話が可能になりました。なので、API経由でリージョン内のテキストをChatGPTに喋らせるコードを書きました。OpenAIとの通信を行うコードが[[https://p-snow.org/config/dotfiles.html#emacs-package-tts][ここ]]で、それを使ってリージョン内のテキストを読ませるコードが[[https://p-snow.org/config/dotfiles.html#emacs-tts][ここ]]。ちゃっかりパッケージ化を目論んだ書き方になってますね。もしご所望の方がおられましたらご一報ください。
