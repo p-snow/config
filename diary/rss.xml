@@ -4,7 +4,73 @@
 <title><![CDATA[ティンカラー日記]]></title>
 <description><![CDATA[ティンカラー日記]]></description>
 <link>https://www.p-snow.org/config/diary</link>
-<lastBuildDate>Sun, 20 Oct 2024 14:46:17 +0000</lastBuildDate>
+<lastBuildDate>Mon, 21 Oct 2024 14:37:17 +0000</lastBuildDate>
+<item>
+  <title><![CDATA[よく利用する場所に素早くジャンプする]]></title>
+  <description><![CDATA[
+<p>
+<preview>
+よく使うものをどれだけ素早く取り出せるか。これは大事な話です、たぶん。物理的な世界では「整頓」がカギを握るわけですが、コンピュータ内では少し事情が違ってきます。今回は私がEmacs内でよく利用する場所に移動するためにどんな方法を使っているかを見ていきたいとおもいます。
+</preview>
+</p>
+
+<p>
+よく利用する場所。個人的には、設定ファイルを集約したOrgファイルであるdotfiles.orgや、直近で開発を進めているプロジェクトのルートディレクトリがそれにあたるでしょうか。
+</p>
+
+<p>
+これらに素早く移動するEmacsの機能としてまず思い浮かぶのは<a href="https://p-snow.org/config/dotfiles.html#emacs-register">Register</a>でしょう。でも私はこれ、うまく使えません。理由はいくつか思いつきます。まずRegisterでジャンプするためのコマンド、jump-to-registerのデフォルトキーバインドがイマイチすぎる。それならもちろんリバインドするわけですが、それでもまだまだ不満は残ります。Emacsの再起動後に登録したRegisterが使えない。これも以下のコードで一応は解決ができるのですが、不意に消えてたりもするのでなかなかしんどいです。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(add-to-list 'savehist-additional-variables
+             'register-alist)
+</pre>
+</div>
+
+<p>
+すいません。Registerをディスりすぎましたが、それだけ真剣に使おうとしたことは付言しておきます。
+</p>
+
+<p>
+じゃあ、<a href="https://p-snow.org/config/dotfiles.html#emacs-bookmark">Bookmark</a>だ。そうだ。僕らにはBookmarkがある！でも  bookmark-jump にしても consult-bookmark にしても、Bookmark名を入力しなきゃいけない。違うんだ。もっと短いタイプ数じゃなきゃダメなんだ。
+</p>
+
+<p>
+そこで私が行きついたのが、Bookmark名を入力するキーボードマクロをつくりこれを実行するという方法。これを好みの(短めの)キーにバインドすればめでたく目的達成です。私はH-kとそれに続くキーで目的の場所ごとのショートカットをつくれるようにしました。ジャンプするためのキーボードマクロを登録したあと、これを保存するコードを<a href="https://p-snow.org/config/dotfiles.html#emacs-function-insert-last-kbd-macro">自動生成するコマンド</a>もつくりました。
+</p>
+
+<p>
+<details><summary>Elisp Code for Inserting Last KBD Macro for my/kmacro-map</summary><p>
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/insert-last-kbd-macro</span> (macroname keys)
+  <span style="font-style: italic;">"Customized `</span><span style="font-weight: bold; font-style: italic; text-decoration: underline;">insert-kbd-macro</span><span style="font-style: italic;">' to bind last recorded kbd macro to `</span><span style="font-weight: bold; font-style: italic; text-decoration: underline;">my/kmacro-map</span><span style="font-style: italic;">'.."</span>
+  (<span style="font-weight: bold;">interactive</span> (list (read-string <span style="font-style: italic;">"Macro name: "</span>)
+                     (read-string <span style="font-style: italic;">"Keys (following H-k): "</span>)))
+  (kmacro-name-last-macro (intern macroname))
+  (insert-kbd-macro (intern macroname))
+  (insert <span style="font-style: italic;">"(keymap-set my/kmacro-map"</span>)
+  (insert (format <span style="font-style: italic;">" \"%s\""</span> keys))
+  (insert (format <span style="font-style: italic;">" #'%s)"</span> macroname)))
+</pre>
+</div>
+<p>
+</p></details>
+</p>
+
+<p>
+これで今のところ快適に2キータイプで移動できています。
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-emacs.html">emacs</a> <a href="https://www.p-snow.org/config/diary/tag-register.html">register</a> <a href="https://www.p-snow.org/config/diary/tag-bookmark.html">bookmark</a> <a href="https://www.p-snow.org/config/diary/tag-kmacro.html">kmacro</a> </div>]]></description>
+  <category><![CDATA[emacs]]></category>
+  <category><![CDATA[register]]></category>
+  <category><![CDATA[bookmark]]></category>
+  <category><![CDATA[kmacro]]></category>
+  <link>https://www.p-snow.org/config/diary/20241021-2230.html</link>
+  <guid>https://www.p-snow.org/config/diary/20241021-2230.html</guid>
+  <pubDate>Mon, 21 Oct 2024 22:30:00 +0000</pubDate>
+</item>
 <item>
   <title><![CDATA[バッファ内のテキストをAIに喋らせる]]></title>
   <description><![CDATA[
