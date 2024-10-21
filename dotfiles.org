@@ -2402,6 +2402,7 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 ****** Register
 :PROPERTIES:
 :CREATED:  [2024-04-06 Sat 16:24]
+:CUSTOM_ID: emacs-register
 :END:
 
 #+begin_src emacs-lisp
@@ -2487,6 +2488,9 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
 #+end_src
 
 ******* Bookmark
+:PROPERTIES:
+:CUSTOM_ID: emacs-bookmark
+:END:
 
 #+begin_src emacs-lisp
 (use-package bookmark
@@ -7035,6 +7039,7 @@ This subtree holds resources for [[https://p-snow.org/][my blog]].
 #+NAME: template-blog-post-filename
 #+begin_src emacs-lisp :tangle no :noweb-ref minibuffer-mode-template
 (blog-post-filename (format-time-string "%Y%m%d-%H%M.org"))
+(blog-post-dotfile-url "https://p-snow.org/config/dotfiles.html#")
 #+end_src
 
 #+NAME: template-blog-post-skeleton
@@ -7052,7 +7057,6 @@ This subtree holds resources for [[https://p-snow.org/][my blog]].
 (blog-post-macro-accordion (p "Summary: " summary t)
                            (format "{{{accordion-begin(%s)}}}" summary) n
                            "{{{accordion-end}}}")
-(blog-post-dotfile-url "https://p-snow.org/config/dotfiles.html#" (p "Custom ID: "))
 #+end_src
 
 ***** ox-haunt
@@ -10665,6 +10669,7 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
 ***** Binding Saved Kmacro under H-k
 :PROPERTIES:
 :CREATED:  [2024-08-22 Thu 16:44]
+:CUSTOM_ID: emacs-function-insert-last-kbd-macro
 :END:
 
 Calling my/insert-last-kbd-macro after saving the desired keyboard macro will generate a set of code for persistent use.
