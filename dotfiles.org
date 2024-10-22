@@ -4298,21 +4298,21 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 (defvar my/org-todo-keyword--next "NX"
   "TODO keyword acronym standing for 'NeXt")
 (put 'my/org-todo-keyword--next 'char ?n)
-(defvar my/org-todo-keyword--in-action "IA"
-  "TODO keyword acronym standing for 'In Action")
+(defvar my/org-todo-keyword--in-action "IP"
+  "TODO keyword acronym standing for 'In Progress")
 (put 'my/org-todo-keyword--in-action 'char ?i)
-(defvar my/org-todo-keyword--someday "OH"
-  "TODO keyword acronym standing for 'On Hold'")
-(put 'my/org-todo-keyword--someday 'char ?h)
+(defvar my/org-todo-keyword--someday "SD"
+  "TODO keyword acronym standing for 'Someday'")
+(put 'my/org-todo-keyword--someday 'char ?s)
 (defvar my/org-done-keyword--done "DN"
   "DONE keyword acronym standing for 'DoNe'")
 (put 'my/org-done-keyword--done 'char ?d)
 (defvar my/org-done-keyword--cancel "CX"
   "DONE keyword acronym standing for 'Cancel'")
 (put 'my/org-done-keyword--cancel 'char ?x)
-(defvar my/org-done-keyword--pending "LG"
-  "DONE keyword acronym standing for 'Let Go'")
-(put 'my/org-done-keyword--pending 'char ?l)
+(defvar my/org-done-keyword--pending "GU"
+  "DONE keyword acronym standing for 'Given-Up'")
+(put 'my/org-done-keyword--pending 'char ?g)
 
 (defvar my/org-project-tag "project" "A tag for projects")
 #+end_src
@@ -4430,10 +4430,10 @@ If entry at POM has no clock log time stamp, this function returns 0."
   (setq org-agenda-custom-commands
         `(("a" "Week-agenda"
            agenda ""
-           ((org-agenda-skip-function #'my/org-agenda-skip-on-hold-task)))
+           ((org-agenda-skip-function #'my/org-agenda-skip-someday-task)))
           ("l" "Log entries in a week"
            agenda ""
-           ((org-agenda-skip-function #'my/org-agenda-skip-on-hold-task)
+           ((org-agenda-skip-function #'my/org-agenda-skip-someday-task)
             (org-agenda-span (if (equal current-prefix-arg '(4))
                                  'day 'week))
             (org-agenda-start-with-log-mode t)
@@ -4447,7 +4447,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
                priority-down))))
           ("L" "Log entry timeline on today with default org-agenda-prefix-format"
            agenda ""
-           ((org-agenda-skip-function #'my/org-agenda-skip-on-hold-task)
+           ((org-agenda-skip-function #'my/org-agenda-skip-someday-task)
             (org-agenda-prefix-format (eval (car (get 'org-agenda-prefix-format 'standard-value))))
             (org-agenda-span (if (equal current-prefix-arg '(4))
                                  'day 'week))
@@ -4569,7 +4569,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
           ("d" "Done tasks"
            ((org-ql-search-block `(and (or (done)
                                            (and (todo ,my/org-todo-keyword--someday)
-                                                (not (path ,(expand-file-name "agenda/on-holds.org" org-directory)))))
+                                                (not (path ,(expand-file-name "agenda/somedays.org" org-directory)))))
                                        (not (tags "project")))
                                  ((org-ql-block-header "Done/Canceled/Pending task")))))
           ("p" "Projects" tags ,(concat "+" my/org-project-tag))
@@ -12757,7 +12757,7 @@ With `C-u' prefix find `my/download-audio-dir' instead."
                            (show-media-duration url))))
 #+end_src
 
-**** manage on-hold tasks
+**** Managing Someday Tasks
 :PROPERTIES:
 :CREATED:  [2022-12-12 Mon 09:14]
 :END:
@@ -12782,15 +12782,15 @@ With `C-u' prefix find `my/download-audio-dir' instead."
   }
   #+end_src
 
-***** review on-hold tasks
+***** Reviewing Someday Tasks
 :PROPERTIES:
 :CREATED:  [2022-12-12 Mon 09:18]
 :END:
 
-On-hold tasks are encouraged to review and they prohibited to appear in agenda views.
+Someday tasks are encouraged to review and they prohibited to appear in agenda views.
 
 #+begin_src emacs-lisp
-(defun my/org-on-hold-task-review (resume-p)
+(defun my/org-someday-task-review (resume-p)
   "Start or resume (if RESUME-P is non-nil) a session for reviewing tasks."
   (interactive "P")
   (progn
@@ -12816,7 +12816,7 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
                       resume-p)))))
 #+end_src
 
-***** skip showing on-hold tasks in agenda view
+***** Skipping the display of "someday" tasks in the agenda view.
 :PROPERTIES:
 :CREATED:  [2023-11-04 Sat 12:17]
 :END:
@@ -12825,7 +12825,7 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
 (defvar my/org-review-tag "review"
   "Tag name set for tasks which is encourged to review.")
 
-(defun my/org-agenda-skip-on-hold-task ()
+(defun my/org-agenda-skip-someday-task ()
   "Skip entries which hold schedule time and review tag in agenda view."
   (let ((tags (org-get-tags)))
     (if (and (member my/org-review-tag (org-get-tags))
@@ -12835,30 +12835,30 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
 
 ;; (with-eval-after-load 'org-agenda
 ;;   (setopt org-agenda-skip-function-global
-;;           'my/org-agenda-skip-on-hold-task))
+;;           'my/org-agenda-skip-someday-task))
 #+end_src
 
-***** show on-hold/leg-go task list
+***** Showing SOMEDAY/GIVEUP Tasks
 :PROPERTIES:
 :CREATED:  [2022-09-15 Thu 22:06]
 :END:
 
 #+begin_src emacs-lisp
 (with-eval-after-load 'org-ql-view
-  (push `("On-Hold tasks"
+  (push `("Someday tasks"
           :buffers-files ,(list (file-name-concat org-directory
-                                                  "agenda/on-holds.org"))
+                                                  "agenda/somedays.org"))
           :query (todo ,my/org-todo-keyword--someday)
           :super-groups ((:auto-property "ARCHIVE_OLPATH"))
           :sort (priority date))
         org-ql-views)
-  (push `("Review: on-hold tasks"
+  (push `("Review: someday tasks"
           :buffers-files ,(list (file-name-concat org-directory
-                                                  "agenda/on-holds.org"))
+                                                  "agenda/somedays.org"))
           :query (todo ,my/org-todo-keyword--someday)
           :sort (scheduled))
         org-ql-views)
-  (push `("Let-go tasks"
+  (push `("Given-up tasks"
           :buffers-files ,(org-agenda-files)
           :query (todo ,my/org-done-keyword--pending)
           :super-groups ((:auto-property "ARCHIVE_OLPATH"))
@@ -12866,7 +12866,7 @@ On-hold tasks are encouraged to review and they prohibited to appear in agenda v
         org-ql-views))
 #+end_src
 
-***** immediate re-refile on-hold task
+***** Immediate RE-Refiling SOMEDAY Tasks
 
 #+begin_src emacs-lisp
 (with-eval-after-load 'org-refile
@@ -13115,11 +13115,11 @@ If archiving location is datetree, it supposed to be iso week tree."
                                                         (substring closed-time 1 -1)))
                                                 (format-time-string "%Y"))))))
            ((string= todo-state my/org-todo-keyword--someday)
-            (format "%s::* on-hold tasks"
-                    (expand-file-name "agenda/on-holds.org" org-directory)))
+            (format "%s::* Someday Tasks"
+                    (expand-file-name "agenda/somedays.org" org-directory)))
            ((string= todo-state my/org-done-keyword--pending)
-            (format "%s::* let go tasks"
-                    (expand-file-name "archive/agenda/let-goes.org" org-directory))))))
+            (format "%s::* Given-up Tasks"
+                    (expand-file-name "archive/agenda/given-ups.org" org-directory))))))
     (when (stringp org-archive-location)
       (advice-add #'org-datetree-find-date-create :override
                   #'org-datetree-find-iso-week-create)
