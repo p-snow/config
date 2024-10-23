@@ -4,7 +4,99 @@
 <title><![CDATA[ティンカラー日記]]></title>
 <description><![CDATA[ティンカラー日記]]></description>
 <link>https://www.p-snow.org/config/diary</link>
-<lastBuildDate>Mon, 21 Oct 2024 14:37:17 +0000</lastBuildDate>
+<lastBuildDate>Wed, 23 Oct 2024 05:26:25 +0000</lastBuildDate>
+<item>
+  <title><![CDATA[動作は速く設定はスマート、Linux用キーリマッパkeyd]]></title>
+  <description><![CDATA[
+<p>
+<preview>
+個人的に Linux のキーリマップまわりの問題は <a href="https://github.com/xremap/xremap">xremap</a> でほぼ解決し、このまま(少なくとも数年は)添い遂げるだろうと思っていました。でも、でも、どうしても抗えない浮気相手がでてきてしまったのです。それが <a href="https://github.com/rvaiya/keyd">keyd</a> でした。
+</preview>
+</p>
+
+<p>
+まず、keyd は早い。レスポンス速度が体感でわかるほど xremap に比べて快適です。そして設定ファイルのフォーマットが秀逸で、きわめて簡潔にリマップ規則を書くことができます。
+</p>
+
+<p>
+Emacser にはおなじみの capslock を control とする設定は、
+</p>
+
+<div class="org-src-container">
+<pre class="src src-conf"><span style="font-weight: bold; font-style: italic;">capslock</span> = oneshot(control)
+</pre>
+</div>
+
+<p>
+と書けます。はい、シンプルです。
+</p>
+
+<p>
+次に、特にSKKユーザに支持されているSandS、spaceを修飾キーとしてはshiftとして、単独ではspaceとして機能させるには、
+</p>
+
+<div class="org-src-container">
+<pre class="src src-conf"><span style="font-weight: bold; font-style: italic;">space</span> = overload(shift, space)
+</pre>
+</div>
+
+<p>
+と書きます。ナイス。
+</p>
+
+<p>
+それでは capslock を control に割り当てたので、左コントロールは capslock にします。ついでに、修飾キーとして右手ホームポジションまわりを数字キーとして使えるようにしましょう。
+</p>
+
+<p>
+<details><summary>left control configuration</summary><p>
+</p>
+<div class="org-src-container">
+<pre class="src src-conf"><span style="font-weight: bold; font-style: italic;">leftcontrol</span> = overload(numpad_layer, capslock)
+
+[<span style="font-weight: bold; text-decoration: underline;">numpad_layer</span>]
+
+<span style="font-weight: bold; font-style: italic;">m</span> = 1
+<span style="font-weight: bold; font-style: italic;">,</span> = 2
+<span style="font-weight: bold; font-style: italic;">.</span> = 3
+<span style="font-weight: bold; font-style: italic;">j</span> = 4
+<span style="font-weight: bold; font-style: italic;">k</span> = 5
+<span style="font-weight: bold; font-style: italic;">l</span> = 6
+<span style="font-weight: bold; font-style: italic;">u</span> = 7
+<span style="font-weight: bold; font-style: italic;">i</span> = 8
+<span style="font-weight: bold; font-style: italic;">o</span> = 9
+<span style="font-weight: bold; font-style: italic;">space</span> = 0
+</pre>
+</div>
+<p>
+</p></details>
+</p>
+
+<p>
+これは何をやっているかと言うと、左コントロール押下時に機能する numpad<sub>layer</sub> という独自レイヤを定義し、つまり左コントロールを押しているときには、例えば mキー を押すと 1 が入力される設定を施しているのです。
+</p>
+
+<p>
+それでは最後に最近の私のお気に入り、Emacs で 'キー(アポストロフィ) をSuperキーとして利用する設定をご紹介します。英字配列キーボードが前提ですが、左手小指をcontrolとして使うので右手小指も修飾キーとして使えばキーバインディングが枯渇せず、かつ打ちやすいのではないかという発想のもとに考えた方法です。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-conf"><span style="font-style: italic;">' = overload(apostrophe_layer, '</span>)
+
+[<span style="font-weight: bold; text-decoration: underline;">apostrophe_layer:M</span>]
+</pre>
+</div>
+
+<p>
+このたった二行で実現できます。レイヤには対応する修飾キーを定義することができて、それが :M の箇所になります。ちなみに M はMetaもしくはSuperの役割を意味します。
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-linux.html">linux</a> <a href="https://www.p-snow.org/config/diary/tag-keyboard.html">keyboard</a> </div>]]></description>
+  <category><![CDATA[linux]]></category>
+  <category><![CDATA[keyboard]]></category>
+  <link>https://www.p-snow.org/config/diary/20241023-1340.html</link>
+  <guid>https://www.p-snow.org/config/diary/20241023-1340.html</guid>
+  <pubDate>Wed, 23 Oct 2024 13:40:00 +0000</pubDate>
+</item>
 <item>
   <title><![CDATA[よく利用する場所に素早くジャンプする]]></title>
   <description><![CDATA[
