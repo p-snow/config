@@ -483,6 +483,7 @@ done
    "pfetch"
    "neofetch"
    "python-selenium"
+   "gcc-toolchain@13.3.0"
    <<guix-base>>))
 #+end_src
 
@@ -1000,7 +1001,7 @@ I've chosen to use gpg/gpg-agent and pass on Ubuntu system since pass (password-
 :CREATED:  [2023-02-23 Thu 17:44]
 :END:
 
-*** Xremap
+*** Xremap                                    :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-02-23 Thu 17:45]
 :END:
@@ -1149,7 +1150,7 @@ As of [2024-03-29 Fri], the following configuration to propagate Emacs key bindi
 :CREATED:  [2023-02-23 Thu 17:49]
 :END:
 
-#+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+#+begin_src conf :noweb yes :tangle no
 sudo systemctl enable xremap
 sudo systemctl start xremap
 #+end_src
@@ -1303,6 +1304,53 @@ HOLD: KEY_LEFTSHIFT
 TAP: KEY_EQUAL
 HOLD: KEY_RIGHTSHIFT
 #+end_src
+
+*** keyd
+:PROPERTIES:
+:CREATED:  [2024-10-23 Wed 13:24]
+:END:
+
+[[https://github.com/rvaiya/keyd][keyd]] is a key remapping daemon for Linux. It is fast with concise configuration introducing layer mechanism.
+
+#+begin_src conf :tangle no :noweb yes :noweb-ref systemd-service
+sudo systemctl enable keyd
+sudo systemctl start keyd
+#+end_src
+
+#+begin_src conf :noweb tangle :tangle (expand-file-name "etc/keyd/default.conf" tangle/system)
+[ids]
+
+,*
+
+[main]
+
+capslock = oneshot(control)
+leftcontrol = overload(numpad_layer, capslock)
+rightcontrol = oneshot(app_layer)
+space = overload(shift, space)
+' = overload(apostrophe_layer, ')
+
+leftshift = overload(shift, =)
+rightshift = overload(shift, -)
+
+[apostrophe_layer:M]
+
+[numpad_layer:C-M]
+
+m = 1
+, = 2
+. = 3
+j = 4
+k = 5
+l = 6
+u = 7
+i = 8
+o = 9
+space = 0
+
+[app_layer:C-A-M]
+#+end_src
+
 
 * Application Configurations
 

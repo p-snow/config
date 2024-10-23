@@ -1,0 +1,61 @@
+#+title: 動作は速く設定はスマート、Linux用キーリマッパkeyd
+#+date: <2024-10-23 Wed 13:40>
+#+description:
+#+filetags: linux keyboard
+
+#+SETUPFILE: diary/header
+
+{{{preview-begin}}}
+個人的に Linux のキーリマップまわりの問題は [[https://github.com/xremap/xremap][xremap]] でほぼ解決し、このまま(少なくとも数年は)添い遂げるだろうと思っていました。でも、でも、どうしても抗えない浮気相手がでてきてしまったのです。それが [[https://github.com/rvaiya/keyd][keyd]] でした。
+{{{preview-end}}}
+
+まず、keyd は早い。レスポンス速度が体感でわかるほど xremap に比べて快適です。そして設定ファイルのフォーマットが秀逸で、きわめて簡潔にリマップ規則を書くことができます。
+
+Emacser にはおなじみの capslock を control とする設定は、
+
+#+begin_src conf
+capslock = oneshot(control)
+#+end_src
+
+と書けます。はい、シンプルです。
+
+次に、特にSKKユーザに支持されているSandS、spaceを修飾キーとしてはshiftとして、単独ではspaceとして機能させるには、
+
+#+begin_src conf
+space = overload(shift, space)
+#+end_src
+
+と書きます。ナイス。
+
+それでは capslock を control に割り当てたので、左コントロールは capslock にします。ついでに、修飾キーとして右手ホームポジションまわりを数字キーとして使えるようにしましょう。
+
+{{{accordion-begin(left control configuration)}}}
+#+begin_src conf
+leftcontrol = overload(numpad_layer, capslock)
+
+[numpad_layer]
+
+m = 1
+, = 2
+. = 3
+j = 4
+k = 5
+l = 6
+u = 7
+i = 8
+o = 9
+space = 0
+#+end_src
+{{{accordion-end}}}
+
+これは何をやっているかと言うと、左コントロール押下時に機能する numpad_layer という独自レイヤを定義し、つまり左コントロールを押しているときには、例えば mキー を押すと 1 が入力される設定を施しているのです。
+
+それでは最後に最近の私のお気に入り、Emacs で 'キー(アポストロフィ) をSuperキーとして利用する設定をご紹介します。英字配列キーボードが前提ですが、左手小指をcontrolとして使うので右手小指も修飾キーとして使えばキーバインディングが枯渇せず、かつ打ちやすいのではないかという発想のもとに考えた方法です。
+
+#+begin_src conf
+' = overload(apostrophe_layer, ')
+
+[apostrophe_layer:M]
+#+end_src
+
+このたった二行で実現できます。レイヤには対応する修飾キーを定義することができて、それが :M の箇所になります。ちなみに M はMetaもしくはSuperの役割を意味します。
