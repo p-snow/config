@@ -1,0 +1,45 @@
+#+title: org-mode で現在エントリのアウトラインパスを表示する
+#+date: <2024-10-24 Thu 18:58>
+#+description:
+#+filetags: emacs org
+
+#+SETUPFILE: diary/header
+
+{{{preview-begin}}}
+ジャングルのように生い茂ったOrgツリーの中で目的とする場所にジャンプすることは、Emacsのさまざまな機能を駆使すれば難しいことではありません。Isearchを使ってもいいし、consult-lineを使って攻めの検索をするのもいい。
+{{{preview-end}}}
+
+バッファを対象にしてorg-qlすれば、細かい検索パラメタで 網羅性の高い検索ができるし、consult-outlineを使えばヘッドラインを快適に絞り込みながら見つけることができます。
+
+しかし、一度目的の場所を見つけ作業をしたあと、はて自分は今この樹海の中のどこにいるのだろうかと迷子になったことはありませんか。私はあります！そういうときは M-x org-shifttab を連続押しするなどして Org ツリーの全体像を俯瞰するという手もありますが、これだと今度は作業に戻ろうとしたときに肝心の目的エントリが隠れてしまったりして手間を要することがあります。
+
+そんなときのためにつくったのが、現在いるOrgエントリのパスを表示する以下のコマンド。([[https://p-snow.org/config/dotfiles.html#emacs-org-tweak-outline-path][設定ファイルの該当箇所]])
+
+{{{accordion-begin(Elisp Code for Showing Outline Path)}}}
+#+begin_src emacs-lisp
+(defun my/org-show-outline-path (pom)
+  "Display a sparse tree that shows an outline path for the entry at POM."
+  (interactive (list (point)))
+  (save-excursion
+    (cl-labels ((lookup-parent ()
+                  (let* ((heading-raw (substring-no-properties
+                                       (org-get-heading t t t t)))
+                         (heading (if (string-match org-link-bracket-re heading-raw)
+                                      (match-string 2 heading-raw)
+                                    heading-raw))
+                         (h-li (list heading)))
+                    (if (org-up-heading-safe)
+                        (append (lookup-parent) h-li)
+                      h-li))))
+      (org-ql-sparse-tree (format "(olps %s)"
+                                  (mapconcat (lambda (str) (format "\"%s\"" str))
+                                             (lookup-parent)
+                                             " "))))))
+
+(with-eval-after-load 'org-ql
+  (keymap-set org-mode-map "C-c M-/"
+              #'my/org-show-outline-path))
+#+end_src
+{{{accordion-end}}}
+
+これだとパンくずリストみたいに現在いるエントリへつながるパスのみを表示させることができます。スパースツリーを表示してるみたいですね。
