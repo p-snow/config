@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="alternate"
+      type="application/rss+xml"
+      href="https://www.p-snow.org/config/diary/rss.xml"
+      title="RSS feed for https://www.p-snow.org/config/diary">
+<title>org-mode で現在エントリのアウトラインパスを表示する</title>
+<meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="https://cdn.simplecss.org/simple.css"><link rel="stylesheet" href="./assets/css/style.css"></head>
+<body>
+<div id="preamble" class="status"><header><nav><a href="https://www.p-snow.org/config/diary">ホーム</a><a href="https://www.p-snow.org/config/diary/about.html">あばうと</a><a href="https://www.p-snow.org/config/diary/rss.xml">RSS</a></nav><h1>ティンカラー日記</h1><p>こなゆき(a.k.a. p-snow)</p></header></div>
+<div id="content">
+<div class="post-date">24 Oct 2024</div><h1 class="post-title"><a href="https://www.p-snow.org/config/diary/20241024-1858.html">org-mode で現在エントリのアウトラインパスを表示する</a></h1>
+<p>
+<preview>
+ジャングルのように生い茂ったOrgツリーの中で目的とする場所にジャンプすることは、Emacsのさまざまな機能を駆使すれば難しいことではありません。Isearchを使ってもいいし、consult-lineを使って攻めの検索をするのもいい。
+</preview>
+</p>
+
+<p>
+バッファを対象にしてorg-qlすれば、細かい検索パラメタで 網羅性の高い検索ができるし、consult-outlineを使えばヘッドラインを快適に絞り込みながら見つけることができます。
+</p>
+
+<p>
+しかし、一度目的の場所を見つけ作業をしたあと、はて自分は今この樹海の中のどこにいるのだろうかと迷子になったことはありませんか。私はあります！そういうときは M-x org-shifttab を連続押しするなどして Org ツリーの全体像を俯瞰するという手もありますが、これだと今度は作業に戻ろうとしたときに肝心の目的エントリが隠れてしまったりして手間を要することがあります。
+</p>
+
+<p>
+そんなときのためにつくったのが、現在いるOrgエントリのパスを表示する以下のコマンド。(<a href="https://p-snow.org/config/dotfiles.html#emacs-org-tweak-outline-path">設定ファイルの該当箇所</a>)
+</p>
+
+<p>
+<details><summary>Elisp Code for Showing Outline Path</summary><p>
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/org-show-outline-path</span> (pom)
+  <span style="font-style: italic;">"Display a sparse tree that shows an outline path for the entry at POM."</span>
+  (<span style="font-weight: bold;">interactive</span> (list (point)))
+  (<span style="font-weight: bold;">save-excursion</span>
+    (<span style="font-weight: bold;">cl-labels</span> ((lookup-parent ()
+                  (<span style="font-weight: bold;">let*</span> ((heading-raw (substring-no-properties
+                                       (org-get-heading t t t t)))
+                         (heading (<span style="font-weight: bold;">if</span> (string-match org-link-bracket-re heading-raw)
+                                      (match-string 2 heading-raw)
+                                    heading-raw))
+                         (h-li (list heading)))
+                    (<span style="font-weight: bold;">if</span> (org-up-heading-safe)
+                        (append (lookup-parent) h-li)
+                      h-li))))
+      (org-ql-sparse-tree (format <span style="font-style: italic;">"(olps %s)"</span>
+                                  (mapconcat (<span style="font-weight: bold;">lambda</span> (str) (format <span style="font-style: italic;">"\"%s\""</span> str))
+                                             (lookup-parent)
+                                             <span style="font-style: italic;">" "</span>))))))
+
+(<span style="font-weight: bold;">with-eval-after-load</span> 'org-ql
+  (keymap-set org-mode-map <span style="font-style: italic;">"C-c M-/"</span>
+              #'my/org-show-outline-path))
+</pre>
+</div>
+<p>
+</p></details>
+</p>
+
+<p>
+これだとパンくずリストみたいに現在いるエントリへつながるパスのみを表示させることができます。スパースツリーを表示してるみたいですね。
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-emacs.html">emacs</a> <a href="https://www.p-snow.org/config/diary/tag-org.html">org</a> </div></div>
+<div id="postamble" class="status"></div>
+</body>
+</html>

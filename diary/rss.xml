@@ -4,7 +4,70 @@
 <title><![CDATA[ティンカラー日記]]></title>
 <description><![CDATA[ティンカラー日記]]></description>
 <link>https://www.p-snow.org/config/diary</link>
-<lastBuildDate>Thu, 24 Oct 2024 02:00:56 +0000</lastBuildDate>
+<lastBuildDate>Thu, 24 Oct 2024 10:28:22 +0000</lastBuildDate>
+<item>
+  <title><![CDATA[org-mode で現在エントリのアウトラインパスを表示する]]></title>
+  <description><![CDATA[
+<p>
+<preview>
+ジャングルのように生い茂ったOrgツリーの中で目的とする場所にジャンプすることは、Emacsのさまざまな機能を駆使すれば難しいことではありません。Isearchを使ってもいいし、consult-lineを使って攻めの検索をするのもいい。
+</preview>
+</p>
+
+<p>
+バッファを対象にしてorg-qlすれば、細かい検索パラメタで 網羅性の高い検索ができるし、consult-outlineを使えばヘッドラインを快適に絞り込みながら見つけることができます。
+</p>
+
+<p>
+しかし、一度目的の場所を見つけ作業をしたあと、はて自分は今この樹海の中のどこにいるのだろうかと迷子になったことはありませんか。私はあります！そういうときは M-x org-shifttab を連続押しするなどして Org ツリーの全体像を俯瞰するという手もありますが、これだと今度は作業に戻ろうとしたときに肝心の目的エントリが隠れてしまったりして手間を要することがあります。
+</p>
+
+<p>
+そんなときのためにつくったのが、現在いるOrgエントリのパスを表示する以下のコマンド。(<a href="https://p-snow.org/config/dotfiles.html#emacs-org-tweak-outline-path">設定ファイルの該当箇所</a>)
+</p>
+
+<p>
+<details><summary>Elisp Code for Showing Outline Path</summary><p>
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/org-show-outline-path</span> (pom)
+  <span style="font-style: italic;">"Display a sparse tree that shows an outline path for the entry at POM."</span>
+  (<span style="font-weight: bold;">interactive</span> (list (point)))
+  (<span style="font-weight: bold;">save-excursion</span>
+    (<span style="font-weight: bold;">cl-labels</span> ((lookup-parent ()
+                  (<span style="font-weight: bold;">let*</span> ((heading-raw (substring-no-properties
+                                       (org-get-heading t t t t)))
+                         (heading (<span style="font-weight: bold;">if</span> (string-match org-link-bracket-re heading-raw)
+                                      (match-string 2 heading-raw)
+                                    heading-raw))
+                         (h-li (list heading)))
+                    (<span style="font-weight: bold;">if</span> (org-up-heading-safe)
+                        (append (lookup-parent) h-li)
+                      h-li))))
+      (org-ql-sparse-tree (format <span style="font-style: italic;">"(olps %s)"</span>
+                                  (mapconcat (<span style="font-weight: bold;">lambda</span> (str) (format <span style="font-style: italic;">"\"%s\""</span> str))
+                                             (lookup-parent)
+                                             <span style="font-style: italic;">" "</span>))))))
+
+(<span style="font-weight: bold;">with-eval-after-load</span> 'org-ql
+  (keymap-set org-mode-map <span style="font-style: italic;">"C-c M-/"</span>
+              #'my/org-show-outline-path))
+</pre>
+</div>
+<p>
+</p></details>
+</p>
+
+<p>
+これだとパンくずリストみたいに現在いるエントリへつながるパスのみを表示させることができます。スパースツリーを表示してるみたいですね。
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-emacs.html">emacs</a> <a href="https://www.p-snow.org/config/diary/tag-org.html">org</a> </div>]]></description>
+  <category><![CDATA[emacs]]></category>
+  <category><![CDATA[org]]></category>
+  <link>https://www.p-snow.org/config/diary/20241024-1858.html</link>
+  <guid>https://www.p-snow.org/config/diary/20241024-1858.html</guid>
+  <pubDate>Thu, 24 Oct 2024 18:58:00 +0000</pubDate>
+</item>
 <item>
   <title><![CDATA[動作は速く設定はスマート、Linux用キーリマッパkeyd]]></title>
   <description><![CDATA[
