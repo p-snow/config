@@ -1322,6 +1322,10 @@ sudo systemctl start keyd
 
 ,*
 
+[global]
+
+oneshot_timeout = 1000
+
 [main]
 
 capslock = oneshot(control)
@@ -1329,7 +1333,7 @@ leftcontrol = oneshot(capslock)
 tab = overload(numpad_layer, tab)
 rightcontrol = oneshot(app_layer)
 space = overload(shift, space)
-' = overload(apostrophe_layer, ')
+' = overloadt2(apostrophe_layer, ', 200)
 
 leftshift = overload(shift, =)
 rightshift = overload(shift, -)
@@ -1353,7 +1357,6 @@ space = 0
 
 [app_layer:C-A-M]
 #+end_src
-
 
 * Application Configurations
 
