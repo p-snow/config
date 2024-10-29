@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="alternate"
+      type="application/rss+xml"
+      href="https://www.p-snow.org/config/diary/rss.xml"
+      title="RSS feed for https://www.p-snow.org/config/diary">
+<title>transient でいろんなコマンドをつくってみた</title>
+<meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="https://cdn.simplecss.org/simple.css"><link rel="stylesheet" href="./assets/css/style.css"></head>
+<body>
+<div id="preamble" class="status"><header><nav><a href="https://www.p-snow.org/config/diary">ホーム</a><a href="https://www.p-snow.org/config/diary/about.html">あばうと</a><a href="https://www.p-snow.org/config/diary/rss.xml">RSS</a></nav><h1>ティンカラー日記</h1><p>こなゆき(a.k.a. p-snow)</p></header></div>
+<div id="content">
+<div class="post-date">29 Oct 2024</div><h1 class="post-title"><a href="https://www.p-snow.org/config/diary/20241029-1554.html">transient でいろんなコマンドをつくってみた</a></h1>
+<p>
+<preview>
+Charles Choi 氏の <a href="https://github.com/kickingvegas/casual-suite">casual-suite</a> が静かなブームを巻き起こしている。casual-suite とは、メニューシステム <a href="https://github.com/magit/transient">transient</a> を使って Emacs のさまざまな機能をアクセシブルにするパッケージだ。Emacs における機能の充実ぶりは、手練のユーザには心地良いものである一方で、そもそもどんな機能があるのかを知らない初学者などには混乱を招く元ともなってきた。その問題を解決するために各機能分野ごとにどういうコマンドが存在しどういうパラメタが設定可能かを可視化してくれる。
+</preview>
+</p>
+
+<p>
+現在は <a href="http://yummymelon.com/devnull/announcing-casual-redux-and-reorganization.html">ELPA への登録を目指している</a> ようであり、ゆくゆくは Emacs のコアへの導入もあるかもしれない。個人的にもこの活動は好意をもって注視している。
+</p>
+
+<p>
+ところで casual-suite が使っているインプットメソッドの transient。Magit のインタフェイスとしてユーザにはおなじみのアレだが、Emacs 28.1 でコアに導入されて以来、ここ一年くらいで活用事例を多く見るようになった印象がある。私もエンドユーザとしてはいつもお世話になっているものの、ライブラリ利用はしたことがなかったので興味がわいていくつかのコマンドを実装してみた。
+</p>
+
+<p>
+そのひとつが yt-dlp をパラメタ調整しながら構築できるようにした<a href="https://p-snow.org/config/dotfiles.html#emacs-yt-dlp-command">こちら</a>。ダウンロードファイルのサイズやフォーマット、ファイル名などをアドホックに指定することができる。実装してみると意外とこれが大変だった。Elispのオブジェクト指向ライブラリ EIEIO などの知識が不足していたこともあり、<a href="https://github.com/positron-solutions/transient-showcase">transient-showcase</a> などを参考にしながら何とか動くものができた。
+</p>
+
+<p>
+しかし一度実装経験を積むと、あとは型にはめていくだけなので他にもコマンドをつくりたくなる。<a href="https://p-snow.org/config/dotfiles.html#emacs-vp9-command">ffmpeg</a> や <a href="https://p-snow.org/config/dotfiles.html#emacs-pandoc-command">pandoc</a> をパラメタ調整しながら実施できる便利なコマンドたちができた。Choi 氏が連続していろいろな casual-xxx パッケージをつくった気持ちがよくわかった。
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-emacs.html">emacs</a> <a href="https://www.p-snow.org/config/diary/tag-transient.html">transient</a> </div></div>
+<div id="postamble" class="status"></div>
+</body>
+</html>
