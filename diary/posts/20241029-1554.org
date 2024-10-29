@@ -1,0 +1,18 @@
+#+title: transient でいろんなコマンドをつくってみた
+#+date: <2024-10-29 Tue 15:54>
+#+description:
+#+filetags: emacs transient
+
+#+SETUPFILE: diary/header
+
+{{{preview-begin}}}
+Charles Choi 氏の [[https://github.com/kickingvegas/casual-suite][casual-suite]] が静かなブームを巻き起こしている。casual-suite とは、メニューシステム [[https://github.com/magit/transient][transient]] を使って Emacs のさまざまな機能をアクセシブルにするパッケージだ。Emacs における機能の充実ぶりは、手練のユーザには心地良いものである一方で、そもそもどんな機能があるのかを知らない初学者などには混乱を招く元ともなってきた。その問題を解決するために各機能分野ごとにどういうコマンドが存在しどういうパラメタが設定可能かを可視化してくれる。
+{{{preview-end}}}
+
+現在は [[http://yummymelon.com/devnull/announcing-casual-redux-and-reorganization.html][ELPA への登録を目指している]] ようであり、ゆくゆくは Emacs のコアへの導入もあるかもしれない。個人的にもこの活動は好意をもって注視している。
+
+ところで casual-suite が使っているインプットメソッドの transient。Magit のインタフェイスとしてユーザにはおなじみのアレだが、Emacs 28.1 でコアに導入されて以来、ここ一年くらいで活用事例を多く見るようになった印象がある。私もエンドユーザとしてはいつもお世話になっているものの、ライブラリ利用はしたことがなかったので興味がわいていくつかのコマンドを実装してみた。
+
+そのひとつが yt-dlp をパラメタ調整しながら構築できるようにした[[https://p-snow.org/config/dotfiles.html#emacs-yt-dlp-command][こちら]]。ダウンロードファイルのサイズやフォーマット、ファイル名などをアドホックに指定することができる。実装してみると意外とこれが大変だった。Elispのオブジェクト指向ライブラリ EIEIO などの知識が不足していたこともあり、[[https://github.com/positron-solutions/transient-showcase][transient-showcase]] などを参考にしながら何とか動くものができた。
+
+しかし一度実装経験を積むと、あとは型にはめていくだけなので他にもコマンドをつくりたくなる。[[https://p-snow.org/config/dotfiles.html#emacs-vp9-command][ffmpeg]] や [[https://p-snow.org/config/dotfiles.html#emacs-pandoc-command][pandoc]] をパラメタ調整しながら実施できる便利なコマンドたちができた。Choi 氏が連続していろいろな casual-xxx パッケージをつくった気持ちがよくわかった。
