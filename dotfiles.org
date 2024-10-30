@@ -3059,6 +3059,22 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (midnight-delay "4:00"))
 #+end_src
 
+******* Appt
+:PROPERTIES:
+:CREATED:  [2024-10-29 Tue 15:32]
+:END:
+
+#+begin_src emacs-lisp
+(use-package appt
+  :custom
+  (appt-message-warning-time 60)
+  (appt-display-interval 5)
+  :config
+  (appt-activate 1)
+  (with-eval-after-load 'org-agenda
+    (org-agenda-to-appt)))
+#+end_src
+
 ****** Package
 
 #+begin_src emacs-lisp
