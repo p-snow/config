@@ -13344,6 +13344,76 @@ If called interactively, it prompt the user to select the date to find."
             #'my/project-insert-link))
 #+end_src
 
+**** Custom Org Link Types
+:PROPERTIES:
+:CREATED:  [2024-10-30 Wed 20:57]
+:END:
+
+***** "project" org link type
+:PROPERTIES:
+:CREATED:  [2024-10-30 Wed 20:57]
+:ID:       949ee712-2ede-4dc0-9b54-555b3e043475
+:END:
+
+A "project" link type is designed for local copies of Git or other CVS repositories. It supports auto-completion when creating a new link and opens the local project repository directly. Additionally, it converts the link to the corresponding URL, such as https://github.com/xxx.
+
+#+begin_src emacs-lisp :noweb tangle
+(defun my/ghq-root ()
+  "Return ghq root directory."
+  (let ((ghq-root "<<ghq-root()>>"))
+    (expand-file-name
+     (if-let ((symlink (file-symlink-p ghq-root)))
+         (file-name-concat (file-name-directory ghq-root)
+                           (file-symlink-p ghq-root))
+       ghq-root))))
+
+(defun my/org-project-complete-link (&optional arg)
+  "Prompt to select the project from ghq project list."
+  (when (require 'consult-ghq nil t)
+    (let* ((proj (completing-read "Project: "
+                                  (consult-ghq--list-candidates)))
+
+           (proj-rel (file-relative-name proj
+                                         (my/ghq-root))))
+      (pcase proj-rel
+        ((rx (seq "github.com/" (group (+ print))))
+         (concat "project+gh:" (match-string 1 proj-rel)))
+        ((rx (seq "gitlab.com/" (group (+ print))))
+         (concat "project+gl:" (match-string 1 proj-rel)))))))
+
+(defun my/org-project-follow-link (link _)
+  "Open LINK in Emacs."
+  (find-file (file-name-concat (my/ghq-root) link)))
+
+(defun my/org-project-export-link (link desc format _)
+  "Export LINK to file."
+  (setq link
+        (concat "https://"
+                (file-relative-name (with-current-buffer (find-file-noselect (file-name-concat (my/ghq-root) link))
+                                      (project-root (project-current)))
+                                    (my/ghq-root))))
+  (pcase format
+    ('html (format "<a href=\"%s\">%s</a>"
+                   link
+                   (or desc link)))
+    ('md (if desc (format "[%s](%s)" desc link)
+           (format "<%s>" link)))
+    ('latex (format "\\href{%s}{%s}" link desc))
+    ('texinfo (format "@uref{%s,%s}" link desc))
+    ('ascii (format "%s (%s)" desc link))
+    (_ (format "%s (%s)" desc link))))
+
+(with-eval-after-load 'ol
+  (org-link-set-parameters
+   "project"
+   :complete #'my/org-project-complete-link
+   :follow #'my/org-project-follow-link
+   :export #'my/org-project-export-link)
+  (mapc (apply-partially 'add-to-list 'org-link-abbrev-alist)
+        '(("project+gh" . "project:github.com/")
+          ("project+gl" . "project:gitlab.com/"))))
+#+end_src
+
 *** would-be packages
 :PROPERTIES:
 :CREATED:  [2023-01-12 Thu 14:14]
