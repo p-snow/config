@@ -13414,6 +13414,58 @@ A "project" link type is designed for local copies of Git or other CVS repositor
           ("project+gl" . "project:gitlab.com/"))))
 #+end_src
 
+***** "dotfile" org link type
+:PROPERTIES:
+:CREATED:  [2024-10-31 Thu 22:42]
+:ID:       c4df5f5e-f7cf-4940-900c-3d6c2cece32d
+:END:
+
+#+begin_src emacs-lisp :noweb tangle
+(defvar my/dotfile
+  (file-name-concat "<<ghq-root()>>" "github.com/p-snow/config/dotfiles.org")
+  "My dotfile")
+
+(defun my/org-dotfile-complete-link (&optional arg)
+  "Prompt to select org heading."
+  (concat "dotfile:"
+          (save-excursion
+            (with-org-files-under
+              (with-current-buffer (find-file-noselect my/dotfile)
+                (consult--read
+                 (consult--slow-operation "Collecting headings..."
+                   (or (consult-org--headings nil nil 'file)
+                       (user-error "No headings"))))
+                ;; FIXME
+                (or (org-entry-get nil "CUSTOM_ID")
+                    (org-get-heading t t t t)))))))
+
+(defun my/org-dotfile-follow-link (link _)
+  "Open LINK in Emacs."
+  (org-link-open-as-file (concat my/dotfile "::#gnu-emacs") nil))
+
+(defun my/org-dotfile-export-link (link desc format _)
+  "Export LINK to file."
+  (setq link
+        (concat "https://p-snow.org/config/dotfiles.html" link))
+  (pcase format
+    ('html (format "<a href=\"%s\">%s</a>"
+                   link
+                   (or desc link)))
+    ('md (if desc (format "[%s](%s)" desc link)
+           (format "<%s>" link)))
+    ('latex (format "\\href{%s}{%s}" link desc))
+    ('texinfo (format "@uref{%s,%s}" link desc))
+    ('ascii (format "%s (%s)" desc link))
+    (_ (format "%s (%s)" desc link))))
+
+(with-eval-after-load 'ol
+  (org-link-set-parameters
+   "dotfile"
+   :complete #'my/org-dotfile-complete-link
+   :follow #'my/org-dotfile-follow-link
+   :export #'my/org-dotfile-export-link))
+#+end_src
+
 *** would-be packages
 :PROPERTIES:
 :CREATED:  [2023-01-12 Thu 14:14]
