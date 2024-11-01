@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="alternate"
+      type="application/rss+xml"
+      href="https://www.p-snow.org/config/diary/rss.xml"
+      title="RSS feed for https://www.p-snow.org/config/diary">
+<title>Org のプロパティ値をサクッとコピーする</title>
+<meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="https://cdn.simplecss.org/simple.css"><link rel="stylesheet" href="./assets/css/style.css"></head>
+<body>
+<div id="preamble" class="status"><header><nav><a href="https://www.p-snow.org/config/diary">ホーム</a><a href="https://www.p-snow.org/config/diary/about.html">あばうと</a><a href="https://www.p-snow.org/config/diary/rss.xml">RSS</a></nav><h1>ティンカラー日記</h1><p>こなゆき(a.k.a. p-snow)</p></header></div>
+<div id="content">
+<div class="post-date">01 Nov 2024</div><h1 class="post-title"><a href="https://www.p-snow.org/config/diary/20241101-1932.html">Org のプロパティ値をサクッとコピーする</a></h1>
+<p>
+<preview>
+Org エントリのプロパティ値をサクッとコピーしたいときってありますよね (あるはず！)。org-entry-get が interactive ならな〜とかブツブツ呟きながら、現在エントリの指定してプロパティ値を kill-ring にコピーするコマンドを[BROKEN LINK: dotfile:#emacs-org-copy-property]。
+</preview>
+</p>
+
+<p>
+<details><summary>Elisp code to copy puroperty value at point</summary><p>
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/org-copy-property-as-kill</span> (property)
+  <span style="font-style: italic;">"Copy the value of PROPERTY to `</span><span style="font-weight: bold; font-style: italic; text-decoration: underline;">kill-ring</span><span style="font-style: italic;">'.</span>
+
+<span style="font-style: italic;">If the value matches $(...) format, ... will be treated as a</span>
+<span style="font-style: italic;">shell command, and the output of the command will be copied to</span>
+<span style="font-style: italic;">the `</span><span style="font-weight: bold; font-style: italic; text-decoration: underline;">kill-ring</span><span style="font-style: italic;">' instead."</span>
+  (<span style="font-weight: bold;">interactive</span> (<span style="font-weight: bold;">progn</span> (<span style="font-weight: bold;">setq</span> properties (org-entry-properties))
+                      (list (completing-read <span style="font-style: italic;">"Property: "</span> properties))))
+  (<span style="font-weight: bold;">pcase</span> (<span style="font-weight: bold;">setq</span> value (alist-get property properties nil nil #'equal))
+    ((<span style="font-weight: bold;">rx</span> (seq <span style="font-style: italic;">"$("</span> (group (+ print)) <span style="font-style: italic;">")"</span>))
+     (<span style="font-weight: bold;">setq</span> value (shell-command-to-string (match-string 1 value)))))
+  (<span style="font-weight: bold;">when</span> (stringp value)
+    (kill-new value)
+    (message <span style="font-style: italic;">"Copied: %s"</span> value)))
+
+(<span style="font-weight: bold;">with-eval-after-load</span> 'org
+  (keymap-set org-mode-map <span style="font-style: italic;">"C-c K"</span>
+              #'my/org-copy-property-as-kill)
+  (<span style="font-weight: bold;">setf</span> (alist-get <span style="font-style: italic;">"K"</span> org-speed-commands nil nil #'equal)
+        #'my/org-copy-property-as-kill))
+</pre>
+</div>
+<p>
+</p></details>
+</p>
+
+<p>
+ちょうどプロパティにシェルコマンドを埋め込みたいという特殊なニーズがあったので、それに対応するコードも入ってます。今日は短めで、失礼します。
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-emacs.html">emacs</a> <a href="https://www.p-snow.org/config/diary/tag-org.html">org</a> <a href="https://www.p-snow.org/config/diary/tag-property.html">property</a> </div></div>
+<div id="postamble" class="status"></div>
+</body>
+</html>
