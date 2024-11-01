@@ -2415,12 +2415,11 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
   (tab-bar-tab-name-function (apply-partially #'my/project-root-path t))
   :preface
   (defun my/tab-bar-mode-line-string ()
-    "Return the first 3 characters of the name for the current tab."
-    (substring
-     (assoc-default 'name
-                    (assoc-default 'current-tab
-                                   (funcall tab-bar-tabs-function)))
-     0 3))
+    "Return the name for the current tab."
+    (format "%s)"
+            (assoc-default 'name
+                           (assoc-default 'current-tab
+                                          (funcall tab-bar-tabs-function)))))
   (defun my/project-root-path (&optional base-name)
     "Return an absolute path for `project-current' or base name if BASE-NAME is non-nil."
     (if-let (project (project-current))
