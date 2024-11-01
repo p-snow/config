@@ -14,6 +14,19 @@
 
 (setq make-backup-files nil)
 
+(defun my/org-dotfile-export-link (link desc format _)
+  "Export LINK to file."
+  (setq link
+        (concat "https://p-snow.org/config/dotfiles.html" link))
+  (pcase format
+    ('html (format "<a href=\"%s\">%s</a>"
+                   link
+                   (or desc link)))
+    (_ (format "%s (%s)" desc link))))
+
+(org-link-set-parameters
+ "dotfile"
+ :export #'my/org-dotfile-export-link)
 
 (require 'org-static-blog)
 (setq org-static-blog-publish-title "ティンカラー日記")
