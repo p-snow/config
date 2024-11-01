@@ -1,0 +1,37 @@
+#+title: Org のプロパティ値をサクッとコピーする
+#+date: <2024-11-01 Fri 19:32>
+#+description:
+#+filetags: emacs org property
+
+#+SETUPFILE: diary/header
+
+{{{preview-begin}}}
+Org エントリのプロパティ値をサクッとコピーしたいときってありますよね (あるはず！)。org-entry-get が interactive ならな〜とかブツブツ呟きながら、現在エントリの指定してプロパティ値を kill-ring にコピーするコマンドを[[dotfile:#emacs-org-copy-property][つくりました]]。
+{{{preview-end}}}
+
+{{{accordion-begin(Elisp code to copy puroperty value at point)}}}
+#+begin_src emacs-lisp
+(defun my/org-copy-property-as-kill (property)
+  "Copy the value of PROPERTY to `kill-ring'.
+
+If the value matches $(...) format, ... will be treated as a
+shell command, and the output of the command will be copied to
+the `kill-ring' instead."
+  (interactive (progn (setq properties (org-entry-properties))
+                      (list (completing-read "Property: " properties))))
+  (pcase (setq value (alist-get property properties nil nil #'equal))
+    ((rx (seq "$(" (group (+ print)) ")"))
+     (setq value (shell-command-to-string (match-string 1 value)))))
+  (when (stringp value)
+    (kill-new value)
+    (message "Copied: %s" value)))
+
+(with-eval-after-load 'org
+  (keymap-set org-mode-map "C-c K"
+              #'my/org-copy-property-as-kill)
+  (setf (alist-get "K" org-speed-commands nil nil #'equal)
+        #'my/org-copy-property-as-kill))
+#+end_src
+{{{accordion-end}}}
+
+ちょうどプロパティにシェルコマンドを埋め込みたいという特殊なニーズがあったので、それに対応するコードも入ってます。今日は短めで、失礼します。
