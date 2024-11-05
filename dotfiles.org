@@ -4640,7 +4640,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
           ("d" "Done tasks"
            ((org-ql-search-block `(and (or (done)
                                            (and (todo ,my/org-todo-keyword--someday)
-                                                (not (path ,(expand-file-name "agenda/somedays.org" org-directory)))))
+                                                (not (olp "Someday Tasks"))))
                                        (not (tags "project")))
                                  ((org-ql-block-header "Done/Canceled/Pending task")))))
           ("p" "Projects" tags ,(concat "+" my/org-project-tag))
