@@ -4,7 +4,60 @@
 <title><![CDATA[ティンカラー日記]]></title>
 <description><![CDATA[ティンカラー日記]]></description>
 <link>https://www.p-snow.org/config/diary</link>
-<lastBuildDate>Fri, 01 Nov 2024 10:56:45 +0000</lastBuildDate>
+<lastBuildDate>Fri, 08 Nov 2024 14:43:50 +0000</lastBuildDate>
+<item>
+  <title><![CDATA[現在 Org エントリへのバックリンクをミニバッファに表示する]]></title>
+  <description><![CDATA[
+<p>
+<preview>
+Scrapbox (現Cosense) や Obsidian を見るとノートの被リンク情報、つまりバックリンクをサイドバーや下部にスマートに表示していて少しうらやましくなります。私は org-mode+denote ユーザなのでこの枠組みの中で似たような機能をつくりたいところです。
+</preview>
+</p>
+
+<p>
+もちろん denote にはバックリンクを表示する機能 M-x denote-backlinks があるのですが、私にとってはふたつ問題があります。ひとつは、バックリンクがノート単位でしかサポートされていないこと。もうひとつは、明示的にこのコマンドを打たないとバックリンクバッファが表示されないことです。この二つの点を解決するコードを書いてみましょう。
+</p>
+
+<p>
+特に二つ目の点を解消するために今回、目をつけたのは Eldoc Mode です。Emacs Lisp を書いているあいだミニバッファにちょこちょこ出てくるヤツくらいとしか認識していなかったこの子ですが、調べてみると Elisp 以外にも対応するやればできる子であることが判明しました。というか任意のタイミングで現在ポイントにある変数などの補助情報をミニバッファに表示できるのです。今回の目的にあてはめるなら、現在ポイントしている Org エントリに対しリンクを張っているエントリの heading を表示するという機能を実装できそうです。それでは書いてみましょう。
+</p>
+
+<p>
+<details><summary>Elisp Code to display org backlinks in minibuffer</summary><p>
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/org-backlink-eldoc</span> ()
+  <span style="font-style: italic;">"Start displaying backlinks in minibuffer."</span>
+  (<span style="font-weight: bold;">when</span> (boundp 'eldoc-documentation-functions)
+    (add-hook 'eldoc-documentation-functions
+              #'my/org-backlinks nil t)))
+
+(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/org-backlinks</span> ()
+  <span style="font-style: italic;">"Return heading of backlinks that points the entry at point."</span>
+  (string-join
+   (mapcar (<span style="font-weight: bold;">lambda</span> (elem)
+             (org-entry-get elem <span style="font-style: italic;">"ITEM"</span>))
+           (<span style="font-weight: bold;">when-let</span> ((id (org-entry-get nil <span style="font-style: italic;">"ID"</span>)))
+             (org-ql-select (org-agenda-files)
+               `(link <span style="font-weight: bold;">:target</span> ,id))))
+   <span style="font-style: italic;">" "</span>))
+</pre>
+</div>
+<p>
+</p></details>
+</p>
+
+<p>
+my/org-backlinks は org-ql を使って現在エントリのIDを使ったリンクをもつすべてのエントリの見出し文字列を返します。org-ql マ便利。そして my/org-backlink-eldoc でeldocモードをオンにしつつ、先ほどの関数を、ミニバッファ表示内容を請け負う役割に指定します。このくらいの行数で今回の目的が成せるなんて幸せ！
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-emacs.html">emacs</a> <a href="https://www.p-snow.org/config/diary/tag-org.html">org</a> <a href="https://www.p-snow.org/config/diary/tag-link.html">link</a> </div>]]></description>
+  <category><![CDATA[emacs]]></category>
+  <category><![CDATA[org]]></category>
+  <category><![CDATA[link]]></category>
+  <link>https://www.p-snow.org/config/diary/20241108-2302.html</link>
+  <guid>https://www.p-snow.org/config/diary/20241108-2302.html</guid>
+  <pubDate>Fri, 08 Nov 2024 23:02:00 +0000</pubDate>
+</item>
 <item>
   <title><![CDATA[Org のプロパティ値をサクッとコピーする]]></title>
   <description><![CDATA[
