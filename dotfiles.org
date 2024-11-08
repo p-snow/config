@@ -9708,29 +9708,29 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
               ("C-c p k" . my/password-store-remove)))
 #+end_src
 
-***** org-drill-english
+***** org-english
 
 #+begin_src emacs-lisp
-(use-package org-drill-english
+(use-package org-english
   :after org
-  :bind (:map my/org-global-map
-              ("e e" . my/org-english-capture)
-              ("e d" . my/org-english-drill)
-              ("e r" . my/org-english-drill-resume)
-              ("e l" . my/org-english-link)
-              ("E" . my/cloze-deletion-replace)
-              ("e q" . my/org-english-search)
-              :map engine-mode-prefixed-map
-              ("j" . (lambda (word)
-                       "Copy Japanese translation as well as the pronunciation to `kill-ring'."
-                       (interactive (list (determine-search-word)))
-                       (when (if (featurep 'org-drill-english)
-                                 t
-                               (require 'org-drill-english nil t))
-                         (kill-new (message "%s %s"
-                                            (my/english-japanese-translate word t)
-                                            (my/english-pronunciation word t)))))))
   :config
+  (bind-keys :map my/org-global-map
+             ("e e" . my/org-english-capture)
+             ("e d" . my/org-english-drill)
+             ("e r" . my/org-english-drill-resume)
+             ("e l" . my/org-english-link)
+             ("E" . my/cloze-deletion-replace)
+             ("e q" . my/org-english-search)
+             :map engine-mode-prefixed-map
+             ("j" . (lambda (word)
+                      "Copy Japanese translation as well as the pronunciation to `kill-ring'."
+                      (interactive (list (determine-search-word)))
+                      (when (if (featurep 'org-drill-english)
+                                t
+                              (require 'org-drill-english nil t))
+                        (kill-new (message "%s %s"
+                                           (my/english-japanese-translate word t)
+                                           (my/english-pronunciation word t)))))))
   (when (require 'denote nil t)
     (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
 #+end_src
@@ -14094,7 +14094,7 @@ My workflow for acquiring English words is:
 2. Review my English word list with my/org-english-drill everyday
    - Org-drill ask questions to level up my vocabulary
 
-#+begin_src emacs-lisp  :tangle (expand-file-name "org-drill-english.el" tangle/emacs-sitelisp-dir) :comments no
+#+begin_src emacs-lisp  :tangle (expand-file-name "org-english.el" tangle/emacs-sitelisp-dir) :comments no
 (require 'define-word)
 (require 'org)
 (require 'org-drill)
@@ -14354,15 +14354,64 @@ Display information and add it to kill ring if called interactively."
                        nil 'state (format-time-string (org-time-stamp-format t t)))
     (run-hooks 'post-command-hook)))
 
+;;; Minor modes
+;;;###autoload
+(define-minor-mode org-english-mode
+  "Buffer-local mode for English learning."
+  :lighter " Eng"
+  (when (boundp 'eldoc-documentation-functions)
+    (add-hook 'eldoc-documentation-functions
+              #'my/org-english-eldoc-documentation-function nil t)))
+
+(defun my/org-english-eldoc-documentation-function (&rest args)
+  "Return description of links both forward and backward "
+  (string-join (append (my/org-english-links)
+                       (my/org-english-backlinks))
+               " "))
+
+(defun my/org-english-links ()
+  "Return description of all links."
+  (org-with-wide-buffer
+   (org-back-to-heading t)
+   (let* ((case-fold-search t)
+          (subtree-end (save-excursion (org-end-of-subtree)))
+          (re (rx-to-string `(seq
+                              "- "
+                              "<" (group (1+ alnum)) ">"
+                              (1+ space)
+                              "\" " (regexp ,org-link-any-re) " \"")))
+          (end-mkr (set-marker (mark-marker) subtree-end))
+          link-descs)
+     (while (re-search-forward re (marker-position end-mkr) t)
+       (push (match-string-no-properties 4)
+             link-descs))
+     link-descs)))
+
+(defun my/org-english-backlinks ()
+  "Return description of all backlinks."
+  (mapcar (lambda (elem)
+            (org-entry-get elem "ITEM"))
+          (let* ((id (org-entry-get nil "ID"))
+                 (custom_id (org-entry-get nil "CUSTOM_ID")))
+            (when (or id custom_id)
+              (org-ql-select (current-buffer)
+                             (cond
+                              ((and (stringp id) (stringp custom_id))
+                               `(or (link :target ,id) (link :target ,custom_id)))
+                              ((stringp id)
+                               `(link :target ,id))
+                              ((stringp custom_id)
+                               `(link :target ,custom_id))))))))
+
 (defun my/org-english-list-undrilled ()
   "List english words which haven't been tested before in level ascending order."
   (interactive)
   (with-current-buffer (find-file-noselect my/org-english-file)
     (org-ql-search my/org-english-file
-                   '(and (tags "drill")
-                         (tags "fd_en")
-                         (not (property "DRILL_LAST_REVIEWED")))
-                   :sort 'my/org-ql--english-level<)))
+      '(and (tags "drill")
+            (tags "fd_en")
+            (not (property "DRILL_LAST_REVIEWED")))
+      :sort 'my/org-ql--english-level<)))
 
 (defun my/org-english-search (word)
   "Look up WORD in my archive files using `org-ql-search'."
@@ -14414,7 +14463,7 @@ A and B are Org headline elements."
             (a-level t)
             (b-level nil)))))
 
-(provide 'org-drill-english)
+(provide 'org-english)
 #+end_src
 
 Call [[elisp:(call-interactively #'ert)][ERT]] with test-org-english-pron to test this code.
