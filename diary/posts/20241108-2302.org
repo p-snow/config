@@ -1,0 +1,36 @@
+#+title: 現在 Org エントリへのバックリンクをミニバッファに表示する
+#+date: <2024-11-08 Fri 23:02>
+#+description:
+#+filetags: emacs org link
+
+#+SETUPFILE: diary/header
+
+{{{preview-begin}}}
+Scrapbox (現Cosense) や Obsidian を見るとノートの被リンク情報、つまりバックリンクをサイドバーや下部にスマートに表示していて少しうらやましくなります。私は org-mode+denote ユーザなのでこの枠組みの中で似たような機能をつくりたいところです。
+{{{preview-end}}}
+
+もちろん denote にはバックリンクを表示する機能 M-x denote-backlinks があるのですが、私にとってはふたつ問題があります。ひとつは、バックリンクがノート単位でしかサポートされていないこと。もうひとつは、明示的にこのコマンドを打たないとバックリンクバッファが表示されないことです。この二つの点を解決するコードを書いてみましょう。
+
+特に二つ目の点を解消するために今回、目をつけたのは Eldoc Mode です。Emacs Lisp を書いているあいだミニバッファにちょこちょこ出てくるヤツくらいとしか認識していなかったこの子ですが、調べてみると Elisp 以外にも対応するやればできる子であることが判明しました。というか任意のタイミングで現在ポイントにある変数などの補助情報をミニバッファに表示できるのです。今回の目的にあてはめるなら、現在ポイントしている Org エントリに対しリンクを張っているエントリの heading を表示するという機能を実装できそうです。それでは書いてみましょう。
+
+{{{accordion-begin(Elisp Code to display org backlinks in minibuffer)}}}
+#+begin_src emacs-lisp
+(defun my/org-backlink-eldoc ()
+  "Start displaying backlinks in minibuffer."
+  (when (boundp 'eldoc-documentation-functions)
+    (add-hook 'eldoc-documentation-functions
+              #'my/org-backlinks nil t)))
+
+(defun my/org-backlinks ()
+  "Return heading of backlinks that points the entry at point."
+  (string-join
+   (mapcar (lambda (elem)
+             (org-entry-get elem "ITEM"))
+           (when-let ((id (org-entry-get nil "ID")))
+             (org-ql-select (org-agenda-files)
+               `(link :target ,id))))
+   " "))
+#+end_src
+{{{accordion-end}}}
+
+my/org-backlinks は org-ql を使って現在エントリのIDを使ったリンクをもつすべてのエントリの見出し文字列を返します。org-ql マ便利。そして my/org-backlink-eldoc でeldocモードをオンにしつつ、先ほどの関数を、ミニバッファ表示内容を請け負う役割に指定します。このくらいの行数で今回の目的が成せるなんて幸せ！
