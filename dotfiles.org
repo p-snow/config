@@ -9731,7 +9731,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
                         (kill-new (message "%s %s"
                                            (my/english-japanese-translate word t)
                                            (my/english-pronunciation word t)))))))
-  (when (require 'denote nil t)
+  (with-eval-after-load 'denote-org-extras
     (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
 #+end_src
 
@@ -14365,24 +14365,27 @@ Display information and add it to kill ring if called interactively."
 
 (defun my/org-english-eldoc-documentation-function (&rest args)
   "Return description of links both forward and backward "
-  (string-join (append (my/org-english-links)
-                       (my/org-english-backlinks))
-               " "))
+  (when (and (derived-mode-p 'org-mode)
+             (not (org-before-first-heading-p)))
+    (string-join (append (my/org-english-links)
+                         (my/org-english-backlinks))
+                 " ")))
 
 (defun my/org-english-links ()
   "Return description of all links."
   (org-with-wide-buffer
    (org-back-to-heading t)
    (let* ((case-fold-search t)
-          (subtree-end (save-excursion (org-end-of-subtree)))
+          (subtree-end (save-excursion
+                         (org-end-of-subtree)
+                         (point)))
           (re (rx-to-string `(seq
                               "- "
                               "<" (group (1+ alnum)) ">"
                               (1+ space)
                               "\" " (regexp ,org-link-any-re) " \"")))
-          (end-mkr (set-marker (mark-marker) subtree-end))
           link-descs)
-     (while (re-search-forward re (marker-position end-mkr) t)
+     (while (re-search-forward re subtree-end t)
        (push (match-string-no-properties 4)
              link-descs))
      link-descs)))
