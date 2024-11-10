@@ -1,0 +1,39 @@
+#+title:
+#+date: <2024-11-10 Sun 12:36>
+#+description:
+#+filetags:
+
+#+SETUPFILE: diary/header
+
+{{{preview-begin}}}
+org-mode 中毒者のわたしとしては、どんな形式の文書でも Org で見たくなるわけです。もちろんウェブページも例外ではありません。長文が載ったページも Org でササッと折り畳みながら要点をすばやく把握できるようにしていきましょう。
+{{{preview-end}}}
+
+今回は、EWWでウェブサイトを見ているときにすばやくページをOrg形式に変換して表示する、という方法を検討してみたいとおもいます。[[https://p-snow.org/config/dotfiles.html#emacs-eww-reopen-in-org][こちら]]が実装となります。
+
+{{{accordion-begin(Elisp code to reopen EWW page in org)}}}
+#+begin_src emacs-lisp
+(defun my/eww-reopen-in-org (&optional level)
+  "Convert the current HTML page source into an org format, then open it with level LEVEL entries displayed."
+  (interactive "p")
+  (let ((source (plist-get eww-data :source))
+        (buffer (get-buffer-create "EWW page in org"))
+        (org-startup-folded t))
+    (with-current-buffer buffer
+      (insert source)
+      (shell-command-on-region (point-min) (point-max)
+                               "pandoc - -f html -t org"
+                               t t)
+      (org-mode)
+      (org-ctrl-c-tab level))
+    (switch-to-buffer buffer)))
+
+(with-eval-after-load 'eww
+  (bind-keys :map eww-mode-map
+             ("O" . my/eww-reopen-in-org)))
+#+end_src
+{{{accordion-end}}}
+
+コードとしては至ってシンプルですね。ポイントとしてはファイルに書き出すことなくEmacsバッファ内で変換・表示を完結しているところでしょうか。変換エンジンとしてはおなじみpandocを使っております。キーバインドは Org で Open するから "O" にしました。
+
+Happy Tinkering!

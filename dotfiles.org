@@ -3574,7 +3574,6 @@ The EWW bookmark functionality is an original implementation, separate from the 
              ("C-j" . eww-follow-link)
              ("T" . eww-goto-title-heading)
              ("L" . my/eww-goto-heading)
-             ("O" . my/eww-view-in-org)
              :map eww-bookmark-mode-map
              ("C-j" . eww-bookmark-browse))
   (with-eval-after-load 'consult
@@ -3593,30 +3592,6 @@ The EWW bookmark functionality is an original implementation, separate from the 
                                    'url (plist-get bm :url)))
                                 eww-bookmarks))))
     (add-to-list 'consult-buffer-sources 'consult--source-eww 'append)))
-
-(defun my/eww-view-in-org ()
-  "Convert current html page into one org file and show it.
-
-This is handy if you would like to check a page index comfortably."
-  (interactive)
-  (let ((source (plist-get eww-data :source))
-        (src-html (make-temp-file "source-"))
-        (dst-org (expand-file-name
-                  (format "<<eww-org-dir()>>/%s.org" (org-id-uuid))))
-        (coding-system-for-write 'utf-8-unix)
-        (org-startup-folded t))
-    (with-temp-buffer
-      (insert source)
-      (make-directory
-       (file-name-directory (directory-file-name dst-org)) t)
-      (write-region (point-min) (point-max) src-html nil)
-      (call-process-shell-command (format "pandoc %s -f html -t org -o %s"
-                                          (shell-quote-argument src-html)
-                                          (shell-quote-argument dst-org)))
-      (delete-file src-html))
-    (find-file dst-org t)
-    (goto-char (point-min))
-    (org-ctrl-c-tab)))
 
 (defun eww-headings-dom ()
   "Return heading list as a dom from xml."
@@ -10717,6 +10692,33 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
   (insert " ")
   (backward-char 1))
 (keymap-global-set "M-o" 'my/open-space)
+#+end_src
+
+***** Reopening the current webpage in org format
+:PROPERTIES:
+:CREATED:  [2024-11-10 Sun 12:27]
+:CUSTOM_ID: emacs-eww-reopen-in-org
+:END:
+
+#+begin_src emacs-lisp
+(defun my/eww-reopen-in-org (&optional level)
+  "Convert the current HTML page source into an org format, then open it with level LEVEL entries displayed."
+  (interactive "p")
+  (let ((source (plist-get eww-data :source))
+        (buffer (get-buffer-create "EWW page in org"))
+        (org-startup-folded t))
+    (with-current-buffer buffer
+      (insert source)
+      (shell-command-on-region (point-min) (point-max)
+                               "pandoc - -f html -t org"
+                               t t)
+      (org-mode)
+      (org-ctrl-c-tab level))
+    (switch-to-buffer buffer)))
+
+(with-eval-after-load 'eww
+  (bind-keys :map eww-mode-map
+             ("O" . my/eww-reopen-in-org)))
 #+end_src
 
 ***** Retrieving Credential Information
