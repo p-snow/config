@@ -14143,26 +14143,26 @@ Capture URL or file currently visiting as well as a sentence at point."
               (split-string word "[ -]+")
               word))
 
-(defun my/cloze-deletion-replace (word start end)
-  "Convert WORD into cloze deletion.
-OWRD can be determined a string between START and END.
-
-When called Interactively, WORD is either a word at point or a string in region."
-  (interactive (cond
-                ((region-active-p)
-                 `(,(buffer-substring (region-beginning) (region-end))
-                   ,(region-beginning)
-                   ,(region-end)))
-                (t
-                 (let ((bounds (bounds-of-thing-at-point 'word)))
-                   `(,(thing-at-point 'word)
-                     ,(car bounds)
-                     ,(cdr bounds))))))
-  (replace-string word
-                  (my/cloze-deletion word)
-                  nil
-                  start
-                  end))
+(defun my/cloze-deletion-replace (&optional unwrap)
+  "Make a word at point cloze deletion format by wrapping brackets or UNWRAP."
+  (interactive "P")
+  (pcase-let* ((thing (if (equal unwrap '(4)) 'list 'word))
+               (word (if (region-active-p)
+                         (buffer-substring (region-beginning) (region-end))
+                       (thing-at-point thing)))
+               (`(,start . ,end)
+                (if (region-active-p)
+                    (cons (region-beginning) (region-end))
+                  (let ((bounds (bounds-of-thing-at-point thing)))
+                    (cons (car bounds) (cdr bounds))))))
+    (replace-string word
+                    (if (equal unwrap '(4))
+                        (save-match-data
+                          (string-match (rx (seq "[" (group (+ graph)) "||" alnum "]"))
+                                        word)
+                          (match-string 1 word))
+                      (my/cloze-deletion word))
+                    nil start end)))
 
 (with-eval-after-load 'org-ql-view
   (push `("English words to learn"
