@@ -10651,7 +10651,7 @@ surrounded by word boundaries."
       (reb-quit)
       (query-replace-regexp re replacement delimited beg end))))
 
-(when (require 'rebuilder nil t)
+(with-eval-after-load 're-builder
   (keymap-set reb-mode-map "RET" #'reb-replace-regexp)
   (keymap-set reb-lisp-mode-map "RET" #'reb-replace-regexp)
   (keymap-global-set "C-%" #'re-builder))
