@@ -4,7 +4,72 @@
 <title><![CDATA[ティンカラー日記]]></title>
 <description><![CDATA[ティンカラー日記]]></description>
 <link>https://www.p-snow.org/config/diary</link>
-<lastBuildDate>Sun, 10 Nov 2024 04:03:11 +0000</lastBuildDate>
+<lastBuildDate>Mon, 11 Nov 2024 14:55:14 +0000</lastBuildDate>
+<item>
+  <title><![CDATA[左手小指だけ酷使するのはフェアじゃない、そうだ ' を Hyper にしよう]]></title>
+  <description><![CDATA[
+<p>
+<preview>
+<a href="https://p-snow.org/config/diary/20241023-1340.html">以前のポスト</a>でも書きましたが、最近は「'キー」(apostrophe/single quote)をEmacs内でHyperキーとして使っています。私はUS配列キーボードを使っているので、JIS配列で言うなら「]キー」(closing bracket)になりますかね。つまり「Enter/Returnキー」の左どなりのキーです。なぜいいのか、どうやって実現しているのか。少し詳らかにしてみましょう。
+</preview>
+</p>
+
+<p>
+まずこうすることをやってみようと思ったのは、至極、単純な発想がきっかけです。普段から左手小指をCtrlとして酷使しているのに対し、右手小指は遊び勝ちでこれを活用すればいいんじゃないかというもの。もちろん同じことを考えている人は多くいるんですが、彼らの結論はEnterキーをCtrlとして使うというものでした。
+</p>
+
+<p>
+私もこれを試したことがあるんですが、どうもしっくりこなかった。理由は二つで、ひとつは、Ctrlを使ったキー操作の選択肢が増えて迷いが生じてしまうことです。どういうことかというと、例えば C-a (org-beginning-of-line) を押すのに、これまでように左手の小指と薬指を使うこともできれば、右手小指と左手小指(or 薬指)を使うこともできる。選択肢が増えるのはよいかと思いきや、よく使うキーはマッスルメモリーで記憶しているので、プラスにならないどころか個人的には迷いが生じ得る分だけマイナスになるということに思い至りました。
+</p>
+
+<p>
+もうひとつは、Enterキーの位置が修飾キーとして使うには右寄りすぎて右手首を若干、右に傾けなければいけない点です。これはかなり個人的な話なのかもしれませんね。とにかくEnterキーをCtrlとして使うのは個人的には合わなかったので何とかならないかと考えた挙句、冒頭で言ったようにEnterキーのひとつ左側で押しやすい「'キー」をCtrlではなくHyperとして使うことにしましあ。
+</p>
+
+<p>
+ここで当然思いつく問題は、文字入力用のキーを修飾キーとして使うのは技術的に困難なのでは、仮にできたとしても、実用面において不都合が生じるのでは？というものですね。つまり文字(')を打とうとしたらHyperに解釈されてしまったり、逆にHyperとして使おうと思ったら ' が入力されてしまったりということです。結論から言う、前者の技術的な問題は keyd というLinuxのキーリマッパが解決してくれ、後者の問題は keyd で文字キーとして機能するタイムアウト値を適切に設定することで乗り越えることができました。では、keyd でどのように設定するかを少し見てみましょう。
+</p>
+
+<p>
+<details><summary>/etc/keyd/default.conf</summary><p>
+</p></details>
+</p>
+<div class="org-src-container">
+<pre class="src src-conf">[<span style="font-weight: bold; text-decoration: underline;">main</span>]
+
+<span style="font-style: italic;">' = overloadt(apostrophe_layer, '</span>, 200)
+
+[<span style="font-weight: bold; text-decoration: underline;">apostrophe_layer:M</span>]
+</pre>
+</div>
+
+<p>
+残念ながら、HyperキーというのはX11レベルでサポートするキーではないそうなので、keydで直接 'キーをHyperキーにする設定は不可能です。なのでワークアラウンドとして 'キーを一旦Superキーとして定義して、Emacs上でSuperキーをHyperキーとして使う設定を施します。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">setf</span> x-super-keysym 'hyper)
+</pre>
+</div>
+
+<p>
+これでめでたく 'キーをEmacs上でHyperキーとして使うことができるようになりました。ちなみに、文字 ' を入力するタイムアウト値は200ミリ秒にしました。これはメインの作業環境で適用する値ですが、keydはキーボードごとに異なる設定をすることもできるので、別環境にも対応可能です。
+</p>
+
+<p>
+ここでご紹介したのは、私の嗜好と作業環境に最適化されたものですので、みなさんも独自のよりよいキー運用を探してみてはいかがでしょうか。
+</p>
+
+<p>
+Happy Tinkering!
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-emacs.html">emacs</a> <a href="https://www.p-snow.org/config/diary/tag-key.html">key</a> </div>]]></description>
+  <category><![CDATA[emacs]]></category>
+  <category><![CDATA[key]]></category>
+  <link>https://www.p-snow.org/config/diary/20241111-2254.html</link>
+  <guid>https://www.p-snow.org/config/diary/20241111-2254.html</guid>
+  <pubDate>Mon, 11 Nov 2024 22:54:00 +0000</pubDate>
+</item>
 <item>
   <title><![CDATA[閲覧中のウェブページを Org 形式で開く]]></title>
   <description><![CDATA[
