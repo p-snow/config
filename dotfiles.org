@@ -9420,17 +9420,15 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
 :CREATED:  [2024-03-11 Mon 16:55]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-base
-"gnuplot"
-#+end_src
-
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
+"gnuplot"
 "emacs-gnuplot"
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle
 (use-package gnuplot
   :defer t
+  :mode ("\\.\\(gnuplot\\|gpt\\|plt\\|gp\\)\\'" . gnuplot-mode)
   :hook
   (gnuplot-mode . (lambda ()
                     (setq-local devdocs-current-docs '("gnuplot")))))
@@ -17152,6 +17150,19 @@ export WINEPREFIX=~/.wine
 
 #+begin_src scheme :tangle no :noweb-ref guix-desktop
 "gnome-font-viewer"
+#+end_src
+
+** Gnuplot
+:PROPERTIES:
+:CREATED:  [2024-11-13 Wed 17:31]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-base
+"gnuplot"
+#+end_src
+
+#+begin_src gnuplot :tangle (expand-file-name ".gnuplot") :comments no
+set colorsequence podo
 #+end_src
 
 * Development Infrastructures
