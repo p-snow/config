@@ -10061,42 +10061,30 @@ Every frame will be spawn in maximized and initial frame will be full screen at 
 Org Mode offers handy commands, namely org-increase-number-at-point and org-decrease-number-at-point. I often find myself handling zero-padded numbers such as '010'. I thought it would be nice if there was a command that could increase a number at point while preserving the preceding zeros - and this is the solution.
 
 #+begin_src emacs-lisp
-(defun my/increase-number-at-point-preserve-pad (&optional inc)
-  "Increment the number at point while preserving zero padding.
-With an optional prefix numeric argument INC, increment using
-this numeric value.
-
-This command is a homage to org-increase-number-at-point."
+(defun my/increase-number-at-point (&optional inc)
+  "Increase the number at point by INC."
   (interactive "p")
-  (if (not (number-at-point))
-      (user-error "Not on a number")
-    (unless inc (setq inc 1))
-    (let* ((pos (point))
-           (digit-chars "-+0-9")
-           (beg (skip-chars-backward digit-chars))
-           (end (skip-chars-forward digit-chars))
-           (nap (buffer-substring-no-properties
-                 (+ pos beg) (+ pos beg end)))
-           (digit-count (length nap)))
-      (delete-region (+ pos beg) (+ pos beg end))
-      (insert (format (concat "%0" (format "%d" digit-count) "d")
-                      (+ (string-to-number nap) inc))))))
+  (let (number
+        (inhibit-message t))
+    (pcase-let* ((`(,beg . ,end) (save-match-data
+                                   (setq number (number-at-point))
+                                   (cons (match-beginning 0) (match-end 0)))))
+      (when (numberp number)
+        (delete-region beg end)
+        (insert (number-to-string (+ number inc)))))))
 
-(defun my/decrease-number-at-point-preserve-pad (&optional inc)
-  "Decrement the number at point while preserving zero padding.
-With an optional prefix numeric argument INC, decrement using
-this numeric value."
-  (interactive "p")
-  (my/increase-number-at-point-preserve-pad (- (or inc 1))))
+(defun my/decrease-number-at-point-by-1 ()
+  "Decrease the number at point by 1."
+  (interactive)
+  (funcall #'my/increase-number-at-point -1))
 
-(keymap-global-set "C-x <up>" #'my/increase-number-at-point-preserve-pad)
-(keymap-global-set "C-x <down>" #'my/decrease-number-at-point-preserve-pad)
+(keymap-global-set "C-x <up>" #'my/increase-number-at-point)
 (defvar-keymap my/increase-number-repeat-map
-  :doc "Keymap to repeat increasing a number."
-  :repeat (:enter (my/increase-number-at-point-preserve-pad
-                   my/decrease-number-at-point-preserve-pad))
-  "<up>" #'my/increase-number-at-point-preserve-pad
-  "<down>" #'my/decrease-number-at-point-preserve-pad)
+  :doc "Repeat keymap for increasing/decreasing numbers."
+  :repeat (:enter (my/increase-number-at-point
+                   my/decrease-number-at-point-by-1))
+  "<up>" #'my/increase-number-at-point
+  "<down>" #'my/decrease-number-at-point-by-1)
 #+end_src
 
 ***** edit local file as root (sudo)
