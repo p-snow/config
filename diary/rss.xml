@@ -4,17 +4,51 @@
 <title><![CDATA[ティンカラー日記]]></title>
 <description><![CDATA[ティンカラー日記]]></description>
 <link>https://www.p-snow.org/config/diary</link>
-<lastBuildDate>Sat, 16 Nov 2024 09:56:32 +0000</lastBuildDate>
+<lastBuildDate>Sat, 16 Nov 2024 13:08:28 +0000</lastBuildDate>
 <item>
-  <title><![CDATA[テスト]]></title>
+  <title><![CDATA[手元の数字くらい自在に増減したい、それが自由だ]]></title>
   <description><![CDATA[
 <p>
 <preview>
+カーソルが当たっている数字に対して１だけ増やしたい。または減らしたい。いやもっと言えば任意の数の可算・減算を自由にしたい。金額を打ち間違えたら消去・再入力の手間なく修正できるし、勘違いして記入していた一週間ずれた日にちには+7をつければ暗算せずに解決です。さあ少し時間ができたので、私のこのitchを解消していきましょう。
 </preview>
 </p>
 
 <p>
+さっそくですが、<a href="https://p-snow.org/config/dotfiles.html#emacs-increase-number">こちら</a>ができあがったコードです。numeric prefix argを渡せばその値が増分になります。
+</p>
+
+<p>
+<details><summary>Elisp code to increase the number at point</summary><p>
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/increase-number-at-point</span> (<span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> inc)
+  <span style="font-style: italic;">"Increase the number at point by INC."</span>
+  (<span style="font-weight: bold;">interactive</span> <span style="font-style: italic;">"p"</span>)
+  (<span style="font-weight: bold;">let</span> (number
+        (inhibit-message t))
+    (<span style="font-weight: bold;">pcase-let*</span> ((`(,beg . ,end) (<span style="font-weight: bold;">save-match-data</span>
+                                   (<span style="font-weight: bold;">setq</span> number (number-at-point))
+                                   (cons (match-beginning 0) (match-end 0)))))
+      (<span style="font-weight: bold;">when</span> (numberp number)
+        (delete-region beg end)
+        (insert (number-to-string (+ number inc)))))))
+</pre>
+</div>
+<p>
+</p></details>
+</p>
+
+<p>
+ああっこれでスッキリしました。欲求を解消するというのもありますが、肝心なのは、欲求解消に向けて取り組んでいる時間が精神的にプラスに作用していること。これが私がEmacs盆栽をする一番の動機なのかもしれません。自由だ！
+</p>
+
+<p>
 <video controls autoplay><source src="./assets/res/20241116.webm" type='video/webm'></video>
+</p>
+
+<p>
+Happy tinkering!
 </p>
 <div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-emacs.html">emacs</a> <a href="https://www.p-snow.org/config/diary/tag-programming.html">programming</a> </div>]]></description>
   <category><![CDATA[emacs]]></category>
