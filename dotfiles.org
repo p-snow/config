@@ -7104,6 +7104,12 @@ This subtree holds resources for [[https://p-snow.org/][my blog]].
                            "{{{accordion-end}}}")
 #+end_src
 
+#+NAME: template-desktop-recording
+#+begin_src emacs-lisp :tangle no :noweb-ref eshell-mode-template
+(desktop-recording
+ "ffmpeg -video_size 2560x1440 -framerate 25 -f x11grab -i :0.0 output.mp4")
+#+end_src
+
 ***** ox-haunt
 :PROPERTIES:
 :CREATED:  [2024-04-03 Wed 16:37]
@@ -10050,7 +10056,7 @@ Every frame will be spawn in maximized and initial frame will be full screen at 
             #'native-compile-prune-cache))
 #+end_src
 
-***** Increasing a number at point preserving pad
+***** Increasing the number at point
 :PROPERTIES:
 :CREATED:  [2023-09-06 Wed 21:53]
 :END:
@@ -11464,6 +11470,16 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 (curly-bracket-japanese-regexp
  (rx (parened ?｛ (+ (or " "
                          (category japanese-hiragana-two-byte)))))))
+#+end_src
+
+***** eshell-mode templates
+:PROPERTIES:
+:CREATED:  [2024-11-16 Sat 16:07]
+:END:
+
+#+header: :shebang "eshell-mode"
+#+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "tempel/templates/eshell.eld" tangle/emacs-etc-dir)
+<<eshell-mode-template>>
 #+end_src
 
 ***** emacs-lisp-mode templates
