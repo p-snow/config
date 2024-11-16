@@ -1,4 +1,4 @@
-#+title: テスト
+#+title: 手元の数字くらい自在に増減したい、それが自由だ
 #+date: <2024-11-16 Sat 18:10>
 #+description:
 #+filetags: emacs programming
@@ -6,6 +6,29 @@
 #+SETUPFILE: diary/header
 
 {{{preview-begin}}}
+カーソルが当たっている数字に対して１だけ増やしたい。または減らしたい。いやもっと言えば任意の数の可算・減算を自由にしたい。金額を打ち間違えたら消去・再入力の手間なく修正できるし、勘違いして記入していた一週間ずれた日にちには+7をつければ暗算せずに解決です。さあ少し時間ができたので、私のこのitchを解消していきましょう。
 {{{preview-end}}}
 
+さっそくですが、[[https://p-snow.org/config/dotfiles.html#emacs-increase-number][こちら]]ができあがったコードです。numeric prefix argを渡せばその値が増分になります。
+
+{{{accordion-begin(Elisp code to increase the number at point)}}}
+#+begin_src emacs-lisp
+(defun my/increase-number-at-point (&optional inc)
+  "Increase the number at point by INC."
+  (interactive "p")
+  (let (number
+        (inhibit-message t))
+    (pcase-let* ((`(,beg . ,end) (save-match-data
+                                   (setq number (number-at-point))
+                                   (cons (match-beginning 0) (match-end 0)))))
+      (when (numberp number)
+        (delete-region beg end)
+        (insert (number-to-string (+ number inc)))))))
+#+end_src
+{{{accordion-end}}}
+
+ああっこれでスッキリしました。欲求を解消するというのもありますが、肝心なのは、欲求解消に向けて取り組んでいる時間が精神的にプラスに作用していること。これが私がEmacs盆栽をする一番の動機なのかもしれません。自由だ！
+
 @@html:<video controls autoplay><source src="./assets/res/20241116.webm" type='video/webm'></video>@@
+
+Happy tinkering!
