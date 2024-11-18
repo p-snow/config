@@ -1677,6 +1677,8 @@ Settings in this section are influenced a great deal by my personal preference. 
 #+begin_src emacs-lisp
 (keymap-global-set "M-F" #'forward-to-word)
 (keymap-global-set "M-B" #'backward-to-word)
+(keymap-global-set "C-x M-F" #'forward-paragraph)
+(keymap-global-set "C-x M-B" #'backward-paragraph)
 (keymap-global-set "C-c d" #'duplicate-dwim)
 (keymap-global-set "C-c j" #'join-line)
 (keymap-global-set "C-c M-d" #'copy-from-above-command)
@@ -4376,6 +4378,8 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (keymap-set map "C-S-n" #'org-next-item)
     (keymap-set map "C-S-u" #'org-up-element)
     (keymap-set map "C-S-d" #'org-down-element)
+    (keymap-set map "C-x M-F" #'org-forward-paragraph)
+    (keymap-set map "C-x M-B" #'org-backward-paragraph)
     (keymap-set map "C-<" #'org-previous-link)
     (keymap-set map "C->" #'org-next-link)
     (keymap-set map "C-c @" #'org-mark-element)
@@ -12512,8 +12516,8 @@ minibuffer ran."
   "<" #'org-previous-link
   "M-f" #'org-next-block
   "M-b" #'org-previous-block
-  "M-F" #'org-babel-next-src-block
-  "M-B" #'org-babel-previous-src-block)
+  "M-F" #'org-forward-paragraph
+  "M-B" #'org-backward-paragraph)
 #+end_src
 
 **** show org entries pointing to the current (backlink)
