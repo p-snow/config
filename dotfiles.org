@@ -10075,8 +10075,7 @@ Org Mode offers handy commands, namely org-increase-number-at-point and org-decr
 (defun my/increase-number-at-point (&optional inc)
   "Increase the number at point by INC."
   (interactive "p")
-  (let (number
-        (inhibit-message t))
+  (let (number)
     (pcase-let* ((`(,beg . ,end) (save-match-data
                                    (setq number (number-at-point))
                                    (cons (match-beginning 0) (match-end 0)))))
@@ -10090,13 +10089,17 @@ Org Mode offers handy commands, namely org-increase-number-at-point and org-decr
   (funcall #'my/increase-number-at-point (* dec -1)))
 
 (keymap-global-set "C-x <up>" #'my/increase-number-at-point)
+(keymap-global-set "C-x /" #'my/increase-number-at-point)
 (keymap-global-set "C-x <down>" #'my/decrease-number-at-point)
+(keymap-global-set "C-x ?" #'my/decrease-number-at-point)
 (defvar-keymap my/increase-number-repeat-map
   :doc "Repeat keymap for increasing/decreasing numbers."
   :repeat (:enter (my/increase-number-at-point
                    my/decrease-number-at-point))
   "<up>" #'my/increase-number-at-point
-  "<down>" #'my/decrease-number-at-point)
+  "/" #'my/increase-number-at-point
+  "<down>" #'my/decrease-number-at-point
+  "?" #'my/decrease-number-at-point)
 #+end_src
 
 ***** edit local file as root (sudo)
@@ -15634,7 +15637,10 @@ target=github.com
   PGUP add chapter -1
   PGDWN add chapter 1
 
-  ? playlist-shuffle
+  / add volume 2
+  ? add volume -2
+
+  % playlist-shuffle
   ENTER playlist-next
   Shift+ENTER playlist-prev
 
