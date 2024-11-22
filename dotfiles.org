@@ -13489,6 +13489,14 @@ It is implemented using abbrev mechanism since functionality of file: link type 
 (require 'ol)
 (require 'org-element)
 
+(defvar org-lfile-link-re
+  (rx "["
+      "[lfile" (opt (or "+emacs" "+sys")) ":"
+      (group (minimal-match (1+ print))) "]"
+      (opt "[" (0+ print) "]")
+      "]")
+  "Regular expression matching lfile any link.")
+
 (with-eval-after-load 'ol
   (mapc (apply-partially 'add-to-list 'org-link-abbrev-alist)
         '(("lfile" . "file:%(lfile-locate)")
@@ -13553,6 +13561,16 @@ converted by `file-name-nondirectory' unless PATH-CONV-FN is supplied."
 (with-eval-after-load 'org
   (org-link-set-parameters "lfile"
                            :store #'lfile-store-link))
+
+(defun embark-org-target-lfile-link ()
+  "Target an org link at point of the form [[lfile:<file-name>][desc]]>."
+  (pcase (org-in-regexp org-lfile-link-re)
+    (`(,start . ,end)
+     (when-let ((file-path (lfile-locate (match-string 1))))
+       `(file ,file-path ,start . ,end)))))
+
+(with-eval-after-load 'embark
+  (add-to-list 'embark-target-finders 'embark-org-target-lfile-link))
 
 (provide 'lfile)
 #+end_src
