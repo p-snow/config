@@ -13783,25 +13783,17 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
   "Open MEDIA file in media player with respecting QUERY.
 
 QUERY must comply to RFC 822 format, which holds attribute/value pairs."
-  (let ((ask-file (when (or (file-directory-p media)
-                            (string-match-p (eval `(rx (or ,@my/open-file-compressed-media-extensions)))
-                                            media))
-                    (file-name-nondirectory media))))
-    (when (or (not ask-file)
-              (and ask-file
-                   (y-or-n-p (format "Play %s?: " ask-file))))
-      (apply 'funcall-interactively
-             'mpv-dispatch-dwim media nil
-             (and (stringp query)
-                  (let ((start) (end))
-                    (mapc (lambda (cons-cell)
-                            (pcase cons-cell
-                              (`(,val "") (setq start val))
-                              (`(,(or "s" "start") . (,val)) (setq start val))
-                              (`(,(or "e" "end") . (,val)) (setq end val))))
-                          (url-parse-query-string query))
-                    `(,start ,end))
-                  )))))
+  (apply 'funcall-interactively
+         'mpv-dispatch-dwim media nil
+         (and (stringp query)
+              (let (start end)
+                (mapc (lambda (cons-cell)
+                        (pcase cons-cell
+                          (`(,val "") (setq start val))
+                          (`(,(or "s" "start") . (,val)) (setq start val))
+                          (`(,(or "e" "end") . (,val)) (setq end val))))
+                      (url-parse-query-string query))
+                `(,start ,end)))))
 
 ;; ==============================================
 ;; browse-url handling
