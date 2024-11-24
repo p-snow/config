@@ -578,8 +578,10 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
    (service home-openssh-service-type
             (home-openssh-configuration
              (hosts
-              (list (openssh-host (name "pc02")
-                                  (host-name "192.168.100.127"))))))
+              (list (openssh-host (name "pc-t480s")
+                                  (host-name "192.168.100.126"))
+                    (openssh-host (name "pc-k8p")
+                                  (host-name "192.168.100.130"))))))
    (service home-dotfiles-service-type
             (home-dotfiles-configuration
              (layout 'plain)
@@ -811,38 +813,12 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 "btrbk"
 #+end_src
 
-**** btrbk.conf
-
 [[https://digint.ch/btrbk/doc/btrbk.conf.5.html][btrbk.conf documentation]]
 
-#+begin_src conf :noweb tangle :tangle (expand-file-name ".config/btrbk/btrbk.conf")
-timestamp_format long
-incremental yes
-
-snapshot_preserve_min 6h
-snapshot_preserve 36h 3d 3w
-
-# Create snapshots only if the backup disk is attached
-#snapshot_create ondemand
-
-target_preserve_min latest
-
-snapshot_dir snapshots
-volume /mnt/homes
-target /mnt/exbak/<<laptop-node()>>
-
-target_preserve 2w 3m
-subvolume home-mint
-
-target_preserve 8w 6m 2y
-subvolume data
-#+end_src
-
-**** snapshot/backup cron job
-
-#+begin_src conf :noweb yes :noweb-ref cronjob-user
-,*/15 * * * * /usr/bin/bash -ci "which btrbk | xargs -I _ pwsudo _ --config ~/.config/btrbk/btrbk.conf run"
-#+end_src
+- snapshot/backup cron job
+  #+begin_src conf :noweb yes :noweb-ref cronjob-user
+  ,*/15 * * * * /usr/bin/bash -ci "which btrbk | xargs -I _ pwsudo _ --config /etc/btrbk/btrbk.conf run"
+  #+end_src
 
 *** snapshots management                      :ARCHIVE:
 
@@ -1318,7 +1294,7 @@ sudo systemctl enable keyd
 sudo systemctl start keyd
 #+end_src
 
-#+begin_src conf :noweb tangle :tangle (expand-file-name "etc/keyd/default.conf" tangle/system)
+#+begin_src conf :noweb tangle :tangle (expand-file-name "shared/etc/keyd/default.conf" tangle/system)
 [ids]
 
 ,*
@@ -1334,7 +1310,7 @@ leftcontrol = oneshot(capslock)
 tab = overload(numpad_layer, tab)
 rightcontrol = oneshot(app_layer)
 space = overload(shift, space)
-' = overloadt(apostrophe_layer, ', 250)
+' = overloadt(apostrophe_layer, ', 220)
 
 leftshift = overload(shift, =)
 rightshift = overload(shift, -)
@@ -1561,9 +1537,6 @@ Following hook statements are likely written in .dir-locals.el at the top level 
 
 #+NAME: config/emacs-no-littering
 #+begin_src emacs-lisp :noweb tangle
-(setq no-littering-var-directory
-      (file-name-concat "<<share-dir()>>" "emacs/var/"))
-
 (require 'no-littering)
 #+end_src
 
@@ -2333,10 +2306,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
 (use-package abbrev
   :diminish abbrev-mode
   :custom
-  (save-abbrevs t)
-  :config
-  (setq-default abbrev-mode 1)
-  (quietly-read-abbrev-file))
+  (save-abbrevs t))
 #+end_src
 
 ****** Hippie Expand
@@ -7041,7 +7011,7 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
 "emacs-package-lint"
 #+end_src
 
-***** makem.sh
+***** makem.sh                              :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2024-04-18 Thu 23:15]
 :END:
@@ -15635,10 +15605,10 @@ target=github.com
 - input.conf
   [[~/data/home/.local/share/ghq/github.com/mpv-player/mpv/etc/input.conf][input.conf (sample)]]
   #+begin_src conf  :tangle (expand-file-name "mpv/input.conf" tangle/config-dir)
-  RIGHT  seek  3
-  LEFT   seek -3
-  UP     seek -30
-  DOWN   seek  30
+  RIGHT  seek  5
+  LEFT   seek -5
+  UP     seek -60
+  DOWN   seek  60
 
   Ctrl+f seek  5
   Ctrl+b seek -5
