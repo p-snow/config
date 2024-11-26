@@ -17600,28 +17600,24 @@ function git-one-go {
 
   echo -e "\nStarting git syncing at $(pwd)"
 
-  if [[ "true" = "$(git config --get --bool branch.$_branch.sync)" ]] ; then
-    git add -u
-    if [ -n "$(git status --porcelain)" ]; then
-      git commit --allow-empty -m "${_commit_msg}"
-    fi
+  git add -u
+  if [ -n "$(git status --porcelain)" ]; then
+    git commit --allow-empty -m "${_commit_msg}"
+  fi
 
-    if [ -n "$(git log origin/main..HEAD)" ]; then
-      git push $_remote $_branch
-      if [ $? != 0 ]; then
-        echo "ghq-sync: git push returned non-zero. Likely a connection failure." >&2
-        exit 1
-      fi
-    else
-      echo "No unpushed commits found. Nothing to push."
+  if [ -n "$(git log origin/main..HEAD)" ]; then
+    git push $_remote $_branch
+    if [ $? != 0 ]; then
+      echo "ghq-sync: git push returned non-zero. Likely a connection failure." >&2
+      exit 1
     fi
+  else
+    echo "No unpushed commits found. Nothing to push."
   fi
 }
 
-ghq_repos=$(ghq list --full-path github.com/p-snow)
-for repo_path in ${ghq_repos[@]}; do
-  (cd ${repo_path} && git-one-go)
-done
+cd $(ghq list --full-path p-snow/env) && git-one-go
+cd $(ghq list --full-path -e p-snow/org) && git-one-go
 #+end_src
 
 *** git-sync                                  :ARCHIVE:
