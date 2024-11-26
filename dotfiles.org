@@ -15761,10 +15761,6 @@ lang en_US
 :ID:       decef153-596d-4821-996e-53cfafe83c8f
 :END:
 
-#+begin_src conf :noweb-ref ubuntu-setup :tangle no
-install-textlint
-#+end_src
-
 #+begin_src shell :tangle no :noweb-ref npm-pkg
 textlint @textlint/ast-node-types textlint-rule-preset-ja-spacing textlint-rule-preset-ja-technical-writing textlint-rule-spellcheck-tech-word textlint-rule-ginger textlint-rule-write-good textlint-rule-prh textlint-filter-rule-node-types textlint-plugin-org traverse
 #+end_src
@@ -16204,22 +16200,22 @@ Caveat: The effect in this section can be made happen to use 'migemo-dict-azik' 
 
 If you are AZIK lover, replace /usr/share/cmigemo/utf-8/roma2hira.dat with the content below to activate AZIK key assign in migemo.
 
-#+begin_src shell :noweb-ref ubuntu-setup :tangle no
-MIGEMO_DAT_SYSTEM_DIR=/usr/share/cmigemo/utf-8
-MIGEMO_DAT_LOCAL_DIR=~/.local/share/cmigemo/utf-8
-ROMA_2_HIRA=roma2hira.dat
+# #+begin_src shell :noweb-ref ubuntu-setup :tangle no
+# MIGEMO_DAT_SYSTEM_DIR=/usr/share/cmigemo/utf-8
+# MIGEMO_DAT_LOCAL_DIR=~/.local/share/cmigemo/utf-8
+# ROMA_2_HIRA=roma2hira.dat
 
-if [ -f "${MIGEMO_DAT_SYSTEM_DIR}/${ROMA_2_HIRA}" ]; then
-  (
-    cd "${MIGEMO_DAT_SYSTEM_DIR}" \
-      && sudo mv ${ROMA_2_HIRA} ${ROMA_2_HIRA}.orig
-  )
-fi
-if [ -h "${MIGEMO_DAT_SYSTEM_DIR}/${ROMA_2_HIRA}" ]; then
-  sudo unlink "${MIGEMO_DAT_SYSTEM_DIR}/${ROMA_2_HIRA}"
-fi
-sudo ln -s "${MIGEMO_DAT_LOCAL_DIR}/${ROMA_2_HIRA}" ${MIGEMO_DAT_SYSTEM_DIR}
-#+end_src
+# if [ -f "${MIGEMO_DAT_SYSTEM_DIR}/${ROMA_2_HIRA}" ]; then
+#   (
+#     cd "${MIGEMO_DAT_SYSTEM_DIR}" \
+#       && sudo mv ${ROMA_2_HIRA} ${ROMA_2_HIRA}.orig
+#   )
+# fi
+# if [ -h "${MIGEMO_DAT_SYSTEM_DIR}/${ROMA_2_HIRA}" ]; then
+#   sudo unlink "${MIGEMO_DAT_SYSTEM_DIR}/${ROMA_2_HIRA}"
+# fi
+# sudo ln -s "${MIGEMO_DAT_LOCAL_DIR}/${ROMA_2_HIRA}" ${MIGEMO_DAT_SYSTEM_DIR}
+# #+end_src
 
 #+begin_src text :tangle (expand-file-name ".local/share/cmigemo/utf-8/roma2hira.dat")
 # vi:set ts=8 sts=8 sw=8 tw=0:
