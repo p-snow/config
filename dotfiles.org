@@ -29,6 +29,22 @@ echo '~/.config'
 (file-name-concat "~/" "<<laptop-node()>>" "doc")
 #+end_src
 
+Indexing all contents in doc directory every midnight so that recoll can search through
+#+begin_src sh :eval no :noweb yes :tangle no :noweb-ref midnight-batch
+recollindex > <<log-dir()>>/recolltrace.log 2>&1
+#+end_src
+
+#+begin_src conf :noweb tangle :tangle (expand-file-name ".recoll/recoll.conf")
+topdirs = <<doc-dir()>>
+
+[<<doc-dir()>>]
+followLinks = 1
+
+skippedNames = .git
+
+indexstemminglanguages = english
+#+end_src
+
 *** data directory
 
 #+name: data-dir
@@ -425,6 +441,7 @@ done
    "unzip"
    "zstd"
    "p7zip"
+   "unrar"
    "shadow"
    "sshfs"
    "grep"
@@ -17008,26 +17025,29 @@ WantedBy=default.target
 ;; "hledger"
 #+end_src
 
-** ripgrep-all
+** ripgrep-all                                 :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2022-10-26 Wed 10:39]
 :END:
 
+Ripgrep-all was superceded by its competitor [[id:ef80cf7c-7fa3-4e4d-8387-c6caa9bb7751][Recoll]].
+
 [[https://github.com/phiresky/ripgrep-all][ripgrep-all]] or rga command enables to search media files such as pdf documents or epub files in grep-like way.
 
-#+begin_src shell :noweb yes :noweb-ref ubuntu-setup :tangle no
-rga_url=https://github.com/phiresky/ripgrep-all/releases/download/v0.9.6
-rga_fname=ripgrep_all-v0.9.6-x86_64-unknown-linux-musl.tar.gz
-rga_workdir=/tmp
-rga_lbinpath=<<home-dir()>>/.local/bin
+# #+begin_src shell :noweb yes :noweb-ref ubuntu-setup :tangle no
+# rga_url=https://github.com/phiresky/ripgrep-all/releases/download/v0.9.6
+# rga_fname=ripgrep_all-v0.9.6-x86_64-unknown-linux-musl.tar.gz
+# rga_workdir=/tmp
+# rga_lbinpath=<<home-dir()>>/.local/bin
 
-curl -sL "${rga_url}/${rga_fname}" | tar zxf - -C ${rga_workdir} \
-  && cp -fv ${rga_workdir}/${rga_fname%.tar.gz}/{rga,rga-preproc} ${rga_lbinpath}
-#+end_src
+# curl -sL "${rga_url}/${rga_fname}" | tar zxf - -C ${rga_workdir} \
+#   && cp -fv ${rga_workdir}/${rga_fname%.tar.gz}/{rga,rga-preproc} ${rga_lbinpath}
+# #+end_src
 
 ** Recoll
 :PROPERTIES:
 :CREATED:  [2023-02-11 Sat 22:11]
+:ID:       ef80cf7c-7fa3-4e4d-8387-c6caa9bb7751
 :END:
 
 #+begin_src scheme :noweb-ref guix-base
@@ -17036,43 +17056,6 @@ curl -sL "${rga_url}/${rga_fname}" | tar zxf - -C ${rga_workdir} \
 
 #+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
 recollcmd
-#+end_src
-
-#+begin_src conf :noweb tangle :tangle (expand-file-name ".recoll/recoll.conf")
-topdirs = <<doc-dir()>> ~/data
-
-[<<doc-dir()>>]
-followLinks = 1
-
-skippedNames = .git
-
-skippedPaths = <<share-dir()>>/emacs/open-file <<share-dir()>>/emacs/org-subtree-view
-
-indexstemminglanguages = english
-#+end_src
-
-*** systemd setting                           :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-02-15 Wed 19:41]
-:END:
-
-# #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
-# systemctl --user enable recollindex.service
-# #+end_src
-
-#+begin_src conf :noweb tangle :tangle (expand-file-name ".config/systemd/user/recollindex.service")
-# Contributed by Frank Dana, licensed as Recoll itself
-[Unit]
-Description=Recoll real-time document indexing
-After=gnome-session-manager.target
-
-[Service]
-Type=simple
-ExecStart=<<which(filename="recollindex")>> -m -D -x -w 30 -c %h/.recoll/
-Restart=on-failure
-
-[Install]
-WantedBy=graphical-session.target
 #+end_src
 
 ** Enchant
