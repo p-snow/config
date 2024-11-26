@@ -16000,9 +16000,10 @@ rm -f ${tmp_utf8}
 
 echo ${dic_uniq}
 #+end_src
-** Festival
+** Festival                                    :ARCHIVE:
 :PROPERTIES:
 :ID:       379230e4-dec0-4f96-becf-7d62159ff598
+:CREATED:  [2024-11-25 Mon 17:58]
 :END:
 
 [[http://festvox.org/festival/][Festival]] is a framework for building and manipulating speech synthesis engine.
@@ -16029,9 +16030,9 @@ echo ${dic_uniq}
   #+end_src
 - a script to download voices
 
-  #+begin_src conf :noweb yes :noweb-ref ubuntu-setup :tangle no
-  download-festival-voices
-  #+end_src
+  # #+begin_src conf :noweb yes :noweb-ref ubuntu-setup :tangle no
+  # download-festival-voices
+  # #+end_src
 
   #+begin_src bash :tangle (expand-file-name "download-festival-voices" tangle/local-bin-dir)
   work_dir=~/.local/share/festival
@@ -16066,9 +16067,10 @@ echo ${dic_uniq}
     (setq festival-tmp-file (make-temp-file "festival-")))
   #+end_src
 
-** Open JTalk
+** Open JTalk                                  :ARCHIVE:
 :PROPERTIES:
 :ID:       ce99b0cf-dd07-4b9e-86b3-b492a8cfb354
+:CREATED:  [2024-11-25 Mon 18:00]
 :END:
 
 #+name: hts-voice-dir
@@ -16081,14 +16083,14 @@ echo ${dic_uniq}
 #+end_src
 
 - install on Ubuntu
-  #+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
-  open-jtalk open-jtalk-mecab-naist-jdic hts-voice-nitech-jp-atr503-m001
-  #+end_src
+  # #+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
+  # open-jtalk open-jtalk-mecab-naist-jdic hts-voice-nitech-jp-atr503-m001
+  # #+end_src
 - download hts voices
 
-  #+begin_src conf :noweb yes :noweb-ref ubuntu-setup :tangle no
-  download-hts-voices
-  #+end_src
+  # #+begin_src conf :noweb yes :noweb-ref ubuntu-setup :tangle no
+  # download-hts-voices
+  # #+end_src
 
   #+begin_src bash :noweb tangle :tangle (expand-file-name "download-hts-voices" tangle/local-bin-dir)
   data_dir=<<hts-voice-dir()>>
