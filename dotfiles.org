@@ -19558,13 +19558,15 @@ sendmail(args.to, args.mailfrom, args.subject, message)
 
 Nifty script that executes command with elevating privilege using password from pass command.
 
-#+begin_src shell :noweb tangle :tangle (expand-file-name "pwsudo" tangle/local-bin-dir)
+#+NAME: pwsudo
+#+begin_src bash :noweb tangle :tangle (expand-file-name "pwsudo" tangle/local-bin-dir)
 _userid=$(whoami)
 _hostname=$(hostname)
+_exec_path=$(which $1)
 
 pas=$(pass show "${_hostname}/${_userid}" 2>/dev/null) \
-  && ( echo "${pas}" | head -1 | sudo -S -p "" "$@" ) \
-  || sudo -S "$@"
+  && ( echo "${pas}" | head -1 | sudo -S -p "" "$_exec_path" "${@:2}" ) \
+  || sudo -S "$_exec_path" "${@:2}"
 
 exit $?
 #+end_src
