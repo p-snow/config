@@ -11135,7 +11135,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   (and-let* ((value (oref obj value)))
     (let ((arg (oref obj argument)))
       (pcase-exhaustive (oref obj multi-value)
-        ('nil          (concat arg value))
+        ('nil          (concat arg (shell-quote-argument value)))
         ((or 't 'rest) (cons arg (mapcar 'shell-quote-argument value)))
         ('repeat       (mapcar (lambda (v) (concat arg (shell-quote-argument v))) value))))))
 
