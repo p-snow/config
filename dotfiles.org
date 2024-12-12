@@ -11119,7 +11119,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :init-value (lambda (obj) (oset obj value end)))]
   ["Inputs"
    ("f" "files" ""
-    :class transient-option
+    :class my/shell-command-file-option
     :multi-value t
     :init-value (lambda (obj) (oset obj value (ensure-list file))))]
   [my/transient-common-menu
@@ -11127,6 +11127,17 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
      :command-format "mpv %a")]]
   (interactive `(,(my/determine-file t)))
   (transient-setup 'my/mpv-command))
+
+(defclass my/shell-command-file-option (transient-option) ())
+
+(cl-defmethod transient-infix-value ((obj my/shell-command-file-option))
+  ""
+  (and-let* ((value (oref obj value)))
+    (let ((arg (oref obj argument)))
+      (pcase-exhaustive (oref obj multi-value)
+        ('nil          (concat arg value))
+        ((or 't 'rest) (cons arg (mapcar 'shell-quote-argument value)))
+        ('repeat       (mapcar (lambda (v) (concat arg (shell-quote-argument v))) value))))))
 
 (with-eval-after-load 'embark
   (mapc (lambda (map)
