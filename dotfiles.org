@@ -11121,7 +11121,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("f" "files" ""
     :class transient-option
     :multi-value t
-    :init-value (lambda (obj) (oset obj value file)))]
+    :init-value (lambda (obj) (oset obj value (ensure-list file))))]
   [my/transient-common-menu
    [(my/shell-command-action
      :command-format "mpv %a")]]
