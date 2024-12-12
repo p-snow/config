@@ -4023,8 +4023,8 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
              when (or (caar (elfeed-entry-enclosures entry))
                       (elfeed-entry-link entry))
              do (let ((title (elfeed-entry-title entry)))
-                  (yt-dlp-dispatch-dwim it title)
-                  (dispatch-execute-macro)))
+                  (my/yt-dlp-command it title)
+                  (my/shell-command-execute-macro)))
     (mapc #'elfeed-search-update-entry entries)
     (unless (or elfeed-search-remain-on-entry (use-region-p))
       (forward-line))))
@@ -4039,8 +4039,8 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
            (lambda (comm) (princ
                        (string-trim
                         (shell-command-to-string comm))))))
-      (yt-dlp-dispatch-dwim url nil t)
-      (dispatch-execute-macro))))
+      (my/yt-dlp-command url nil t)
+      (my/shell-command-execute-macro))))
 #+end_src
 
 ***** elfeed-score
@@ -9403,13 +9403,13 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
   :config
   (keymap-set yeetube-mode-map "Y"
               (lambda () (interactive)
-                "Dwonload a video at point using `yt-dlp-dispatch-dwim'"
-                (yt-dlp-dispatch-dwim (yeetube-get-url))))
+                "Dwonload a video at point using `my/yt-dlp-command'"
+                (my/yt-dlp-command (yeetube-get-url))))
   (keymap-set yeetube-mode-map "P"
               (lambda () (interactive)
-                "Play a video at point using `yt-dlp-dispatch-dwim'"
-                (yt-dlp-dispatch-dwim (yeetube-get-url) nil nil t)
-                (dispatch-execute-macro))))
+                "Play a video at point using `my/yt-dlp-command'"
+                (my/yt-dlp-command (yeetube-get-url) nil nil t)
+                (my/shell-command-execute-macro))))
 #+end_src
 
 ***** consult-notes          :wp:convenience:ARCHIVE:
@@ -10934,301 +10934,129 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
           (parened-rx paren-open-char 'element))))
 #+end_src
 
-**** dispatch-dwim commands
+**** Shell commands with transient menu
 :PROPERTIES:
 :CREATED:  [2024-01-15 Mon 20:15]
 :ID:       cd86fe03-b295-4cde-8b7c-68d5705b843a
 :END:
 
 #+begin_src emacs-lisp
-(require 'dispatch-dwim nil t)
+(require 'transient)
+(require 'detached)
 
-;;; Misc
+(defvar my/shell-command-force-action nil)
+(defvar my/shell-command-buffer "*Shell Command*")
 
-(defalias 'dispatch-execute-macro (kmacro "RET"))
+(defclass my/shell-command (transient-suffix)
+  ((command-format :initarg :command-format :initform "%a")
+   (command-format-spec :initarg :command-format-spec :initform nil)))
 
-(defun dispatch-dwim-select ()
-  "Execute dispatch-*-dwim command."
-  (declare (interactive-only command-execute))
-  (interactive)
-  (let ((read-extended-command-predicate
-         (lambda (sym buf)
-           (string-match-p (rx "dispatch-dwim" eos)
-                           (symbol-name sym)))))
-    (execute-extended-command current-prefix-arg)))
-(keymap-global-set "H-D" 'dispatch-dwim-select)
-#+end_src
+(cl-defmethod transient-init-value ((obj my/shell-command))
+  (unless (slot-boundp obj :command-format)
+    (oset obj command-format "%a")))
 
-***** mpv command
-:PROPERTIES:
-:CREATED:  [2024-01-15 Mon 20:17]
-:END:
-
-#+begin_src emacs-lisp
-(transient-define-prefix mpv-dispatch-dwim (file &optional no-resume start end)
-  ""
-  :man-page "mpv"
-  [("-R" "noresume" "--no-resume-playback"
-    :init-value (lambda (obj) (oset obj value (if no-resume "--no-resume-playback" nil))))
-   ("-s" "start" "--start=" :prompt "start: "
-    :init-value (lambda (obj) (oset obj value start)))
-   ("-e" "end" "--end=" :prompt "end: "
-    :init-value (lambda (obj) (oset obj value end)))]
-  [(dispatch-dwim-execute
-    :command-format
-    (format "mpv %%a %s"
-            (dispatch-dwim-shell-argument (plist-get (oref transient-current-prefix scope) 'file))))]
-  (interactive (list (or (unless (equal current-prefix-arg '(4))
-                           (dispatch-dwim-determine-file-name))
-                         (read-file-name "File to play: "))))
-  (transient-setup 'mpv-dispatch-dwim nil nil
-                   :scope (plist-put nil 'file file)))
-
-(with-eval-after-load 'embark
-  (mapc (lambda (map)
-          (lambda-key map "P"
-                      (lambda (file)
-                        "play media FILE"
-                        (mpv-dispatch-dwim file t))))
-        (list embark-file-map embark-url-map))
-  (with-eval-after-load 'org
-    (defun my/flink-path (flink)
-      (let* ((exp-link (org-link-expand-abbrev flink)))
-        (string-trim-right
-         (string-trim-left exp-link "file:")
-         "::.+$")))
-    (mapc (lambda (map)
-            (lambda-key map "P"
-                        (lambda (link)
-                          "play media file written in org LINK"
-                          (mpv-dispatch-dwim (my/flink-path link) t))))
-          (list embark-org-link-map))
-    (mapc
-     (lambda (map)
-       (lambda-key map "P"
-                   (lambda (list)
-                     "play media in LIST"
-                     (mpv-dispatch-dwim (mapcar (lambda (item)
-                                                  (when (string-match org-link-any-re (car item))
-                                                    (my/flink-path (match-string-no-properties 2 (car item)))))
-                                                (cdr (org-list-to-lisp list)))
-                                        t))))
-     (list embark-org-plain-list-map))))
-#+end_src
-
-***** ffmpeg-opus command
-:PROPERTIES:
-:CREATED:  [2023-11-12 Sun 22:00]
-:END:
-
-#+begin_src emacs-lisp
-(transient-define-prefix ffmpeg-opus-dispatch-dwim (file)
-  ""
-  [("-b" "bitrate" "-b:a " :prompt "bitrate: " :class transient-option
-    :init-value (lambda (obj) (oset obj value "64k")))
-   ("-t" "tempo" "-filter:a atempo=" :prompt "tempo (floating number): ")]
-  [(dispatch-dwim-execute
-    :command-format
-    (format "parallel ffmpeg -i '{}' -c:a libopus -ac 2 %%a '{.}'.opus ::: %s"
-            (dispatch-dwim-shell-argument (plist-get (oref transient-current-prefix scope) 'file))))]
-  (interactive (list (or (unless (equal current-prefix-arg '(4))
-                           (dispatch-dwim-determine-file-name))
-                         (read-file-name "File to convert to opus: "))))
-  (transient-setup 'ffmpeg-opus-dispatch-dwim nil nil
-                   :scope (plist-put nil 'file file)))
-#+end_src
-
-***** ffmpeg-vp9 command
-:PROPERTIES:
-:CREATED:  [2024-02-10 Sat 10:52]
-:ID:       6201d879-2237-45a0-a1c3-eb527ec0b701
-:CUSTOM_ID: emacs-vp9-command
-:END:
-
-#+begin_src emacs-lisp
-(transient-define-prefix ffmpeg-vp9-dispatch-dwim (file)
-  ""
-  [("-B" "audio bitrate" "-b:a " :prompt "Audio bitrate: " :class transient-option
-    :init-value (lambda (obj) (oset obj value "128k")))
-   ("-c" "crf" "-crf " :prompt "CRF value: " :class transient-option
-    :init-value (lambda (obj) (oset obj value "28")))
-   ("-ss" "seek start" "-ss " :prompt "Time to start seeking: " :class transient-option)
-   ("-to" "seek stop" "-to " :prompt "Time to stop seeking: " :class transient-option)]
-  [(dispatch-dwim-execute
-    :command-format
-    (apply #'format
-           "ffmpeg -i %5$s %1$s %2$s /dev/null && ffmpeg %%S -i %5$s %1$s %3$s %4$s %6$s_vp9.mkv"
-           "-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0 %c"
-           "-pass 1 -an -f null"
-           "-pass 2 -map_metadata 0"
-           "-c:a libopus %b -ac 2"
-           (let* ((f (plist-get (oref transient-current-prefix scope) 'file))
-                  (valid-f (dispatch-dwim-shell-argument f)))
-             (list valid-f
-                   (file-name-base valid-f))))
-    :command-format-spec ((?b . (dispatch-shell-command--key-vals '("-B")))
-                          (?c . (dispatch-shell-command--key-vals '("-c")))
-                          (?S . (dispatch-shell-command--key-vals '("-ss" "-to")))))]
-  (interactive (list (or (unless (equal current-prefix-arg '(4))
-                           (dispatch-dwim-determine-file-name))
-                         (read-file-name "Input file: "))))
-  (transient-setup 'ffmpeg-vp9-dispatch-dwim nil nil
-                   :scope (plist-put nil 'file file)))
-#+end_src
-
-***** handbrake command
-:PROPERTIES:
-:ID:       17a2939e-a563-4e46-8ba2-10cf14d71efe
-:END:
-
-#+begin_src emacs-lisp
-(transient-define-prefix handbrake-dispatch-dwim (file)
-  ""
-  [("-o" "Destination file name" "--output "
-    :class transient-option :prompt "Output file (.mp4/.mkv/.webm): "
-    :init-value (lambda (obj)
-                  (oset obj value
-                        (if (and (stringp file)
-                                 (or (file-exists-p file)
-                                     (file-directory-p file)))
-                            (format "%s-hbout.mkv"
-                                    (file-name-base file))
-                          "hbout.mkv"))))
-   ("-m" "Add chapter markers" "--markers" :class transient-switch
-    :init-value (lambda (obj) (oset obj value "--markers")))
-   ("-t" "Titles" "--title "
-    :class transient-option :prompt "Titles (0 to scan): ")
-   ("-F" "Main feature title" "--main-feature" :class transient-switch
-    :init-value (lambda (obj) (oset obj value "--main-feature")))
-   ("-S" "Subtitle" "" :class transient-switches
-    :argument-format "--%s"
-    :argument-regexp "\\(--\\(all-subtitles\\|first-subtitles\\)\\)"
-    :choices ("all-subtitles" "first-subtitles")
-    :init-value (lambda (obj) (oset obj value "--all-subtitles")))]
-  ["Video"
-   ("e" "Encoder" ""
+(defvar my/transient-common-menu
+  ["Action"
+   ("M-w" "Copy the command to kill-ring" "M-w")
+   ("M-i" "Insert the command to dedicated buffer" "M-i")
+   ("M-x" "Execute the command" ""
     :class transient-switches
-    :argument-format "--encoder %s"
-    :argument-regexp "\\(--encoder \\(VP8\\|VP9\\|x264\\|x265\\|svt_av1\\)\\)"
-    :choices ("VP8" "VP9" "x264" "x265" "svt_av1")
-    :init-value (lambda (obj) (oset obj value "--encoder VP9")))
-   ("p" "Preset" ""
-    :class transient-switches
-    :argument-format "--encoder-preset %s"
-    :argument-regexp "\\(--encoder \\(.+\\)\\)"
-    :choices ("veryfast" "faster" "fast" "medium" "slow" "slower" "veryslow")
-    :init-value (lambda (obj) (oset obj value "--encoder-preset fast")))
-   ("-q" "Quality" "--quality "
-    :class transient-option :prompt "Quality value (float): "
-    :init-value (lambda (obj) (oset obj value "18.0")))
-   ("-b" "Bitrate" "--vb "
-    :class transient-option :prompt "Bitrate (in kbps): ")]
-  ["Audio"
-   ("T" "Track" ""
-    :class transient-switches
-    :argument-format "--%s"
-    :argument-regexp "\\(--\\(all-audio\\|first-audio\\)\\)"
-    :choices ("all-audio" "first-audio")
-    :init-value (lambda (obj) (oset obj value "--all-audio")))
-   ("E" "Encoder" ""
-    :class transient-switches
-    :argument-format "--aencoder %s"
-    :argument-regexp "\\(--aencoder \\(opus\\|copy\\)\\)"
-    :choices ("opus" "copy")
-    :init-value (lambda (obj) (oset obj value "--aencoder copy")))
-   ("-B" "Bitrate" "--ab "
-    :class transient-option :prompt "Bitrate (in kbps): ")]
-  [(dispatch-dwim-execute
-    :command-format
-    (format "HandBrakeCLI --input %s %%a"
-            (dispatch-dwim-shell-argument (plist-get (oref transient-current-prefix scope) 'file))))]
-  (interactive (list (or (unless (equal current-prefix-arg '(4))
-                           (dispatch-dwim-determine-file-name))
-                         (read-file-name "Input device or directory: "))))
-  (transient-setup 'handbrake-dispatch-dwim nil nil
-                   :scope (plist-put nil 'file file)))
-#+end_src
+    :argument-format "%s"
+    :argument-regexp "\\(async\\|sync\\)"
+    :choices ("async" "sync")
+    :init-value (lambda (obj) (oset obj value "async")))])
 
-***** dvdbackup command
-:PROPERTIES:
-:ID:       18821c25-ddf0-424a-9f72-f76ab6022ba5
-:END:
+(transient-define-suffix my/shell-command-action (args)
+  :class my/shell-command
+  ;; :transient 'transient--do-return
+  :key "RET" :description "Take action"
+  (interactive (list (transient-args transient-current-command)))
+  (let* ((obj (transient-suffix-object))
+         (command (my/transient-shell-command obj))
+         (action (or my/shell-command-force-action
+                     (seq-some (lambda (val)
+                                 (and (member val '("M-w" "M-i" "async" "sync"))
+                                      val))
+                               args))))
+    (pcase action
+      ("M-w"
+       (kill-new command)
+       (message "Copied: %s" command))
+      ("M-i"
+       (and (length> command 0)
+            (with-current-buffer (get-buffer-create my/shell-command-buffer)
+              (insert command "; ")
+              (switch-to-buffer (current-buffer)))))
+      ("async"
+       (detached-shell-command command))
+      ("sync"
+       (shell-command command)))))
 
-#+begin_src emacs-lisp
-(transient-define-prefix dvdbackup-dispatch-dwim ()
+(defun my/transient-shell-command (obj)
+  (let* ((command-format-spec (and (slot-boundp obj :command-format-spec)
+                                   (oref obj command-format-spec))))
+    (format-spec
+     (replace-regexp-in-string
+      "\\\\\%" "\\\\\%\%"               ; avoid replacing "\%" in shell argument
+      (eval (oref obj command-format)))
+     (append
+      `((?a . ,(string-join (flatten-list
+                             (seq-reduce (lambda (li char) (delete char li))
+                                         '("M-w" "M-i" "async" "syncargs")
+                                         (transient-get-value)))
+                            " ")))
+      (when command-format-spec
+        (mapcar (lambda (key-val) (cons (car key-val) (eval (cdr key-val))))
+                command-format-spec))))))
+
+(defun my/transient-suffix (key)
   ""
-  :man-page "dvdbackup"
-  [("-i" "Input device" "--input="
-    :class transient-option
-    :prompt "Device file: "
-    :reader transient-read-existing-file
-    :init-value (lambda (obj) (oset obj value "/dev/sr0")))
-   ("-o" "Output directory" "--output="
-    :class transient-option
-    :prompt "Output directory: "
-    :reader transient-read-file
-    :init-value (lambda (obj) (oset obj value "dvd-out")))
-   ("a" "Action" ""
-    :class transient-switches
-    :argument-format "--%s"
-    :argument-regexp "--\\(mirror\\|feature\\|info\\)"
-    :choices ("mirror" "feature" "info")
-    :init-value (lambda (obj) (oset obj value "--mirror")))]
-  [(dispatch-dwim-execute
-    :command-format
-    (format "dvdbackup %%a"
-            (plist-get (oref transient-current-prefix scope) 'file)))]
-  (interactive)
-  (transient-setup 'dvdbackup-dispatch-dwim))
-#+end_src
+  (seq-find (lambda (obj) (equal (oref obj key) key))
+            (or transient--suffixes transient-current-suffixes)))
 
-***** rtcwake complex command
-:PROPERTIES:
-:CREATED:  [2024-01-24 Wed 13:07]
-:END:
+(defun my/transient-infix-values (keys)
+  (mapconcat 'transient-infix-value
+             (mapcar #'my/transient-suffix keys)
+             " "))
 
-#+NAME: rtcmake-dispatch-dwim
-#+begin_src emacs-lisp
-(transient-define-prefix sleep-dispatch-dwim (&optional number)
+(defmacro my/determine-file (&optional multi)
   ""
-  :man-page "sleep"
-  [("n" "Number[SUFFIX]" "" :prompt "amount of time [s/m/h/d]: "
-    :class transient-option :always-read t :allow-empty nil
-    :init-value (lambda (obj) (oset obj value (or number "0"))))]
-  [(dispatch-dwim-execute
-    :command-format "sleep %a")]
-  (interactive)
-  (transient-setup 'sleep-dispatch-dwim))
+  `(pcase (cond
+           ((derived-mode-p 'dired-mode)
+            (dired-get-marked-files))
+           (t (ffap-file-at-point)))
+     ((and (pred listp) li)
+      (funcall (if ,multi #'identity #'car)
+               (mapcar #'shell-quote-argument li)))
+     ((and (pred stringp) str) (if ,multi `(,str) str))
+     ((pred null)
+      (let ((user-input (read-file-name "File: ")))
+        (if ,multi `(,user-input) user-input)))))
 
-(transient-define-prefix option-dispatch-dwim (&rest options)
-  ""
-  [("o" "option" ""
-    :class transient-option
-    :init-value (lambda (obj)
-                  (oset obj choices options)
-                  (oset obj value (car (oref obj choices)))))]
-  [(dispatch-dwim-execute)]
-  (interactive)
-  (transient-setup 'option-dispatch-dwim))
+(defmacro my/determine-url ()
+  "Determine the URL for dispatch-dwim commands, respecting the conditions."
+  '(let ((url-alike (cond
+                     ((thing-at-point-url-at-point))
+                     ((derived-mode-p 'org-mode)
+                      (org-link-at-point-map #'car))
+                     ((derived-mode-p 'eww-mode)
+                      (or (shr-url-at-point nil)
+                          (plist-get eww-data :url)))
+                     ((with-temp-buffer
+                        (insert-for-yank (car kill-ring))
+                        (buffer-string))))))
+     (if (string-match-p ffap-url-regexp url-alike)
+         url-alike
+       (read-string "URL: "))))
 
-(transient-define-prefix rtcwake-dispatch-dwim (&optional number)
+;; Readers
+
+(defun my/transient-read-shell-command (&optional prompt default-time history)
   ""
-  :man-page "rtcwake"
-  [("-t" "wake-up time" "--date " :prompt "Wake-up time: " :class transient-option
-    :allow-empty nil :reader my/transient-read-time :always-read t
-    :init-value (lambda (obj) (oset obj value (my/transient-read-time nil "+6h15m" nil))))]
-  [("{" "preceding sleep" dispatch-dwim-fraction-command
-    :prefix sleep-dispatch-dwim :prefix-arg ("30m") :priority 20
-    :default "sleep 30m")
-   ("[" "following command" dispatch-dwim-fraction-command
-    :prefix option-dispatch-dwim :prefix-arg ("midnight.sh")
-    :priority 30 :default "midnight.sh")
-   ("]" "following command" dispatch-dwim-fraction-command
-    :prefix option-dispatch-dwim :prefix-arg ("morning.sh")
-    :priority 90 :default "morning.sh")
-   (dispatch-dwim-execute
-    :command-format "pwsudo rtcwake -l -m mem -v %d"
-    :command-format-spec ((?d . (dispatch-shell-command--key-vals '("-t")))))])
+  (completing-read (or prompt
+                       "Shell command: ")
+                   (split-string
+                    (shell-command-to-string "compgen -c") "\n")))
 
 (defun my/transient-read-time (prompt default-time history)
   "Read time using date command."
@@ -11250,6 +11078,407 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                       (format "'%s'" time-str))))
                 (delq nil (list (and prompt (read-string prompt)) default-time)))
       ""))
+
+(defun my/transient-output-reader (&optional prompt initial-input history)
+  ""
+  (let* ((infile-key-obj (my/transient-suffix (plist-get (oref transient--prefix scope) :infile-key)))
+         (infile (or (when infile-key-obj
+                       (oref infile-key-obj value))
+                     (plist-get (oref transient--prefix scope) :infile-orig))))
+    (shell-quote-argument
+     (string-trim
+      (if infile
+          (shell-command-to-string
+           (format "f=%s; echo %s"
+                   (file-name-nondirectory infile)
+                   (or initial-input
+                       (read-string "Output ($f is input in Bash): "
+                                    "${f%.*}"))))
+        (read-string (or prompt "Output file: ")))))))
+
+;;; Misc
+
+(defalias 'my/shell-command-execute-macro (kmacro "RET"))
+#+end_src
+
+***** mpv command
+:PROPERTIES:
+:CREATED:  [2024-01-15 Mon 20:17]
+:END:
+
+#+begin_src emacs-lisp
+(transient-define-prefix my/mpv-command (file &optional no-resume start end)
+  ""
+  :man-page "mpv"
+  ["Options"
+   ("-R" "noresume" "--no-resume-playback"
+    :init-value (lambda (obj) (oset obj value (if no-resume "--no-resume-playback" nil))))
+   ("-s" "start" "--start=" :prompt "start: "
+    :init-value (lambda (obj) (oset obj value start)))
+   ("-e" "end" "--end=" :prompt "end: "
+    :init-value (lambda (obj) (oset obj value end)))]
+  ["Inputs"
+   ("f" "files" ""
+    :class transient-option
+    :multi-value t
+    :init-value (lambda (obj) (oset obj value file)))]
+  [my/transient-common-menu
+   [(my/shell-command-action
+     :command-format "mpv %a")]]
+  (interactive `(,(my/determine-file t)))
+  (transient-setup 'my/mpv-command))
+
+(with-eval-after-load 'embark
+  (mapc (lambda (map)
+          (lambda-key map "P"
+                      (lambda (file)
+                        "play media FILE"
+                        (my/mpv-command file t))))
+        (list embark-file-map embark-url-map))
+  (with-eval-after-load 'org
+    (defun my/flink-path (flink)
+      (let* ((exp-link (org-link-expand-abbrev flink)))
+        (string-trim-right
+         (string-trim-left exp-link "file:")
+         "::.+$")))
+    (mapc (lambda (map)
+            (lambda-key map "P"
+                        (lambda (link)
+                          "play media file written in org LINK"
+                          (my/mpv-command (my/flink-path link) t))))
+          (list embark-org-link-map))
+    (mapc
+     (lambda (map)
+       (lambda-key map "P"
+                   (lambda (list)
+                     "play media in LIST"
+                     (my/mpv-command (mapcar (lambda (item)
+                                               (when (string-match org-link-any-re (car item))
+                                                 (my/flink-path (match-string-no-properties 2 (car item)))))
+                                             (cdr (org-list-to-lisp list)))
+                                     t))))
+     (list embark-org-plain-list-map))))
+#+end_src
+
+***** ffmpeg-libopus command
+:PROPERTIES:
+:CREATED:  [2023-11-12 Sun 22:00]
+:END:
+
+#+begin_src emacs-lisp
+(defvar my/ffmpeg-audio-menu
+  ["Audio"
+   ("a" "audio codec" "-c:a "
+    :class transient-switches
+    :argument-format "-c:a %s"
+    :argument-regexp "\\(-c:a \\(libopus\\|copy\\)\\)"
+    :choices ("libopus" "copy"))
+   ("-B" "audio bitrate (e.g. 64k)" "-b:a " :prompt "Audio bitrate: " :class transient-option)])
+
+(transient-define-prefix my/ffmpeg-libopus-command (file)
+  ""
+  :value '("-c:a libopus")
+  my/ffmpeg-audio-menu
+  ["Infile"
+   ("-i" "input" "-i "
+    :class transient-option
+    :prompt "Input file: "
+    :always-read t
+    :reader transient-read-file
+    :init-value (lambda (obj) (oset obj value file)))]
+  ["Filters"
+   ("-t" "tempo (e.g. 1.5)" "-filter:a atempo="
+    :prompt "tempo (floating number): ")]
+  ["Outfile"
+   ("-o" "output" ""
+    :class transient-option
+    :reader my/transient-output-reader
+    :always-read t
+    :init-value (lambda (obj) (oset obj value (my/transient-output-reader nil "${f%.*}.opus"))))]
+  [my/transient-common-menu
+   [(my/shell-command-action
+     :command-format
+     "ffmpeg %i %O %o"
+     :command-format-spec ((?i . (my/transient-infix-values '("-i")))
+                           (?O . (my/transient-infix-values '("a" "-B" "-t")))
+                           (?o . (my/transient-infix-values '("-o")))))]]
+  (interactive (list (my/determine-file nil)))
+  (transient-setup 'my/ffmpeg-libopus-command nil nil
+                   :scope (cdr `(_ :infile-key "-i" :infile-orig ,file))))
+
+(with-eval-after-load 'embark
+  (keymap-set embark-file-map
+              "t a" 'my/ffmpeg-libopus-command))
+#+end_src
+
+***** ffmpeg-libvp9 command
+:PROPERTIES:
+:CREATED:  [2024-02-10 Sat 10:52]
+:ID:       6201d879-2237-45a0-a1c3-eb527ec0b701
+:CUSTOM_ID: emacs-vp9-command
+:END:
+
+#+begin_src emacs-lisp
+(transient-define-prefix my/ffmpeg-libvp9-command (file)
+  ""
+  :value '("-crf 28")
+  ["Infile"
+   ("-i" "input" "-i "
+    :class transient-option
+    :prompt "Input file: "
+    :always-read t
+    :reader transient-read-file
+    :init-value (lambda (obj) (oset obj value file)))]
+  ["Outfile options"
+   ["Video"
+    ("-c" "crf" "-crf " :prompt "CRF: " :class transient-option)]
+   my/ffmpeg-audio-menu]
+  ["Outfile"
+   ("-o" "output" ""
+    :class transient-option
+    :reader my/transient-output-reader
+    :always-read t
+    :init-value (lambda (obj) (oset obj value (my/transient-output-reader nil "${f%.*}_vp9.mkv"))))]
+  [my/transient-common-menu
+   [(my/shell-command-action
+     :command-format
+     (concat "ffmpeg %i %O %o /dev/null && ffmpeg %i"
+             "-c:v libvpx-vp9 -cpu-used 4 -threads 3 -row-mt 1 -speed 1 -b:v 0"
+             "-pass 1 -an -f null"
+             "-pass 2 -map_metadata 0"
+             "-ac 2 %O %o")
+     :command-format-spec ((?i . (my/transient-infix-values '("-i")))
+                           (?O . (my/transient-infix-values '("-c" "a" "-B")))
+                           (?o . (my/transient-infix-values '("-o")))))]]
+  (interactive (list (my/determine-file nil)))
+  (transient-setup 'my/ffmpeg-libvp9-command nil nil
+                   :scope (cdr `(_ :infile-key "-i" :infile-orig ,file))))
+#+end_src
+
+***** ffmpeg-libsvtav1 command
+:PROPERTIES:
+:CREATED:  [2024-12-04 Wed 17:38]
+:END:
+
+- [[lfile:SVT-AV1/Docs/Ffmpeg][SVTAV1 Doc for FFmpeg]]
+
+#+begin_src emacs-lisp
+(transient-define-prefix my/ffmpeg-libsvtav1-command (file)
+  ""
+  :man-page "ffmpeg"
+  :value '("-crf 32" "-preset 4" "-c:a libopus")
+  ["Infile"
+   ("-i" "input" "-i "
+    :class transient-option
+    :prompt "Input file: "
+    :always-read t
+    :reader transient-read-file
+    :init-value (lambda (obj) (oset obj value file)))]
+  ["Outfile options"
+   ["Video"
+    ("-c" "crf" "-crf " :prompt "CRF(1-63) " :class transient-option)
+    ("-p" "preset" "-preset " :prompt "preset(0-13): " :class transient-option)]
+   my/ffmpeg-audio-menu]
+  ["Outfile"
+   ("-o" "output" ""
+    :class transient-option
+    :reader my/transient-output-reader
+    :always-read t
+    :init-value (lambda (obj) (oset obj value (my/transient-output-reader nil "${f%.*}_av1.mkv"))))]
+  [my/transient-common-menu
+   [(my/shell-command-action
+     :command-format
+     "ffmpeg %i -c:v libsvtav1 -map_metadata 0 %O %o"
+     :command-format-spec ((?i . (my/transient-infix-values '("-i")))
+                           (?O . (my/transient-infix-values '("-c" "-p" "a" "-B")))
+                           (?o . (my/transient-infix-values '("-o")))))]]
+  (interactive (list (my/determine-file nil)))
+  (transient-setup 'my/ffmpeg-libsvtav1-command nil nil
+                   :scope (cdr `(_ :infile-key "-i" :infile-orig ,file))))
+
+(with-eval-after-load 'embark
+  (keymap-set embark-file-map
+              "t v" 'my/ffmpeg-libsvtav1-command))
+#+end_src
+
+
+***** handbrake command
+:PROPERTIES:
+:ID:       17a2939e-a563-4e46-8ba2-10cf14d71efe
+:END:
+
+#+begin_src emacs-lisp
+(transient-define-prefix my/handbrakecli-command (file)
+  ""
+  :man-page "HandBrakeCLI"
+  :value '("--markers" "--main-feature" "--all-subtitles"
+           "--encoder x264" "--encoder-preset fast" "--quality 18.0"
+           "--all-audio" "--aencoder copy")
+  ["Source Options"
+   ("-i" "device" ("-i " "--input ")
+    :class transient-option
+    :prompt "Input device: "
+    :reader transient-read-file
+    :always-read t
+    :init-value (lambda (obj) (oset obj value file)))
+   ("-t" "Titles" "--title "
+    :class transient-option :prompt "Titles (0 to scan): ")
+   ("-F" "Main feature title" "--main-feature")]
+  ["Destination Options"
+   ("-o" "Destination file name" ("-o " "--output ")
+    :class transient-option
+    :reader my/transient-output-reader
+    :always-read t
+    :init-value (lambda (obj) (oset obj value (my/transient-output-reader nil "${f%.*}.mp4"))))
+   ("-m" "Add chapter markers" ("-m" "--markers"))]
+  ["Video Options"
+   ("e" "Encoder" ""
+    :class transient-switches
+    :argument-format "--encoder %s"
+    :argument-regexp "\\(--encoder \\(VP8\\|VP9\\|x264\\|x265\\|svt_av1\\)\\)"
+    :choices ("VP8" "VP9" "x264" "x265" "svt_av1"))
+   ("p" "Preset" ""
+    :class transient-switches
+    :argument-format "--encoder-preset %s"
+    :argument-regexp "\\(--encoder-preset \\(.+\\)\\)"
+    :choices ("veryfast" "faster" "fast" "medium" "slow" "slower" "veryslow"))
+   ("-q" "Quality" "--quality "
+    :class transient-option :prompt "Quality value (float): ")
+   ("-b" "Bitrate" ("-b" "--vb ")
+    :class transient-option :prompt "Bitrate (in kbps): ")]
+  ["Audio Options"
+   ("T" "Track" ""
+    :class transient-switches
+    :argument-format "--%s"
+    :argument-regexp "\\(--\\(all-audio\\|first-audio\\)\\)"
+    :choices ("all-audio" "first-audio"))
+   ("E" "Encoder" ""
+    :class transient-switches
+    :argument-format "--aencoder %s"
+    :argument-regexp "\\(--aencoder \\(opus\\|copy\\)\\)"
+    :choices ("opus" "copy"))
+   ("-B" "Bitrate" ("-B" "--ab ")
+    :class transient-option :prompt "Bitrate (in kbps): ")]
+  ["Subtitle Options"
+   ("-S" "Subtitle" ""
+    :class transient-switches
+    :argument-format "--%s"
+    :argument-regexp "\\(--\\(all-subtitles\\|first-subtitles\\)\\)"
+    :choices ("all-subtitles" "first-subtitles"))]
+  [my/transient-common-menu
+   [(my/shell-command-action
+     :command-format "/usr/bin/HandBrakeCLI %a")]]
+  (interactive `(,(my/determine-file)))
+  (transient-setup 'my/handbrakecli-command nil nil
+                   :scope (cdr `(_ :infile-key "-i" :infile-orig ,file))))
+#+end_src
+
+***** dvdbackup command
+:PROPERTIES:
+:ID:       18821c25-ddf0-424a-9f72-f76ab6022ba5
+:END:
+
+#+begin_src emacs-lisp
+(transient-define-prefix my/dvdbackup-command ()
+  ""
+  :man-page "dvdbackup"
+  :value '("--input=/dev/sr0" "--output=dvd-out")
+  [("-i" "Input device" "--input="
+    :class transient-option
+    :prompt "Device file: "
+    :reader transient-read-existing-file)
+   ("-o" "Output directory" "--output="
+    :class transient-option
+    :prompt "Output directory: "
+    :reader transient-read-file)
+   ("a" "Action" ""
+    :class transient-switches
+    :always-read t
+    :argument-format "--%s"
+    :argument-regexp "\\(--\\(mirror\\|feature\\|info\\)\\)"
+    :choices ("--mirror" "--feature" "--info"))]
+  [my/transient-common-menu
+   [(my/shell-command-action
+     :command-format
+     "dvdbackup %a")]]
+  (interactive)
+  (transient-setup 'my/dvdbackup-command))
+#+end_src
+
+***** good-night command (rtcwake)
+:PROPERTIES:
+:CREATED:  [2024-01-24 Wed 13:07]
+:END:
+
+#+NAME: good-night-command
+#+begin_src emacs-lisp
+(transient-define-prefix my/sleep-command (&optional number)
+  ""
+  :man-page "sleep"
+  :value '("20m")
+  [("t" "amount of time" "" :prompt "Number[SUFFIX(s/m/h/d)]: "
+    :class transient-option :always-read t :allow-empty nil)]
+  [(my/shell-command-action
+    :command-format "sleep %a")]
+  (interactive)
+  (transient-setup 'my/sleep-command))
+
+(transient-define-prefix my/arbitrary-shell-command (command)
+  ""
+  [("c" "shell command" ""
+    :class transient-option
+    :init-value (lambda (obj) (oset obj value command))
+    :prompt "Shell command: "
+    :reader my/transient-read-shell-command)
+   ("o" "option strings" ""
+    :class transient-option)]
+  [(my/shell-command-action
+    :command-format "%a")]
+  (interactive (list (my/transient-read-shell-command)))
+  (transient-setup 'my/arbitrary-shell-command))
+
+(transient-define-prefix my/rtcwake-command (&optional number)
+  ""
+  :man-page "rtcwake"
+  :value `(,(concat "--date " (my/transient-read-time nil "+6h45m" nil)))
+  [("t" "wake-up time" "--date " :prompt "Wake-up time: " :class transient-option
+    :allow-empty nil :reader my/transient-read-time :always-read t)]
+  [(my/shell-command-action
+    :command-format "pwsudo rtcwake -m mem %a")]
+  (interactive)
+  (transient-setup 'my/rtcwake-command))
+
+(defun my/good-night-command ()
+  ""
+  (interactive)
+  (setq my/good-night-loop-count 0)
+  (setq my/shell-command-force-action "M-i")
+  (with-current-buffer (get-buffer-create my/shell-command-buffer)
+    (erase-buffer))
+  (my/sleep-command "30m")
+  (add-hook 'transient-exit-hook
+            'my/transient-next))
+
+(defvar my/good-night-loop-count 0)
+
+(defun my/transient-next ()
+  ""
+  (pcase my/good-night-loop-count
+    (0 (my/arbitrary-shell-command "midnight.sh"))
+    (1 (my/rtcwake-command))
+    (2 (my/arbitrary-shell-command "morning.sh"))
+    (3 (remove-hook 'transient-exit-hook 'my/transient-next)))
+  (setq my/good-night-loop-count
+        (if (< my/good-night-loop-count 3)
+            (1+ my/good-night-loop-count)
+          (with-current-buffer my/shell-command-buffer
+            (mark-whole-buffer)
+            (detached-shell-command
+             (buffer-substring-no-properties (region-beginning) (region-end)))
+            (setq my/shell-command-force-action nil)
+            ;; (kill-this-buffer)
+            )
+          0)))
 #+end_src
 
 ***** pandoc command
@@ -11260,37 +11489,41 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 #+name: pandoc-command
 #+begin_src emacs-lisp
-(transient-define-prefix pandoc-dispatch-dwim (file)
+(transient-define-prefix my/pandoc-command (file)
   ""
   :man-page "pandoc"
-  [("-t" "Ootput format" "--to="
-    :class transient-option
+  :value '("--to=org")
+  ["Options"
+   ("-t" "Ootput format" "--to="
+    :class my/pandoc-format
     :always-read t
-    :choices ("org" "pdf" "epub" "rst" "texinfo" "odt" "docx" "markdown" "asciidoc" "plain")
-    :init-value (lambda (obj) (oset obj value (car (oref obj choices)))))]
-  [(dispatch-dwim-execute
-    :command-format
-    (format "parallel pandoc %%t %%o '{}' ::: %s"
-            (dispatch-dwim-shell-argument (plist-get (oref transient-current-prefix scope) 'file)))
-    :command-format-spec ((?t . (dispatch-shell-command--key-vals '("-t")))
-                          (?o . (seq-some (lambda (obj)
-                                            (when (and (string= (oref obj key) "-t")
-                                                       (string-match "--to=\\(.+\\)" (transient-infix-value obj)))
-                                              (let ((out-ext (pcase (match-string 1 (transient-infix-value obj))
-                                                               ("markdown" "md")
-                                                               ("texinfo" "texi")
-                                                               ("asciidoc" "adoc")
-                                                               ("plain" "txt")
-                                                               (x x))))
-                                                (concat (format "--output='{.}'.%s" out-ext)
-                                                        (when (string= out-ext "pdf")
-                                                          " --pdf-engine weasyprint")))))
-                                          (transient-suffixes (oref transient-current-prefix command))))))]
-  (interactive (list (or (unless (equal current-prefix-arg '(4))
-                           (dispatch-dwim-determine-file-name))
-                         (read-file-name "File to convert: "))))
-  (transient-setup 'pandoc-dispatch-dwim nil nil
-                   :scope (plist-put nil 'file file)))
+    :choices ("org" "pdf" "epub" "rst" "texinfo" "odt" "docx" "markdown" "asciidoc" "plain"))
+   ("-o" "output file" "--output="
+    :class transient-option
+    :reader my/transient-output-reader
+    :init-value (lambda (obj) (oset obj value (my/transient-output-reader nil "${f%.*}.org" nil))))]
+  ["Inputs"
+   ("f" "file" ""
+    :class transient-option
+    :prompt "Input file: "
+    :reader transient-read-file
+    :always-read t
+    :init-value (lambda (obj) (oset obj value file)))]
+  [my/transient-common-menu
+   [(my/shell-command-action
+     :command-format "pandoc %a")]]
+  (interactive `(,(my/determine-file)))
+  (transient-setup 'my/pandoc-command nil nil
+                   :scope (cdr `(_ :infile-key "f" :infile-orig ,file))))
+
+(defclass my/pandoc-format (transient-option) ())
+
+(cl-defmethod transient-infix-value ((obj my/pandoc-format))
+  ""
+  (append (list (concat (oref obj argument) (oref obj value)))
+          ;; PDF conversion requires an engine specified
+          (and (equal (oref obj value) "pdf")
+               (cons "--pdf-engine" "weasyprint"))))
 #+end_src
 
 ***** yt-dlp command
@@ -11301,52 +11534,48 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 #+name: yt-dlp-command
 #+begin_src emacs-lisp :noweb tangle
-(transient-define-prefix yt-dlp-dispatch-dwim (url &optional output duration-p play-p)
+(transient-define-prefix my/yt-dlp-command (url &optional output duration-p play-p)
   ""
   :man-page "yt-dlp"
-  [("-P" "download path" "--paths "
+  :value '("--paths <<media-dir()>>" "--prefer-free-formats"
+           "--format 'bestvideo*+bestaudio/best'"
+           "--format-sort 'codec,ext,size:1.5G'")
+  ["Options"
+   ("-P" "download path" "--paths "
     :class transient-option
-    :reader transient-read-existing-directory
-    :init-value (lambda (obj) (oset obj value "<<media-dir()>>")))
+    :reader transient-read-existing-directory)
    ("-a" "audio" "-x --embed-thumbnail")
-   ("-F" "free format" "--prefer-free-formats"
-    :init-value (lambda (obj) (oset obj value "--prefer-free-formats")))
+   ("-F" "free format" "--prefer-free-formats")
    ("-d" "duration" "--get-duration --no-warnings"
-    :init-value (lambda (obj) (oset obj value (and duration-p (oref obj argument)))))
-   ("-p" "play" "--exec 'mpv --no-pause {}\; rm {}'"
-    :init-value (lambda (obj) (oset obj value (and play-p (oref obj argument)))))
+    p    :init-value (lambda (obj) (oset obj value (and duration-p "--get-duration --no-warnings"))))
    ("-f" "format" "--format "
-    :class transient-option
-    :init-value (lambda (obj) (oset obj value "'bestvideo*+bestaudio/best'")))
+    :class transient-option)
    ("-S" "format sort" "--format-sort "
-    :class transient-option
-    :init-value (lambda (obj) (oset obj value "'codec,ext,size:1.5G'")))
+    :class transient-option)
    ("-o" "output" "--output "
-    :class transient-option :reader dispatch-dwim-read-yt-dlp-output
-    :prompt "Output file name without extension: "
-    :init-value
-    (lambda (obj) (oset obj value
-                    (and output (shell-quote-argument
-                                 (format "%s.%%\(ext\)s"
-                                         (my/file-name-legitimate output)))))))]
-  [(dispatch-dwim-execute
-    ;; embed url to :command-format may cause unexpected glitch
-    :command-format
-    "yt-dlp --embed-chapters --live-from-start %a %u"
-    :command-format-spec ((?u . (dispatch-dwim-shell-argument
-                                 (plist-get (oref transient-current-prefix scope) 'url)))))]
-  (interactive (list (or (unless (equal current-prefix-arg '(4))
-                           (dispatch-dwim-determine-url))
-                         (read-string "URL: "))))
+    :class my/yt-dlp-output)]
+  ["Inputs"
+   ("u" "url" ""
+    :class transient-option
+    :prompt "Contents URL: "
+    :init-value (lambda (obj) (oset obj value url)))]
+  [my/transient-common-menu
+   [(my/shell-command-action
+     :command-format
+     "yt-dlp --embed-chapters --live-from-start %a")]]
+  (interactive `(,(my/determine-url)))
   (setq my/detached-bury-buffer t)
-  (transient-setup 'yt-dlp-dispatch-dwim nil nil
-                   :scope (plist-put nil 'url url)))
+  (transient-setup 'my/yt-dlp-command))
 
-(defun dispatch-dwim-read-yt-dlp-output (prompt _default _history)
+(defclass my/yt-dlp-output (transient-option) ())
+
+(cl-defmethod transient-infix-value ((obj my/yt-dlp-output))
   ""
-  (shell-quote-argument
-   (format "%s.%%\(ext\)s"
-           (my/file-name-legitimate (read-string prompt)))))
+  (when-let ((value (oref obj value)))
+    (cons (oref obj argument)
+          (shell-quote-argument
+           (my/file-name-legitimate
+            (format "%s.%%\(ext\)s" value))))))
 
 (with-eval-after-load 'embark
   (mapc (lambda (map)
@@ -11359,8 +11588,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                                           (match-string-no-properties 2 ol)))
                                      ((and (pred (lambda (s) (string-match ffap-url-at-point s))) u)
                                       (match-string-no-properties 0 u)))))
-                          (yt-dlp-dispatch-dwim url)
-                          (dispatch-execute-macro)))))
+                          (my/yt-dlp-command url)
+                          (my/shell-command-execute-macro)))))
         (list embark-kill-ring-map embark-url-map
               embark-org-link-map)))
 #+end_src
@@ -11371,43 +11600,47 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+begin_src emacs-lisp
-(transient-define-prefix du-dispatch-dwim (file)
-  "Dispatch du command."
+(transient-define-prefix my/du-command (file)
+  "du command."
   :man-page "du"
-  [("-s" "summarize" "--summarize"
-    :init-value (lambda (obj) (oset obj value "--summarize")))
-   ("-c" "add total" "--total"
-    :init-value (lambda (obj) (oset obj value "--total")))
-   ("-D" "deref symlinks" "--dereference-args"
-    :init-value (lambda (obj) (oset obj value "--dereference-args")))
-   ("-h" "human readable" "--human-readable"
-    :init-value (lambda (obj) (oset obj value "--human-readable")))]
-  [(dispatch-dwim-execute
-    :command-format
-    (format "ionice -c2 -n7 nice -n19 du %%a %s"
-            (dispatch-dwim-shell-argument (plist-get (oref transient-current-prefix scope) 'file))))]
-  (interactive (list (or (unless (equal current-prefix-arg '(4))
-                           (dispatch-dwim-determine-file-name))
-                         (read-file-name "File: "))))
-  (transient-setup 'du-dispatch-dwim nil nil
-                   :scope (plist-put nil 'file file)))
+  :value '("--summarize" "--total" "--dereference-args" "--human-readable")
+  ["Options"
+   ("-s" "summarize" "--summarize")
+   ("-c" "add total" "--total")
+   ("-D" "deref symlinks" "--dereference-args")
+   ("-h" "human readable" "--human-readable")]
+  ["Inputs"
+   ("f" "FILE" ""
+    :class transient-option
+    :multi-value t
+    :init-value (lambda (obj) (oset obj value file)))]
+  [my/transient-common-menu
+   [(my/shell-command-action
+     :command-format
+     "ionice -c2 -n7 nice -n19 du %a")]]
+  (interactive `(,(my/determine-file t)))
+  (transient-setup 'my/du-command))
 #+end_src
 
 ***** ghq-get command
 
 #+begin_src emacs-lisp
-(transient-define-prefix ghq-get-dispatch-dwim (url)
+(transient-define-prefix my/ghq-get-command (url)
   "Dispatch ghq get command."
-  [("-s" "shallow clone" "--shallow")]
-  [(dispatch-dwim-execute
-    :command-format
-    (format "ghq get %%a '%s'"
-            (plist-get (oref transient-current-prefix scope) 'url)))]
-  (interactive (list (or (unless (equal current-prefix-arg '(4))
-                           (dispatch-dwim-determine-url))
-                         (read-string "URL: "))))
-  (transient-setup 'ghq-get-dispatch-dwim nil nil
-                   :scope (plist-put nil 'url url)))
+  :man-page "ghq get"
+  :value '("--shallow")
+  ["Options"
+   ("-s" "shallow clone" "--shallow")]
+  ["Inputs"
+   ("r" "repository url" ""
+    :class transient-option
+    :init-value (lambda (obj) (oset obj value url)))]
+  [my/transient-common-menu
+   [(my/shell-command-action
+     :command-format
+     "ghq get %a")]]
+  (interactive `(,(my/determine-url)))
+  (transient-setup 'my/ghq-get-command))
 #+end_src
 
 **** TempEL templates for major modes
@@ -13800,7 +14033,7 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
 
 QUERY must comply to RFC 822 format, which holds attribute/value pairs."
   (apply 'funcall-interactively
-         'mpv-dispatch-dwim media nil
+         'my/mpv-command media nil
          (and (stringp query)
               (let (start end)
                 (mapc (lambda (cons-cell)
@@ -14813,13 +15046,13 @@ Provide a function to Build a clock table summing up time by tag.
 (provide 'weather)
 #+end_src
 
-**** Package: dispatch-dwim
+**** Package: dispatch-dwim                  :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2024-03-29 Fri 14:57]
 :END:
 
 #+NAME: package/dispatch-dwim
-#+begin_src emacs-lisp :comments no :tangle (expand-file-name "dispatch-dwim.el" tangle/emacs-sitelisp-dir)
+#+begin_src emacs-lisp :comments no :tangle no
 (require 'transient)
 (require 'detached)
 
@@ -18049,8 +18282,8 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> \
   ""
   (pcase command
     ("download"
-     (yt-dlp-dispatch-dwim args)
-     (dispatch-execute-macro))
+     (my/yt-dlp-command args)
+     (my/shell-command-execute-macro))
     ("browse"
      (eww args))))
 #+end_src
