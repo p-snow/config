@@ -11016,7 +11016,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 (defun my/transient-infix-values (keys)
   (mapconcat 'transient-infix-value
-             (mapcar #'my/transient-suffix keys)
+             (delq nil (mapcar #'my/transient-suffix keys))
              " "))
 
 (defmacro my/determine-file (&optional multi)
@@ -11026,8 +11026,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
             (dired-get-marked-files))
            (t (ffap-file-at-point)))
      ((and (pred listp) li)
-      (funcall (if ,multi #'identity #'car)
-               (mapcar #'shell-quote-argument li)))
+      (funcall (if ,multi #'identity #'car) li))
      ((and (pred stringp) str) (if ,multi `(,str) str))
      ((pred null)
       (let ((user-input (read-file-name "File: ")))
@@ -11085,16 +11084,28 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
          (infile (or (when infile-key-obj
                        (oref infile-key-obj value))
                      (plist-get (oref transient--prefix scope) :infile-orig))))
-    (shell-quote-argument
-     (string-trim
-      (if infile
-          (shell-command-to-string
-           (format "f=%s; echo %s"
-                   (file-name-nondirectory infile)
-                   (or initial-input
-                       (read-string "Output ($f is input in Bash): "
-                                    "${f%.*}"))))
-        (read-string (or prompt "Output file: ")))))))
+    (string-trim
+     (if infile
+         (shell-command-to-string
+          (format "f=\"%s\"; echo \"%s\""
+                  (file-name-nondirectory infile)
+                  (or initial-input
+                      (read-string "Output ($f is input in Bash): "
+                                   "${f%.*}"))))
+       (read-string (or prompt "Output file: "))))))
+
+;;; Classes
+
+(defclass my/shell-quoted-option (transient-files) ())
+
+(cl-defmethod transient-infix-value ((obj my/shell-quoted-option))
+  ""
+  (and-let* ((value (oref obj value)))
+    (let ((arg (oref obj argument)))
+      (pcase-exhaustive (oref obj multi-value)
+        ('nil          (concat arg (shell-quote-argument value)))
+        ((or 't 'rest) (cons arg (mapcar 'shell-quote-argument value)))
+        ('repeat       (mapcar (lambda (v) (concat arg (shell-quote-argument v))) value))))))
 
 ;;; Misc
 
@@ -11118,26 +11129,15 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-e" "end" "--end=" :prompt "end: "
     :init-value (lambda (obj) (oset obj value end)))]
   ["Inputs"
-   ("f" "files" ""
-    :class my/shell-command-file-option
-    :multi-value t
+   ("f" "files" "--"
+    :class my/shell-quoted-option
+    :multi-value rest
     :init-value (lambda (obj) (oset obj value (ensure-list file))))]
   [my/transient-common-menu
    [(my/shell-command-action
      :command-format "mpv %a")]]
   (interactive `(,(my/determine-file t)))
   (transient-setup 'my/mpv-command))
-
-(defclass my/shell-command-file-option (transient-option) ())
-
-(cl-defmethod transient-infix-value ((obj my/shell-command-file-option))
-  ""
-  (and-let* ((value (oref obj value)))
-    (let ((arg (oref obj argument)))
-      (pcase-exhaustive (oref obj multi-value)
-        ('nil          (concat arg (shell-quote-argument value)))
-        ((or 't 'rest) (cons arg (mapcar 'shell-quote-argument value)))
-        ('repeat       (mapcar (lambda (v) (concat arg (shell-quote-argument v))) value))))))
 
 (with-eval-after-load 'embark
   (mapc (lambda (map)
@@ -11188,11 +11188,12 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 (transient-define-prefix my/ffmpeg-libopus-command (file)
   ""
+  :man-page "ffmpeg-codecs"
   :value '("-c:a libopus")
   my/ffmpeg-audio-menu
   ["Infile"
    ("-i" "input" "-i "
-    :class transient-option
+    :class my/shell-quoted-option
     :prompt "Input file: "
     :always-read t
     :reader transient-read-file
@@ -11201,8 +11202,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-t" "tempo (e.g. 1.5)" "-filter:a atempo="
     :prompt "tempo (floating number): ")]
   ["Outfile"
-   ("-o" "output" ""
-    :class transient-option
+   ("o" "output" "-- "
+    :class my/shell-quoted-option
     :reader my/transient-output-reader
     :always-read t
     :init-value (lambda (obj) (oset obj value (my/transient-output-reader nil "${f%.*}.opus"))))]
@@ -11212,7 +11213,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
      "ffmpeg %i %O %o"
      :command-format-spec ((?i . (my/transient-infix-values '("-i")))
                            (?O . (my/transient-infix-values '("a" "-B" "-t")))
-                           (?o . (my/transient-infix-values '("-o")))))]]
+                           (?o . (my/transient-infix-values '("o")))))]]
   (interactive (list (my/determine-file nil)))
   (transient-setup 'my/ffmpeg-libopus-command nil nil
                    :scope (cdr `(_ :infile-key "-i" :infile-orig ,file))))
@@ -11232,10 +11233,11 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 #+begin_src emacs-lisp
 (transient-define-prefix my/ffmpeg-libvp9-command (file)
   ""
+  :man-page "ffmpeg-codecs"
   :value '("-crf 28")
   ["Infile"
    ("-i" "input" "-i "
-    :class transient-option
+    :class my/shell-quoted-option
     :prompt "Input file: "
     :always-read t
     :reader transient-read-file
@@ -11245,8 +11247,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     ("-c" "crf" "-crf " :prompt "CRF: " :class transient-option)]
    my/ffmpeg-audio-menu]
   ["Outfile"
-   ("-o" "output" ""
-    :class transient-option
+   ("o" "output" ""
+    :class my/shell-quoted-option
     :reader my/transient-output-reader
     :always-read t
     :init-value (lambda (obj) (oset obj value (my/transient-output-reader nil "${f%.*}_vp9.mkv"))))]
@@ -11260,7 +11262,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
              "-ac 2 %O %o")
      :command-format-spec ((?i . (my/transient-infix-values '("-i")))
                            (?O . (my/transient-infix-values '("-c" "a" "-B")))
-                           (?o . (my/transient-infix-values '("-o")))))]]
+                           (?o . (my/transient-infix-values '("o")))))]]
   (interactive (list (my/determine-file nil)))
   (transient-setup 'my/ffmpeg-libvp9-command nil nil
                    :scope (cdr `(_ :infile-key "-i" :infile-orig ,file))))
@@ -11276,11 +11278,11 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 #+begin_src emacs-lisp
 (transient-define-prefix my/ffmpeg-libsvtav1-command (file)
   ""
-  :man-page "ffmpeg"
+  :man-page "ffmpeg-codecs"
   :value '("-crf 32" "-preset 4" "-c:a libopus")
   ["Infile"
    ("-i" "input" "-i "
-    :class transient-option
+    :class my/shell-quoted-option
     :prompt "Input file: "
     :always-read t
     :reader transient-read-file
@@ -11291,8 +11293,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     ("-p" "preset" "-preset " :prompt "preset(0-13): " :class transient-option)]
    my/ffmpeg-audio-menu]
   ["Outfile"
-   ("-o" "output" ""
-    :class transient-option
+   ("o" "output" "-- "
+    :class my/shell-quoted-option
     :reader my/transient-output-reader
     :always-read t
     :init-value (lambda (obj) (oset obj value (my/transient-output-reader nil "${f%.*}_av1.mkv"))))]
@@ -11302,7 +11304,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
      "ffmpeg %i -c:v libsvtav1 -map_metadata 0 %O %o"
      :command-format-spec ((?i . (my/transient-infix-values '("-i")))
                            (?O . (my/transient-infix-values '("-c" "-p" "a" "-B")))
-                           (?o . (my/transient-infix-values '("-o")))))]]
+                           (?o . (my/transient-infix-values '("o")))))]]
   (interactive (list (my/determine-file nil)))
   (transient-setup 'my/ffmpeg-libsvtav1-command nil nil
                    :scope (cdr `(_ :infile-key "-i" :infile-orig ,file))))
@@ -11327,7 +11329,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
            "--all-audio" "--aencoder copy")
   ["Source Options"
    ("-i" "device" ("-i " "--input ")
-    :class transient-option
+    :class my/shell-quoted-option
     :prompt "Input device: "
     :reader transient-read-file
     :always-read t
@@ -11337,7 +11339,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-F" "Main feature title" "--main-feature")]
   ["Destination Options"
    ("-o" "Destination file name" ("-o " "--output ")
-    :class transient-option
+    :class my/shell-quoted-option
     :reader my/transient-output-reader
     :always-read t
     :init-value (lambda (obj) (oset obj value (my/transient-output-reader nil "${f%.*}.mp4"))))
@@ -11395,11 +11397,11 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   :man-page "dvdbackup"
   :value '("--input=/dev/sr0" "--output=dvd-out")
   [("-i" "Input device" "--input="
-    :class transient-option
+    :class my/shell-quoted-option
     :prompt "Device file: "
     :reader transient-read-existing-file)
    ("-o" "Output directory" "--output="
-    :class transient-option
+    :class my/shell-quoted-option
     :prompt "Output directory: "
     :reader transient-read-file)
    ("a" "Action" ""
@@ -11437,7 +11439,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 (transient-define-prefix my/arbitrary-shell-command (command)
   ""
   [("c" "shell command" ""
-    :class transient-option
+    :class my/shell-quoted-option
     :init-value (lambda (obj) (oset obj value command))
     :prompt "Shell command: "
     :reader my/transient-read-shell-command)
@@ -11510,12 +11512,12 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :always-read t
     :choices ("org" "pdf" "epub" "rst" "texinfo" "odt" "docx" "markdown" "asciidoc" "plain"))
    ("-o" "output file" "--output="
-    :class transient-option
+    :class my/shell-quoted-option
     :reader my/transient-output-reader
     :init-value (lambda (obj) (oset obj value (my/transient-output-reader nil "${f%.*}.org" nil))))]
   ["Inputs"
-   ("f" "file" ""
-    :class transient-option
+   ("f" "file" "-- "
+    :class my/shell-quoted-option
     :prompt "Input file: "
     :reader transient-read-file
     :always-read t
@@ -11558,7 +11560,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-a" "audio" "-x --embed-thumbnail")
    ("-F" "free format" "--prefer-free-formats")
    ("-d" "duration" "--get-duration --no-warnings"
-    p    :init-value (lambda (obj) (oset obj value (and duration-p "--get-duration --no-warnings"))))
+    :init-value (lambda (obj) (oset obj value (and duration-p "--get-duration --no-warnings"))))
    ("-f" "format" "--format "
     :class transient-option)
    ("-S" "format sort" "--format-sort "
