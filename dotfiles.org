@@ -11040,12 +11040,10 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                       (org-link-at-point-map #'car))
                      ((derived-mode-p 'eww-mode)
                       (or (shr-url-at-point nil)
-                          (plist-get eww-data :url)))
-                     ((with-temp-buffer
-                        (insert-for-yank (car kill-ring))
-                        (buffer-string))))))
-     (if (string-match-p ffap-url-regexp url-alike)
-         url-alike
+                          (plist-get eww-data :url))))))
+     (if (and url-alike
+              (string-match "\\(httpss?://[[:graph:]]+\\)" url-alike))
+         (match-string 1 url-alike)
        (read-string "URL: "))))
 
 ;; Readers
