@@ -7742,11 +7742,21 @@ How to use detached.el
   (([remap async-shell-command] . detached-shell-command)
    ([remap compile] . detached-compile)
    ([remap recompile] . detached-compile-recompile))
+  :preface
+  (defun my/detached-shell-command-region (start end)
+    "Execute shell command between START and END with `detached-shell-command'."
+    (interactive (progn
+                   (unless (mark)
+                     (user-error "The mark is not set now, so there is no region"))
+                   (list (region-beginning) (region-end))))
+    (detached-shell-command (buffer-substring-no-properties start end)))
   :custom
   (detached-shell-command-initial-input nil)
   (detached-terminal-data-command system-type)
   (detached-terminal-data-command system-type)
   :config
+  (with-eval-after-load 'embark
+    (keymap-set embark-region-map "&" #'detached-shell-command))
   (add-to-list 'display-buffer-alist
                `((lambda (buffer-or-name arg)
                    (when (and (string-match-p
@@ -10985,7 +10995,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
       ("M-i"
        (and (length> command 0)
             (with-current-buffer (get-buffer-create my/shell-command-buffer)
-              (insert command "; ")
+              (insert command)
               (switch-to-buffer (current-buffer)))))
       ("async"
        (detached-shell-command command))
@@ -11474,6 +11484,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 (defun my/transient-next ()
   ""
+  (insert ";\n")
   (pcase my/good-night-loop-count
     (0 (my/arbitrary-shell-command "midnight.sh"))
     (1 (my/rtcwake-command))
@@ -11484,11 +11495,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
             (1+ my/good-night-loop-count)
           (with-current-buffer my/shell-command-buffer
             (mark-whole-buffer)
-            (detached-shell-command
-             (buffer-substring-no-properties (region-beginning) (region-end)))
-            (setq my/shell-command-force-action nil)
-            ;; (kill-this-buffer)
-            )
+            (setq my/shell-command-force-action nil))
           0)))
 #+end_src
 
