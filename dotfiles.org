@@ -9666,6 +9666,22 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   :after denote)
 #+end_src
 
+***** bluetooth
+:PROPERTIES:
+:CREATED:  [2024-12-15 Sun 19:18]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-bluetooth"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package bluetooth
+  :after my-launch-app
+  :bind (:map my/launch-app-map
+              ("B" . bluetooth-list-devices)))
+#+end_src
+
 **** My Emacs Packages
 
 ***** lfile
