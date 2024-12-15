@@ -11011,7 +11011,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
       ("M-i"
        (and (length> command 0)
             (with-current-buffer (get-buffer-create my/shell-command-buffer)
-              (insert command)
+              (sh-mode)
+              (insert command ";\n")
               (switch-to-buffer (current-buffer)))))
       ("async"
        (detached-shell-command command))
@@ -11130,6 +11131,17 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
         ('nil          (concat arg (shell-quote-argument value)))
         ((or 't 'rest) (cons arg (mapcar 'shell-quote-argument value)))
         ('repeat       (mapcar (lambda (v) (concat arg (shell-quote-argument v))) value))))))
+
+(defclass my/shell-literal-option (transient-option) ())
+
+(cl-defmethod transient-infix-value ((obj my/shell-literal-option))
+  ""
+  (and-let* ((value (oref obj value)))
+    (let ((arg (oref obj argument)))
+      (pcase-exhaustive (oref obj multi-value)
+        ('nil          (concat arg (format "'%s'" value)))
+        ((or 't 'rest) (cons arg (mapcar (lambda (v) (concat arg (format "'%s'" v))) value)))
+        ('repeat       (mapcar (lambda (v) (concat arg (format "'%s'" v))) value))))))
 
 ;;; Misc
 
@@ -11477,8 +11489,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 (transient-define-prefix my/rtcwake-command (&optional number)
   ""
   :man-page "rtcwake"
-  :value `(,(concat "--date " (my/transient-read-time nil "+6h45m" nil)))
   [("t" "wake-up time" "--date " :prompt "Wake-up time: " :class transient-option
+    :init-value (lambda (obj) (oset obj value (my/transient-read-time nil "+6h40m" nil)))
     :allow-empty nil :reader my/transient-read-time :always-read t)]
   [(my/shell-command-action
     :command-format "pwsudo rtcwake -m mem %a")]
@@ -11500,7 +11512,6 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 (defun my/transient-next ()
   ""
-  (insert ";\n")
   (pcase my/good-night-loop-count
     (0 (my/arbitrary-shell-command "midnight.sh"))
     (1 (my/rtcwake-command))
@@ -11509,10 +11520,9 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   (setq my/good-night-loop-count
         (if (< my/good-night-loop-count 3)
             (1+ my/good-night-loop-count)
-          (with-current-buffer my/shell-command-buffer
-            (mark-whole-buffer)
-            (setq my/shell-command-force-action nil))
-          0)))
+          (progn
+            (setq my/shell-command-force-action nil)
+            0))))
 #+end_src
 
 ***** pandoc command
@@ -11572,8 +11582,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   ""
   :man-page "yt-dlp"
   :value '("--paths <<media-dir()>>" "--prefer-free-formats"
-           "--format 'bestvideo*+bestaudio/best'"
-           "--format-sort 'codec,ext,size:1.5G'")
+           "--format bestvideo*+bestaudio/best"
+           "--format-sort codec,ext,size:1.5G")
   ["Options"
    ("-P" "download path" "--paths "
     :class transient-option
@@ -11583,14 +11593,14 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-d" "duration" "--get-duration --no-warnings"
     :init-value (lambda (obj) (oset obj value (and duration-p "--get-duration --no-warnings"))))
    ("-f" "format" "--format "
-    :class transient-option)
+    :class my/shell-literal-option)
    ("-S" "format sort" "--format-sort "
-    :class transient-option)
+    :class my/shell-literal-option)
    ("-o" "output" "--output "
     :class my/yt-dlp-output)]
   ["Inputs"
    ("u" "url" ""
-    :class transient-option
+    :class my/shell-literal-option
     :prompt "Contents URL: "
     :init-value (lambda (obj) (oset obj value url)))]
   [my/transient-common-menu
