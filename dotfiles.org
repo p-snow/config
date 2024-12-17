@@ -782,6 +782,9 @@ export PS1="[\u@$(uname -n):\\W]\n\$ "
 #+end_src
 
 *** systemd-tmpfiles
+:PROPERTIES:
+:ID:       44d6dd73-d34e-43f7-9026-e6439a05203e
+:END:
 
 [[https://www.freedesktop.org/software/systemd/man/systemd-tmpfiles-setup.service.html][systemd-tmpfiles]] manages file creation and deletion. I mainly use systemd-tmpfiles to delete obsolete files in specific directories by running the following command.
 
@@ -11315,7 +11318,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 (transient-define-prefix my/ffmpeg-libsvtav1-command (file)
   ""
   :man-page "ffmpeg-codecs"
-  :value '("-crf 32" "-preset 4" "-c:a libopus")
+  :value '("-crf 35" "-preset 4" "-c:a libopus")
   ["Infile"
    ("-i" "input" "-i "
     :class my/shell-quoted-option
@@ -11361,7 +11364,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   ""
   :man-page "HandBrakeCLI"
   :value '("--markers" "--main-feature" "--all-subtitles"
-           "--encoder x264" "--encoder-preset fast" "--quality 18.0"
+           "--encoder x264" "--encoder-preset medium" "--quality 16.0"
            "--all-audio" "--aencoder copy")
   ["Source Options"
    ("-i" "device" ("-i " "--input ")
@@ -11502,8 +11505,6 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   (interactive)
   (setq my/good-night-loop-count 0)
   (setq my/shell-command-force-action "M-i")
-  (with-current-buffer (get-buffer-create my/shell-command-buffer)
-    (erase-buffer))
   (my/sleep-command "30m")
   (add-hook 'transient-exit-hook
             'my/transient-next))
