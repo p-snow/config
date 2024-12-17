@@ -11156,16 +11156,18 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :END:
 
 #+begin_src emacs-lisp
-(transient-define-prefix my/mpv-command (file &optional no-resume start end)
+(transient-define-prefix my/mpv-command (file &rest args)
   ""
   :man-page "mpv"
   ["Options"
    ("-R" "noresume" "--no-resume-playback"
-    :init-value (lambda (obj) (oset obj value (if no-resume "--no-resume-playback" nil))))
-   ("-s" "start" "--start=" :prompt "start: "
-    :init-value (lambda (obj) (oset obj value start)))
-   ("-e" "end" "--end=" :prompt "end: "
-    :init-value (lambda (obj) (oset obj value end)))]
+    :init-value (lambda (obj) (oset obj value (if (plist-get args :no-resume) "--no-resume-playback" nil))))
+   ("-s" "Start" "--start=" :prompt "Start at (relative time): "
+    :init-value (lambda (obj) (oset obj value (plist-get args :start))))
+   ("-e" "End" "--end=" :prompt "End at: "
+    :init-value (lambda (obj) (oset obj value (plist-get args :end))))
+   ("-ps" "Playlist start" "--playlist-start=" :prompt "Start at (in playlist): "
+    :init-value (lambda (obj) (oset obj value (plist-get args :playlist-start))))]
   ["Inputs"
    ("f" "files" "--"
     :class my/shell-quoted-option
@@ -14085,16 +14087,17 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
 
 QUERY must comply to RFC 822 format, which holds attribute/value pairs."
   (apply 'funcall-interactively
-         'my/mpv-command media nil
+         'my/mpv-command media
          (and (stringp query)
-              (let (start end)
+              (let (mpv-args)
                 (mapc (lambda (cons-cell)
                         (pcase cons-cell
-                          (`(,val "") (setq start val))
-                          (`(,(or "s" "start") . (,val)) (setq start val))
-                          (`(,(or "e" "end") . (,val)) (setq end val))))
+                          (`(,val "") (setq mpv-args (plist-put mpv-args :start val)))
+                          (`(,(or "s" "start") . (,val)) (setq mpv-args (plist-put mpv-args :start val)))
+                          (`(,(or "e" "end") . (,val)) (setq mpv-args (plist-put mpv-args :end val)))
+                          (`(,(or "ps" "playlist-start") . (,val)) (setq mpv-args (plist-put mpv-args :playlist-start val)))))
                       (url-parse-query-string query))
-                `(,start ,end)))))
+                mpv-args))))
 
 ;; ==============================================
 ;; browse-url handling
