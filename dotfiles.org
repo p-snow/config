@@ -11250,7 +11250,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   my/tsc-optional-menu
   [(my/tsc-execute
     :command-format
-    "ffmpeg %i %O %o"
+    "ffmpeg %i -map_metadata 0 %O %o"
     :command-format-spec ((?i . (my/transient-infix-values '("-i")))
                           (?O . (my/transient-infix-values '("a" "-B" "-t")))
                           (?o . (my/transient-infix-values '("o")))))]
