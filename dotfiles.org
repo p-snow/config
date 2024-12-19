@@ -16006,62 +16006,45 @@ target=github.com
     mp.register_event("end-file", delete)
   #+end_src
 
-** unison
-- music directory syncing
-  #+begin_src conf :noweb tangle :tangle (expand-file-name ".unison/music.prf")
-  # Roots of the synchronization
-  root = <<home-dir()>>/mnt/ruizu/Music
-  root = <<home-dir()>>/Audio
+** Unison
 
-  # Paths to synchronize
-  path = .
+#+begin_src scheme :noweb-ref guix-base
+"unison"
+#+end_src
 
-  # Ruizu's file system is FAT
-  fat = true
+*** Unison preference to sync files between machines
+:PROPERTIES:
+:CREATED:  [2024-12-19 Thu 23:19]
+:END:
 
-  # Overwrite by newer file on confliction
-  prefer = newer
+Carrying out file synchronization.
+: $ unison pc-t480s
 
-  # Show nothing
-  silent = true
-  confirmbigdel = false
+#+begin_src conf :noweb tangle :tangle (expand-file-name ".unison/pc-t480s.prf" tangle/home)
+# Roots of the synchronization
+root = /home/<<login-name()>>/
+root = ssh://<<login-name()>>@pc-t480s//home/<<login-name()>>/
 
-  # Do fast checking
-  fastcheck = true
+# Paths to synchronize
+path = .config/emacs/var/ddskk/jisyo.txt
+path = .password-store/
 
-  # Log settings
-  log = true
-  logfile = <<home-dir()>>/.local/state/log/log/unison/music.log
+# Overwrite by newer file on confliction
+prefer = newer
 
-  #+end_src
-- doc directory backup
-  #+begin_src conf :noweb tangle :tangle (expand-file-name ".unison/doc.prf")
-  # Roots of the synchronization
-  root = <<home-dir()>>/mnt/ns01
-  root = <<home-dir()>>
+# Use this command for displaying diffs
+diff = diff -y -W 79 --suppress-common-lines
 
-  # Paths to synchronize
-  path = doc
+# Write down synchronization activity on log file rather than show in stdout
+auto = true
+confirmbigdel = false
+# silent = true
+log = true
 
-  # Overwrite by newer file on confliction
-  prefer = newer
+# Use inode number to verify identity rather than ckeck whole byte sequence
+fastcheck = true
+#+end_src
 
-  # Use this command for displaying diffs
-  diff = diff -y -W 79 --suppress-common-lines
-
-  # Write down synchronization activity on log file rather than show in stdout
-  auto = true
-  confirmbigdel = false
-  silent = true
-  log = true
-  logfile = <<home-dir()>>/.local/state/log/unison/doc.log
-
-  # Use inode number to verify identity rather than ckeck whole byte sequence
-  fastcheck = true
-
-  # Abort if device is not mounted
-  mountpoint = doc
-  #+end_src
 ** Aspell
 aspell - interactive spell checker
 #+begin_src conf :tangle (expand-file-name ".aspell.conf")
