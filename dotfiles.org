@@ -11167,7 +11167,10 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-e" "End" "--end=" :prompt "End at: "
     :init-value (lambda (obj) (oset obj value (plist-get args :end))))
    ("-ps" "Playlist start" "--playlist-start=" :prompt "Start at (in playlist): "
-    :init-value (lambda (obj) (oset obj value (plist-get args :playlist-start))))]
+    :init-value (lambda (obj) (oset obj value (plist-get args :playlist-start))))
+   ("p" "pause" "" :class transient-switches
+    :argument-format "%s" :argument-regexp "\\(--pause\\|--no-pause\\)"
+    :choices ("--pause" "--no-pause"))]
   ["Inputs"
    ("f" "files" "--"
     :class my/shell-quoted-option
