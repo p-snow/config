@@ -4042,8 +4042,13 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
            (lambda (comm) (princ
                        (string-trim
                         (shell-command-to-string comm))))))
-      (my/yt-dlp-command url nil t)
-      (my/tsc-execute-macro))))
+      (let ((my/tsc-execute-function
+             (lambda (command)
+               ;; Quirk: The message does not echo in the minibuffer.
+               (princ (format "Duration: %s"
+                              (string-trim (shell-command-to-string command)))))))
+        (my/yt-dlp-command url nil t)
+        (my/tsc-execute-macro)))))
 #+end_src
 
 ***** elfeed-score
@@ -10987,6 +10992,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 (require 'detached)
 
 (defvar my/shell-command-buffer "*Shell Command*")
+(defvar my/tsc-execute-function 'detached-shell-command)
 
 (defclass my/shell-command (transient-suffix)
   ((command-format :initarg :command-format :initform "%a")
@@ -11026,8 +11032,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   :class my/shell-command
   :key "RET" :description "Execute"
   (interactive (list (transient-args transient-current-command)))
-  (let* ((command (my/tsc-build-shell-command)))
-    (detached-shell-command command)))
+  (funcall my/tsc-execute-function (my/tsc-build-shell-command)))
 
 (defun my/tsc-build-shell-command ()
   ""
