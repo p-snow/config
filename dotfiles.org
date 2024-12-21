@@ -11024,9 +11024,9 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   (let ((command (my/tsc-build-shell-command)))
     (and (length> command 0)
          (with-current-buffer (get-buffer-create my/shell-command-buffer)
+           (switch-to-buffer (current-buffer))
            (sh-mode)
-           (insert command ";\n")
-           (switch-to-buffer (current-buffer))))))
+           (insert command ";\n")))))
 
 (transient-define-suffix my/tsc-execute (args)
   :class my/shell-command
@@ -11382,6 +11382,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :PROPERTIES:
 :ID:       17a2939e-a563-4e46-8ba2-10cf14d71efe
 :END:
+
+- [[https://handbrake.fr/docs/en/latest/workflow/adjust-quality.html][HandBrake Documentation — Adjusting quality]]
 
 #+begin_src emacs-lisp
 (transient-define-prefix my/handbrakecli-command (file)
