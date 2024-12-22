@@ -13095,6 +13095,26 @@ The previous heading is logged as a log note."
       (org-align-tags))
     (org-add-log-setup 'heading new-heading old-heading 'state)
     (run-hooks 'post-command-hook)))
+
+(defun my/org-heading-history ()
+  ""
+  (let ((heading-history (list (substring-no-properties (org-get-heading t t t t)))))
+    (org-with-wide-buffer
+     (org-save-outline-visibility t
+       (org-back-to-heading t)
+       (let* ((case-fold-search t)
+              (subtree-end (save-excursion
+                             (org-next-visible-heading 1)
+                             (point)))
+              (re (concat (rx "Heading" (+ space)
+                              "\"" (+ not-newline) "\"" (+ space)
+                              "from" (+ space)
+                              "\"" (group (+ not-newline)) "\"" (+ space))
+                          org-ts-regexp-inactive)))
+         (while (re-search-forward re subtree-end t)
+           (push (match-string-no-properties 1)
+                 heading-history)))))
+    (delete-dups heading-history)))
 #+end_src
 
 **** download media files in org             :ARCHIVE:
@@ -13393,8 +13413,8 @@ The hook functions, which is commented out, provoke malfunction failing to creat
               (append (and my/org-flush-blobs-clock-log
                            (list org-tr-regexp-both))
                       (and my/org-flush-blobs-state-change
-                           (list (concat (rx "- State " "\"" (>= 1 upper) "\"" (+ space)
-                                             "from " (opt "\"" (>= 1 upper) "\"") (+ space))
+                           (list (concat (rx "- State " "\"" (>= 2 upper) "\"" (+ space)
+                                             "from " (opt "\"" (>= 2 upper) "\"") (+ space))
                                          org-ts-regexp-inactive)))))
         (when (featurep 'org-clock)
           (org-clock-remove-empty-clock-drawer))))))
