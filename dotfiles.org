@@ -11460,7 +11460,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 (transient-define-prefix my/dvdbackup-command ()
   ""
   :man-page "dvdbackup"
-  :value '("--input=/dev/sr0" "--output=dvd-out")
+  :value '("--input=/dev/sr0" "--output=dvd-out" "--mirror")
   [("-i" "Input device" "--input="
     :class my/shell-quoted-option
     :prompt "Device file: "
@@ -11472,8 +11472,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("a" "Action" ""
     :class transient-switches
     :always-read t
-    :argument-format "--%s"
-    :argument-regexp "\\(--\\(mirror\\|feature\\|info\\)\\)"
+    :argument-format "%s"
+    :argument-regexp "\\(--mirror\\|--feature\\|--info\\)"
     :choices ("--mirror" "--feature" "--info"))]
   my/tsc-optional-menu
   [(my/tsc-execute
