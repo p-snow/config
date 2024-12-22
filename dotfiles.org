@@ -10813,6 +10813,44 @@ Calling my/insert-last-kbd-macro after saving the desired keyboard macro will ge
                "/*.el")))
 #+end_src
 
+***** Highlighting task performed days
+:PROPERTIES:
+:CREATED:  [2024-12-22 Sun 19:50]
+:END:
+:LOGBOOK:
+- Heading "Highlighting task performed days" from "Highlighting the days on which the task is in action." [2024-12-22 Sun 20:56]
+- Heading "Highlighting the days on which the task is in action." from "Highlight calendar days" [2024-12-22 Sun 20:51]
+- Heading "Highlight calendar days" from "Calendar heatmap" [2024-12-22 Sun 20:37]
+:END:
+
+[[https://sachachua.com/blog/2023/01/using-the-calendar-date-echo-text-variable-to-help-plot-a-heatmap-on-a-year-long-calendar-in-emacs/][This blog post]] inspired me to write the code that highlights the days on which tasks are performed. This is a profoundly useful feature in my review.
+
+#+begin_src emacs-lisp
+(defface my/calendar-highlight-face  '((((background light)) :foreground "black" :background "#eceff1")
+                                       (((background dark))  :foreground "white" :background "#263238")) "")
+
+(defvar my/calendar-highlight-dates nil "A list of dates to highlight.")
+
+(defun my/calendar-highlight (month year indent)
+  (when my/calendar-highlight-dates
+    (dotimes (i 31)
+      (let ((date (list month (1+ i) year))
+            (highlighted (seq-some (lambda (date)
+                                     (string-prefix-p (format "%04d-%02d-%02d" year month (1+ i))
+                                                      date))
+                                   my/calendar-highlight-dates)))
+        (when highlighted
+          (calendar-mark-visible-date
+           date
+           "my/calendar-highlight-face"))))))
+
+(advice-add #'calendar-generate-month :after #'my/calendar-highlight)
+
+(defun my/calendar-visualize (dates)
+  (setq my/calendar-highlight-dates dates)
+  (calendar))
+#+end_src
+
 ***** miscellaneous functions/commands
 
 #+begin_src emacs-lisp
