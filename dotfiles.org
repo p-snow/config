@@ -11217,6 +11217,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 (transient-define-prefix my/mpv-command (file &rest args)
   ""
   :man-page "mpv"
+  :value '("--volume=100")
   ["Options"
    ("-R" "noresume" "--no-resume-playback"
     :init-value (lambda (obj) (oset obj value (if (plist-get args :no-resume) "--no-resume-playback" nil))))
@@ -11228,7 +11229,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :init-value (lambda (obj) (oset obj value (plist-get args :playlist-start))))
    ("p" "pause" "" :class transient-switches
     :argument-format "%s" :argument-regexp "\\(--pause\\|--no-pause\\)"
-    :choices ("--pause" "--no-pause"))]
+    :choices ("--pause" "--no-pause"))
+   ("-v" "volume" "--volume=" :prompt "Volume: ")]
   ["Inputs"
    ("f" "files" "--"
     :class my/tsc-quoted-option
