@@ -11395,7 +11395,11 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   ["Outfile options"
    ["Video"
     ("-c" "crf" "-crf " :prompt "CRF(1-63) " :class transient-option)
-    ("-p" "preset" "-preset " :prompt "preset(0-13): " :class transient-option)]
+    ("-p" "preset" "-preset " :prompt "preset(0-13): " :class transient-option)
+    ("-S" "startingd position" "-ss "
+     :class transient-option :prompt "Position: ")
+    ("-T" "stopping position" "-to "
+     :class transient-option :prompt "Position: ")]
    my/ffmpeg-audio-menu]
   ["Outfile"
    ("o" "output" "-- "
@@ -11408,7 +11412,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :command-format
     "ffmpeg %i -c:v libsvtav1 -map_metadata 0 %O %o"
     :command-format-spec ((?i . (my/tsc-infix-values '("-i")))
-                          (?O . (my/tsc-infix-values '("-c" "-p" "a" "-B")))
+                          (?O . (my/tsc-infix-values '("-c" "-p" "a" "-B" "-S" "-T")))
                           (?o . (my/tsc-infix-values '("o")))))]
   (interactive (list (my/tsc-determine-file nil)))
   (transient-setup 'my/ffmpeg-libsvtav1-command nil nil
@@ -11418,7 +11422,6 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   (keymap-set embark-file-map
               "t v" 'my/ffmpeg-libsvtav1-command))
 #+end_src
-
 
 ***** handbrake command
 :PROPERTIES:
