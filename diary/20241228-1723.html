@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="alternate"
+      type="application/rss+xml"
+      href="https://www.p-snow.org/config/diary/rss.xml"
+      title="RSS feed for https://www.p-snow.org/config/diary">
+<title>./diary/posts/20241228-1723.org</title>
+<meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="https://cdn.simplecss.org/simple.css"><link rel="stylesheet" href="./assets/css/style.css"></head>
+<body>
+<div id="preamble" class="status"><header><nav><a href="https://www.p-snow.org/config/diary">ホーム</a><a href="https://www.p-snow.org/config/diary/about.html">あばうと</a><a href="https://www.p-snow.org/config/diary/rss.xml">RSS</a></nav><h1>ティンカラー日記</h1><p>こなゆき(a.k.a. p-snow)</p></header></div>
+<div id="content">
+<div class="post-date">28 Dec 2024</div><h1 class="post-title"><a href="https://www.p-snow.org/config/diary/20241228-1723.html">./diary/posts/20241228-1723.org</a></h1>
+<p>
+年末は誘惑が多いものです。先日からはじまったSteamのウィンターセールも抗いがたい魅力は放っております。めぼしい作品を選んでいたら、いつの間にかウィッシュリストに長蛇の列ができていました。
+</p>
+
+<p>
+さて話は変わりますが、先日とある「xxxペイ」を報酬として少額だけ受取るという事がありました。私はふだんこの「xxxペイ」は使わないのですが、調べてみるとSteamで決済方法として利用できることがわかったので、この機会に残額をすべて先のリスト内のタイトルの購入に当てようと思いたちました。
+</p>
+
+<p>
+ふだんは使わないマネーを持て余しておくのはもったいないので、ここは残高すべてを利用して気持ちよく新年を迎えたいところ。しかしそのためにはリスト内の作品から最適な組合わせを見つければいけません。
+</p>
+
+<p>
+さてどうするか。そうです。ここはナップサック問題のアルゴリズムが使えるのです。<a href="https://ja.wikipedia.org/wiki/%E3%83%8A%E3%83%83%E3%83%97%E3%82%B5%E3%83%83%E3%82%AF%E5%95%8F%E9%A1%8C#bodyContent">ナップサック問題</a>とは、最大積載重量が決まったナップサックの中にそれぞれ個別の重さと価値をもった品物を入れて、入った品物の総価値が最大になる組合せを求めるというものです。今回の例では個々の品物は重量=価値となり、各種品物は複数入れることは許されないので0-1ナップサック問題ということになります。
+</p>
+
+<p>
+さあEmacs Lispで書いてみましょう。と思ったら<a href="https://rosettacode.org/wiki/Knapsack_problem/0-1#Emacs_Lisp">Rosetta Code</a>にまんまの答えが載っていました。それがこちら。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">my/knapsack</span> (max-w items)
+  <span style="font-style: italic;">"Return a subset of ITEMS that amounts to the maximal value within MAX-W.</span>
+
+<span style="font-style: italic;">Each element in ITEMS must comply with the format '(name weight</span>
+<span style="font-style: italic;">value)', where name is a symbol and both weight and value are</span>
+<span style="font-style: italic;">integers."</span>
+  (<span style="font-weight: bold;">let</span> ((cache (make-vector (1+ (length items)) nil)))
+    (<span style="font-weight: bold;">dotimes</span> (n (1+ (length items)))
+      (<span style="font-weight: bold;">setf</span> (aref cache n) (make-hash-table <span style="font-weight: bold;">:test</span> 'eql)))
+    (<span style="font-weight: bold;">defun</span> <span style="font-weight: bold;">ks-emb</span> (spc items)
+      (<span style="font-weight: bold;">let</span> ((slot (gethash spc (aref cache (length items)))))
+        (<span style="font-weight: bold;">cond</span>
+         ((null items) (list 0 0 '()))
+         (slot slot)
+         (t (puthash spc
+                     (<span style="font-weight: bold;">let*</span>
+                         ((i (car items))
+                          (w (nth 1 i))
+                          (v (nth 2 i))
+                          (x (ks-emb spc (cdr items))))
+                       (<span style="font-weight: bold;">cond</span>
+                        ((&gt; w spc) x)
+                        (t
+                         (<span style="font-weight: bold;">let*</span> ((y (ks-emb (- spc w) (cdr items)))
+                                (v (+ v (car y))))
+                           (<span style="font-weight: bold;">cond</span>
+                            ((&lt; v (car x)) x)
+                            (t
+                             (list v (+ w (nth 1 y)) (cons i (nth 2 y)))))))))
+                     (aref cache (length items)))))))
+    (ks-emb max-w items)))
+</pre>
+</div>
+
+<p>
+あとはウィッシュリストの内容と「xxxペイ」の残高を入力すればできあがりです。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(my/knapsack 9560 '((portal2 240 240)
+                    (witcher3 1320 1320)
+                    (cyberpunk2077 3950 3950)
+                    (civilization6 350 350)
+                    (eldenring 5544 5544)
+                    (tombraider 624 624)
+                    (ys8 2131 2131)))
+
+=&gt; (9494 9494
+         ((cyberpunk2077 3950 3950)
+          (eldenring 5544 5544)))
+</pre>
+</div>
+
+<p>
+これで心晴れ晴れと年が越せ、来年は購入したゲームをゆっくりと楽しんでいけます。
+</p>
+
+<p>
+それではみなさま、よいお年を。
+Happy Tinkering!
+</p>
+<div class="taglist"><a href="https://www.p-snow.org/config/diary/tags.html">Tags</a>: <a href="https://www.p-snow.org/config/diary/tag-emacs.html">emacs</a> <a href="https://www.p-snow.org/config/diary/tag-computational.html">computational</a> </div></div>
+<div id="postamble" class="status"></div>
+</body>
+</html>
