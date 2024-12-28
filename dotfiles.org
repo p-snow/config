@@ -9802,6 +9802,11 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
 :CREATED:  [2023-12-20 Wed 18:24]
 :END:
 
+****** Calculating all combinations in a list
+:PROPERTIES:
+:CREATED:  [2024-12-28 Sat 16:58]
+:END:
+
 #+begin_src emacs-lisp
 (defun my/combinations (list)
   "Return all combinations for all elements in LIST."
@@ -9811,6 +9816,73 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
       (append (mapcar (lambda (combination) (cons (car list) combination))
                       rest-combs)
               rest-combs))))
+#+end_src
+
+#+NAME: emacs-combinations-test
+#+begin_src emacs-lisp :tnagle no
+(ert-deftest test-combinations ()
+  "Tests `my/combinations'."
+  (should (equal (my/combinations '(base desktop emacs))
+                 '((base desktop emacs)
+                   (base desktop)
+                   (base emacs)
+                   (base)
+                   (desktop emacs)
+                   (desktop)
+                   (emacs)
+                   nil))))
+#+end_src
+
+****** Solving knapsack problem
+:PROPERTIES:
+:CREATED:  [2024-12-28 Sat 16:59]
+:END:
+
+- [[https://rosettacode.org/wiki/Knapsack_problem/0-1][Knapsack problem/0-1 - Rosetta Code]]
+
+#+NAME: emacs-knapsack-test
+#+begin_src emacs-lisp
+(defun my/knapsack (max-w items)
+  "Return a subset of ITEMS that amounts to the maximal value within MAX-W.
+
+Each element in ITEMS must comply with the format '(name weight
+value)', where name is a symbol and both weight and value are
+integers."
+  (let ((cache (make-vector (1+ (length items)) nil)))
+    (dotimes (n (1+ (length items)))
+      (setf (aref cache n) (make-hash-table :test 'eql)))
+    (defun ks-emb (spc items)
+      (let ((slot (gethash spc (aref cache (length items)))))
+        (cond
+         ((null items) (list 0 0 '()))
+         (slot slot)
+         (t (puthash spc
+                     (let*
+                         ((i (car items))
+                          (w (nth 1 i))
+                          (v (nth 2 i))
+                          (x (ks-emb spc (cdr items))))
+                       (cond
+                        ((> w spc) x)
+                        (t
+                         (let* ((y (ks-emb (- spc w) (cdr items)))
+                                (v (+ v (car y))))
+                           (cond
+                            ((< v (car x)) x)
+                            (t
+                             (list v (+ w (nth 1 y)) (cons i (nth 2 y)))))))))
+                     (aref cache (length items)))))))
+    (ks-emb max-w items)))
+#+end_src
+
+#+NAME: emacs-knapsack-test
+#+begin_src emacs-lisp :tnagle no
+(ert-deftest test-knapsack ()
+  "Tests `my/knapsack'."
+  (should (equal (my/knapsack 20
+                              '((a 9 4) (b 14 7) (c 8 3)))
+                 '(7 17 ((a 9 4)
+                         (c 8 3))))))
 #+end_src
 
 ***** copy line number in kill ring

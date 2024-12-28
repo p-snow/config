@@ -1,0 +1,75 @@
+#+title:
+#+date: <2024-12-28 Sat 17:23>
+#+description:
+#+filetags: emacs computational
+
+#+SETUPFILE: diary/header
+
+# {{{preview-begin}}}
+年末は誘惑が多いものです。先日からはじまったSteamのウィンターセールも抗いがたい魅力は放っております。めぼしい作品を選んでいたら、いつの間にかウィッシュリストに長蛇の列ができていました。
+
+さて話は変わりますが、先日とある「xxxペイ」を報酬として少額だけ受取るという事がありました。私はふだんこの「xxxペイ」は使わないのですが、調べてみるとSteamで決済方法として利用できることがわかったので、この機会に残額をすべて先のリスト内のタイトルの購入に当てようと思いたちました。
+# {{{preview-end}}}
+
+ふだんは使わないマネーを持て余しておくのはもったいないので、ここは残高すべてを利用して気持ちよく新年を迎えたいところ。しかしそのためにはリスト内の作品から最適な組合わせを見つければいけません。
+
+さてどうするか。そうです。ここはナップサック問題のアルゴリズムが使えるのです。[[https://ja.wikipedia.org/wiki/%E3%83%8A%E3%83%83%E3%83%97%E3%82%B5%E3%83%83%E3%82%AF%E5%95%8F%E9%A1%8C#bodyContent][ナップサック問題]]とは、最大積載重量が決まったナップサックの中にそれぞれ個別の重さと価値をもった品物を入れて、入った品物の総価値が最大になる組合せを求めるというものです。今回の例では個々の品物は重量=価値となり、各種品物は複数入れることは許されないので0-1ナップサック問題ということになります。
+
+さあEmacs Lispで書いてみましょう。と思ったら[[https://rosettacode.org/wiki/Knapsack_problem/0-1#Emacs_Lisp][Rosetta Code]]にまんまの答えが載っていました。それがこちら。
+
+# {{{accordion-begin(Elisp code to solve knapsack problem)}}}
+#+begin_src emacs-lisp
+(defun my/knapsack (max-w items)
+  "Return a subset of ITEMS that amounts to the maximal value within MAX-W.
+
+Each element in ITEMS must comply with the format '(name weight
+value)', where name is a symbol and both weight and value are
+integers."
+  (let ((cache (make-vector (1+ (length items)) nil)))
+    (dotimes (n (1+ (length items)))
+      (setf (aref cache n) (make-hash-table :test 'eql)))
+    (defun ks-emb (spc items)
+      (let ((slot (gethash spc (aref cache (length items)))))
+        (cond
+         ((null items) (list 0 0 '()))
+         (slot slot)
+         (t (puthash spc
+                     (let*
+                         ((i (car items))
+                          (w (nth 1 i))
+                          (v (nth 2 i))
+                          (x (ks-emb spc (cdr items))))
+                       (cond
+                        ((> w spc) x)
+                        (t
+                         (let* ((y (ks-emb (- spc w) (cdr items)))
+                                (v (+ v (car y))))
+                           (cond
+                            ((< v (car x)) x)
+                            (t
+                             (list v (+ w (nth 1 y)) (cons i (nth 2 y)))))))))
+                     (aref cache (length items)))))))
+    (ks-emb max-w items)))
+#+end_src
+# {{{accordion-end}}}
+
+あとはウィッシュリストの内容と「xxxペイ」の残高を入力すればできあがりです。
+
+#+begin_src emacs-lisp
+(my/knapsack 9560 '((portal2 240 240)
+                    (witcher3 1320 1320)
+                    (cyberpunk2077 3950 3950)
+                    (civilization6 350 350)
+                    (eldenring 5544 5544)
+                    (tombraider 624 624)
+                    (ys8 2131 2131)))
+
+=> (9494 9494
+         ((cyberpunk2077 3950 3950)
+          (eldenring 5544 5544)))
+#+end_src
+
+これで心晴れ晴れと年が越せ、来年は購入したゲームをゆっくりと楽しんでいけます。
+
+それではみなさま、よいお年を。
+Happy Tinkering!
