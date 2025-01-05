@@ -2718,23 +2718,12 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
 :CREATED:  [2024-01-28 Sun 19:31]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-transient"
-#+end_src
-
 #+NAME: config/emacs-transient
 #+begin_src emacs-lisp
 (use-package transient
   :custom
   (transient-save-history t)
-  (transient-force-single-column t)
-  ;; :config
-  ;; (mapc (lambda (face) (set-face-attribute face nil
-  ;;                                      :font "fontset-code"
-  ;;                                      :height (my/normalized-font-size 420)))
-  ;;       (seq-filter (lambda (face) (string-match-p "transient-.+" (symbol-name face)))
-  ;;                   (face-list)))
-  )
+  (transient-force-single-column t))
 #+end_src
 
 ***** Help
