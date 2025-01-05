@@ -4333,17 +4333,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 (use-package org
   :mode ("\\.org$" . org-mode)
   :init
-  (defvar my/org-initialized nil
-    "Indicator showing whether any org file had opened.")
-  (defvar my/org-mode-init-hook nil
-    "One-off hook run when first org file open.")
-  (setq org-directory "~/org")
-  :hook
-  (org-mode . (lambda ()
-                (unless my/org-initialized
-                  (setq my/org-initialized t)
-                  (run-hooks 'my/org-mode-init-hook)
-                  (provide 'my/org-mode-init)))))
+  (setq org-directory "~/org"))
 
 (defvar my/org-todo-keyword--urgent "UG"
   "TODO keyword acronym standing for 'UrGent'")
@@ -4934,7 +4924,6 @@ If entry at POM has no clock log time stamp, this function returns 0."
 
 #+begin_src emacs-lisp
 (use-package org-habit
-  :after my/org-mode-init
   :custom
   (org-habit-graph-column 32)
   (org-habit-preceding-days 21)
@@ -5048,7 +5037,6 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 
 #+begin_src emacs-lisp
 (use-package org-crypt
-  :after my/org-mode-init
   :custom
   (org-crypt-key user-mail-address)
   :config
@@ -5075,7 +5063,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 
 #+begin_src emacs-lisp
 (use-package ol
-  :after (my-org-global-map my/org-mode-init)
+  :after my-org-global-map
   :bind (:map my/org-global-map
               ("s" . org-store-link))
   :config
@@ -5518,7 +5506,6 @@ Ancestors are looked up If current heading has no CATEGORY."
 
 #+begin_src emacs-lisp
 (use-package org-expiry
-  :after my/org-mode-init
   :custom
   (org-expiry-inactive-timestamps t)
   (org-expiry-handler-function 'org-expiry-archive-subtree)
@@ -5586,7 +5573,7 @@ Ancestors are looked up If current heading has no CATEGORY."
 (use-package org-web-track
   :ensure t
   ;; :load-path "~/data/home/.local/share/ghq/github.com/p-snow/org-web-track"
-  :after (my/org-mode-init my-org-global-map)
+  :after my-org-global-map
   :bind (:map my/org-global-map
               ("T q" . my/org-web-track-ql-view)
               ("T c" . org-web-track-columns)
@@ -5772,7 +5759,6 @@ export DISPLAY=:0 && \
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "batch/org-web-track-mail.el" tangle/user-emacs-directory)
-(provide 'my/org-mode-init)
 (define-keymap :prefix 'my/org-global-map)
 (provide 'my-org-global-map)
 
@@ -7257,7 +7243,6 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 
 #+begin_src emacs-lisp
 (use-package orgit
-  :after my/org-mode-init
   :custom
   (orgit-remote "github"))
 #+end_src
@@ -8008,7 +7993,6 @@ Typical file downloading workflow:
 
 #+begin_src emacs-lisp
 (use-package denote
-  :after my/org-mode-init
   :bind (("C-c n n" . denote)
          ("C-c n o" . denote-open-or-create))
   :custom
@@ -9770,7 +9754,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
 
 #+begin_src emacs-lisp
 (use-package org-english
-  :after org
+  :after (org my-org-global-map)
   :config
   (bind-keys :map my/org-global-map
              ("e e" . my/org-english-capture)
