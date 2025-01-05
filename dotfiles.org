@@ -6880,8 +6880,19 @@ sMerge can be used to solve merging problems. The code below kicks off sMerge if
 
 #+begin_src emacs-lisp
 (use-package hideshow
-  :diminish "hs"
-  :bind (("C-c TAB" . hs-toggle-hiding)))
+  :hook ((emacs-lisp-mode cc-mode python-ts-mode rust-ts-mode ruby-ts-mode scheme-mode)
+         . hs-minor-mode)
+  :preface
+  (defun my/hs-hide-all (&optional show)
+    "Hide all top-level blocks unless C-u prefix is provided."
+    (interactive "P")
+    (cond
+     ((equal show '(4)) (hs-show-all))
+     (t (hs-hide-all))))
+  :bind (:map hs-minor-mode-map
+              ("H-i" . hs-toggle-hiding)
+              ("C-c TAB" . hs-hide-level)
+              ("S-TAB" . my/hs-hide-all)))
 #+end_src
 
 ***** imenu
