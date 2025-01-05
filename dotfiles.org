@@ -4296,9 +4296,6 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
   (eshell-hist-ignoredups t)
   :config
   (require 'em-prompt)
-  (bind-keys :map eshell-prompt-mode-map
-             ("C-h" . delete-backward-char)
-             ("M-h" . backward-kill-word))
   (setq eshell-path-env (getenv "PATH"))
   (with-eval-after-load 'consult
     ;; narrow down eshell history using vertico
@@ -6116,7 +6113,7 @@ export DISPLAY=:0 && \
 ;;         (variable (styles orderless-default-style))))
 #+end_src
 
-***** corfu
+***** corfu                                 :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-02-16 Thu 15:12]
 :END:
@@ -6156,7 +6153,6 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
               ("h" . cape-history)
               ("f" . cape-file)
               ("k" . cape-keyword)
-              ("s" . cape-symbol)
               ("a" . cape-abbrev)
               ("l" . cape-line)
               ("w" . cape-dict)
@@ -6164,23 +6160,38 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
               ("_" . cape-tex)
               ("^" . cape-tex)
               ("&" . cape-sgml)
-              ("r" . cape-rfc1345))
+              ("r" . cape-rfc1345)
+              ("8" . cape-emoji))
   :hook
-  (text-mode . (lambda ()
-                 (setq-local completion-at-point-functions
-                             (append completion-at-point-functions
-                                     '(cape-dabbrev
-                                       cape-file
-                                       cape-symbol
-                                       cape-dict)))))
-  (prog-mode . (lambda ()
-                 (setq-local completion-at-point-functions
-                             (append completion-at-point-functions
-                                     '(cape-dabbrev
-                                       cape-file
-                                       cape-symbol
-                                       cape-keyword
-                                       cape-history))))))
+  (text-mode
+   . (lambda ()
+       (setq-local completion-at-point-functions
+                   (append '(cape-dabbrev
+                             cape-file
+                             cape-dict)
+                           completion-at-point-functions))))
+  (org-mode
+   . (lambda ()
+       (setq-local completion-at-point-functions
+                   (append '(cape-elisp-block)
+                           completion-at-point-functions))))
+  (prog-mode
+   . (lambda ()
+       (setq-local completion-at-point-functions
+                   (append '(cape-dabbrev
+                             cape-file
+                             cape-keyword)
+                           completion-at-point-functions))))
+  (emacs-lisp-mode
+   . (lambda ()
+       (setq-local completion-at-point-functions
+                   (append '(cape-elisp-symbol)
+                           completion-at-point-functions))))
+  ((minibuffer-mode eshell-mode)
+   . (lambda ()
+       (setq-local completion-at-point-functions
+                   (append '(cape-history)
+                           completion-at-point-functions)))))
 #+end_src
 
 **** text-mode and its derivatives
@@ -9674,7 +9685,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
          ("C-c n g" . consult-denote-grep)))
 #+end_src
 
-***** capf-autosuggest
+***** capf-autosuggest                      :ARCHIVE:
 
 [[https://repo.or.cz/emacs-capf-autosuggest.git][capf-autosuggest]] provides auto-suggestion functionality in Eshell and major modes, which is derived from Comint mode. In =capf-autosuggest-mode=, you can use =C-e= to complete the entire command suggested as a placeholder, and =M-f= to complete a single word.
 
