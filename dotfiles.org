@@ -5593,10 +5593,11 @@ Ancestors are looked up If current heading has no CATEGORY."
             'org-web-track-display-values)
       (when (require 'org-ql nil t)
         (org-ql-search org-web-track-files
-                       `(property ,org-web-track-url)
-                       :super-groups '((:tag "book") (:tag "food")
-                                       (:tag "tool") (:tag "supply"))
-                       :buffer (current-buffer)))))
+          `(and (property ,org-web-track-url)
+                (not (tags ,org-archive-tag)))
+          :super-groups '((:tag "book") (:tag "food")
+                          (:tag "tool") (:tag "supply"))
+          :buffer (current-buffer)))))
   (defun my/org-web-track-update-all-and-notify ()
     "Update all web tracking items in `org-web-track-files'
  and send an email if any of them has changed its value."
@@ -5663,7 +5664,7 @@ exchange rate against US dollar."
      (,(regexp-quote "www.lenovo.com/jp/ja/p/laptops/thinkpad")
       (lambda (dom)
         (when-let ((price-node (car (dom-search dom (lambda (node) (string= "productpromotionprice"
-                                                                        (dom-attr node 'name)))))))
+                                                                            (dom-attr node 'name)))))))
           (assoc-default 'content (cadr price-node)))))
      (,(rx "www.amazon.co.jp" (+ anychar) "-ebook")
       "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'")
