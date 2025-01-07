@@ -2845,8 +2845,11 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (proced-auto-update-flag t)
   (proced-auto-update-interval 3)
   (proced-show-remote-processes t)
-  (proced-show-remote-processes t))
+  :config
+  (bind-keys :map proced-mode-map
+             ("a" . proced-toggle-auto-update)))
 #+end_src
+
 ******* Shell
 :PROPERTIES:
 :CREATED:  [2024-04-13 Sat 16:14]
