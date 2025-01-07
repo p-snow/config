@@ -11187,9 +11187,11 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
             (or transient--suffixes transient-current-suffixes)))
 
 (defun my/tsc-infix-values (keys)
-  (mapconcat 'transient-infix-value
-             (delq nil (mapcar #'my/tsc-suffix keys))
-             " "))
+  (mapconcat
+   ;; TODO: 'transient--get-wrapped-value may suit better
+   'transient-infix-value
+   (delq nil (mapcar #'my/tsc-suffix keys))
+   " "))
 
 (defmacro my/tsc-determine-file (&optional multi)
   ""
@@ -11274,8 +11276,9 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     (let ((arg (oref obj argument)))
       (pcase-exhaustive (oref obj multi-value)
         ('nil          (concat arg (shell-quote-argument value)))
-        ((or 't 'rest) (cons arg (mapcar 'shell-quote-argument value)))
-        ('repeat       (mapcar (lambda (v) (concat arg (shell-quote-argument v))) value))))))
+        ((or 't 'rest) (concat arg (mapconcat 'shell-quote-argument value " ")))
+        ;; FIXME: this may fail
+        ('repeat       (mapcar (lambda (v) (cons arg (shell-quote-argument v))) value))))))
 
 (defclass my/tsc-literal-option (transient-option) ())
 
@@ -11320,7 +11323,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :choices ("--pause" "--no-pause"))
    ("-v" "volume" "--volume=" :prompt "Volume: ")]
   ["Inputs"
-   ("f" "files" "--"
+   ("f" "files" "-- "
     :class my/tsc-quoted-option
     :multi-value rest
     :init-value (lambda (obj) (oset obj value (ensure-list file))))]
@@ -11387,7 +11390,6 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :class my/tsc-quoted-option
     :prompt "Input file: "
     :always-read t
-    :reader transient-read-file
     :init-value (lambda (obj) (oset obj value file)))]
   ["Filters"
    ("-t" "tempo (e.g. 1.5)" "-filter:a atempo="
@@ -11407,7 +11409,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                           (?o . (my/tsc-infix-values '("o")))))]
   (interactive (list (my/tsc-determine-file nil)))
   (transient-setup 'my/ffmpeg-libopus-command nil nil
-                   :scope (cdr `(_ :infile-key "-i" :infile-orig ,file))))
+                   :scope (cdr `(_ :infile-key "-i"
+                                   :infile-orig ,file))))
 
 (with-eval-after-load 'embark
   (keymap-set embark-file-map
@@ -11822,7 +11825,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-D" "deref symlinks" "--dereference-args")
    ("-h" "human readable" "--human-readable")]
   ["Inputs"
-   ("f" "FILE" "--"
+   ("f" "FILE" "-- "
     :class my/tsc-quoted-option
     :multi-value t
     :init-value (lambda (obj) (oset obj value file)))]
