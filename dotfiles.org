@@ -10162,16 +10162,17 @@ Suport successive deletion with C-h/M-h
 elfeed-update will run at morning everyday
 
 #+begin_src sh :eval no :noweb yes :tangle no :noweb-ref morning-batch
-emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(my/elfeed-update)"
+emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(my/elfeed-update t)"
 #+end_src
 
 #+begin_src emacs-lisp
-(defun my/elfeed-update ()
+(defun my/elfeed-update (&optional compact)
   "Update Elfeed feeds and compress the database."
-  (interactive)
+  (interactive "P")
   (elfeed)
   (elfeed-update)
-  (elfeed-db-compact)
+  (when compact
+    (elfeed-db-compact))
   (when (eq major-mode 'elfeed-search-mode)
     (elfeed-kill-buffer)))
 #+end_src
