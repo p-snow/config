@@ -7542,34 +7542,40 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 :CUSTOM_ID: emacs-gptel
 :END:
 
-[[https://github.com/karthink/gptel][gptel]] is my go-to AI frontend in Emacs as of [2024-07-19 Fri]. It supports a large number of services (LLM models).
+[[https://github.com/karthink/gptel][gptel]] is decent AI frontend in Emacs as of [2025-01-08 Wed]. It supports a large number of services (LLM models) and offers elaborate usage options.
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-gptel"
+#+end_src
 
 #+begin_src emacs-lisp :noweb tangle
 (use-package gptel
-  :ensure t
   :after engine-mode
-  :bind ("H-Q" . my/gpeel-invoke)
-  :preface
-  (defun my/gpeel-invoke (&optional arg)
-    "Enable users to call gptel/gptel-menu/gptel-send by changing prefix argument."
-    (interactive "P")
-    (call-interactively (pcase arg
-                          ('(16) #'gptel)
-                          ('(4) #'gptel-menu)
-                          (default #'gptel-send))))
+  :bind (:map engine-mode-prefixed-map
+              ("c c" . gptel-send)
+              ("c C" . gptel)
+              ("c r" . gptel-rewrite)
+              ("c RET" . gptel-menu))
   :custom
   (gptel-api-key (apply-partially #'my/credential-info "openai.com" "apikey"))
   (gptel-max-tokens 500)
-  (gptel-model "gpt-4o-mini")
+  (gptel-model 'gpt-4o-mini)
   (gptel-default-mode 'org-mode)
+  (gptel-rewrite-default-action 'merge)
   :config
-  (cl-pushnew '(proofreading . "Please help me proofread the following text with English.")
+  (cl-pushnew '(proofreading
+                . "You are a large language model and a professional proofreader. Please proofread the following text.")
+              gptel-directives)
+  (cl-pushnew '(document
+                . "You are a large language model and a software engeneer. Please rewrite the following snippet of the software document.
+- If the text starts with a verb, it may the description for a function.")
               gptel-directives)
   (cl-pushnew '(commit-message-pr . "Please help me proofread the following text as a commit message for Git.")
               gptel-directives)
-  (cl-pushnew '(japanese . "Please help me interpret the following sentence into Japanese.")
-              gptel-directives)
-  (cl-pushnew '(english . "Please help me interpret the following sentence into English.")
+  (cl-pushnew '(interpret
+                . "You are a large language model and a professional interpreter. Please interpret the text.
+- Interpret the sentence in Japanese if it is English.
+- Interpret the sentence in English if it is Japanese.")
               gptel-directives)
   (gptel-make-gemini "Gemini"
     :key (apply-partially 'my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
