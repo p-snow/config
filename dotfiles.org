@@ -10948,6 +10948,36 @@ Calling my/insert-last-kbd-macro after saving the desired keyboard macro will ge
   (calendar))
 #+end_src
 
+***** Displaying EPUB cover image in Image Dired
+:PROPERTIES:
+:CREATED:  [2025-01-10 Fri 19:45]
+:END:
+
+It's spectacular if image-dired shows the cover image for EPUB files, as if it were a bookshelf. The following code make that happen.
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'image-dired
+  (cl-pushnew "epub" image-file-name-extensions)
+  (advice-add #'image-dired-create-thumb-1 :around
+              #'my/image-dired-create-thumb-epub))
+
+(defun my/image-dired-create-thumb-epub (orig-fun original-file thumbnail-file)
+  ""
+  (let ((source-file original-file))
+    (when (string-suffix-p ".epub" original-file)
+      (let ((tmp-png (file-name-concat temporary-file-directory
+                                       (concat (make-temp-name "epub-thumb-")
+                                               ".png"))))
+        (setq source-file tmp-png)
+        (save-excursion
+          (shell-command (format "xapp-epub-thumbnailer -i %s -o %s -s %d"
+                                 (shell-quote-argument original-file)
+                                 tmp-png
+                                 image-dired-thumb-size)
+                         messages-buffer-name))))
+    (funcall orig-fun source-file thumbnail-file)))
+#+end_src
+
 ***** miscellaneous functions/commands
 
 #+begin_src emacs-lisp
