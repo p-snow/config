@@ -2654,10 +2654,15 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
 
 ****** Internal
 ******* Storage Allocation
+:PROPERTIES:
+:ID:       ff1cc31b-756f-4442-acef-907ebeb872f6
+:END:
 
-If GC time at Emacs init is problematic, checking [[help:gcs-done][gcs-done]] and [[help:gc-elapsed][gc-elapsed]] may help you. Increasing gc-cons-* variables would minimize Emacs init time, but this also cause each GC time which may noticeable as freeze.
+If GC time at Emacs initialization is problematic, checking [[help:gcs-done][gcs-done]] or [[help:gc-elapsed][gc-elapsed]] may help you as well as setting garbage-collection-messages to t. Increasing gc-cons-* variables would minimize Emacs init time, but this also cause each GC time which may noticeable as freeze.
 [[https://emacsconf.org/2023/talks/gc/][
-This presentation]] advise to increase gc-cons-threshold to 20-80Mb if you have Emacs with slow startup, and to increase consult--gc-percentage to 0.2-1.0 if you have slow and frequent GC.
+This presentation]] advise to increase gc-cons-threshold to 20-80Mb if you have Emacs with slow startup, and to increase gc-cons-percentage to 0.2-1.0 if you have slow and frequent GC.
+
+The Emacs package [[help:Package][emacs-gc-stats]] is useful for collecting statistical data on garbage collection (GC) to send to developers in order to inquire about the cause of GC issues.
 
 #+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
 (setq gc-cons-threshold (* 30 gc-cons-threshold)
