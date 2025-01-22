@@ -15899,10 +15899,10 @@ build/
 :END:
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-40 */4 * * * /usr/bin/bash -ci "sync-annex-doc 2>&1 | tee -a <<log-dir()>>/sync-git-annex.log"
+15 */2 * * * /usr/bin/bash -ci "sync-doc 2>&1 | tee -a <<log-dir()>>/sync-git-annex.log"
 #+end_src
 
-#+begin_src bash :noweb tangle :tangle (expand-file-name "sync-annex-doc" tangle/local-bin-dir)
+#+begin_src bash :noweb tangle :tangle (expand-file-name "sync-doc" tangle/local-bin-dir)
 function sync_doc {
   if cd $1; then
     if [ $2 -ne 0 ]; then
@@ -15916,7 +15916,8 @@ function sync_doc {
 sync_doc /mnt/vt-m/doc/ 1
 sync_doc /mnt/vt-h/doc/ 1
 sync_doc /mnt/vt-j/doc/ 1
-sync_doc ~/$(hostname)/doc/ 0
+sync_doc /mnt/pt-shared/doc-pc-k8p/ 0
+sync_doc /mnt/pt-shared/doc-pc-t480s/ 0
 sync_doc /mnt/vt-m/doc/ 0
 #+end_src
 
