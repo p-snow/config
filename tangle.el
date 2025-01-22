@@ -5,9 +5,9 @@
 (require 'ob-python)
 (require 'ob-ruby)
 
-(setf tangle/home "~/environment/home")
+(setf tangle/home "~/dotfiles/source")
 
-(setf tangle/system (file-name-concat tangle/home "../system")
+(setf tangle/system "/mnt/pt-shared/doc-pc-k8p/machines/"
       tangle/config-dir (file-name-concat tangle/home ".config")
       tangle/user-emacs-directory (file-name-concat tangle/config-dir "emacs")
       tangle/emacs-sitelisp-dir (file-name-concat tangle/user-emacs-directory "site-lisp")

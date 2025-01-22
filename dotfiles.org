@@ -606,18 +606,18 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
             (home-dotfiles-configuration
              (layout 'plain)
              (source-directory
-              (let ((path "<<ghq-proj-path(name="p-snow/environment")>>"))
+              (let ((path "~/dotfiles"))
                 (if (string-prefix? "~" path)
                     (string-append (getenv "HOME") (substring path 1))
                     path)))
-             (directories '("home")))))))
+             (directories '("source")))))))
 #+end_src
 
 A script for activating home configuration
 
 #+header: :shebang "eshell-mode minibuffer-mode"
 #+begin_src emacs-lisp :tangle no :tangle (expand-file-name "activate-home.eld" tangle/dedicated-template-dir)
-(activate-home "cd ~/environment && make")
+(activate-home "cd ~/dotfiles && make")
 #+end_src
 
 * Home Environment
@@ -1317,7 +1317,7 @@ sudo systemctl enable keyd
 sudo systemctl start keyd
 #+end_src
 
-#+begin_src conf :noweb tangle :tangle (expand-file-name "shared/etc/keyd/default.conf" tangle/system)
+#+begin_src conf :noweb tangle :tangle (expand-file-name "common/etc/keyd/default.conf" tangle/system)
 [ids]
 
 ,*
