@@ -4889,6 +4889,19 @@ If entry at POM has no clock log time stamp, this function returns 0."
   (org-inlinetask-min-level 10))
 #+end_src
 
+****** Org Goto
+:PROPERTIES:
+:CREATED:  [2025-01-21 Tue 08:34]
+:END:
+
+#+begin_src emacs-lisp
+(use-package org-goto
+  :after org
+  :custom
+  (org-goto-interface 'outline-path-completion)
+  (org-goto-max-level 7))
+#+end_src
+
 ****** Org Tags
 
 #+begin_src emacs-lisp
@@ -4916,6 +4929,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
   :after (org denote)
   :commands (org-refile)
   :custom
+  (org-outline-path-complete-in-steps nil)
   (org-refile-targets
    `((org-agenda-files :tag . ,my/org-project-tag)
      (org-agenda-files :tag . "refile")
