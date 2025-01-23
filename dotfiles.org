@@ -5595,10 +5595,14 @@ Ancestors are looked up If current heading has no CATEGORY."
 
 [[help:my/org-web-track-update-all-and-notify][org-web-track-update-all-and-notify]] seems not to suit midnight-hook.
 
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-org-web-track"
+#+end_src
+
 #+begin_src emacs-lisp :tangle (expand-file-name "org-web-track-config.el" tangle/emacs-config-dir)
 (use-package org-web-track
-  :ensure t
-  ;; :load-path "~/data/home/.local/share/ghq/github.com/p-snow/org-web-track"
+  ;; :ensure t
+  ;; :load-path "~/.local/share/ghq/github.com/p-snow/org-web-track"
   :after my-org-global-map
   :bind (:map my/org-global-map
               ("T q" . my/org-web-track-ql-view)
