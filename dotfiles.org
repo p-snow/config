@@ -7576,13 +7576,13 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 (use-package gptel
   :after engine-mode
   :bind (:map engine-mode-prefixed-map
-              ("c c" . gptel-send)
-              ("c C" . gptel)
-              ("c r" . gptel-rewrite)
-              ("c RET" . gptel-menu))
+              ("g g" . gptel-send)
+              ("g G" . gptel)
+              ("g r" . gptel-rewrite)
+              ("g RET" . gptel-menu))
   :custom
   (gptel-api-key (apply-partially #'my/credential-info "openai.com" "apikey"))
-  (gptel-max-tokens 500)
+  (gptel-max-tokens 1000)
   (gptel-model 'gpt-4o-mini)
   (gptel-default-mode 'org-mode)
   (gptel-rewrite-default-action 'merge)
@@ -7643,9 +7643,6 @@ Default to the symbol at point."
               'engine--history-search-term)
   (engine/set-keymap-prefix (kbd "H-q"))
   (engine-mode 1)
-  (defengine google
-    "https://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
-    :keybinding "g")
   (defengine duckduckgo
     "https://duckduckgo.com/?q=%s"
     :keybinding "d")
