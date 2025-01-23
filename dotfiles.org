@@ -18180,8 +18180,12 @@ function git-one-go {
   fi
 }
 
-cd $(ghq list --full-path p-snow/env) && git-one-go
-cd $(ghq list --full-path -e p-snow/org) && git-one-go
+for repo in $(ghq list --full-path); do
+  cd $repo && git pull
+done
+
+# cd $(ghq list --full-path p-snow/env) && git-one-go
+# cd $(ghq list --full-path -e p-snow/org) && git-one-go
 #+end_src
 
 *** git-sync                                  :ARCHIVE:
