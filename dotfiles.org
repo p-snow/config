@@ -2902,11 +2902,11 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   :custom
   (locate-command "plocate")
   (locate-make-command-line #'my/plocate-make-command-line)
-  (locate-fcodes-file (expand-file-name "<<plocate-db()>>"))
+  (locate-fcodes-file (expand-file-name "<<locate-db-home()>>"))
   (locate-update-path (expand-file-name "~/")))
 
 (defun my/plocate-make-command-line (search-string)
-  (list locate-command "-d" (expand-file-name "<<plocate-db()>>") "--ignore-case" "--existing" "--regexp" search-string))
+  (list locate-command "-d" (expand-file-name "<<locate-db-home()>>") "--ignore-case" "--existing" "--regexp" search-string))
 #+end_src
 
 ****** With Editor
@@ -5950,7 +5950,7 @@ export DISPLAY=:0 && \
   (consult-widen-key ">")
   (consult-line-start-from-top t)
   (consult-locate-args (format "plocate -d %s --ignore-case --existing --regexp"
-                               (expand-file-name "<<plocate-db()>>")))
+                               (expand-file-name "<<locate-db-home()>>")))
   (consult-find-args "find . ")
   (consult-fd-args '((if (executable-find "fdfind" 'remote)
                          "fdfind" "fd")
@@ -14075,7 +14075,7 @@ It is implemented using abbrev mechanism since functionality of file: link type 
          (link (if match-idx (match-string 1 tag) tag)))
     (concat (string-trim
              (shell-command-to-string
-              (concat (format "plocate -d <<plocate-db()>> -e \"%s\" 2>/dev/null"
+              (concat (format "plocate -d <<locate-db-doc()>> -e \"%s\" 2>/dev/null"
                               (shell-quote-argument link))
                       " | head --lines=1")))
             (when match-idx (match-string 2 tag)))))
@@ -14265,7 +14265,7 @@ A link consists of LINK and DESCRIPTION."
                               (match-string 2 pattern))))
                   (split-string
                    (shell-command-to-string
-                    (concat (format "plocate -d <<plocate-db()>> -ie \"%s\""
+                    (concat (format "plocate -d <<locate-db-doc()>> -ie \"%s\""
                                     (shell-quote-argument
                                      (or (and match-idx
                                               (match-string 1 pattern))
@@ -15650,13 +15650,18 @@ Provide a function to Build a clock table summing up time by tag.
 "plocate"
 #+end_src
 
-#+name: plocate-db
+#+name: locate-db-home
 #+begin_src sh :noweb yes :tangle no :results output
-echo -n '<<share-dir()>>/plocate/plocate.db'
+echo -n '<<share-dir()>>/plocate/home.db'
+#+end_src
+
+#+name: locate-db-doc
+#+begin_src sh :noweb yes :tangle no :results output
+echo -n '<<share-dir()>>/plocate/doc.db'
 #+end_src
 
 #+begin_src shell :noweb yes :noweb-ref bashrc
-export LOCATE_PATH=<<plocate-db()>>
+export LOCATE_PATH=<<locate-db-home()>>
 #+end_src
 
 #+name: bin/updatedb-home
@@ -15664,7 +15669,10 @@ export LOCATE_PATH=<<plocate-db()>>
 $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> --prune-bind-mounts 0 \
                                              -e <<htmlize-dir()>> \
                                              -e <<trash-dir()>> \
-                                             -o <<plocate-db()>>
+                                             -o <<locate-db-home()>>
+
+$GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U /mnt/pt-shared/doc-$(hostname)/ --prune-bind-mounts 0 \
+                                             -o <<locate-db-doc()>>
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
