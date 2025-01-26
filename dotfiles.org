@@ -19,32 +19,6 @@ echo -n '~'
 echo '~/.config'
 #+end_src
 
-*** document directory
-:PROPERTIES:
-:CREATED:  [2023-12-06 Wed 12:43]
-:END:
-
-#+name: doc-dir
-#+begin_src emacs-lisp :eval no-export :noweb yes
-(concat "/mnt/pt-shared/doc-" "<<laptop-node()>>")
-#+end_src
-
-Indexing all contents in doc directory every midnight so that recoll can search through
-#+begin_src sh :eval no :noweb yes :tangle no :noweb-ref midnight-batch
-recollindex > <<log-dir()>>/recolltrace.log 2>&1
-#+end_src
-
-#+begin_src conf :noweb tangle :tangle (expand-file-name ".recoll/recoll.conf")
-topdirs = <<doc-dir()>>
-
-[<<doc-dir()>>]
-followLinks = 1
-
-skippedNames = .git
-
-indexstemminglanguages = english
-#+end_src
-
 *** share directory
 
 My share directory is where my variable data stay.
@@ -194,21 +168,6 @@ user-login-name
 #+name: my-domain
 #+begin_src shell :eval no-export
 echo -n "${EMAIL}" | cut -d'@' -f2
-#+end_src
-
-** Machines
-:PROPERTIES:
-:CREATED:  [2023-12-06 Wed 12:39]
-:END:
-
-*** Primary Laptop
-:PROPERTIES:
-:CREATED:  [2023-12-06 Wed 12:39]
-:END:
-
-#+name: laptop-node
-#+begin_src shell :eval no-export
-uname -n
 #+end_src
 
 * Linux Distributions
@@ -17505,7 +17464,7 @@ uri_default = "qemu:///system"
     <source>
     </source>
     <target>
-      <path>/home/<<login-name()>>/<<laptop-node()>>/virt</path>
+      <path>/mnt/pt-shared/virt</path>
       <permissions>
         <mode>0711</mode>
         <owner>0</owner>
@@ -17633,6 +17592,22 @@ Ripgrep-all was superceded by its competitor [[id:ef80cf7c-7fa3-4e4d-8387-c6caa9
 
 #+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
 recollcmd
+#+end_src
+
+Indexing all contents in doc directory every midnight so that recoll can search through
+#+begin_src sh :eval no :noweb yes :tangle no :noweb-ref midnight-batch
+recollindex > <<log-dir()>>/recolltrace.log 2>&1
+#+end_src
+
+#+begin_src conf :noweb tangle :tangle (expand-file-name ".recoll/recoll.conf") :comments no
+topdirs = /mnt/pt-shared/doc-%%HOSTNAME%%
+
+[/mnt/pt-shared/doc-%%HOSTNAME%%]
+followLinks = 1
+
+skippedNames = .git
+
+indexstemminglanguages = english
 #+end_src
 
 ** Enchant
