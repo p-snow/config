@@ -6869,19 +6869,15 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 ***** sMerge
 :PROPERTIES:
 :CREATED:  [2022-10-25 Tue 19:57]
+:ID:       e28ea681-854e-4972-ad48-ab7e2466c285
 :END:
 
-sMerge can be used to solve merging problems. The code below kicks off sMerge if there is a collision sign.
+sMerge can be utilized to address merging issues.
 
 #+begin_src emacs-lisp
-(autoload 'smerge-mode "smerge-mode" nil t)
-
-(defun my/try-smerge ()
-  (save-excursion
-    (goto-char (point-min))
-    (when (re-search-forward "^<<<<<<< " nil t)
-      (smerge-mode 1))))
-(add-hook 'find-file-hook 'my/try-smerge t)
+(use-package smerge-mode
+  :custom
+  (smerge-command-prefix (kbd "H-m")))
 #+end_src
 
 ***** Next Error
