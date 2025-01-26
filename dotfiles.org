@@ -5938,7 +5938,8 @@ export DISPLAY=:0 && \
   :config
   (with-eval-after-load 'org
     (bind-keys :map org-mode-map
-               ("C-c H" . consult-org-heading))))
+               ("C-c H" . consult-org-heading)))
+  (setq consult-ripgrep-args (concat (default-value 'consult-ripgrep-args) " --hidden")))
 #+end_src
 
 ****** consult-dir
