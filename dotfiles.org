@@ -9718,6 +9718,23 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   :ensure t)
 #+end_src
 
+***** drag-stuff
+:PROPERTIES:
+:CREATED:  [2025-01-29 Wed 00:00]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-drag-stuff"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package drag-stuff
+  :bind (("H-p" . drag-stuff-up)
+         ("H-n" . drag-stuff-down))
+  :config
+  (drag-stuff-global-mode 1))
+#+end_src
+
 **** My Emacs Packages
 
 ***** lfile
@@ -10984,7 +11001,6 @@ It's spectacular if image-dired shows the cover image for EPUB files, as if it w
   (interactive)
   (transpose-lines 1)
   (previous-line 2))
-(keymap-global-set "M-S-<up>" 'my/drag-line-backward)
 
 (defun my/drag-line-forward ()
   "Drag down current line for one."
@@ -10992,7 +11008,6 @@ It's spectacular if image-dired shows the cover image for EPUB files, as if it w
   (next-line 1)
   (transpose-lines 1)
   (previous-line 1))
-(keymap-global-set "M-S-<down>" 'my/drag-line-forward)
 
 (defun my/comment-box (b e)
   "Draw a box comment around the region but arrange for the region
