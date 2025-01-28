@@ -11143,6 +11143,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :ID:       cd86fe03-b295-4cde-8b7c-68d5705b843a
 :END:
 
+#+name: my/tsc
 #+begin_src emacs-lisp
 (require 'transient)
 (require 'detached)
@@ -11296,17 +11297,45 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 ;;; Classes
 
-(defclass my/tsc-quoted-option (transient-files) ())
+(defclass my/tsc-file (transient-option)
+  ((absolute  :initarg :absolute :initform nil))
+  "")
 
-(cl-defmethod transient-infix-value ((obj my/tsc-quoted-option))
+(cl-defmethod transient-infix-value ((obj my/tsc-file))
   ""
   (and-let* ((value (oref obj value)))
     (let ((arg (oref obj argument)))
-      (pcase-exhaustive (oref obj multi-value)
-        ('nil          (concat arg (shell-quote-argument value)))
-        ((or 't 'rest) (concat arg (mapconcat 'shell-quote-argument value " ")))
-        ;; FIXME: this may fail
-        ('repeat       (mapcar (lambda (v) (cons arg (shell-quote-argument v))) value))))))
+      (cl-labels ((rel (f) (if (oref obj absolute)
+                               f (file-relative-name f default-directory))))
+        (pcase-exhaustive (oref obj multi-value)
+          ('nil          (concat arg (shell-quote-argument (rel value))))
+          ((or 't 'rest) (cons arg (mapconcat 'shell-quote-argument (mapcar #'rel value) " ")))
+          ;; FIXME: this may fail
+          ('repeat       (mapcar (lambda (v) (concat arg (shell-quote-argument v))) (mapcar #'rel value))))))))
+
+(cl-defmethod transient-format-value ((obj my/tsc-file))
+  (let ((argument (oref obj argument)))
+    (if-let ((value (oref obj value)))
+        (cl-labels ((rel (f) (if (oref obj absolute)
+                                 f (file-relative-name f default-directory))))
+          (pcase-exhaustive (oref obj multi-value)
+            ('nil
+             (concat (propertize argument    'face 'transient-argument)
+                     (propertize (rel value) 'face 'transient-value)))
+            ((or 't 'rest)
+             (concat (propertize (if (string-suffix-p " " argument)
+                                     argument
+                                   (concat argument " "))
+                                 'face 'transient-argument)
+                     (propertize (mapconcat #'prin1-to-string
+                                            (mapcar #'rel value) " ")
+                                 'face 'transient-value)))
+            ('repeat
+             (mapconcat (lambda (value)
+                          (concat (propertize argument    'face 'transient-argument)
+                                  (propertize (rel value) 'face 'transient-value)))
+                        value " "))))
+      (propertize argument 'face 'transient-inactive-argument))))
 
 (defclass my/tsc-literal-option (transient-option) ())
 
@@ -11352,7 +11381,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-v" "volume" "--volume=" :prompt "Volume: ")]
   ["Inputs"
    ("f" "files" "-- "
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :multi-value rest
     :init-value (lambda (obj) (oset obj value (ensure-list file))))]
   my/tsc-optional-menu
@@ -11415,7 +11444,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   my/ffmpeg-audio-menu
   ["Infile"
    ("-i" "input" "-i "
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :prompt "Input file: "
     :always-read t
     :init-value (lambda (obj) (oset obj value file)))]
@@ -11424,7 +11453,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :prompt "tempo (floating number): ")]
   ["Outfile"
    ("o" "output" "-- "
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :reader my/tsc-output-reader
     :always-read t
     :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}.opus"))))]
@@ -11459,7 +11488,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   :value '("-crf 28")
   ["Infile"
    ("-i" "input" "-i "
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :prompt "Input file: "
     :always-read t
     :reader transient-read-file
@@ -11470,7 +11499,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    my/ffmpeg-audio-menu]
   ["Outfile"
    ("o" "output" ""
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :reader my/tsc-output-reader
     :always-read t
     :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}_vp9.mkv"))))]
@@ -11506,7 +11535,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   :value '("-crf 35" "-preset 4" "-c:a libopus")
   ["Infile"
    ("-i" "input" "-i "
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :prompt "Input file: "
     :always-read t
     :reader transient-read-file
@@ -11522,7 +11551,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    my/ffmpeg-audio-menu]
   ["Outfile"
    ("o" "output" "-- "
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :reader my/tsc-output-reader
     :always-read t
     :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}_av1.mkv"))))]
@@ -11558,7 +11587,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
            "--all-audio" "--aencoder copy")
   ["Source Options"
    ("-i" "device" ("-i " "--input ")
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :prompt "Input device: "
     :reader transient-read-file
     :always-read t
@@ -11568,7 +11597,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-F" "Main feature title" "--main-feature")]
   ["Destination Options"
    ("-o" "Destination file name" ("-o " "--output ")
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :reader my/tsc-output-reader
     :always-read t
     :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}.mp4"))))
@@ -11626,11 +11655,11 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   :man-page "dvdbackup"
   :value '("--input=/dev/sr0" "--output=dvd-out" "--mirror")
   [("-i" "Input device" "--input="
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :prompt "Device file: "
     :reader transient-read-existing-file)
    ("-o" "Output directory" "--output="
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :prompt "Output directory: "
     :reader transient-read-file)
    ("a" "Action" ""
@@ -11668,14 +11697,14 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :prompt "Quality (0-100): ")]
   ["Input"
    ("i" "input file" ""
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :prompt "Input file: "
     :reader transient-read-file
     :always-read t
     :init-value (lambda (obj) (oset obj value file)))]
   ["Output"
    ("o" "output" ""
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :prompt "Output file: "
     :reader my/tsc-output-reader
     :always-read t
@@ -11720,7 +11749,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 (transient-define-prefix my/arbitrary-shell-command (command)
   ""
   [("c" "shell command" ""
-    :class my/tsc-quoted-option
+    :class transient-option
     :init-value (lambda (obj) (oset obj value command))
     :prompt "Shell command: "
     :reader my/tsc-read-shell-command)
@@ -11783,12 +11812,12 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :always-read t
     :choices ("org" "pdf" "epub" "rst" "texinfo" "odt" "docx" "markdown" "asciidoc" "plain"))
    ("-o" "output file" "--output="
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :reader my/tsc-output-reader
-    :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}.org" nil))))]
+    :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}_pandoc.org" nil))))]
   ["Inputs"
    ("f" "file" "-- "
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :prompt "Input file: "
     :reader transient-read-file
     :always-read t
@@ -11895,7 +11924,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-h" "human readable" "--human-readable")]
   ["Inputs"
    ("f" "FILE" "-- "
-    :class my/tsc-quoted-option
+    :class my/tsc-file
     :multi-value t
     :init-value (lambda (obj) (oset obj value file)))]
   my/tsc-optional-menu
@@ -11904,6 +11933,39 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     "ionice -c2 -n7 nice -n19 du %a")]
   (interactive `(,(my/tsc-determine-file t)))
   (transient-setup 'my/du-command))
+#+end_src
+
+***** zip command
+:PROPERTIES:
+:CREATED:  [2024-02-02 Fri 11:13]
+:END:
+
+#+name: zip-command
+#+begin_src emacs-lisp
+(transient-define-prefix my/zip-command (file)
+  "zip command."
+  :man-page "zip"
+  ["Options"
+   ("-P" "password" "--password "
+    :class transient-option
+    :prompt "Password: ")]
+  ["Output"
+   ("z" "output zipfile" ""
+    :class my/tsc-file
+    :reader my/tsc-output-reader
+    :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}.zip" nil))))]
+  ["Inputs"
+   ("f" "file" "--"
+    :class my/tsc-file
+    :multi-value rest
+    :init-value (lambda (obj) (oset obj value file)))]
+  my/tsc-optional-menu
+  [(my/tsc-execute
+    :command-format
+    "zip -r %a")]
+  (interactive `(,(my/tsc-determine-file t)))
+  (transient-setup 'my/zip-command nil nil
+                   :scope (cdr `(_ :infile-orig ,(car file)))))
 #+end_src
 
 ***** ghq-get command
