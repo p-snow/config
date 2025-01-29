@@ -3091,6 +3091,28 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (eglot-extend-to-xref t))
 #+end_src
 
+****** Games
+:PROPERTIES:
+:CREATED:  [2025-01-26 Sun 16:08]
+:END:
+
+******* Tetris
+:PROPERTIES:
+:CREATED:  [2025-01-26 Sun 16:08]
+:END:
+
+#+begin_src emacs-lisp
+(use-package tetris
+  :commands (tetris)
+  :config
+  (bind-keys :map tetris-mode-map
+             ("j" . tetris-rotate-next)
+             ("i" . tetris-rotate-prev)
+             ("e" . tetris-move-left)
+             ("f" . tetris-move-right)
+             ("SPC" . tetris-move-bottom)))
+#+end_src
+
 ***** Text
 
 ****** View
