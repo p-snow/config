@@ -5653,10 +5653,11 @@ exchange rate against US dollar."
      (,(regexp-quote "www.lenovo.com/jp/ja/p/laptops/thinkpad")
       (lambda (dom)
         (when-let ((price-node (car (dom-search dom (lambda (node) (string= "productpromotionprice"
-                                                                            (dom-attr node 'name)))))))
+                                                                        (dom-attr node 'name)))))))
           (assoc-default 'content (cadr price-node)))))
      (,(rx "www.amazon.co.jp" (+ anychar) "-ebook")
-      "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'")
+      ;; "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'"
+      [.a-size-base.a-color-price.a-color-price])
      (,(regexp-quote "www.amazon.co.jp/product-reviews")
       [.a-size-base.a-color-secondary] ; num of stars
       [.a-size-medium.a-color-base])  ; rating
