@@ -1423,7 +1423,7 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 (setopt use-package-compute-statistics t
         use-package-verbose nil)
 (with-eval-after-load 'my-launch-app
-  (keymap-set my/invoke-list-command-map (kbd "u")
+  (keymap-set my/launch-app-map (kbd "u")
               #'use-package-report))
 #+end_src
 
@@ -3068,7 +3068,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (package-quickstart t)
   :config
   (with-eval-after-load 'my-launch-app
-    (keymap-set my/invoke-list-command-map (kbd "p")
+    (keymap-set my/launch-app-map (kbd "l")
                 #'list-packages)))
 #+end_src
 
@@ -3556,10 +3556,6 @@ The EWW bookmark functionality is an original implementation, separate from the 
 (use-package eww
   :commands eww
   :after my-launch-app
-  :bind (:map my/invoke-list-command-map
-              ("B" . eww-list-bookmarks)
-              :map my/launch-app-map
-              ("W" . eww-switch-to-buffer))
   :custom
   ;; set enough large column number to prevent from inserting line break
   (eww-header-line-format nil)
@@ -7780,7 +7776,7 @@ PATH is the command to execute with `detached-shell-command'."
 
 (use-package detached-list
   :after my-launch-app
-  :bind (:map my/invoke-list-command-map
+  :bind (:map my/launch-app-map
               ("d" . detached-list-sessions))
   :config
   (bind-keys :map detached-list-mode-map
@@ -10676,18 +10672,18 @@ exit 0
 ***** wrap up launch app commands in single keymap
 
 #+begin_src emacs-lisp
-(keymap-global-set "H-j"
+(keymap-global-set "H-x"
                    (define-keymap
                      :prefix 'my/launch-app-map
                      "v" #'my/multi-vterm
                      "d" #'dired-jump
                      "w" #'eww
+                     "W" #'eww-switch-to-buffer
                      "m" #'mu4e
                      "p" #'proced
                      "P" #'list-processes
-                     "?" #'woman
-                     "l" (define-keymap
-                           :prefix 'my/invoke-list-command-map)))
+                     "/" #'man
+                     "?" #'woman))
 
 (provide 'my-launch-app)
 #+end_src
@@ -10863,6 +10859,9 @@ Calling my/insert-last-kbd-macro after saving the desired keyboard macro will ge
 (keymap-global-set "H-k"
                    (define-keymap
                      :prefix 'my/kmacro-map))
+(keymap-global-set "H-j"
+                   (define-keymap
+                     :prefix 'my/kmacro-jump-map))
 
 (defun my/insert-last-kbd-macro (macroname keys)
   "Customized `insert-kbd-macro' to bind last recorded kbd macro to `my/kmacro-map'.."
@@ -10870,7 +10869,9 @@ Calling my/insert-last-kbd-macro after saving the desired keyboard macro will ge
                      (read-string "Keys (following H-k): ")))
   (kmacro-name-last-macro (intern macroname))
   (insert-kbd-macro (intern macroname))
-  (insert "(keymap-set my/kmacro-map")
+  (insert (format "(keymap-set %s"
+                  (completing-read "Map: " '("my/kmacro-map"
+                                             "my/kmacro-jump-map"))))
   (insert (format " \"%s\"" keys))
   (insert (format " #'%s)" macroname)))
 
