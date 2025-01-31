@@ -18,6 +18,17 @@ echo -n '~'
 #+begin_src shell :eval no-export
 echo '~/.config'
 #+end_src
+*** document directory
+:PROPERTIES:
+:CREATED:  [2025-01-31 Fri 14:43]
+:END:
+
+A directory that contains all my documents, including both text and binary files.
+
+#+NAME: doc-dir
+#+begin_src emacs-lisp
+"/mnt/pt-shared/doc-%%HOSTNAME%%"
+#+end_src
 
 *** share directory
 
@@ -2433,7 +2444,6 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 
 #+begin_src emacs-lisp
 (use-package register
-  :bind ("H-r" . jump-to-register)
   :custom
   (register-preview-delay nil)
   :config
@@ -5858,7 +5868,7 @@ export DISPLAY=:0 && \
 #+begin_src emacs-lisp :noweb tangle
 (use-package consult
   :after my-org-global-map
-  :bind (("C-;" . consult-buffer)
+  :bind (("H-f" . consult-buffer)
          ("C-c m" . consult-mode-command)
          ("C-c r" . consult-recent-file)
          ("C-c h" . consult-outline)
@@ -5932,10 +5942,34 @@ export DISPLAY=:0 && \
 "emacs-consult-dir"
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
 (use-package consult-dir
-  :after consult
-  :bind ("H-d" . consult-dir))
+  :after consult-ghq
+  :bind ("H-r" . consult-dir)
+  :preface
+  (defvar consult-dir--source-doc-repo
+    `(:name "Document Directories"
+            :narrow ?d
+            :category file
+            :face consult-file
+            :history file-name-history
+            :items ,(lambda ()
+                      (let* ((project (project-current t "<<doc-dir()>>"))
+                             (all-files (project-files project))
+                             (completion-ignore-case read-file-name-completion-ignore-case))
+                        (mapcar #'file-name-directory all-files))))
+    "Directory source in my document folder for `consult-dir--pick'.")
+  (defvar consult-dir--source-ghq
+    `(:name "Projects in ghq"
+            :narrow ?q
+            :category file
+            :face consult-file
+            :history file-name-history
+            :items ,(lambda () (consult-ghq--list-candidates)))
+    "Directory source in my document folder for `consult-dir--pick'.")
+  :config
+  (add-to-list 'consult-dir-sources 'consult-dir--source-doc-repo)
+  (add-to-list 'consult-dir-sources 'consult-dir--source-ghq))
 #+end_src
 
 ****** affe
@@ -5958,8 +5992,7 @@ export DISPLAY=:0 && \
 #+begin_src emacs-lisp
 (use-package consult-ghq
   :ensure t
-  :bind (("C-c q f" . consult-ghq-find)
-         ("C-c q g" . consult-ghq-grep))
+  :after consult
   :custom
   (consult-ghq-find-function 'dired))
 #+end_src
