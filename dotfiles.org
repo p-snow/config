@@ -13885,12 +13885,16 @@ If called interactively, it prompt the user to select the date to find."
 #+begin_src emacs-lisp
 (with-eval-after-load 'org
   (when (require 'denote nil t)
-    (run-with-idle-timer (* 5 60) nil
-                         (lambda ()
-                           "Open large org files."
-                           (mapc #'find-file-noselect
-                                 (list (denote-get-path-by-id "20230605T170959")
-                                       (file-name-concat org-directory (format-time-string "archive/archive_%Y.org"))))))))
+    (run-with-idle-timer
+     (* 5 60) nil
+     (lambda ()
+       "Open large org files."
+       (mapc #'find-file-noselect
+             (append `(,(denote-get-path-by-id "20230605T170959"))
+                     (take 5 (sort
+                              (file-expand-wildcards
+                               (file-name-concat org-directory "archive/archive_*.org"))
+                              #'string>))))))))
 #+end_src
 
 **** Creating and showing project-task relationship
