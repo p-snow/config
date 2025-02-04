@@ -5967,6 +5967,8 @@ export DISPLAY=:0 && \
             :history file-name-history
             :items ,(lambda () (consult-ghq--list-candidates)))
     "Directory source in my document folder for `consult-dir--pick'.")
+  :custom
+  (consult-dir-default-command 'dired)
   :config
   (add-to-list 'consult-dir-sources 'consult-dir--source-doc-repo)
   (add-to-list 'consult-dir-sources 'consult-dir--source-ghq))
