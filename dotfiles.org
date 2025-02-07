@@ -14618,17 +14618,17 @@ Plus, OBDY can refer value of FIELD named field-value."
      ,@body))
 
 (defun my/password-store-copy ()
-  "Add the secret to system clipboard and the username to primary `x-selection'.
+  "Add the secret to system clipboard and the login name to primary `x-selection'.
 
 `password-store-copy' is responsible for managing the kill ring."
   (interactive)
-  (with-password-store-entry-field nil "username"
-                                   (password-store-copy entry)
-                                   (gui-set-selection 'PRIMARY
-                                                      (or (password-store-get-field entry "username")
-                                                          (password-store-get-field entry "email")
-                                                          (nth 1 (password-store-parse-entry entry))))
-                                   (message "USERNAME => X-SEL, SECRET => CLIPBOARD")))
+  (with-password-store-entry-field nil "login"
+    (password-store-copy entry)
+    (gui-set-selection 'PRIMARY
+                       (or (password-store-get-field entry "login")
+                           (password-store-get-field entry "email")
+                           (nth 1 (password-store-parse-entry entry))))
+    (message "LOGIN NAME => X-SEL, SECRET => CLIPBOARD")))
 
 (defun my/password-store-copy-field ()
   "Add field for entry into the kill ring.
@@ -14686,7 +14686,7 @@ or selected by user."
 (defun my/password-store-web-login ()
   "Open url for the entry at point.
 
-Additionally the username and the secret are saved in X selection and clipboard respectively."
+Additionally the login name and the secret are saved in X selection and clipboard respectively."
   (interactive)
   (my/password-store-copy)
   (funcall-interactively #'my/password-store-url '(16)))
