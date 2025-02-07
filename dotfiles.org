@@ -7546,10 +7546,10 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 (use-package gptel
   :after engine-mode
   :bind (:map engine-mode-prefixed-map
-              ("g g" . gptel-send)
-              ("g G" . gptel)
+              ("G" . gptel)
+              ("g RET" . gptel-send)
               ("g r" . gptel-rewrite)
-              ("g RET" . gptel-menu))
+              ("g g" . gptel-menu))
   :custom
   (gptel-api-key (apply-partially #'my/credential-info "openai.com" "apikey"))
   (gptel-max-tokens 1000)
