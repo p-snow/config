@@ -114,34 +114,6 @@ This is a dummy SMTP server definition that serves as a fallback when the genuin
   smtp.dummy.com
 #+end_src
 
-*** My Email Address                            :crypt:
-:PROPERTIES:
-:CREATED:  [2023-10-28 Sat 19:41]
-:END:
-
------BEGIN PGP MESSAGE-----
-
-hQEMA9uWvE5LJ2ejAQgAtC7Jd2eChH/yaCKEx5ecJFRpmv0JJlymqJU7Jf2ShbgF
-FQeDPbqQaBAyp/vV9RVxeiYV5EsOofTJYhlLvvdiv4zq4NiaaEDjrUblOGWxaEHp
-KBMdKLqqLADM9RfvPv2vrofI7FtxAG7PF+wRFeW1vXyKakjhnPA/ydJpDdOIgjzh
-HCPmcZnYObSz9pwKPM05Rhfd7eLtOtaWBCxmTLGHhVd9xU0dXJ3eQwO0OeqYns7l
-QWq4lQ9Q825aZ7h+hKkamleVuKy8kjrBxnfdsyHGMaPUQlQcTTnNmS50+EmiHh4Z
-0I9N+vIhAM6yuz5Y/C4pndMgggFjKYCpmVAnIJLLjdKBASx2bGgpUfmRqdHeOwY5
-/3zipNj2QRjif9iZuSNdgthn2Yz0wtZuzwzc+CGib/fqtY+N5Nt36mhydgbac36v
-y3bLp9UlGFAAUsqmvw1EP0nmtONIX+9SZDL3B08OV6OdtmmINKNAR/8rkDZN8o0d
-5F/lEfK8uU00O1Cwjl6O8YK/
-=qchL
------END PGP MESSAGE-----
-
-*** Dummy Email Address
-
-This is a dummy email address that serves as a fallback when the genuine (encrypted above) is absent or not available.
-
-#+name: email
-#+begin_src text :eval no
-  user@dummy.com
-#+end_src
-
 *** Full Name                                   :crypt:
 
 -----BEGIN PGP MESSAGE-----
@@ -165,6 +137,44 @@ This is a dummy full name that serves as a fallback when the genuine (encrypted 
 #+name: full-name
 #+begin_src text :eval no
 taro.yamada
+#+end_src
+
+*** My Private Email Address                    :crypt:
+:PROPERTIES:
+:CREATED:  [2023-10-28 Sat 19:41]
+:END:
+
+-----BEGIN PGP MESSAGE-----
+
+hQEMA9uWvE5LJ2ejAQgAtC7Jd2eChH/yaCKEx5ecJFRpmv0JJlymqJU7Jf2ShbgF
+FQeDPbqQaBAyp/vV9RVxeiYV5EsOofTJYhlLvvdiv4zq4NiaaEDjrUblOGWxaEHp
+KBMdKLqqLADM9RfvPv2vrofI7FtxAG7PF+wRFeW1vXyKakjhnPA/ydJpDdOIgjzh
+HCPmcZnYObSz9pwKPM05Rhfd7eLtOtaWBCxmTLGHhVd9xU0dXJ3eQwO0OeqYns7l
+QWq4lQ9Q825aZ7h+hKkamleVuKy8kjrBxnfdsyHGMaPUQlQcTTnNmS50+EmiHh4Z
+0I9N+vIhAM6yuz5Y/C4pndMgggFjKYCpmVAnIJLLjdKBASx2bGgpUfmRqdHeOwY5
+/3zipNj2QRjif9iZuSNdgthn2Yz0wtZuzwzc+CGib/fqtY+N5Nt36mhydgbac36v
+y3bLp9UlGFAAUsqmvw1EP0nmtONIX+9SZDL3B08OV6OdtmmINKNAR/8rkDZN8o0d
+5F/lEfK8uU00O1Cwjl6O8YK/
+=qchL
+-----END PGP MESSAGE-----
+
+*** Dummy Private Email Address
+
+This is a dummy email address that serves as a fallback when the genuine (encrypted above) is absent or not available.
+
+#+name: email
+#+begin_src text :eval no
+  user@dummy.com
+#+end_src
+
+*** My Public Email Address
+:PROPERTIES:
+:CREATED:  [2025-02-07 Fri 22:21]
+:END:
+
+#+name: email-pub
+#+begin_src text :eval no
+public@p-snow.org
 #+end_src
 
 *** My Login Name
@@ -784,8 +794,8 @@ crontab <<home-dir()>>/.config/crontab/<<login-name()>>
 cron-reinit.sh
 #+end_src
 
-#+begin_src conf :noweb tangle :tangle (expand-file-name user-login-name ".config/crontab") :tangle-mode o444
-MAILTO="<<email>>"
+#+begin_src conf :comments no :noweb tangle :tangle (expand-file-name user-login-name ".config/crontab") :tangle-mode o444
+MAILTO="<<email-pub>>"
 
 BIN_DIR="<<home-dir()>>/bin"
 LOG_DIR="<<log-dir()>>"
@@ -15898,11 +15908,15 @@ build/
 	dc = diff --cached
 	wc = whatchanged
 [user]
-	email = 6841207+p-snow@users.noreply.github.com
+	email = <<email-pub>>
 	name = p-snow
-	signingkey = BDAF62D24445EFD3
+	signingkey = 0D2BAF0E8AEF0306
 [commit]
 	gpgsign = true
+[github]
+	user = p-snow
+[gitlab]
+	user = p-snow
 <<git-config>>
 #+END_SRC
 *** git attributes
