@@ -10603,6 +10603,8 @@ If optional argument `FILENAME' is given use this as a filename."
 
 tts.el provides functions to say out given text using [[https://platform.openai.com/docs/guides/text-to-speech][the OpenAI Text to Speech service]] through its API.  The vips project is referenced when implementation.  The [[https://github.com/marcklemp/vips][vips]] project was helpful during the implementation process.
 
+[[https://platform.openai.com/docs/guides/text-to-speech][OpenAI's text to speech API]]
+
 #+header: :shebang ";; -*- lexical-binding: t -*-"
 #+begin_src emacs-lisp :tangle (expand-file-name "tts.el" tangle/emacs-sitelisp-dir)
 ;;; tts.el --- Text to speech -*- lexical-binding: t -*-
@@ -10636,14 +10638,14 @@ tts.el provides functions to say out given text using [[https://platform.openai.
 
 (require 'request)
 
-(defun tts-openai-request (api-key input action)
+(defun tts-openai-request (api-key input action &optional voice)
   "Return audio file content from OpenAI API and save it to OUTPUT-FILE or play it.
 INPUT is the text string sent to the API.
 RESPONSE-FORMAT is the format of the audio file, defaults to 'mp3'.
 ACTION is either 'save or 'play, determining what to do with the response."
   (let* ((auth-value (format "Bearer %s" api-key))
          (model "tts-1")
-         (voice "nova")
+         (voice voice)
          (speed nil)
          (response-format "opus")
          (url "https://api.openai.com/v1/audio/speech")
@@ -10652,8 +10654,7 @@ ACTION is either 'save or 'play, determining what to do with the response."
                               ("voice" . ,voice)
                               ,@(when response-format `(("response_format" . ,response-format)))
                               ,@(when speed `(("speed" . ,speed)))))))
-    (request
-      url
+    (request url
       :type "POST"
       :data data
       :headers `(("Authorization" . ,auth-value) ("Content-Type" . "application/json"))
@@ -10664,7 +10665,7 @@ ACTION is either 'save or 'play, determining what to do with the response."
                         (speech-file (make-temp-file "tts-" nil ".opus")))
                     (with-temp-file speech-file
                       (insert data))
-                    (when action (funcall action speech-file)))))
+                    (apply (or action #'tts-play) (list speech-file)))))
       :error (cl-function
               (lambda (&key error-thrown &allow-other-keys)
                 (message "Error: %S" error-thrown))))))
@@ -10678,25 +10679,41 @@ ACTION is either 'save or 'play, determining what to do with the response."
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle
-(when (require 'tts nil t)
-  (keymap-global-set "C-x C-\"" #'my/tts-say-it)
-  (with-eval-after-load 'embark
-    (keymap-set embark-region-map "\"" #'my/tts-say-it)))
+(require 'transient)
 
-(defun my/tts-say-it (text)
+(when (require 'tts nil t)
+  (keymap-global-set "C-x C-\"" #'my/tts-menu)
+  (with-eval-after-load 'embark
+    (keymap-set embark-region-map "\"" #'my/tts-menu)))
+
+(transient-define-prefix my/tts-menu (text)
   ""
+  :value '("nova")
+  [("v" "Voice" ""
+    :class transient-switches
+    :argument-format "%s"
+    :argument-regexp "\\(alloy\\|ash\\|coral\\|echo\\|fable\\|onyx\\|nova\\|sage\\|shimmer\\)"
+    :choices ("alloy" "ash" "coral" "echo" "fable" "onyx" "nova" "sage" "shimmer"))]
+  [("RET" "" my/tts-suffix)]
   (interactive (list (cond
                       ((region-active-p)
                        (buffer-substring-no-properties (region-beginning) (region-end)))
                       (sentence-at-point))))
-  (tts-openai-request (my/credential-info "openai.com" "apikey")
-                      text
-                      #'my/tts-play))
+  (transient-setup 'my/tts-menu nil nil
+                   :scope text))
 
-(defun my/tts-play (speech-file)
+(transient-define-suffix my/tts-suffix ()
   ""
-  (start-process-shell-command "tts" nil (format "mpv --keep-open=no --no-pause --force-window=no %1$s; rm -f %1$s"
-                                                 (shell-quote-argument speech-file))))
+  :transient nil
+  (interactive)
+  (tts-openai-request (my/credential-info "openai.com" "apikey")
+                      (oref transient-current-prefix scope)
+                      (lambda (file)
+                        (message "SPEECH-FILE: %s" file)
+                        (my/mpv-command file))
+                      (seq-some (lambda (obj) (when (equal (oref obj key) "v")
+                                            (oref obj value)))
+                                (or transient--suffixes transient-current-suffixes))))
 #+end_src
 
 ****** jsay                                :ARCHIVE:
