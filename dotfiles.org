@@ -11212,7 +11212,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 (defclass my/tsc-shell-command (transient-suffix)
   ((command-format :initarg :command-format :initform "%a")
-   (command-format-spec :initarg :command-format-spec :initform nil)))
+   (command-format-spec :initarg :command-format-spec :initform nil)
+   (suppress-output :initarg :suppress-output :initform nil)))
 
 (cl-defmethod transient-init-value ((obj my/tsc-shell-command))
   (unless (slot-boundp obj :command-format)
@@ -11248,7 +11249,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   :class my/tsc-shell-command
   :key "RET" :description "Execute"
   (interactive (list (transient-args transient-current-command)))
-  (funcall my/tsc-execute-function (my/tsc-build-shell-command)))
+  (let ((my/detached-bury-buffer (oref (transient-suffix-object) suppress-output)))
+    (funcall my/tsc-execute-function (my/tsc-build-shell-command))))
 
 (defun my/tsc-build-shell-command ()
   ""
@@ -11445,6 +11447,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :init-value (lambda (obj) (oset obj value (ensure-list file))))]
   my/tsc-optional-menu
   [(my/tsc-execute
+    :suppress-output t
     :command-format "mpv %a")]
   (interactive `(,(my/tsc-determine-file t)))
   (transient-setup 'my/mpv-command))
@@ -11933,6 +11936,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :init-value (lambda (obj) (oset obj value url)))]
   my/tsc-optional-menu
   [(my/tsc-execute
+    :suppress-output t
     :command-format
     "yt-dlp --embed-chapters --live-from-start %a")]
   (interactive `(,(my/tsc-determine-url)))
