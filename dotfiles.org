@@ -3014,8 +3014,8 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 (use-package auth-source
   :custom
   (auth-source-gpg-encrypt-to `(,user-mail-address))
-  :config
-  (add-to-list 'auth-sources "~/.netrc.gpg"))
+  ;; Empty auth-sources to set password-store as the only source
+  (auth-sources nil))
 
 (use-package auth-source-pass
   :config
