@@ -1669,6 +1669,9 @@ Settings in this section are influenced a great deal by my personal preference. 
 (keymap-global-set "C-x M-t" #'transpose-sentences)
 (keymap-global-set "M-T" #'transpose-paragraphs)
 
+(keymap-global-set "H-d" #'backward-delete-char)
+(keymap-global-set "H-D" #'backward-kill-word)
+
 (keymap-global-set "C-c k" #'kill-current-buffer)
 (keymap-global-set "C-x M-r" #'rename-visited-file)
 (keymap-global-set "C-M-<delete>" #'restart-emacs)
@@ -2164,10 +2167,6 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
 Formerly, I used to bind C-h to =backward-delete-char= and M-h to =backward-kill-word=, which was very comfortable. However, I realized that C-h should be a help key, as many Emacs packages are developed with the assumption that "C-h is a help key." That said, in the minibuffer where a help key does not necessarily play a significant role, I decided to bind C-h to =backward-delete-char=.
 
 #+begin_src emacs-lisp
-(keymap-set minibuffer-mode-map
-            "C-h" #'delete-backward-char)
-(keymap-set minibuffer-mode-map
-            "M-h" #'backward-kill-word)
 (keymap-set minibuffer-mode-map "TAB" 'minibuffer-complete)
 #+end_src
 
@@ -4234,8 +4233,8 @@ PROMPT_COMMAND='echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
   :config
   (require 'multi-vterm)
   (bind-keys :map vterm-mode-map
-             ("C-h" . vterm-send-backspace)
-             ("M-h" . vterm-send-meta-backspace)
+             ("H-d" . vterm-send-backspace)
+             ("H-D" . vterm-send-meta-backspace)
              ("C-y" . vterm-yank)
              ("M-y" . vterm-yank-pop)
              ("M-l" . nil)
@@ -5848,8 +5847,8 @@ export DISPLAY=:0 && \
   :bind (:map vertico-map
               ("C-j" . exit-minibuffer)
               ("RET" . vertico-directory-enter)
-              ("C-h" . vertico-directory-delete-char)
-              ("M-h" . vertico-directory-delete-word)
+              ("H-d" . vertico-directory-delete-char)
+              ("H-D" . vertico-directory-delete-word)
               ("M-q" . vertico-quick-insert)
               ("C-q" . vertico-quick-exit))
   :hook
