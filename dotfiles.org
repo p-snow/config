@@ -8255,10 +8255,16 @@ Tree-sitter module for Elisp had been incorporated into Emacs core since Emacs 2
 #+end_src
 
 ****** avy-migemo
+:PROPERTIES:
+:CREATED:  [2025-02-13 Thu 23:23]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-avy-migemo-draft"
+#+end_src
 
 #+begin_src emacs-lisp
 (use-package avy-migemo
-  :ensure t
   :after migemo
   :bind (("M-g M-a" . avy-migemo-goto-char-timer)
          ("M-g a" . avy-migemo-goto-char-timer)
@@ -8814,24 +8820,17 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
 
 migemo allows me to search incrementally Japanese words using roma-ji expression.
 
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-("https://github.com/emacs-jp/migemo/releases.atom" soft_update)
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-migemo-draft"
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle
 (use-package migemo
-  :ensure t
   :ensure-system-package cmigemo
   :custom
-  (migemo-command "cmigemo")
-  (migemo-options '("-q" "--emacs"))
+  ;; Replace migemo dictionary with AZIK variant
   (migemo-directory
-   (file-name-concat "<<migemo-dict-path()>>" "utf-8"))
-  (migemo-user-dictionary nil)
-  (migemo-coding-system 'utf-8-unix)
-  (migemo-regex-dictionary nil)
-  :config
-  (migemo-init))
+   "/gnu/store/x33c4smmws75c5yaac1xp88xi7pr5pb6-migemo-dict-azik-1.3e/share/migemo/utf-8"))
 #+end_src
 
 ****** ivy-migemo                   :ARCHIVE:ignore:
@@ -16854,6 +16853,7 @@ XRandR is a command line utility for changing display options without restarting
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
 "cmigemo"
+"migemo-dict"
 "migemo-dict-azik"
 #+end_src
 
