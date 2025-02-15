@@ -6181,7 +6181,10 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
   ((minibuffer-mode eshell-mode)
    . (lambda ()
        (setq-local completion-at-point-functions
-                   (append '(cape-history)
+                   (append '(cape-history
+                             cape-dabbrev
+                             cape-file
+                             cape-dict)
                            completion-at-point-functions)))))
 #+end_src
 
