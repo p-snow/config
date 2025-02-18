@@ -13631,9 +13631,10 @@ Someday tasks are encouraged to review and they prohibited to appear in agenda v
 (defun my/org-archive-suspended-task ()
   "Archive this entry to the file for suspended tasks if the TODO state fits the bill."
   (interactive)
-  (when (member (org-entry-get nil "TODO")
-                `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
-    (org-archive-subtree)))
+  (if (member (org-entry-get nil "TODO")
+              `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
+      (org-archive-subtree)
+    (org-toggle-tag my/org-review-tag 'off)))
 #+end_src
 
 **** send org subtree via email
