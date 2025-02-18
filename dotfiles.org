@@ -1669,8 +1669,8 @@ Settings in this section are influenced a great deal by my personal preference. 
 (keymap-global-set "C-x M-t" #'transpose-sentences)
 (keymap-global-set "M-T" #'transpose-paragraphs)
 
-(keymap-global-set "H-d" #'backward-delete-char)
-(keymap-global-set "H-D" #'backward-kill-word)
+(keymap-global-set "C-;" #'backward-delete-char)
+(keymap-global-set "C-:" #'backward-kill-word)
 
 (keymap-global-set "C-c k" #'kill-current-buffer)
 (keymap-global-set "C-x M-r" #'rename-visited-file)
@@ -1915,6 +1915,7 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 
 #+begin_src emacs-lisp
 (use-package recentf
+  :bind ("H-r" . recentf)
   :hook (after-init . recentf-mode)
   :custom
   (recentf-exclude '(".gz" ".xz" ".zip" ".gpg"))
@@ -4233,8 +4234,8 @@ PROMPT_COMMAND='echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
   :config
   (require 'multi-vterm)
   (bind-keys :map vterm-mode-map
-             ("H-d" . vterm-send-backspace)
-             ("H-D" . vterm-send-meta-backspace)
+             ("C-;" . vterm-send-backspace)
+             ("C-:" . vterm-send-meta-backspace)
              ("C-y" . vterm-yank)
              ("M-y" . vterm-yank-pop)
              ("M-l" . nil)
@@ -5847,8 +5848,8 @@ export DISPLAY=:0 && \
   :bind (:map vertico-map
               ("C-j" . exit-minibuffer)
               ("RET" . vertico-directory-enter)
-              ("H-d" . vertico-directory-delete-char)
-              ("H-D" . vertico-directory-delete-word)
+              ("C-;" . vertico-directory-delete-char)
+              ("C-:" . vertico-directory-delete-word)
               ("M-q" . vertico-quick-insert)
               ("C-q" . vertico-quick-exit))
   :hook
@@ -5883,7 +5884,6 @@ export DISPLAY=:0 && \
   :after my-org-global-map
   :bind (("H-f" . consult-buffer)
          ("C-c m" . consult-mode-command)
-         ("C-c r" . consult-recent-file)
          ("C-c h" . consult-outline)
          ("C-x M-:" . consult-complex-command)
          ("M-y" . consult-yank-pop)
@@ -5958,7 +5958,7 @@ export DISPLAY=:0 && \
 #+begin_src emacs-lisp :noweb tangle
 (use-package consult-dir
   :after consult-ghq
-  :bind ("H-r" . consult-dir)
+  :bind ("H-d" . consult-dir)
   :preface
   (defvar consult-dir--source-doc-repo
     `(:name "Document Directories"
