@@ -13633,7 +13633,11 @@ Someday tasks are encouraged to review and they prohibited to appear in agenda v
   (interactive)
   (if (member (org-entry-get nil "TODO")
               `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
-      (org-archive-subtree)
+      (progn
+        (org-toggle-tag my/org-review-tag 'on)
+        (org-archive-subtree))
+    ;; Remove scheduled date
+    (org-schedule '(4))
     (org-toggle-tag my/org-review-tag 'off)))
 #+end_src
 
@@ -13851,12 +13855,10 @@ Following code is also responsible for deterministic archive location.
 
 If archiving location is datetree, it supposed to be iso week tree."
   (interactive)
+  ;; Set 'cancel' todo keyword if the entry with any TODO keyword is about to be archived
   (when (member (org-get-todo-state)
                 `(,my/org-todo-keyword--urgent ,my/org-todo-keyword--todo ,my/org-todo-keyword--next ,my/org-todo-keyword--in-action))
     (org-todo my/org-done-keyword--cancel))
-  (when (string= (org-get-todo-state)
-                 my/org-todo-keyword--someday)
-    (org-toggle-tag my/org-review-tag 'on))
   (let* ((todo-state (org-get-todo-state))
          (closed-time (org-entry-get nil "CLOSED" t))
          (org-archive-location
