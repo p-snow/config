@@ -2585,6 +2585,22 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
   (image-dired-thumb-size 256))
 #+end_src
 
+****** Doc View
+:PROPERTIES:
+:CREATED:  [2025-02-19 Wed 18:33]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"mupdf"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package doc-view
+  :defer t
+  :custom
+  (doc-view-image-width 200))
+#+end_src
+
 ***** Programming
 :PROPERTIES:
 :CREATED:  [2023-03-19 Sun 12:43]
@@ -9033,6 +9049,7 @@ Major mode for manupulating password store file.
 
 #+begin_src emacs-lisp
 (use-package nov
+  :disabled t
   :mode ("\\.epub$" . nov-mode)
   :hook (nov-mode . nov-abbreviate-file-name)
   :custom
@@ -9771,6 +9788,28 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   :disabled t
   :vc (:url "https://git.sr.ht/~flandrew/exemplify-eval"
             :rev :newest))
+#+end_src
+
+***** dired-preview
+:PROPERTIES:
+:CREATED:  [2025-02-19 Wed 16:26]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-dired-preview"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package dired-preview
+  :custom
+  (dired-preview-max-size (expt 2 24))
+  (dired-preview-ignored-extensions-regexp
+   (rx (seq "." (submatch (or "mkv" "webm" "mp4" "mp3" "ogg" "m4a" "flac" "wav" "gz" "zst" "tar" "xz" "rar" "zip" "iso")))))
+  (dired-preview-display-action-alist
+   '((display-buffer-in-side-window)
+     (side . right)
+     (window-width . 0.4)
+     (preserve-size . (t . t)))))
 #+end_src
 
 **** My Emacs Packages
