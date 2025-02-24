@@ -1302,50 +1302,69 @@ sudo systemctl enable keyd
 sudo systemctl start keyd
 #+end_src
 
-#+begin_src conf :noweb tangle :tangle (expand-file-name "common/etc/keyd/default.conf" tangle/system)
-[ids]
+*** keyd configuration
+:PROPERTIES:
+:CREATED:  [2025-02-24 Mon 11:25]
+:END:
 
-,*
+- Common configuration
+  #+begin_src conf :noweb tangle :tangle (expand-file-name "common/etc/keyd/common" tangle/system)
+  [global]
+  oneshot_timeout = 1000
 
-[global]
+  [main]
+  capslock = oneshot(control)
+  tab = overload(numpad_layer, tab)
+  rightcontrol = oneshot(app_layer)
+  space = overload(shift, space)
+  ' = lettermod(apostrophe_layer, ', 50, 180)
+  ` = lettermod(app_layer, `, 50, 180)
+  leftcontrol = overload(app_layer, capslock)
+  leftshift = overload(shift, =)
+  rightshift = overload(shift, -)
 
-oneshot_timeout = 1000
+  [apostrophe_layer:M]
 
-[main]
+  u = C-u
 
-capslock = oneshot(control)
-; leftcontrol = oneshot(capslock)
-tab = overload(numpad_layer, tab)
-rightcontrol = oneshot(app_layer)
-space = overload(shift, space)
-' = lettermod(apostrophe_layer, ', 50, 180)
-` = lettermod(app_layer, `, 50, 180)
-leftcontrol = overload(app_layer, capslock)
+  [numpad_layer:C-M]
 
-leftshift = overload(shift, =)
-rightshift = overload(shift, -)
+  m = 1
+  , = 2
+  . = 3
+  j = 4
+  k = 5
+  l = 6
+  u = 7
+  i = 8
+  o = 9
+  space = 0
+  ; = -
+  / = .
 
-[apostrophe_layer:M]
+  [app_layer:C-A-M]
+  #+end_src
 
-u = C-u
+- For all keyboards except those that are specially configured
+  #+begin_src conf :noweb tangle :tangle (expand-file-name "common/etc/keyd/default.conf" tangle/system)
+  [ids]
+  ,*
 
-[numpad_layer:C-M]
+  include common
+  #+end_src
 
-m = 1
-, = 2
-. = 3
-j = 4
-k = 5
-l = 6
-u = 7
-i = 8
-o = 9
-space = 0
-; = -
-/ = .
+- For GIBKEY G68 keyboard
+  #+begin_src conf :noweb tangle :tangle (expand-file-name "common/etc/keyd/gibkey-g68.conf" tangle/system)
+  [ids]
+  1235:aa22:eb813a82
 
-[app_layer:C-A-M]
-#+end_src
+  include common
+
+  [main]
+  esc = lettermod(app_layer, `, 50, 180)
+  delete = esc
+  ` = delete
+  #+end_src
 
 * Application Configurations
 
