@@ -10334,18 +10334,14 @@ Org Mode offers handy commands, namely org-increase-number-at-point and org-decr
   (interactive "p")
   (funcall #'my/increase-number-at-point (* dec -1)))
 
-(keymap-global-set "C-x <up>" #'my/increase-number-at-point)
-(keymap-global-set "C-x /" #'my/increase-number-at-point)
-(keymap-global-set "C-x <down>" #'my/decrease-number-at-point)
-(keymap-global-set "C-x ?" #'my/decrease-number-at-point)
+(keymap-global-set "C-c u" #'my/increase-number-at-point)
+(keymap-global-set "C-c l" #'my/decrease-number-at-point)
 (defvar-keymap my/increase-number-repeat-map
   :doc "Repeat keymap for increasing/decreasing numbers."
   :repeat (:enter (my/increase-number-at-point
                    my/decrease-number-at-point))
-  "<up>" #'my/increase-number-at-point
-  "/" #'my/increase-number-at-point
-  "<down>" #'my/decrease-number-at-point
-  "?" #'my/decrease-number-at-point)
+  "u" #'my/increase-number-at-point
+  "l" #'my/decrease-number-at-point)
 #+end_src
 
 ***** edit local file as root (sudo)
