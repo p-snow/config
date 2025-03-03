@@ -18787,10 +18787,14 @@ Using the Emacs server capability, the following actions can be executed from a 
 - Download media files
 - Browse URLs in EWW
 
+#+begin_src scheme :noweb-ref guix-emacs
+"wl-clipboard"
+#+end_src
+
 #+NAME: bash/emacs-server
 #+begin_src bash :noweb tangle :tangle (expand-file-name "emacs-server" tangle/local-bin-dir)
 command=$1
-opt=$(xclip -out)
+opt=$(wl-paste)
 
 emacsclient -s server-<<hash-string(seed="server", len=6)>> \
             --eval "(my/emacs-batch \"${command}\" \"${opt}\")"
