@@ -14736,11 +14736,14 @@ Plus, OBDY can refer value of FIELD named field-value."
 `password-store-copy' is responsible for managing the kill ring."
   (interactive)
   (with-password-store-entry-field nil "login"
-    (password-store-copy entry)
-    (gui-set-selection 'PRIMARY
-                       (or (password-store-get-field entry "login")
+    (let ((select-enable-clipboard t)
+          (select-enable-primary nil))
+      (gui-select-text (password-store-get entry)))
+    (let ((select-enable-clipboard nil)
+          (select-enable-primary t))
+      (gui-select-text (or (password-store-get-field entry "login")
                            (password-store-get-field entry "email")
-                           (nth 1 (password-store-parse-entry entry))))
+                           (nth 1 (password-store-parse-entry entry)))))
     (message "LOGIN NAME => X-SEL, SECRET => CLIPBOARD")))
 
 (defun my/password-store-copy-field ()
