@@ -235,7 +235,9 @@ start-systemd-services
 
 - Back-up Cinnamon Desktop Configuration
   #+begin_src shell :eval no :noweb yes :tangle no :noweb-ref midnight-batch
-  dconf dump /org/cinnamon/ > <<home-dir()>>/.local/state/cinnamon/desktop.conf
+  if [ $DESKTOP_SESSION == 'cinnamon' ]; then
+    dconf dump /org/cinnamon/ > <<home-dir()>>/.local/state/cinnamon/desktop.conf
+  fi
   #+end_src
 
 - Commands/Applications that need to use LinuxMint comfortably
