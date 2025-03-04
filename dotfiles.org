@@ -797,9 +797,6 @@ cron-reinit.sh
 #+end_src
 
 #+begin_src conf :comments no :noweb tangle :tangle (expand-file-name user-login-name ".config/crontab") :tangle-mode o444
-MAILTO="<<email-pub>>"
-
-BIN_DIR="<<home-dir()>>/bin"
 LOG_DIR="<<log-dir()>>"
 
 <<cronjob-user>>
@@ -823,10 +820,31 @@ Btrfs is a CoW (Copy on Write) file system supports snapshot and send/recv mecha
 
 [[https://digint.ch/btrbk/doc/btrbk.conf.5.html][btrbk.conf documentation]]
 
-- snapshot/backup cron job
-  #+begin_src conf :noweb yes :noweb-ref cronjob-user
-  ,*/15 * * * * /usr/bin/bash -ci "which btrbk | xargs -I _ pwsudo _ --config /etc/btrbk/btrbk.conf run"
-  #+end_src
+#+NAME: config/btrbk
+#+begin_src conf :tangle (expand-file-name "btrbk/default.conf" tangle/config-dir)
+timestamp_format long
+incremental yes
+
+snapshot_preserve_min 6h
+snapshot_preserve 36h 3d 3w
+
+# Create snapshots only if the backup disk is attached
+#snapshot_create ondemand
+
+target_preserve_min latest
+
+snapshot_dir snapshots
+volume /mnt/pt-home
+target /mnt/ex-bak/%%HOSTNAME%%
+
+target_preserve 2w 3m
+subvolume home-%%DISTRO%%
+#+end_src
+
+#+NAME: cron/btrbk
+#+begin_src conf :noweb yes :noweb-ref cronjob-user
+,*/15 * * * * /usr/bin/bash -ci "which btrbk | xargs -I _ pwsudo _ --config ~/.config/btrbk/default.conf run"
+#+end_src
 
 *** snapshots management                      :ARCHIVE:
 
@@ -16092,7 +16110,7 @@ build/
 :END:
 
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-15 */2 * * * /usr/bin/bash -ci "sync-doc 2>&1 | tee -a <<log-dir()>>/sync-git-annex.log"
+15 */2 * * * /usr/bin/bash -ci "sync-doc 2>&1 | tee -a $LOG_DIR/sync-doc.log"
 #+end_src
 
 #+name: sync-doc
