@@ -2830,6 +2830,25 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 (require 'archive-mode)
 #+end_src
 
+****** Remember
+:PROPERTIES:
+:CREATED:  [2025-03-05 Wed 18:23]
+:END:
+
+#+begin_src emacs-lisp
+(use-package remember
+  :bind (("C-H-r"   . remember)
+         ("C-H-S-r" . remember-notes))
+  :preface
+  (defun my/remember-text (text)
+    (concat "** " (format-time-string (org-time-stamp-format t t))
+            " (" (string-trim (truncate-string-to-width (remember-buffer-desc) 16)) ")\n\n"
+            text))
+  :custom
+  (remember-notes-initial-major-mode 'org-mode)
+  (remember-text-format-function #'my/remember-text))
+#+end_src
+
 ***** Editing Basics
 
 #+begin_src emacs-lisp
