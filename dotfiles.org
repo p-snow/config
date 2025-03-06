@@ -1408,7 +1408,7 @@ sudo systemctl enable keyd
 sudo systemctl start keyd
 #+end_src
 
-*** keyd configuration
+**** keyd configuration
 :PROPERTIES:
 :CREATED:  [2025-02-24 Mon 11:25]
 :END:
@@ -1425,7 +1425,6 @@ sudo systemctl start keyd
   space = overload(shift, space)
   ' = lettermod(apostrophe_layer, ', 50, 180)
   ` = lettermod(app_layer, `, 50, 180)
-  leftcontrol = overload(app_layer, capslock)
   leftshift = overload(shift, =)
   rightshift = overload(shift, -)
 
@@ -1457,6 +1456,10 @@ sudo systemctl start keyd
   ,*
 
   include common
+
+  [main]
+
+  leftcontrol = overload(app_layer, capslock)
   #+end_src
 
 - For GIBKEY G68 keyboard
