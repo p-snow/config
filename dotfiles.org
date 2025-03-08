@@ -693,6 +693,22 @@ export:
             - .icons
 #+end_src
 
+** Nix
+:PROPERTIES:
+:CREATED:  [2025-03-06 Thu 18:36]
+:END:
+
+I use Nix as a package manager in single-user mode.
+
+#+NAME: install/nix
+#+begin_src shell :eval no
+sh <(curl -L https://nixos.org/nix/install) --no-daemon
+#+end_src
+
+#+begin_src bash :noweb yes :noweb-ref bashrc
+. ~/.nix-profile/etc/profile.d/nix.sh
+#+end_src
+
 * Home Environment
 :PROPERTIES:
 :CREATED:  [2022-09-13 Tue 16:14]
@@ -15947,6 +15963,16 @@ Provide a function to Build a clock table summing up time by tag.
 
 (provide 'fingertip)
 ;;; fingertip.el ends here
+#+end_src
+
+** Firefox
+:PROPERTIES:
+:CREATED:  [2025-03-08 Sat 21:26]
+:END:
+
+#+NAME: install/firefox
+#+begin_src shell :eval no
+nix-env -iA nixpkgs.firefox-wayland
 #+end_src
 
 ** Findutils
