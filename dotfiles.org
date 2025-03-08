@@ -27,7 +27,7 @@ A directory that contains all my documents, including both text and binary files
 
 #+NAME: doc-dir
 #+begin_src emacs-lisp
-"/mnt/pt-shared/doc-%%HOSTNAME%%"
+"/mnt/shared/doc-%%HOSTNAME%%"
 #+end_src
 
 *** share directory
@@ -922,8 +922,8 @@ snapshot_preserve 36h 3d 3w
 target_preserve_min latest
 
 snapshot_dir snapshots
-volume /mnt/pt-home
-target /mnt/ex-bak/%%HOSTNAME%%
+volume /mnt/homes
+target /mnt/backup/%%HOSTNAME%%
 
 target_preserve 2w 3m
 subvolume home-%%DISTRO%%
@@ -15994,7 +15994,7 @@ $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> --prune-bind
                                              -e <<trash-dir()>> \
                                              -o <<locate-db-home()>>
 
-$GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U /mnt/pt-shared/doc-$(hostname)/ --prune-bind-mounts 0 \
+$GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U /mnt/shared/doc-$(hostname)/ --prune-bind-mounts 0 \
                                              -o <<locate-db-doc()>>
 #+end_src
 
@@ -16234,11 +16234,12 @@ build/
 :ID:       e9524731-4acc-4f4c-bc61-0226990a654a
 :END:
 
+#+name: cronjob/sync-doc
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
 15 */2 * * * /usr/bin/bash -ci "sync-doc 2>&1 | tee -a $LOG_DIR/sync-doc.log"
 #+end_src
 
-#+name: sync-doc
+#+name: script/sync-doc
 #+begin_src bash :noweb tangle :tangle (expand-file-name "sync-doc" tangle/local-bin-dir)
 function sync_doc {
   if cd $1; then
@@ -16250,11 +16251,11 @@ function sync_doc {
   fi
 }
 
-sync_doc /mnt/vt-m/doc/ 0
+sync_doc /mnt/vt-ex/doc/ 0
 sync_doc /mnt/vt-h/doc/ 0
 sync_doc /mnt/vt-j/doc/ 0
-sync_doc /mnt/pt-shared/doc-$(hostname)/ 0
-sync_doc /mnt/vt-m/doc/ 1
+sync_doc /mnt/shared/doc-$(hostname)/ 0
+sync_doc /mnt/vt-ex/doc/ 1
 sync_doc /mnt/vt-h/doc/ 1
 sync_doc /mnt/vt-j/doc/ 1
 #+end_src
@@ -17821,7 +17822,7 @@ uri_default = "qemu:///system"
     <source>
     </source>
     <target>
-      <path>/mnt/pt-shared/virt</path>
+      <path>/mnt/shared/virt</path>
       <permissions>
         <mode>0711</mode>
         <owner>0</owner>
@@ -17957,9 +17958,9 @@ recollindex > <<log-dir()>>/recolltrace.log 2>&1
 #+end_src
 
 #+begin_src conf :noweb tangle :tangle (expand-file-name ".recoll/recoll.conf") :comments no
-topdirs = /mnt/pt-shared/doc-%%HOSTNAME%%
+topdirs = /mnt/shared/doc-%%HOSTNAME%%
 
-[/mnt/pt-shared/doc-%%HOSTNAME%%]
+[/mnt/shared/doc-%%HOSTNAME%%]
 followLinks = 1
 
 skippedNames = .git
