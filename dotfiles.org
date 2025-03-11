@@ -9477,7 +9477,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
   :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
          ("M-_" . tempel-insert))
   :hook
-  ((conf-mode prog-mode text-mode minibuffer-mode) . tempel-setup-capf)
+  ((conf-mode prog-mode text-mode minibuffer-mode shell-mode) . tempel-setup-capf)
   (mu4e-compose-mode . tempel-abbrev-mode)
   :preface
   (defun tempel-setup-capf ()
@@ -12434,6 +12434,66 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 #+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "tempel/templates/mu4e-compose.eld" tangle/emacs-etc-dir)
 (よろ "よろしくお願いいたします。")
 (いじょう "以上、よろしくお願いいたします。")
+#+end_src
+
+**** TempEL template source for command examples
+:PROPERTIES:
+:CREATED:  [2025-03-09 Sun 20:29]
+:END:
+
+This functionality allows for command usage examples that can also be used as TempEL templates. The following command can be utilized with `tempel-complete` or `tempel-insert` in shell-mode, eshell-mode, or minibuffer-mode.
+
+#+begin_src emacs-lisp :tangle no
+;; Create a new BTRFS subvolume
+($ "btrfs subvolume create <name>")
+#+end_src
+
+#+begin_src emacs-lisp
+(defvar tempel-shell-command-template-dir
+  (no-littering-expand-etc-file-name "tempel/templates/shell-command/*.eld"))
+
+(defun tempel-command-example--build-template (command &optional sudo)
+  ""
+  (when-let* ((shell-args (split-string command "[ 	]" t))
+              (template-name (string-join (take 3 shell-args) "_"))
+              (templates (mapcar (lambda (arg)
+                                   (pcase arg
+                                     ((rx "<" (group (+ graph)) ">")
+                                      `(p ,(match-string 1 arg)))
+                                     (keyword (format "%s " keyword))))
+                                 shell-args)))
+    `(,(intern template-name)
+      ,(when sudo (if (executable-find "pwsudo") "pwsudo " "sudo "))
+      ,@templates)))
+
+(defun tempel-command-example ()
+  "Return templates from command examples."
+  (when (member major-mode '(minibuffer-mode eshell-mode shell-mode))
+    (let (result)
+      (mapc (lambda (file)
+              (with-temp-buffer
+                (insert "(\n")
+                (insert-file-contents file)
+                (goto-char (point-max))
+                (insert "\n)")
+                (goto-char (point-min))
+                (let ((data (read (current-buffer))))
+                  (while data
+                    (let (templates)
+                      (while (consp (car data))
+                        (push (pcase (pop data)
+                                (`($ ,sc-str)
+                                 (tempel-command-example--build-template sc-str))
+                                (`(\# ,sc-str)
+                                 (tempel-command-example--build-template sc-str 'sudo)))
+                              templates))
+                      (mapc (apply-partially 'add-to-list 'result)
+                            templates))))))
+            (reverse (file-expand-wildcards tempel-shell-command-template-dir t)))
+      result)))
+
+(with-eval-after-load 'tempel
+  (add-to-list 'tempel-template-sources #'tempel-command-example))
 #+end_src
 
 **** elisp code from outside of Emacs
