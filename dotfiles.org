@@ -3051,7 +3051,12 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 :END:
 
 #+begin_src emacs-lisp
-(setopt shell-command-prompt-show-cwd t)
+(use-package shell
+  :after my-launch-app
+  :bind (:map my/launch-app-map
+              ("s" . shell))
+  :custom
+  (shell-command-prompt-show-cwd t))
 #+end_src
 
 ****** Browse Url
