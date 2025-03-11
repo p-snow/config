@@ -5007,8 +5007,9 @@ If entry at POM has no clock log time stamp, this function returns 0."
   (org-special-ctrl-k t)
   (org-ctrl-k-protect-subtree t)
   (org-src-lang-modes
-   (mapc (lambda (override-src-lang)
-           (add-to-list 'org-src-lang-modes override-src-lang))
+   (mapc (lambda (lang-mode)
+           (setf (alist-get (car lang-mode) (custom--standard-value 'org-src-lang-modes))
+                 (cdr lang-mode)))
          '(("bash"   . bash-ts)
            ("C"      . c)
            ("ruby"   . ruby)
