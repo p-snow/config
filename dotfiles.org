@@ -250,7 +250,7 @@ start-systemd-services
 Below is Elisp code defining Guix templates for TempEL.
 
 #+header: :shebang "eshell-mode minibuffer-mode"
-#+begin_src emacs-lisp :tangle no :tangle (expand-file-name "guix.eld" tangle/dedicated-template-dir)
+#+begin_src emacs-lisp :tangle no :tangle (expand-file-name "guix.eld" tangle/tempel-template-dir)
 (guix-search "guix search " (p (my/region-string-trans-buffer)))
 (activate-profiles "activate-profiles "
                    (completing-read "profiles: "
@@ -604,7 +604,7 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
 A script for activating home configuration
 
 #+header: :shebang "eshell-mode minibuffer-mode"
-#+begin_src emacs-lisp :tangle no :tangle (expand-file-name "activate-home.eld" tangle/dedicated-template-dir)
+#+begin_src emacs-lisp :tangle no :tangle (expand-file-name "activate-home.eld" tangle/tempel-template-dir)
 (activate-home "cd ~/dotfiles && make")
 #+end_src
 
@@ -9485,8 +9485,7 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
                 (cons #'tempel-expand
                       completion-at-point-functions)))
   :custom
-  (tempel-path (list (no-littering-expand-etc-file-name "tempel/templates/*.eld")
-                     (no-littering-expand-etc-file-name "tempel/templates/*/*.eld")))
+  (tempel-path (list (no-littering-expand-etc-file-name "tempel/templates/*.eld")))
   :config
   (bind-keys :map tempel-map
              ("TAB" . tempel-next)

@@ -16,8 +16,10 @@
       tangle/local-bin-dir (file-name-concat tangle/home ".local/bin/")
       tangle/dedicated-elisp-dir
       (file-name-concat tangle/user-emacs-directory "lisp/dedicated")
-      tangle/dedicated-template-dir
-      (file-name-concat tangle/emacs-etc-dir "tempel/templates/dedicated"))
+      tangle/tempel-template-dir
+      (file-name-concat tangle/emacs-etc-dir "tempel/templates")
+      tangle/tempel-command-example-dir
+      (file-name-concat tangle/emacs-etc-dir "tempel/templates/shell-command"))
 
 (remove-hook 'org-babel-pre-tangle-hook
              'save-buffer)
