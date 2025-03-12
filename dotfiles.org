@@ -3822,8 +3822,10 @@ The EWW bookmark functionality is an original implementation, separate from the 
         (insert source)
         (write-region (point-min) (point-max) source-file nil)
         (erase-buffer)
-        (call-process "extract_headings" source-file t)
-        (delete-file source-file)
+        (call-process-shell-command
+         (format "guix shell python python-lxml -- bash -c \"cat '%s' | extract_headings\""
+                 source-file)
+         nil t)
         (libxml-parse-xml-region (point-min) (point-max))))))
 
 (defun eww-goto-title-heading ()
@@ -14783,11 +14785,11 @@ By default, PDF and EPUB files are opened in EWW after converted into HTML. Vide
                     epub)))
     (my/open-file-as-html
      exp-epub
-     (format "%1$s %2$s 2>/dev/null | pandoc --from=epub --to=html --extract-media=%3$s - | strip_ruby > %4$s"
+     (format "guix shell python python-lxml -- bash -c \"%1$s '%2$s' 2>/dev/null | pandoc --from=epub --to=html --extract-media='%3$s' - | strip_ruby > '%4$s'\""
              cap-command
-             (shell-quote-argument exp-epub)
-             (shell-quote-argument dirname-html)
-             (shell-quote-argument filename-html)))))
+             exp-epub
+             dirname-html
+             filename-html))))
 
 (defun my/open-media (media &optional query)
   "Open MEDIA file in media player with respecting QUERY.
