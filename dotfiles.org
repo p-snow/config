@@ -251,7 +251,6 @@ Below is Elisp code defining Guix templates for TempEL.
 
 #+header: :shebang "eshell-mode minibuffer-mode"
 #+begin_src emacs-lisp :tangle no :tangle (expand-file-name "guix.eld" tangle/tempel-template-dir)
-(guix-search "guix search " (p (my/region-string-trans-buffer)))
 (activate-profiles "activate-profiles "
                    (completing-read "profiles: "
                                     (mapcar (lambda (elt)
@@ -3364,7 +3363,6 @@ sudo systemctl start dictd
 #+end_src
 
 #+begin_src emacs-lisp
-
 (use-package dictionary
   :commands (dictionary-search dictionary-lookup-definition)
   :custom
@@ -17107,9 +17105,9 @@ echo ${dic_uniq}
 (file-name-concat "<<share-dir()>>" "hts-voice")
 #+end_src
 
-#+begin_src shell :noweb yes :noweb-ref make-dir
-<<hts-voice-dir()>>
-#+end_src
+# #+begin_src shell :noweb yes :noweb-ref make-dir
+# <<hts-voice-dir()>>
+# #+end_src
 
 - install on Ubuntu
   # #+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
