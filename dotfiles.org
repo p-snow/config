@@ -6390,7 +6390,12 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
        (setq-local completion-at-point-functions
                    (append '(cape-elisp-symbol)
                            completion-at-point-functions))))
-  ((minibuffer-mode eshell-mode)
+  ((shell-mode eshell-mode)
+   . (lambda ()
+       (setq-local completion-at-point-functions
+                   (append '(cape-history)
+                           completion-at-point-functions))))
+  ((minibuffer-mode)
    . (lambda ()
        (setq-local completion-at-point-functions
                    (append '(cape-history
