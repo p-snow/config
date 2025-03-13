@@ -723,7 +723,9 @@ sh <(curl -L https://nixos.org/nix/install) --no-daemon
 #+end_src
 
 #+begin_src bash :noweb yes :noweb-ref bashrc
-. ~/.nix-profile/etc/profile.d/nix.sh
+if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
+  . ~/.nix-profile/etc/profile.d/nix.sh
+fi
 #+end_src
 
 * Home Environment
