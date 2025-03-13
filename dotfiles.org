@@ -619,10 +619,27 @@ A script for activating home configuration
 
 [[https://github.com/Prayag2/konsave][konsave]] manages KDE configuration.
 
-#+begin_src shell :eval no :noweb yes :tangle no :noweb-ref midnight-batch
+: $ plasma-conf save   # to save current plasma configuration
+: $ plasma-conf export # to export current plasma configuration along with saving
+
+#+NAME: bash/plasma-conf
+#+begin_src bash :noweb tangle :tangle (expand-file-name "plasma-conf" tangle/local-bin-dir)
+sub_cmd=$1
+
+profile=$(date +%Y%m%d_%H%M%S_<<login-name()>>)
+
 if [ $DESKTOP_SESSION == 'plasma' ]; then
-  guix shell python-pip -- pip install konsave && konsave -s <<login-name()>> -f
+  if [ $sub_cmd == 'save' ] || [ $sub_cmd == 'export' ]; then
+    guix shell python-pip -- bash -c "pip install konsave && konsave --save $profile"
+  fi
+  if [ $sub_cmd == 'export' ]; then
+    guix shell python-pip -- bash -c "pip install konsave && konsave -e $profile -d ~/.local/state/konsave -n $profile"
+  fi
 fi
+#+end_src
+
+#+begin_src shell :eval no :noweb yes :tangle no :noweb-ref midnight-batch
+plasma-conf save
 #+end_src
 
 # You can use these placeholders in the "location" of each item:
