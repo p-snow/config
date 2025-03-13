@@ -874,11 +874,8 @@ export PS1="[\u@$(uname -n):\\W]\n\$ "
 
 [[https://www.freedesktop.org/software/systemd/man/systemd-tmpfiles-setup.service.html][systemd-tmpfiles]] manages file creation and deletion. I mainly use systemd-tmpfiles to delete obsolete files in specific directories by running the following command.
 
-: $ systemd-tmpfiles --user --clean
-
-or set up timer shown below.
-
 #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+systemd-tmpfiles --user --clean
 systemctl --user enable systemd-tmpfiles-clean.timer
 #+end_src
 
