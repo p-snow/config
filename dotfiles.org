@@ -4980,7 +4980,8 @@ If entry at POM has no clock log time stamp, this function returns 0."
     (os-set "d" #'org-deadline)
     (os-set "N" #'org-toggle-narrow-to-subtree)
     (os-set "$" #'org-archive-subtree)
-    (os-set "'" #'ignore)))
+    (os-set "'" #'ignore)
+    (os-set "`" #'ignore)))
 #+end_src
 
 ******* Org Edit Structure
@@ -5165,7 +5166,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
     (dolist (elt '(("Clock Commands")
                    ("I" . org-clock-in)
                    ("O" . org-clock-out)
-                   ("x" . nil)
+                   ("x" . #'ignore)
                    ("X" . org-clock-cancel)))
       (add-to-list 'org-speed-commands elt t))))
 #+end_src
