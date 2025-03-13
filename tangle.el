@@ -19,7 +19,7 @@
       tangle/tempel-template-dir
       (file-name-concat tangle/emacs-etc-dir "tempel/templates")
       tangle/tempel-command-example-dir
-      (file-name-concat tangle/emacs-etc-dir "tempel/templates/shell-command"))
+      (file-name-concat tangle/emacs-etc-dir "tempel/templates/command-examples"))
 
 (remove-hook 'org-babel-pre-tangle-hook
              'save-buffer)
