@@ -4758,9 +4758,6 @@ If entry at POM has no clock log time stamp, this function returns 0."
           ("i" "Today's agenda"
            ((todo "Today's agenda"
                   ((org-agenda-sorting-strategy '(priority-up))))
-            (org-ql-search-block `(or (todo ,my/org-todo-keyword--urgent)
-                                      (todo ,my/org-todo-keyword--in-action))
-                                 ((org-ql-block-header "Today's task")))
             (org-ql-search-block `(and (planning :on today)
                                        (not (todo ,my/org-todo-keyword--in-action
                                                   ,my/org-done-keyword--done
@@ -4770,6 +4767,9 @@ If entry at POM has no clock log time stamp, this function returns 0."
                                        (not (habit))
                                        (not (todo ,my/org-todo-keyword--someday)))
                                  ((org-ql-block-header "Scheduled/Deadlined on today")))
+            (org-ql-search-block `(or (todo ,my/org-todo-keyword--urgent)
+                                      (todo ,my/org-todo-keyword--in-action))
+                                 ((org-ql-block-header "Today's task")))
             (org-ql-search-block `(and (habit)
                                        (or (todo ,my/org-todo-keyword--todo)
                                            (todo ,my/org-todo-keyword--next))
