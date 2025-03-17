@@ -1461,6 +1461,7 @@ sudo systemctl start keyd
   capslock = oneshot(control)
   tab = overload(numpad_layer, tab)
   rightcontrol = oneshot(app_layer)
+  leftcontrol = esc
   space = overload(shift, space)
   ' = lettermod(apostrophe_layer, ', 50, 180)
   ` = lettermod(app_layer, `, 50, 180)
@@ -1497,18 +1498,16 @@ sudo systemctl start keyd
   include common
 
   [main]
-
-  leftcontrol = overload(app_layer, capslock)
   #+end_src
 
 - For GIBKEY G68 keyboard
-  #+begin_src conf :noweb tangle :tangle (expand-file-name "keyd/gibkey-g68.conf" tangle/config-dir)
+  #+begin_src conf :noweb tangle :tangle (expand-file-name "keyd/68key.conf" tangle/config-dir)
   [ids]
-  # USB
+  # GIBKEY G68 USB
   k:258a:0049
-  # 2.4 GHz
+  # GIBKEY G68 2.4 GHz
   k:3151:6001
-  # BT (E/R)
+  # GIBKEY G68 BT (E/R)
   k:1235:aa22
   k:04e8:7021
 
@@ -1518,7 +1517,6 @@ sudo systemctl start keyd
   esc = lettermod(app_layer, `, 50, 180)
   delete = sysrq
   ` = delete
-  leftcontrol = esc
   #+end_src
 
 * Application Configurations
