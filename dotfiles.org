@@ -522,15 +522,23 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
 **** guix emacs profile
 
 #+begin_src scheme :noweb yes :noweb-prefix no :tangle (expand-file-name ".config/guix/manifests/emacs.scm")
-(specifications->manifest
- '(<<guix-emacs>>
-   "sicp"
-   "isync"
-   "stunnel"
-   "wordnet"
-   "emacs-transient"
-   "emacs-mocker"
-   "emacs-compat"))
+(use-modules (guix profiles)
+             (guix transformations)
+             (guix packages))
+
+<<guix-emacs-preface>>
+
+(packages->manifest
+ (append
+  (specifications->packages '(<<guix-emacs>>
+                              "sicp"
+                              "isync"
+                              "stunnel"
+                              "wordnet"
+                              "emacs-transient"
+                              "emacs-mocker"
+                              "emacs-compat"))
+  (list <<guix-emacs-package>>)))
 #+end_src
 
 *** Home Configuration
@@ -5505,12 +5513,23 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 
 [[https://gitlab.com/phillord/org-drill][org-drill]] helps me to learn english words and phrases. [[https://youtu.be/SGzdFtN_NqE][This video]] introduces how I use org-drill.
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-org-drill-head"
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
+(use-modules (gnu packages emacs-xyz))
+
+(define emacs-org-drill-transform
+  ((options->transformation
+    (list '(with-commit . "emacs-org-drill=bf8fe812d44a3ce3e84361fb39b8ef28ca10fd0c")))
+   emacs-org-drill))
+
+(define emacs-org-drill-latest
+  (package/inherit
+      emacs-org-drill-transform
+    (name "emacs-org-drill-latest")
+    (version "2.7.0")))
 #+end_src
 
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-("https://gitlab.com/phillord/org-drill/-/tags?format=atom" soft_update)
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-package
+emacs-org-drill-latest
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle
