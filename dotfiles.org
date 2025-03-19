@@ -17221,7 +17221,26 @@ XRandR is a command line utility for changing display options without restarting
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
 "cmigemo"
-"migemo-dict-azik"
+#+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
+(use-modules (guix-jp packages migemo))
+
+(define migemo-dict-transform
+  ((options->transformation
+    '((with-branch . "migemo-dict=guix-viable")
+      (with-git-url . "migemo-dict=https://github.com/p-snow/cmigemo-azik")))
+   migemo-dict))
+
+(define migemo-dict-azik
+  (package/inherit
+   migemo-dict-transform
+   (name "migemo-dict-azik")
+   (version "1.3e")))
+#+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-package
+migemo-dict-azik
 #+end_src
 
 #+name: migemo-dict-path
