@@ -5267,11 +5267,11 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 
 #+begin_src emacs-lisp
 (use-package org-id
-  :after org
-  :bind (:map my/org-global-map
-              ("U" . org-id-update-id-locations-all)
-              :map org-mode-map
-              ("C-c i" . org-id-copy))
+  :after (org my-org-global-map)
+  :bind ((:map my/org-global-map
+               ("U" . org-id-update-id-locations-all))
+         (:map org-mode-map
+               ("C-c i" . org-id-copy)))
   :preface
   (defun org-id-update-id-locations-all ()
     "Update Org IDs in all Org files under `org-directory'."
