@@ -5734,13 +5734,17 @@ Ancestors are looked up If current heading has no CATEGORY."
 
 ****** org-clock-convenience
 
+#+NAME: install/org-clock-convenience
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-org-clock-convenience"
+#+end_src
+
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
 ("https://github.com/dfeich/org-clock-convenience/tags.atom" soft_update)
 #+end_src
 
 #+begin_src emacs-lisp
 (use-package org-clock-convenience
-  :ensure t
   :after org-agenda
   :bind
   (:map org-agenda-mode-map
@@ -6049,9 +6053,13 @@ export DISPLAY=:0 && \
 
 [[https://github.com/jxq0/org-tidy][org-tidy]] attentively conceals all org drawers. I use it in [[id:2bd0c5d2-faed-43d9-b054-3e1ad9b51a76][my English drill session]].
 
+#+NAME: install/org-tidy
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-org-tidy"
+#+end_src
+
 #+begin_src emacs-lisp
 (use-package org-tidy
-  :ensure t
   :after org
   :bind (:map org-mode-map
               ("C-c t" . org-tidy-mode)))
@@ -8346,13 +8354,17 @@ Tree-sitter module for Elisp had been incorporated into Emacs core since Emacs 2
 :CREATED:  [2023-06-11 Sun 18:36]
 :END:
 
+#+NAME: install/whole-line-or-region
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-whole-line-or-region"
+#+end_src
+
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
 ("https://github.com/purcell/whole-line-or-region/tags.atom" soft_update)
 #+end_src
 
 #+begin_src emacs-lisp
 (use-package whole-line-or-region
-  :ensure t
   :config
   (whole-line-or-region-global-mode 1))
 #+end_src
@@ -8927,13 +8939,17 @@ helpful-mode displays more sources compared to help-mode, including callers, deb
 :CREATED:  [2023-06-11 Sun 18:38]
 :END:
 
+#+NAME: install/define-word
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-define-word"
+#+end_src
+
 #+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
 ("https://github.com/abo-abo/define-word/tags.atom" soft_update)
 #+end_src
 
 #+begin_src emacs-lisp
 (use-package define-word
-  :ensure t
   :defer t
   :bind (:map engine-mode-prefixed-map
               ("n" . my/define-word))
@@ -9111,13 +9127,17 @@ migemo allows me to search incrementally Japanese words using roma-ji expression
 
 Jaword.elはbackward-wordやforward-wordを日本語に対応させる機能を提供します。これらのコマンドはデフォルトではひらがな・カタカナ・漢字の境界を単語の区切りとするのに対し、jaword.elを使用するとより正確に日本語の単語単位での移動が可能です。
 
+#+NAME: install/jaword
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-jaword"
+#+end_src
+
 #+begin_src emacs-lisp :tangle no
 ("https://github.com/zk-phi/jaword/releases.atom" soft_update)
 #+end_src
 
 #+begin_src emacs-lisp
 (use-package jaword
-  :ensure t
   :custom
   (jaword-enable-subword t)
   :hook ((skk-mode
@@ -10000,9 +10020,13 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
 :CREATED:  [2025-01-04 Sat 14:04]
 :END:
 
+#+NAME: install/try
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-try"
+#+end_src
+
 #+begin_src emacs-lisp
-(use-package try
-  :ensure t)
+(use-package try)
 #+end_src
 
 ***** drag-stuff
