@@ -12257,7 +12257,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   :man-page "yt-dlp"
   :value '("--paths <<media-dir()>>" "--prefer-free-formats"
            "--format bestvideo*+bestaudio/best"
-           "--format-sort codec,ext,size:1.5G")
+           "--format-sort codec,ext,size:1.5G"
+           "--cookies /mnt/shared/doc-%_<uname -n>_%/home/records/archives/Firefox/20250322_cookies.txt")
   ["Options"
    ("-P" "download path" "--paths "
     :class transient-option
@@ -12270,6 +12271,14 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :class my/tsc-literal-option)
    ("-S" "format sort" "--format-sort "
     :class my/tsc-literal-option)
+   ("-c" "cookies" "--cookies "
+    :class transient-files :prompt "Cookies: "
+    :reader transient-read-existing-file)
+   ("-C" "use browser cookies" "--cookies-from-browser "
+    :class transient-switches
+    :argument-format "--cookies-from-browser %s"
+    :argument-regexp "\\(---cookies-from-browser \\(firefox\\|chromium\\|chrome\\)\\)"
+    :choices ("firefox" "chromium" "chrome"))
    ("-o" "output" "--output "
     :class my/yt-dlp-output)]
   ["Inputs"
