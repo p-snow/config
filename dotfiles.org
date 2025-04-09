@@ -4153,6 +4153,11 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
                '("XWidget View" . mu4e-action-view-with-xwidget) t)
   (when (fboundp 'imagemagick-register-types)
     (imagemagick-register-types)))
+
+(use-package mu4e-transient
+  :after (mu4e my-launch-app)
+  :bind (:map my/launch-app-map
+              ("M" . mu4e-transient-menu)))
 #+end_src
 
 ***** mu4e-alert                            :ARCHIVE:
