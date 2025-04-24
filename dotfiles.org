@@ -1110,13 +1110,16 @@ function backup_subvol() {
 backup_subvol "${MNT_SSD}"/snapshots/doc "${MNT_SSD}"/backups/doc "${MNT_HDD}"/backups/doc
 # backup_subvol "${MNT_SSD}"/snapshots/share "${MNT_SSD}"/backups/share "${MNT_HDD}"/backups/share
 #+end_src
+
 ** XDG
 
-#+begin_src scheme :noweb-ref guix-base
-"xdg-utils"
-#+end_src
+- [[https://wiki.archlinux.org/title/XDG_MIME_Applications][XDG MIME Applications - ArchWiki]]
 
-*** xdg-mime
+*** xdg-mime                                  :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-04-22 Tue 17:30]
+:END:
+
 - ask default application for text/plain
   : $ xdg-mime query default text/plain
 
@@ -15029,7 +15032,7 @@ a `dired-open-file' call with `C-u' or `C-u C-u'."
   (let ((file-for-visit (dired-get-file-for-visit)))
     (cond
      ((equal current-prefix-arg '(16))
-      (browse-url-default-browser file-for-visit))
+      (browse-url-xdg-open file-for-visit))
      ((equal current-prefix-arg '(4))
       (dired--find-possibly-alternative-file file-for-visit))
      ((string-match-p (eval `(rx (or ,@my/open-file-compressed-media-extensions)))
