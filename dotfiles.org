@@ -5039,9 +5039,14 @@ If entry at POM has no clock log time stamp, this function returns 0."
 
 (use-package org-keys
   :after org
+  :preface
+  (defun my/org-use-speed-commands-for-headings-and-lists ()
+    "Activate speed commands on list items too."
+    (or (and (looking-at org-outline-regexp) (looking-back "^\**" nil))
+        (save-excursion (and (looking-at (org-item-re)) (looking-back "^[ \t]*" nil)))))
   :custom
   (org-use-speed-commands
-   (lambda () (and (looking-at org-outline-regexp) (looking-back "^\**"))))
+   #'my/org-use-speed-commands-for-headings-and-lists)
   :config
   (cl-labels ((os-set (key command)
                 (assoc-delete-all key org-speed-commands)
@@ -14586,6 +14591,44 @@ A "project" link type is designed for local copies of Git or other CVS repositor
    :complete #'my/org-dotfile-complete-link
    :follow #'my/org-dotfile-follow-link
    :export #'my/org-dotfile-export-link))
+#+end_src
+
+**** Org speed commands for subtrees and items
+:PROPERTIES:
+:CREATED:  [2025-04-11 Fri 11:54]
+:END:
+
+Org speed command is a swift way of manipulating subtrees. It would be even more attractive if this feature could be used for items as well, as Sacha Chua proposed in [[https://sachachua.com/blog/2025/03/org-mode-cutting-the-current-list-item-including-nested-lists-with-a-speed-command/][this blog post]].
+
+#+begin_src emacs-lisp
+(defmacro org-defun-speed-command (op-name subtree-op list-item-op)
+  ""
+  (declare (indent 1))
+  `(defun ,(intern (format "org-%s-subtree-or-list-item" op-name)) (&optional arg)
+     ,(format "%s subtree or list item as based on the situation." (capitalize op-name))
+     (cond
+      ((and (looking-at org-outline-regexp) (looking-back "^\**" nil))
+       ,subtree-op)
+      ((looking-at (org-item-re))
+       ,list-item-op))))
+
+(with-eval-after-load 'org-keys
+  (setf (alist-get "k" org-speed-commands nil nil #'string=)
+        (org-defun-speed-command "cut"
+          (org-cut-subtree arg)
+          (kill-region (org-beginning-of-item) (org-end-of-item))))
+  (setf (alist-get "@" org-speed-commands nil nil #'string=)
+        (org-defun-speed-command "mark"
+          (org-mark-subtree arg)
+          (org-mark-element)))
+  (setf (alist-get "f" org-speed-commands nil nil #'string=)
+        (org-defun-speed-command "forward"
+          (org-speed-move-safe 'org-forward-heading-same-level)
+          (org-next-item)))
+  (setf (alist-get "b" org-speed-commands nil nil #'string=)
+        (org-defun-speed-command "backward"
+          (org-speed-move-safe 'org-backward-heading-same-level arg)
+          (org-previous-item))))
 #+end_src
 
 *** would-be packages
