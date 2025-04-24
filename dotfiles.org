@@ -11385,6 +11385,10 @@ Calling my/insert-last-kbd-macro after saving the desired keyboard macro will ge
 
 It's spectacular if image-dired shows the cover image for EPUB files, as if it were a bookshelf. The following code make that happen.
 
+#+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
+gnome-epub-thumbnailer
+#+end_src
+
 #+begin_src emacs-lisp
 (with-eval-after-load 'image-dired
   (cl-pushnew "epub" image-file-name-extensions)
@@ -11400,10 +11404,10 @@ It's spectacular if image-dired shows the cover image for EPUB files, as if it w
                                                ".png"))))
         (setq source-file tmp-png)
         (save-excursion
-          (shell-command (format "xapp-epub-thumbnailer -i %s -o %s -s %d"
+          (shell-command (format "gnome-epub-thumbnailer --size %d %s %s"
+                                 image-dired-thumb-size
                                  (shell-quote-argument original-file)
-                                 tmp-png
-                                 image-dired-thumb-size)
+                                 tmp-png)
                          messages-buffer-name))))
     (funcall orig-fun source-file thumbnail-file)))
 #+end_src
