@@ -1586,9 +1586,20 @@ sudo systemctl start keyd
 :header-args:emacs-lisp+: :tangle-mode (identity #o644)
 :END:
 
+#+NAME: install/emacs
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
 ;; "emacs"
 "emacs-next"
+#+end_src
+
+Manual installation
+- [[https://www.linuxfromscratch.org/blfs/view/12.3/postlfs/emacs.html][Emacs-30.1]]
+#+begin_src shell
+cd ~/work && curl -O https://ftp.gnu.org/gnu/emacs/emacs-30.1.tar.xz \
+   && tar xfJ emacs-30.1.tar.xz && cd emacs-30.1 \
+   && ./configure --prefix=~/usr --with-cairo --with-xwidgets --with-x-toolkit=gtk3
+
+# libgtk-3-dev
 #+end_src
 
 #+NAME: emacs-var-dir
