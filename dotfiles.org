@@ -6075,6 +6075,54 @@ exchange rate against US dollar."
                                    (denote-directory-files))))))))
 #+end_src
 
+******* contents fetcher
+:PROPERTIES:
+:CREATED:  [2025-05-08 Thu 15:54]
+:END:
+
+#+name: bash/fetch-dynamic-page
+#+begin_src bash :tangle (expand-file-name "fetch-dynamic-page" tangle/local-bin-dir)
+guix shell python python-urllib3@1.26.17 python-selenium -- fetch-dynamic-page.py $1
+#+end_src
+
+#+name: python/fetch-dynamic-page
+#+begin_src python :results output :tangle (expand-file-name "fetch-dynamic-page.py" tangle/local-bin-dir)
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.common.by import By
+import sys
+import time
+import requests
+
+url = sys.argv[1]
+# url = sys.stdin.read()
+
+options = Options()
+options.headless = True
+driver = webdriver.Firefox(options=options)
+
+driver.get(url)
+
+time.sleep(10)
+
+try:
+    # WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located)
+    WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CLASS_NAME, 'dl-horizontal')))
+except TimeoutException as te:
+    print("An error occurred while waiting for rendering.")
+
+rendered_content = driver.page_source
+
+# Make sure the content that is about to be printed is in text/html format
+if requests.head(url).headers["Content-Type"].startswith("text/html"):
+    print(rendered_content)
+
+driver.quit()
+#+end_src
+
 ******* batch tracking
 :PROPERTIES:
 :CREATED:  [2023-10-30 Mon 21:05]
