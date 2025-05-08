@@ -14652,7 +14652,11 @@ Org speed command is a swift way of manipulating subtrees. It would be even more
   (setf (alist-get "b" org-speed-commands nil nil #'string=)
         (org-defun-speed-command "backward"
           (org-speed-move-safe 'org-backward-heading-same-level arg)
-          (org-previous-item))))
+          (org-previous-item)))
+  (setf (alist-get "u" org-speed-commands nil nil #'string=)
+        (org-defun-speed-command "up"
+          (org-speed-move-safe 'outline-up-heading)
+          (org-up-element))))
 #+end_src
 
 *** would-be packages
