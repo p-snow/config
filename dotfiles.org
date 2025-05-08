@@ -4517,12 +4517,27 @@ PROMPT_COMMAND='echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
 
 #+begin_src emacs-lisp
 (use-package vterm
-  :commands (vterm multi-vterm multi-vterm-next)
-  :bind (:map vterm-mode-map
-              ("C-c M-n" . multi-vterm-next)
-              ("C-c M-p" . multi-vterm-prev))
-  :delight " VT"
-  :diminish ((vterm-copy-mode . "vc"))
+  :after my-launch-app
+  :bind (:map my/launch-app-map
+              ("v" . my/multi-vterm))
+  :preface
+  (defun my/multi-vterm (&optional arg)
+    "Switch between existing vterm buffers.
+
+Spawn a new vterm buffer if there's no available vterm buffer.
+If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless of condition."
+    (interactive "P")
+    (if (equal arg '(4))
+        (multi-vterm)
+      (multi-vterm-next)))
+  (defun advice/vterm-yank-pop (orig-fun &rest args)
+    (if (eq major-mode 'vterm-mode)
+        (let ((inhibit-read-only t)
+              (yank-undo-function (lambda (_start _end) (vterm-undo))))
+          (cl-letf (((symbol-function 'insert-for-yank)
+                     (lambda (str) (vterm-send-string str t))))
+            (apply orig-fun args)))
+      (apply orig-fun args)))
   :custom
   (vterm-min-window-width 55)
   (vterm-buffer-name-string "vterm %s")
@@ -4537,25 +4552,6 @@ PROMPT_COMMAND='echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
              :map vterm-copy-mode-map
              ("C-j" . vterm-copy-mode-done))
   (advice-add 'consult-yank-from-kill-ring :around #'advice/vterm-yank-pop))
-
-(defun my/multi-vterm (&optional arg)
-  "Switch between existing vterm buffers.
-
-Spawn a new vterm buffer if there's no available vterm buffer.
-If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless of condition."
-  (interactive "P")
-  (if (equal arg '(4))
-      (multi-vterm)
-    (multi-vterm-next)))
-
-(defun advice/vterm-yank-pop (orig-fun &rest args)
-  (if (eq major-mode 'vterm-mode)
-      (let ((inhibit-read-only t)
-            (yank-undo-function (lambda (_start _end) (vterm-undo))))
-        (cl-letf (((symbol-function 'insert-for-yank)
-                   (lambda (str) (vterm-send-string str t))))
-          (apply orig-fun args)))
-    (apply orig-fun args)))
 #+end_src
 
 ***** Eshell
@@ -11159,7 +11155,6 @@ exit 0
 (keymap-global-set "H-x"
                    (define-keymap
                      :prefix 'my/launch-app-map
-                     "v" #'my/multi-vterm
                      "d" #'dired-jump
                      "w" #'eww
                      "W" #'eww-switch-to-buffer
