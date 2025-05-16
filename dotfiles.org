@@ -14226,19 +14226,21 @@ Including:
 - State "purge old clock logs and state changes" from "tidy up org entry by removing old blobs" [2023-11-23 Thu 15:01]
 :END:
 
-The hook functions, which is commented out, provoke malfunction failing to create todo state change logs which is necessary for habit graph.
+Clocking logs and state-changing logs tend to accumulate during habit tasks. The function below removes these logs if they are older than `my/org-flush-blobs-old-timestamp-in-day`.
 
 #+NAME: midnight-flush-blobs
 #+begin_src emacs-lisp
 (with-eval-after-load 'midnight
   (add-hook 'midnight-hook
             (lambda ()
-              (org-map-entries (lambda () (when (org-is-habit-p)
-                                        (revert-buffer t t t)
-                                        (my/org-flush-blobs)
-                                        (basic-save-buffer)))
-                               nil
-                               'agenda))))
+              (org-map-entries
+               (lambda () (when (or (org-is-habit-p)
+                                (member "chore" (org-get-tags)))
+                        (revert-buffer t t t)
+                        (my/org-flush-blobs)
+                        (basic-save-buffer)))
+               nil
+               'agenda))))
 #+end_src
 
 #+NAME: flush-blobs
