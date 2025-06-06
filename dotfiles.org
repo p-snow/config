@@ -12679,10 +12679,10 @@ This functionality allows for command usage examples that can also be used as Te
 (defvar tempel-shell-command-template-dir
   (no-littering-expand-etc-file-name "tempel/templates/command-examples/*.eld"))
 
-(defun tempel-command-example--build-template (command &optional sudo)
+(defun tempel-command-example--build-template (command &optional sudo name)
   ""
   (when-let* ((shell-args (split-string command "[ 	]" t))
-              (template-name (string-join (take 3 shell-args) "_"))
+              (template-name (or name command))
               (templates (mapcar (lambda (arg)
                                    (pcase arg
                                      ((rx "<" (group (+ graph)) ">")
@@ -12711,8 +12711,12 @@ This functionality allows for command usage examples that can also be used as Te
                         (push (pcase (pop data)
                                 (`($ ,sc-str)
                                  (tempel-command-example--build-template sc-str))
+                                (`($ ,sc-str ,name)
+                                 (tempel-command-example--build-template sc-str nil name))
                                 (`(\# ,sc-str)
-                                 (tempel-command-example--build-template sc-str 'sudo)))
+                                 (tempel-command-example--build-template sc-str 'sudo))
+                                (`(\# ,sc-str ,name)
+                                 (tempel-command-example--build-template sc-str 'sudo name)))
                               templates))
                       (mapc (apply-partially 'add-to-list 'result)
                             templates))))))
