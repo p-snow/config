@@ -13602,14 +13602,15 @@ obtained from the org-link at the current point."
      ((string-match-p "https?" type)
       (funcall function (list (org-link-unescape (concat type ":" path)) desc)))
      ((string-match-p "elfeed" type)
-      (save-excursion
-        (org-open-at-point)
-        (when (eq major-mode 'elfeed-show-mode)
-          (when-let ((url (or (caar (elfeed-entry-enclosures elfeed-show-entry))
-                              (elfeed-entry-link elfeed-show-entry)))
-                     (title (elfeed-entry-title elfeed-show-entry)))
-            (funcall function (list url title)))
-          (quit-window)))))))
+      (save-restriction
+        (save-excursion
+          (org-open-at-point)
+          (when (eq major-mode 'elfeed-show-mode)
+            (when-let ((url (or (caar (elfeed-entry-enclosures elfeed-show-entry))
+                                (elfeed-entry-link elfeed-show-entry)))
+                       (title (elfeed-entry-title elfeed-show-entry)))
+              (funcall function (list url title)))
+            (quit-window))))))))
 #+end_src
 
 **** keymap for global org commands
@@ -13800,9 +13801,10 @@ In neither case, count down time is 25 min which is suggested in the Pomodoro-te
   "Supersede clocking task with the task at point."
   (interactive)
   (let ((org-clock-continuously t))
-    (save-excursion
-      (and (bound-and-true-p org-clock-current-task)
-           (org-clock-cancel)))
+    (save-restriction
+      (save-excursion
+        (and (bound-and-true-p org-clock-current-task)
+             (org-clock-cancel))))
     (org-clock-in)))
 
 (with-eval-after-load 'org-keys
@@ -13968,11 +13970,12 @@ The previous heading is logged as a log note."
          (new-heading (read-string "Heading: " old-heading))
          (org-log-note-headings (append '((heading . "Heading %-12s from %-12S %t"))
                                         org-log-note-headings)))
-    (save-excursion
-      (org-back-to-heading t)
-      (replace-string old-heading new-heading nil
-                      (line-beginning-position) (line-end-position))
-      (org-align-tags))
+    (save-restriction
+      (save-excursion
+        (org-back-to-heading t)
+        (replace-string old-heading new-heading nil
+                        (line-beginning-position) (line-end-position))
+        (org-align-tags)))
     (org-add-log-setup 'heading new-heading old-heading 'state)
     (run-hooks 'post-command-hook)))
 
@@ -14188,22 +14191,23 @@ Someday tasks are encouraged to review and they prohibited to appear in agenda v
 (defun my/org-subtree-send-email ()
   "Send an email containing the contents of the subtree at the entry at point."
   (interactive)
-  (org-save-outline-visibility t
-    (save-excursion
-      (org-fold-show-all)
-      (let* ((heading (org-get-heading t t t t))
-             (org-export-with-toc nil)
-             (org-export-with-author nil)
-             (org-export-show-temporary-export-buffer nil)
-             (message-kill-buffer-on-exit t)
-             (exp-buf (org-ascii-export-as-ascii nil t t t)))
-        (message-mail (cdr (assoc "login" (auth-source-pass-parse-entry "www.zoho.com")))
-                      heading)
-        (message-goto-body)
-        (insert (with-current-buffer exp-buf (buffer-string)))
-        (message-send-and-exit)))))
+  (save-restriction
+    (org-save-outline-visibility t
+      (save-excursion
+        (org-fold-show-all)
+        (let* ((heading (org-get-heading t t t t))
+               (org-export-with-toc nil)
+               (org-export-with-author nil)
+               (org-export-show-temporary-export-buffer nil)
+               (message-kill-buffer-on-exit t)
+               (exp-buf (org-ascii-export-as-ascii nil t t t)))
+          (message-mail (cdr (assoc "login" (auth-source-pass-parse-entry "www.zoho.com")))
+                        heading)
+          (message-goto-body)
+          (insert (with-current-buffer exp-buf (buffer-string)))
+          (message-send-and-exit))))))
 #+end_src
-**** clean up after the task has chenged to DONE
+**** Performing post-process after todo state of the task to DONE
 :PROPERTIES:
 :CREATED:  [2023-01-30 Mon 13:45]
 :END:
@@ -14236,14 +14240,15 @@ Including:
          (not (org-get-scheduled-time (point)))
          (org-todo ""))
     ;; close the project
-    (save-excursion
-      (org-back-to-heading t)
-      (org-speed-move-safe 'outline-up-heading)
-      (and (member my/org-project-tag (org-get-tags))
-           (org-todo my/org-done-keyword--done)))))
+    (save-restriction
+      (save-excursion
+        (org-back-to-heading t)
+        (org-speed-move-safe 'outline-up-heading)
+        (and (member my/org-project-tag (org-get-tags))
+             (org-todo my/org-done-keyword--done))))))
 #+end_src
 
-**** flush old clock logs and state changes
+**** Flushing old clock logs and state changes
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 14:51]
 :END:
@@ -14285,29 +14290,30 @@ Clocking logs and state-changing logs tend to accumulate during habit tasks. The
   (interactive)
   (org-save-outline-visibility t
     (org-show-all)
-    (save-excursion
-      (let ((case-fold-search t)
-            (next-heading (save-excursion
-                            (org-next-visible-heading 1)
-                            (point-marker))))
-        (mapc (lambda (re)
-                (org-back-to-heading t)
-                (while-let ((ts-time (and (re-search-forward re (marker-position next-heading) t)
-                                          (encode-time (parse-time-string (match-string 1))))))
-                  (when (time-less-p ts-time
-                                     (time-subtract (current-time) (days-to-time my/org-flush-blobs-old-timestamp-in-day)))
-                    (kill-whole-line))))
-              (append (and my/org-flush-blobs-clock-log
-                           (list org-tr-regexp-both))
-                      (and my/org-flush-blobs-state-change
-                           (list (concat (rx "- State " "\"" (>= 2 upper) "\"" (+ space)
-                                             "from " (opt "\"" (>= 2 upper) "\"") (+ space))
-                                         org-ts-regexp-inactive)))))
-        (when (featurep 'org-clock)
-          (org-clock-remove-empty-clock-drawer))))))
+    (save-restriction
+      (save-excursion
+        (let ((case-fold-search t)
+              (next-heading (save-excursion
+                              (org-next-visible-heading 1)
+                              (point-marker))))
+          (mapc (lambda (re)
+                  (org-back-to-heading t)
+                  (while-let ((ts-time (and (re-search-forward re (marker-position next-heading) t)
+                                            (encode-time (parse-time-string (match-string 1))))))
+                    (when (time-less-p ts-time
+                                       (time-subtract (current-time) (days-to-time my/org-flush-blobs-old-timestamp-in-day)))
+                      (kill-whole-line))))
+                (append (and my/org-flush-blobs-clock-log
+                             (list org-tr-regexp-both))
+                        (and my/org-flush-blobs-state-change
+                             (list (concat (rx "- State " "\"" (>= 2 upper) "\"" (+ space)
+                                               "from " (opt "\"" (>= 2 upper) "\"") (+ space))
+                                           org-ts-regexp-inactive)))))
+          (when (featurep 'org-clock)
+            (org-clock-remove-empty-clock-drawer)))))))
 #+end_src
 
-**** pad non-clocking time with break task
+**** Making up for non-clocking time with 'Break' task
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 07:36]
 :END:
