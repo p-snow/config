@@ -5910,7 +5910,7 @@ Ancestors are looked up If current heading has no CATEGORY."
 "emacs-org-web-track"
 #+end_src
 
-#+begin_src emacs-lisp :tangle (expand-file-name "org-web-track-config.el" tangle/emacs-config-dir)
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "org-web-track-config.el" tangle/emacs-config-dir)
 (use-package org-web-track
   ;; :ensure t
   ;; :load-path "~/.local/share/ghq/github.com/p-snow/org-web-track"
@@ -5999,26 +5999,14 @@ exchange rate against US dollar."
   :custom
   (org-web-track-use-curl nil)
   (org-web-track-content-fetcher-alist
-   `((,(regexp-quote "melpa.org/#/") .
-      "fetch-dynamic-page %s")))
+   `(
+     <<org-web-track-content-fetcher>>))
   (org-web-track-selectors-alist
-   `((,(regexp-quote "melpa\.org/#/") .
-      "htmlq --text dd | head -n 1 | cut -d ' ' -f 1")
-     (,(regexp-quote "www.lenovo.com/jp/ja/p/laptops/thinkpad")
+   `((,(regexp-quote "www.lenovo.com/jp/ja/p/laptops/thinkpad")
       (lambda (dom)
         (when-let ((price-node (car (dom-search dom (lambda (node) (string= "productpromotionprice"
                                                                         (dom-attr node 'name)))))))
           (assoc-default 'content (cadr price-node)))))
-     (,(rx "www.amazon.co.jp" (+ anychar) "-ebook")
-      ;; "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'"
-      [.a-size-base.a-color-price.a-color-price])
-     (,(regexp-quote "www.amazon.co.jp/product-reviews")
-      [.a-size-base.a-color-secondary] ; num of stars
-      [.a-size-medium.a-color-base])  ; rating
-     (,(regexp-quote "www.amazon.co.jp")
-      [.a-price.aok-align-center > .a-offscreen]
-      [div:availability span]         ; availability
-      )
      (,(regexp-quote "www.yodobashi.com/product")
       [:js_scl_unitPrice])
      (,(regexp-quote "kakaku.com/item")
@@ -6068,7 +6056,8 @@ exchange rate against US dollar."
                     (price (car (dom-by-class price-w "tw-text-save-color"))))
           (my/convert-currency 'JPY (dom-text price)))))
      (,(regexp-quote "api.github.com/repos") .
-      ,(apply-partially 'assoc-default 'stargazers_count))))
+      ,(apply-partially 'assoc-default 'stargazers_count))
+     <<org-web-track-selector>>))
   (org-agenda-bulk-custom-functions
    '((?U org-web-track-agenda-update)))
   (org-web-track-item-column-width 16)
@@ -6085,6 +6074,148 @@ exchange rate against US dollar."
                                    (denote-directory-files))))))))
 #+end_src
 
+******* tracking entries
+:PROPERTIES:
+:CREATED:  [2025-06-09 Mon 18:19]
+:END:
+
+Entry order matters.
+
+******** Package downloads in MELPA
+:PROPERTIES:
+:CREATED:  [2025-06-09 Mon 19:31]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-content-fetcher
+(,(regexp-quote "melpa.org/#/") .
+ "fetch-dynamic-page %s")
+#+end_src
+
+#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-selector
+(,(regexp-quote "melpa.org/#/") .
+ "htmlq --text dd | head -n 1 | cut -d ' ' -f 1")
+#+end_src
+
+******** Smart phone special price in IIJmio
+:PROPERTIES:
+:CREATED:  [2025-06-09 Mon 19:31]
+:END:
+
+Content Fetcher
+#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-content-fetcher
+(,(regexp-quote "www.iijmio.jp/campaign/auth") .
+ (lambda (url)
+   (shell-command-to-string
+    (format "fetch-dynamic-page '%s' '%s' '%s'"
+            url
+            (my/credential-info "www.iijmio.jp/gigaplan" "login")
+            (my/credential-info "www.iijmio.jp/gigaplan" 'secret)))))
+#+end_src
+
+Selector
+#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-selector
+(,(regexp-quote "www.iijmio.jp/campaign") .
+ "htmlq -t div[devicename=AQUOS_wish3] article section.-label")
+#+end_src
+
+User input in fetch-dynamic-page
+#+begin_src python :tangle no :noweb-ref dynamic-page-user-input
+if re.search(r'iijmio.jp', url):
+    username = sys.argv[2]
+    password = sys.argv[3]
+    username_input = driver.find_element(By.NAME, 'j_username')
+    password_input = driver.find_element(By.NAME, 'j_password')
+    username_input.send_keys(username)
+    password_input.send_keys(password)
+    login_button = driver.find_element(By.CLASS_NAME, 'pink_btn')
+    login_button.click()
+#+end_src
+
+******** Age-restricted games in Steam
+:PROPERTIES:
+:CREATED:  [2025-06-09 Mon 19:44]
+:END:
+
+Content Fetcher
+#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-content-fetcher
+(,(regexp-quote "store.steampowered.com/sub/886312") .
+ (lambda (url)
+   (shell-command-to-string
+    (format "fetch-dynamic-page '%s'" url))))
+#+end_src
+
+User input in fetch-dynamic-page
+#+begin_src python :tangle no :noweb-ref dynamic-page-user-input
+if re.search(r'store.steampowered.com', url):
+    age_input = driver.find_element(By.NAME, 'ageYear')
+    select = Select(age_input)
+    select.select_by_visible_text('1966')
+    login_button = driver.find_element(By.ID, 'view_product_page_btn')
+    login_button.click()
+#+end_src
+
+******** Ebook price in amazon.co.jp
+:PROPERTIES:
+:CREATED:  [2025-06-09 Mon 18:22]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-selector
+(,(rx "www.amazon.co.jp" (+ anychar) "-ebook")
+ ;; "pup 'span[id=\"priceblock_ourprice\"],span[id=\"kindle-price\"],span[class=\"a-text-price\"],span[class=\"a-offscreen\"] json{}' \| jq -re '.[0].text'"
+ [.a-size-base.a-color-price.a-color-price])
+#+end_src
+
+******** Product review in amazon.co.jp
+:PROPERTIES:
+:CREATED:  [2025-06-09 Mon 18:41]
+:END:
+
+Content Fetcher
+#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-content-fetcher
+(,(regexp-quote "www.amazon.co.jp/product-reviews") .
+ (lambda (url)
+   (shell-command-to-string
+    (format "fetch-dynamic-page '%s' '%s' '%s'"
+            url
+            (my/credential-info "www.amazon.co.jp/ovine@p-snow.org" "login")
+            (my/credential-info "www.amazon.co.jp/ovine@p-snow.org" 'secret)))))
+#+end_src
+
+Selector
+#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-selector
+(,(regexp-quote "www.amazon.co.jp/product-reviews")
+ [.a-size-base.a-color-secondary] ; num of stars
+ [.a-size-medium.a-color-base])  ; rating
+#+end_src
+
+User input in fetch-dynamic-page
+#+begin_src python :tangle no :noweb-ref dynamic-page-user-input
+if re.search(r'www.amazon.co.jp/product-reviews', url):
+    username = sys.argv[2]
+    username_input = driver.find_element(By.ID, 'ap_email_login')
+    username_input.send_keys(username)
+    next_button = driver.find_element(By.CLASS_NAME, 'a-button-input')
+    next_button.click()
+    time.sleep(3)
+    password = sys.argv[3]
+    password_input = driver.find_element(By.ID, 'ap_password')
+    password_input.send_keys(password)
+    login_button = driver.find_element(By.ID, 'signInSubmit')
+    login_button.click()
+#+end_src
+
+******** Product price in amazon.co.jp
+:PROPERTIES:
+:CREATED:  [2025-06-09 Mon 18:42]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-selector
+(,(regexp-quote "www.amazon.co.jp")
+ [.a-price.aok-align-center > .a-offscreen]
+ ;; availability
+ [div:availability span])
+#+end_src
+
 ******* contents fetcher
 :PROPERTIES:
 :CREATED:  [2025-05-08 Thu 15:54]
@@ -6092,45 +6223,52 @@ exchange rate against US dollar."
 
 #+name: bash/fetch-dynamic-page
 #+begin_src bash :tangle (expand-file-name "fetch-dynamic-page" tangle/local-bin-dir)
-guix shell python python-urllib3@1.26.17 python-selenium -- fetch-dynamic-page.py $1
+guix shell python python-urllib3@1.26.17 python-selenium -- fetch-dynamic-page.py $*
 #+end_src
 
 #+name: python/fetch-dynamic-page
-#+begin_src python :results output :tangle (expand-file-name "fetch-dynamic-page.py" tangle/local-bin-dir)
+#+begin_src python :noweb tangle :tangle (expand-file-name "fetch-dynamic-page.py" tangle/local-bin-dir)
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
 import sys
 import time
+import re
 import requests
 
-url = sys.argv[1]
-# url = sys.stdin.read()
+def main():
+    url = sys.argv[1]
+    options = Options()
+    options.headless = True
+    driver = webdriver.Firefox(options=options)
+    driver.get(url)
+    time.sleep(3)
+    user_input(driver, url)
+    time.sleep(5)
 
-options = Options()
-options.headless = True
-driver = webdriver.Firefox(options=options)
+    try:
+        WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located)
+        # WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CLASS_NAME, 'dl-horizontal')))
+    except TimeoutException as te:
+        print("An error occurred while waiting for rendering.")
 
-driver.get(url)
+    rendered_content = driver.page_source
 
-time.sleep(10)
+    # Make sure the content which is about to be printed is in text/html format
+    if requests.head(url).headers["Content-Type"].startswith("text/html"):
+        print(rendered_content)
 
-try:
-    # WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located)
-    WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CLASS_NAME, 'dl-horizontal')))
-except TimeoutException as te:
-    print("An error occurred while waiting for rendering.")
+    driver.quit()
 
-rendered_content = driver.page_source
+def user_input(driver, url):
+    <<dynamic-page-user-input>>
 
-# Make sure the content that is about to be printed is in text/html format
-if requests.head(url).headers["Content-Type"].startswith("text/html"):
-    print(rendered_content)
-
-driver.quit()
+if __name__ == "__main__":
+    main()
 #+end_src
 
 ******* batch tracking
