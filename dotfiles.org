@@ -10105,13 +10105,14 @@ EWW is a nice place for intensive reading. When there are articles or documents 
     (add-to-list 'org-speed-commands
                  '("!" . my/view-htmlized)
                  t))
-  :config
+  :preface
   (defun my/view-htmlized ()
     (interactive)
     (pcase-let* ((`(,fname . ,write-proc)
                   (if (derived-mode-p 'org-mode)
                       (cons (format "%s.html"
-                                    (secure-hash 'md5 (org-id-get-create)))
+                                    (secure-hash 'md5 (or (org-id-get)
+                                                          (org-id-uuid))))
                             (lambda (file)
                               (let ((org-export-show-temporary-export-buffer nil)
                                     (org-export-preserve-breaks t)
