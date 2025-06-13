@@ -3134,12 +3134,28 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 (use-package proced
   :commands proced
   :custom
-  (proced-auto-update-flag t)
+  (proced-auto-update-flag 'visible)
   (proced-auto-update-interval 3)
   (proced-show-remote-processes t)
+  (proced-enable-color-flag t)
+  (proced-tree-flag t)
+  (proced-format '(tree pcpu (args comm) pmem start time pid))
+  :preface
+  (defun proced-format-args-base-name (args)
+    "Format attribute ARGS.
+In ARGS, execution file paths are abbreviated using their base names."
+    (string-replace "\n" "^J"
+                    (pcase-let* ((`(,exe . ,rest) (split-string args))
+                                 (exe-prop (let ((exe-base (file-name-base exe)))
+                                             (if proced-enable-color-flag
+                                                 (propertize exe-base 'font-lock-face 'proced-executable)
+                                               exe-base))))
+                      (mapconcat #'identity (cons exe-prop rest) " "))))
   :config
   (bind-keys :map proced-mode-map
-             ("a" . proced-toggle-auto-update)))
+             ("a" . proced-toggle-auto-update))
+  (advice-add 'proced-format-args :override
+              #'proced-format-args-base-name))
 #+end_src
 
 ******* Shell
