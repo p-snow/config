@@ -10114,7 +10114,6 @@ EWW is a nice place for intensive reading. When there are articles or documents 
 #+NAME: config/emacs-htmlize
 #+begin_src emacs-lisp :noweb tangle
 (use-package htmlize
-  :bind ("C-!" . my/view-htmlized)
   :custom
   (Htmlize-force-inline-images t)
   :init
@@ -10155,7 +10154,9 @@ EWW is a nice place for intensive reading. When there are articles or documents 
       (when (or (not (file-exists-p file-path))
                 (derived-mode-p 'org-mode))
         (apply write-proc (list file-path)))
-      (browse-url-of-file file-path))))
+      (browse-url-of-file file-path)))
+  :config
+  (bind-keys ("C-!" . my/view-htmlized)))
 #+end_src
 
 ***** everywhere                 :frames:convenience:
