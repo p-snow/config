@@ -5374,7 +5374,9 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   (org-id-track-globally t)
   (org-id-locations-file
    (expand-file-name (file-name-concat org-directory "id-locations.el")))
-  (org-id-link-to-org-use-id 'create-if-interactive))
+  (org-id-link-to-org-use-id 'create-if-interactive)
+  (org-id-extra-files (file-expand-wildcards
+                       (file-name-concat org-directory "**/*.org"))))
 #+end_src
 
 ****** Org Crypt
