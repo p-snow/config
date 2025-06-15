@@ -10449,6 +10449,37 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
     (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
 #+end_src
 
+***** org-id-backlink
+:PROPERTIES:
+:CREATED:  [2025-06-12 Thu 12:17]
+:END:
+
+#+NAME: config/emacs-org-id-backlink
+#+begin_src emacs-lisp
+(use-package org-id-backlink
+  ;; :disabled t
+  :after (org denote)
+  :hook (org-mode . org-id-backlink-mode)
+  :custom
+  (org-id-backlink-mode t)
+  (org-id-backlink-files
+   (seq-filter
+    (lambda (file)
+      (file-in-directory-p file org-directory))
+    (delete-dups
+     (mapcar (lambda (file)
+               (string-trim
+                (shell-command-to-string (format "realpath %s" (shell-quote-argument file)))))
+             (append (org-files-list)
+                     (take 3 (seq-sort-by (lambda (path) (substring path -8))
+                                          'string>
+                                          (mapcar 'expand-file-name
+                                                  (file-expand-wildcards (file-name-concat org-directory "archive/archive_202?.org")))))
+                     (let ((denote-excluded-files-regexp
+                            "20230605T170959"))
+                       (denote-directory-files))))))))
+#+end_src
+
 *** Innovative Customization
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "ext-config.el" tangle/emacs-config-dir)
@@ -16485,6 +16516,136 @@ Provide a function to Build a clock table summing up time by tag.
 
 (provide 'fingertip)
 ;;; fingertip.el ends here
+#+end_src
+
+**** Package: org-id-backlink
+:PROPERTIES:
+:CREATED:  [2025-06-12 Thu 11:51]
+:END:
+
+#+NAME: package/org-id-backlink
+#+header: :shebang ""
+#+begin_src emacs-lisp :comments no :tangle (expand-file-name "org-id-backlink.el" tangle/emacs-sitelisp-dir)
+;;; org-id-backlink.el --- backlinks for org-id links  -*- lexical-binding: t -*-
+
+;; Author: p-snow
+;; Version: 0.0.1
+;; Package-Requires: ((emacs "27.1") (org-ql "0.8.10"))
+;; Homepage: TODO
+;; Keywords: hypermedia
+
+;; This file is not part of GNU Emacs
+
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; commentary
+
+;;; Code:
+
+(require 'eldoc)
+(require 'org-ql)
+(require 'async)
+
+(defvar org-id-backlink-presentation-function
+  'org-id-backlink-count
+  "")
+
+(defcustom org-id-backlink-files nil
+  "")
+
+(defvar org-id-backlink--current-id nil
+  "")
+
+(defvar org-id-backlink--callback nil
+  "")
+
+(defvar org-id-backlink--last-message nil
+  "")
+
+;;; Minor modes
+;;;###autoload
+(define-minor-mode org-id-backlink-mode
+  "Global minor mode to display backlinks for org-id links."
+  :lighter " BLink"
+  :group 'org-id-backlink
+  (when (boundp 'eldoc-documentation-functions)
+    (if org-id-backlink-mode
+        (add-hook 'eldoc-documentation-functions
+                  #'org-id-backlink-eldoc nil t)
+      (remove-hook 'eldoc-documentation-functions
+                   #'org-id-backlink-eldoc t))))
+
+(defun org-id-backlink-eldoc (callback)
+  "Return description of all backlinks."
+  (if-let ((id-at-point (or (org-id-get nil nil)
+                            (org-entry-get nil "CUSTOM_ID"))))
+      (if-let ((id-neq (not (string= id-at-point
+                                     org-id-backlink--current-id))))
+          (progn
+            (funcall callback "")
+            (setq org-id-backlink--current-id id-at-point)
+            (setq org-id-backlink--callback callback)
+            (setq buf (current-buffer))
+            ;; (message "SEARCHING !!!")
+            (setq org-id-backlink--last-message nil)
+            (async-start
+             `(lambda ()
+                (require 'org-ql)
+                (let ((files-cld ,(async-inject-variables "^org-id-backlink-files$"))
+                      (id-cld ,(async-inject-variables "^org-id-backlink--current-id$")))
+                  (cons id-cld
+                        (org-ql-select files-cld
+                          `(link :target ,id-cld)
+                          :action 'element-with-markers))))
+             `(lambda (id-elements)
+                (with-current-buffer ,(async-inject-variables "^buf$")
+                  (when (derived-mode-p 'org-mode)
+                    (when-let* ((id-target (car id-elements))
+                                (elem (cdr id-elements))
+                                (id-pom (or (org-id-get nil nil)
+                                            (org-entry-get nil "CUSTOM_ID")))
+                                (str-eq (string= id-target id-pom)))
+                      (unless (async-message-p id-elements)
+                        (setq org-id-backlink--last-message
+                              (funcall org-id-backlink-presentation-function elem))
+                        (funcall ,(async-inject-variables "^org-id-backlink--callback$")
+                                 org-id-backlink--last-message)))))))
+            t)
+        (funcall callback org-id-backlink--last-message)
+        nil)
+    (setq org-id-backlink--last-message nil)
+    (setq org-id-backlink--current-id nil)
+    nil))
+
+(defun org-id-backlink-count (elements)
+  ""
+  (when elements
+    (format "%d BACKLINKS" (length elements))))
+
+(defun org-id-backlink-display ()
+  ""
+  (interactive)
+  (when-let ((id (or (org-id-get nil nil)
+                     (org-entry-get nil "CUSTOM_ID"))))
+    (org-ql-search org-id-backlink-files
+      `(link :target ,id)
+      :sort '(closed date))))
+
+(provide 'org-id-backlink)
+;;; org-id-backlink.el ends here
 #+end_src
 
 ** Firefox
