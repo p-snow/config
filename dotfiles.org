@@ -10397,6 +10397,18 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
 #+begin_src emacs-lisp
 (use-package reddigg
   :ensure t
+  :preface
+  (defun my/open-reddit-with-reddigg (url &optional _ignore)
+    "Open URL by using `reddigg--view-comments'."
+    (require 'reddigg)
+    (when (featurep 'reddigg)
+      (let ((reddit-url-prefix "https://www.reddit.com/"))
+        (reddigg--view-comments
+         (cond
+          ((string-prefix-p reddit-url-prefix url)
+           (string-remove-prefix reddit-url-prefix url))
+          ((string-prefix-p "r/" url)
+           url))))))
   :custom
   (reddigg-subs '(emacs guix)))
 #+end_src
@@ -15299,6 +15311,8 @@ QUERY must comply to RFC 822 format, which holds attribute/value pairs."
                                           (my/open-pdf-as-html url)))
             ("\\.epub\\'" . (lambda (url &optional same-window)
                               (my/open-epub-as-html url)))
+            (,(eval (rx (seq bol "http" (opt "s") "://www.reddit.com"))) .
+             my/open-reddit-with-reddigg)
             (,(eval `(rx "." (or ,@my/open-file-media-extensions
                                  ,@my/open-file-compressed-media-extensions)
                          (opt ".gpg")))
