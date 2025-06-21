@@ -6673,6 +6673,7 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
 "emacs-cape"
 #+end_src
 
+#+NAME: config/emacs-cape
 #+begin_src emacs-lisp
 (use-package cape
   :bind (:map ctl-x-map
@@ -6696,41 +6697,40 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
   :hook
   (text-mode
    . (lambda ()
-       (setq-local completion-at-point-functions
-                   (append '(cape-dabbrev
-                             cape-file
-                             cape-dict)
-                           completion-at-point-functions))))
+       (dolist (comp-fun '(cape-dict
+                           cape-file
+                           cape-dabbrev))
+         (add-hook 'completion-at-point-functions comp-fun
+                   99 t))))
   (org-mode
    . (lambda ()
-       (setq-local completion-at-point-functions
-                   (append '(cape-elisp-block)
-                           completion-at-point-functions))))
+       (dolist (comp-fun '(cape-elisp-block))
+         (add-hook 'completion-at-point-functions comp-fun
+                   99 t))))
   (prog-mode
    . (lambda ()
-       (setq-local completion-at-point-functions
-                   (append '(cape-dabbrev
-                             cape-file
-                             cape-keyword)
-                           completion-at-point-functions))))
+       (dolist (comp-fun '(cape-keyword
+                           cape-file
+                           cape-dabbrev))
+         (add-hook 'completion-at-point-functions comp-fun
+                   99 t))))
   (emacs-lisp-mode
    . (lambda ()
-       (setq-local completion-at-point-functions
-                   (append '(cape-elisp-symbol)
-                           completion-at-point-functions))))
+       (dolist (comp-fun '(cape-elisp-symbol))
+         (add-hook 'completion-at-point-functions comp-fun
+                   99 t))))
   ((shell-mode eshell-mode)
    . (lambda ()
-       (setq-local completion-at-point-functions
-                   (append '(cape-history)
-                           completion-at-point-functions))))
+       (dolist (comp-fun '(cape-history))
+         (add-hook 'completion-at-point-functions comp-fun
+                   99 t))))
   ((minibuffer-mode)
    . (lambda ()
-       (setq-local completion-at-point-functions
-                   (append '(cape-history
-                             cape-dabbrev
-                             cape-file
-                             cape-dict)
-                           completion-at-point-functions)))))
+       (dolist (comp-fun '(cape-dict
+                           cape-file
+                           cape-dabbrev))
+         (add-hook 'completion-at-point-functions comp-fun
+                   99 t)))))
 #+end_src
 
 **** text-mode and its derivatives
