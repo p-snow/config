@@ -3171,6 +3171,16 @@ In ARGS, execution file paths are abbreviated using their base names."
   (shell-command-prompt-show-cwd t))
 #+end_src
 
+******* Comint
+:PROPERTIES:
+:CREATED:  [2025-06-21 Sat 13:51]
+:END:
+
+#+begin_src emacs-lisp
+(add-hook 'comint-output-filter-functions
+          #'comint-osc-process-output)
+#+end_src
+
 ****** Browse Url
 
 #+begin_src emacs-lisp
