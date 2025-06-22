@@ -2601,18 +2601,17 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
 ****** Visual Line
 
 #+begin_src emacs-lisp
-(use-package visual-line
-  :no-require t
-  :after adaptive-wrap
+(use-package visual-wrap
   :hook
   ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode
                    mu4e-view-mode nov-mode devdocs-mode)
    . visual-line-mode)
   ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode
                    mu4e-view-mode nov-mode devdocs-mode)
-   . adaptive-wrap-prefix-mode)
+   . visual-wrap-prefix-mode)
   :custom
-  (global-visual-line-mode nil))
+  (global-visual-line-mode nil)
+  (visual-wrap-extra-indent 1))
 #+end_src
 
 ****** Whitespace
@@ -5124,7 +5123,8 @@ If entry at POM has no clock log time stamp, this function returns 0."
                           (setq-local auto-save-visited-mode nil)
                           (setq-local buffer-save-without-query t)
                           (when (eq major-mode 'text-mode)
-                            (visual-line-mode 1))))
+                            (visual-line-mode 1)
+                            (visual-wrap-prefix-mode 1))))
   :custom
   (org-special-ctrl-a/e t)
   (org-src-window-setup 'current-window)
@@ -9468,13 +9468,16 @@ Aggressively delete successive white spaces.
   :hook ((emacs-lisp-mode scheme-mode) . aggressive-indent-mode))
 #+end_src
 
-***** adaptive-wrap
+***** adaptive-wrap                         :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-06-22 Sun 23:18]
+:END:
 
-adaptive-wrap and visual-line-mode are active in a bundle in a bunch of major modes.
+[[help:adaptive-wrap-prefix-mode][adaptive-wrap-prefix-mode]] virtually returns and indents long lines, ensuring that all words appear in the buffer without being severed.  I decided to deactivate this functionality since Emacs 30.1 introduced a similar feature called visual-wrap-prefix-mode.
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-adaptive-wrap"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-adaptive-wrap"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package adaptive-wrap)
@@ -10796,7 +10799,7 @@ As of 28.1, Emacs won't steal keyboard focus at startup which means we can use e
     "L" #'line-number-mode
     "C" #'column-number-mode
     "R" #'rainbow-mode
-    "TAB" #'adaptive-wrap-prefix-mode
+    "TAB" #'visual-wrap-prefix-mode
     "+" #'text-scale-adjust
     "-" #'text-scale-adjust
     "0" (lambda () "Set text scale to default level." (interactive)
