@@ -2895,6 +2895,25 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
   (ediff-split-window-function 'split-window-horizontally))
 #+end_src
 
+******* Which Func
+:PROPERTIES:
+:CREATED:  [2025-06-23 Mon 18:56]
+:END:
+
+I don't use [[help:which-function-mode][which-function-mode]] directly; I don't display the function name in either the mode line or the header line; instead, I display it in the echo area.
+
+#+begin_src emacs-lisp
+(use-package which-func
+  :after help
+  :bind (:map help-map
+              ("F" . (lambda ()
+                       "Prints the result of `which-function' in the echo area."
+                       (interactive)
+                       (message (which-function)))))
+  :custom
+  (which-function-mode nil))
+#+end_src
+
 ***** Development
 
 ****** Internal
