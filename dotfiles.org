@@ -2717,8 +2717,10 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 ***** Editing
 
 #+begin_src emacs-lisp
-;; the point will be at the beginning of duplicated lines
-(setopt duplicate-line-final-position 1)
+(setopt ;; the point will be at the beginning of duplicated lines
+ duplicate-line-final-position 1
+ ;; Mark duplicated string if region is active
+ duplicate-region-final-position -1)
 #+end_src
 
 ****** Indent
