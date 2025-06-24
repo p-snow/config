@@ -2607,10 +2607,9 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
   :hook
   ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode
                    mu4e-view-mode nov-mode devdocs-mode)
-   . visual-line-mode)
-  ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode
-                   mu4e-view-mode nov-mode devdocs-mode)
-   . visual-wrap-prefix-mode)
+   . (lambda ()
+       (visual-line-mode 1)
+       (visual-wrap-prefix-mode 1)))
   :custom
   (global-visual-line-mode nil)
   (visual-wrap-extra-indent 1))
