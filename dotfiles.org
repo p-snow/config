@@ -2941,7 +2941,9 @@ The Emacs package [[help:Package][emacs-gc-stats]] is useful for collecting stat
 
 #+begin_src emacs-lisp
 (use-package shortdoc
-  :bind ("<help> D" . shortdoc-display-group))
+  :bind ("<help> D" . shortdoc-display-group)
+  :hook (help-fns-describe-function-functions
+         . shortdoc-help-fns-examples-function))
 #+end_src
 
 ******* Re Builder
