@@ -6535,10 +6535,9 @@ export DISPLAY=:0 && \
             :history file-name-history
             :items ,(lambda ()
                       (let* ((project (project-current nil "<<doc-dir>>"))
-                             (project-files-relative-names t)
                              (all-files (project-files project))
                              (completion-ignore-case read-file-name-completion-ignore-case))
-                        all-files)))
+                        (mapcar #'file-name-directory all-files))))
     "Directory source in my document folder for `consult-dir--pick'.")
   (defvar consult-dir--source-ghq
     `(:name "Projects in ghq"
