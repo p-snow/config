@@ -1,5 +1,5 @@
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-06-19 18:15:06>
+#+DATE: Time-stamp: <Last changed 2025-06-24 16:17:24>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -13094,8 +13094,12 @@ QUERY must comply to RFC 822 format, which holds attribute/value pairs."
 ;; ==============================================
 ;; org-open handling
 
+(defvar org-open-preferred-search-delimiter "::")
+
 (defvar org-open-preferred-search-regexp
-  "::\\(.*\\)\\'")
+  (eval `(rx (seq ,org-open-preferred-search-delimiter
+                  (or (group-n 1 (1+ print))
+                      (group-n 2 (seq "l=" (1+ digit))))))))
 
 (defun org-open-preferred (open-fun file-path link-string)
   "Open a file at FILE-PATH using OPEN-FUN with searching capability conducted by LINK-STRING."
@@ -13135,6 +13139,31 @@ QUERY must comply to RFC 822 format, which holds attribute/value pairs."
             (directory . ,(apply-partially #'org-open-preferred #'my/open-media))
             (auto-mode . emacs)
             (system . browse-url-default-browser))))
+
+(defun org-open-preferred-browse-url (protocol url &rest args)
+  ""
+  (let ((search-thing (and (stringp url)
+                           (string-match org-open-preferred-search-regexp url)
+                           (or (match-string 1 url)
+                               (match-string 2 url)))))
+    (if (stringp search-thing)
+        (progn
+          (funcall #'browse-url
+                   (concat (symbol-name protocol) ":"
+                           (string-remove-suffix (concat org-open-preferred-search-delimiter search-thing) url))
+                   args)
+          (sleep-for 2)
+          (org-link-search search-thing)
+          (recenter-top-bottom 0))
+      (browse-url (concat (symbol-name protocol) ":" url) args))))
+
+(org-link-set-parameters "http" :follow
+                         (apply-partially #'org-open-preferred-browse-url 'http)
+                         #'open-preferred-browse-url)
+
+(org-link-set-parameters "https" :follow
+                         (apply-partially #'org-open-preferred-browse-url 'https)
+                         #'open-preferred-browse-url)
 
 ;; ==============================================
 ;; dired-open handling
@@ -15429,222 +15458,6 @@ A link consists of LINK and DESCRIPTION."
 
 (provide 'lfile)
 #+end_src
-
-**** Package: open-file
-:PROPERTIES:
-:CREATED:  [2023-01-28 Sat 13:58]
-:END:
-
-Open-file is a feature that allows you to specify the application to open a file based on its type.
-
-By default, PDF and EPUB files are opened in EWW after converted into HTML. Videos and audio files are played in MPV media player.
-
-#+NAME: open-file
-#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "open-file.el" tangle/emacs-sitelisp-dir)
-;; general functions
-
-(defvar my/open-file-dir
-  "<<htmlize-dir()>>"
-  "Directory where html file is converted into.")
-
-(defvar my/open-file-media-player "mpv"
-  "Media player used to play media file in open-file.")
-
-(defvar my/open-file-media-extensions
-  '("mpg" "mpeg" "mp3" "mp4" "m4v" "m4a"
-    "avi" "wmv" "wav" "mov" "flv" "mkv" "mka" "webm" "3gp"
-    "flac" "ogv" "oga" "ogx" "ogg" "spx" "opus"
-    "xbm" "pbm" "pgm" "ppm" "pnm" "png" "gif" "bmp" "tif" "jpeg" "jpg" "webp")
-  "Extensions files which can play with media player must have.")
-
-(defvar my/open-file-compressed-media-extensions
-  '("tar.gz" "tgz" "tar.xz" "txz" "zip" "7z")
-  "Extensions compressed files which can play with media player must have.")
-
-(defmacro my/open-file-as-html (file convert-cmd)
-  `(let* ((cap-command (if (string-match-p url-handler-regexp ,file)
-                           "curl"
-                         (if (string-suffix-p ".gpg" ,file)
-                             "gpg -d"
-                           "cat")))
-          (dir-name (file-name-base ,file))
-          (dirname-html
-           (expand-file-name
-            dir-name
-            my/open-file-dir))
-          (filename-html
-           (concat (file-name-as-directory dirname-html)
-                   "index.html"))
-          (command ,convert-cmd))
-     (unless (file-exists-p filename-html)
-       (make-directory dirname-html t)
-       (call-process-shell-command command))
-     (browse-url filename-html)))
-
-(defun my/open-pdf-as-html (pdf)
-  "Open PDF in `eww' after the process of convertion into html."
-  (my/open-file-as-html
-   (expand-file-name pdf)
-   (format "%1$s %2$s 2>/dev/null | pdftohtml -p -s -noframes -nomerge -nodrm - %3$s"
-           cap-command
-           (shell-quote-argument (expand-file-name pdf))
-           (shell-quote-argument filename-html))))
-
-(defun my/open-epub-as-html (epub)
-  "Open EPUB in `eww' after the process of convertion into html."
-  (let ((exp-epub (if (file-exists-p epub)
-                      (expand-file-name epub)
-                    epub)))
-    (my/open-file-as-html
-     exp-epub
-     (format "guix shell python python-lxml -- bash -c \"%1$s '%2$s' 2>/dev/null | pandoc --from=epub --to=html --extract-media='%3$s' - | strip_ruby > '%4$s'\""
-             cap-command
-             exp-epub
-             dirname-html
-             filename-html))))
-
-(defun my/open-media (media &optional query)
-  "Open MEDIA file in media player with respecting QUERY.
-
-QUERY must comply to RFC 822 format, which holds attribute/value pairs."
-  (apply 'funcall-interactively
-         'my/mpv-command media
-         (and (stringp query)
-              (let (mpv-args)
-                (mapc (lambda (cons-cell)
-                        (pcase cons-cell
-                          (`(,val "") (setq mpv-args (plist-put mpv-args :start val)))
-                          (`(,(or "s" "start") . (,val)) (setq mpv-args (plist-put mpv-args :start val)))
-                          (`(,(or "e" "end") . (,val)) (setq mpv-args (plist-put mpv-args :end val)))
-                          (`(,(or "ps" "playlist-start") . (,val)) (setq mpv-args (plist-put mpv-args :playlist-start val)))))
-                      (url-parse-query-string query))
-                mpv-args))))
-
-;; ==============================================
-;; browse-url handling
-
-(with-eval-after-load 'browse-url
-  (setopt browse-url-handlers
-          `(((lambda (url) (equal current-prefix-arg '(16)))
-             . browse-url-firefox)
-            ((lambda (url) (equal current-prefix-arg '(4)))
-             . browse-url-emacs)
-            ("\\.html\\'"
-             . (lambda (url &optional same-window)
-                 (cond
-                  ((file-exists-p url) (eww-open-file url))
-                  ((string-match-p url-handler-regexp url)
-                   (browse-web url)))))
-            ("\\.pdf\\(\\.gpg\\)?\\'" . (lambda (url &optional same-window)
-                                          (my/open-pdf-as-html url)))
-            ("\\.epub\\'" . (lambda (url &optional same-window)
-                              (my/open-epub-as-html url)))
-            (,(eval (rx (seq bol "http" (opt "s") "://www.reddit.com"))) .
-             my/open-reddit-with-reddigg)
-            (,(eval `(rx "." (or ,@my/open-file-media-extensions
-                                 ,@my/open-file-compressed-media-extensions)
-                         (opt ".gpg")))
-             . my/open-media))))
-
-;; ==============================================
-;; org-open handling
-
-(defvar org-open-preferred-search-regexp
-  "::\\(.*\\)\\'")
-
-(defun org-open-preferred (open-fun file-path link-string)
-  "Open a file at FILE-PATH using OPEN-FUN with searching capability conducted by LINK-STRING."
-  (let ((search (and (stringp link-string)
-                     (string-match org-open-preferred-search-regexp link-string)
-                     (match-string 1 link-string))))
-    (if (eq open-fun 'my/open-media)
-        (funcall open-fun file-path search)
-      (funcall open-fun file-path)
-      (when (stringp search)
-        (org-link-search search)))))
-
-(defun org-open-preferred-execute-file-search-line-number (s)
-  "A search function responsible for line number inside of S."
-  (when (string-match (rx bos (opt "l=")
-                          (group-n 1 (opt (or ?- ?+))
-                                   (1+ digit))
-                          eos)
-                      s)
-    (goto-line (string-to-number (match-string 1 s)))))
-
-(add-hook 'org-execute-file-search-functions
-          #'org-open-preferred-execute-file-search-line-number)
-
-(with-eval-after-load 'org
-  (setopt org-file-apps
-          `((,(eval `(rx (seq ".htm" (opt "l") eos))) .
-             ,(apply-partially #'org-open-preferred #'browse-url))
-            ("\\.epub\\'" .
-             ,(apply-partially #'org-open-preferred #'my/open-epub-as-html))
-            (,(eval `(rx (seq ".pdf" (opt ".gpg") (opt ,org-open-preferred-search-regexp)))) .
-             ,(apply-partially #'org-open-preferred #'my/open-pdf-as-html))
-            (,(eval `(rx "." (or ,@my/open-file-media-extensions
-                                 ,@my/open-file-compressed-media-extensions)
-                         (opt ".gpg") string-end))
-             . ,(apply-partially #'org-open-preferred #'my/open-media))
-            (directory . ,(apply-partially #'org-open-preferred #'my/open-media))
-            (auto-mode . emacs)
-            (system . browse-url-default-browser))))
-
-;; ==============================================
-;; dired-open handling
-
-(with-eval-after-load 'dired-open
-  (setq dired-open-functions '(dired-open-call-function-by-extension
-                               dired-open-by-extension
-                               dired-open-subdir)
-        dired-open-extensions-elisp `(("pdf" . my/open-pdf-as-html)
-                                      ("pdf.gpg" . my/open-pdf-as-html)
-                                      ("epub" . my/open-epub-as-html)
-                                      ,@(mapcar (lambda (ext)
-                                                  (cons ext 'my/open-media))
-                                                my/open-file-media-extensions))
-        dired-open-find-file-function 'my/dired-find-file))
-
-(defun my/dired-find-file ()
-  "A function for `dired-open-find-file-function' dealing with
-a `dired-open-file' call with \\[universal-argument] or \\[universal-argument] \\[universal-argument]."
-  (let ((file-for-visit (dired-get-file-for-visit)))
-    (cond
-     ((equal current-prefix-arg '(16))
-      (browse-url-xdg-open file-for-visit))
-     ((equal current-prefix-arg '(4))
-      (dired--find-possibly-alternative-file file-for-visit))
-     ((string-match-p (eval `(rx (or ,@my/open-file-compressed-media-extensions)))
-                      file-for-visit)
-      (my/open-media file-for-visit))
-     (t (dired-find-file)))))
-
-(provide 'open-file)
-#+end_src
-
-- get original file name from converted html file
-  #+begin_src emacs-lisp
-  (defun my/open-file-original-file (html)
-    "Revert HTML file into original file name."
-    (interactive (list (if (use-region-p)
-                           (buffer-substring (use-region-beginning)
-                                             (use-region-end))
-                         (read-string "HTML: "))))
-    (when-let* ((regex (rx (group-n 1 (opt (or "file://" "file:~")))
-                           (1+ (: "/" (1+ nonl)))
-                           (group-n 2 (1+ (: "!" (1+ (: nonl)))))
-                           "/index.html"))
-                (index (string-match regex html))
-                (rep (concat (and (cl-some (lambda (cand)
-                                             (string= cand (match-string 1 html)))
-                                           '("file://" "file:~"))
-                                  "lfile:")
-                             (substring (match-string 2 html) 1))))
-      (if (use-region-p)
-          (replace-string-in-region html rep)
-        (princ (replace-regexp-in-string regex rep html)))))
-  #+end_src
 
 **** Package: org-password-store
 :PROPERTIES:
