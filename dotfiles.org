@@ -10348,8 +10348,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   :preface
   (defun my/open-reddit-with-reddigg (url &optional _ignore)
     "Open URL by using `reddigg--view-comments'."
-    (require 'reddigg)
-    (when (featurep 'reddigg)
+    (when (require-with-check 'reddigg)
       (let ((reddit-url-prefix "https://www.reddit.com/"))
         (reddigg--view-comments
          (cond
