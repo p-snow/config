@@ -1,5 +1,5 @@
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-06-24 16:17:24>
+#+DATE: Time-stamp: <Last changed 2025-06-24 17:33:16>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -3536,6 +3536,72 @@ sudo systemctl start dictd
               ("n p" . ping)))
 #+end_src
 
+***** Web
+:PROPERTIES:
+:CREATED:  [2025-06-24 Tue 16:53]
+:END:
+
+****** Shr
+:PROPERTIES:
+:CREATED:  [2025-06-24 Tue 16:53]
+:END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'shr
+  (setopt shr-width 10000
+          shr-use-fonts nil
+          shr-image-animate t
+          shr-use-colors nil
+          shr-max-image-proportion 0.4
+          shr-fill-text nil
+          ;; never use cookies
+          shr-cookie-policy nil))
+#+end_src
+
+****** EWW
+:PROPERTIES:
+:CREATED:  [2025-06-24 Tue 16:56]
+:END:
+
+#+begin_src emacs-lisp
+(use-package eww
+  :commands eww
+  :after my-launch-app
+  :custom
+  ;; set enough large column number to prevent from inserting line break
+  (eww-header-line-format nil)
+  (eww-browse-url-new-window-is-tab nil)
+  (eww-auto-rename-buffer 'title)
+  (eww-buffer-name-length 20)
+  (eww-readable-urls `(,(regexp-quote "irreal.org/blog")
+                       ,(regexp-quote "sachachua.com")
+                       ,(regexp-quote "duckduckgo.com")))
+  :config
+  (bind-keys :map eww-mode-map
+             ("C" . eww-set-character-encoding)
+             ("C-j" . eww-follow-link)
+             ("T" . eww-goto-title-heading)
+             ("L" . my/eww-goto-heading)
+             :map eww-bookmark-mode-map
+             ("C-j" . eww-bookmark-browse))
+  (with-eval-after-load 'consult
+    (defvar consult--source-eww
+      (list :name     "Eww"
+            :narrow   ?w
+            :action   (lambda (bm)
+                        (eww-browse-url (get-text-property 0 'url bm)))
+            :items    (lambda ()
+                        (eww-read-bookmarks)
+                        (mapcar (lambda (bm)
+                                  (propertize
+                                   (format "%s (%s)"
+                                           (plist-get bm :url)
+                                           (plist-get bm :title))
+                                   'url (plist-get bm :url)))
+                                eww-bookmarks))))
+    (add-to-list 'consult-buffer-sources 'consult--source-eww 'append)))
+#+end_src
+
 **** Input Methods
 
 ***** ddskk
@@ -3890,180 +3956,6 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
   :custom
   (find-grep-options "-n -H --no-heading -q")
   (find-ls-option '("-print0 | xargs -0 ls -ldN" . "-ldN")))
-#+end_src
-
-**** EWW
-
-#+NAME: eww-org-dir
-#+begin_src emacs-lisp :var full-path=0
-(funcall (if (= full-path 0) #'identity #'expand-file-name)
-         (file-name-concat no-littering-var-directory "eww/org"))
-#+end_src
-
-#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-d <<eww-org-dir(full-path=1)>> - - - 3d
-#+end_src
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'shr
-  (setopt shr-width 10000)
-  (setopt shr-use-fonts nil)
-  (setopt shr-image-animate t)
-  (setopt shr-use-colors nil)
-  (setopt shr-max-image-proportion 0.4)
-  ;; never use cookies
-  (setopt shr-cookie-policy nil))
-#+end_src
-
-The EWW bookmark functionality is an original implementation, separate from the emacs bookmark facility. Although [[https://lists.gnu.org/archive/html/emacs-devel/2020-10/msg01651.html][adoption of the facility has been considered]], a possible solution to count EWW bookmarks in the source of consult-buffer is showcased at [[https://github.com/minad/consult/issues/347][here]].
-
-#+NAME: config-eww
-#+begin_src emacs-lisp :noweb tangle
-(use-package eww
-  :commands eww
-  :after my-launch-app
-  :custom
-  ;; set enough large column number to prevent from inserting line break
-  (eww-header-line-format nil)
-  (eww-browse-url-new-window-is-tab nil)
-  (eww-auto-rename-buffer 'title)
-  (eww-buffer-name-length 20)
-  :config
-  (bind-keys :map eww-mode-map
-             ("C" . eww-set-character-encoding)
-             ("C-j" . eww-follow-link)
-             ("T" . eww-goto-title-heading)
-             ("L" . my/eww-goto-heading)
-             :map eww-bookmark-mode-map
-             ("C-j" . eww-bookmark-browse))
-  (with-eval-after-load 'consult
-    (defvar consult--source-eww
-      (list :name     "Eww"
-            :narrow   ?w
-            :action   (lambda (bm)
-                        (eww-browse-url (get-text-property 0 'url bm)))
-            :items    (lambda ()
-                        (eww-read-bookmarks)
-                        (mapcar (lambda (bm)
-                                  (propertize
-                                   (format "%s (%s)"
-                                           (plist-get bm :url)
-                                           (plist-get bm :title))
-                                   'url (plist-get bm :url)))
-                                eww-bookmarks))))
-    (add-to-list 'consult-buffer-sources 'consult--source-eww 'append)))
-
-(defun eww-headings-dom ()
-  "Return heading list as a dom from xml."
-  (let ((source (plist-get eww-data :source))
-        (dom nil))
-    (with-temp-buffer
-      (let ((source-file (make-temp-file "source-"))
-            (coding-system-for-write 'utf-8-unix))
-        (insert source)
-        (write-region (point-min) (point-max) source-file nil)
-        (erase-buffer)
-        (call-process-shell-command
-         (format "guix shell python python-lxml -- bash -c \"cat '%s' | extract_headings\""
-                 source-file)
-         nil t)
-        (libxml-parse-xml-region (point-min) (point-max))))))
-
-(defun eww-goto-title-heading ()
-  "Set point to a line which contaings the possible heading."
-  (interactive)
-  (when-let* ((headings-dom (eww-headings-dom))
-              (possible-heading (cl-reduce (lambda (node-a node-b)
-                                             (if (not (bound-and-true-p node-a))
-                                                 (if (not (bound-and-true-p node-b))
-                                                     nil
-                                                   node-b)
-                                               (if (>= (string-to-number (dom-attr node-a 'proximity))
-                                                       (string-to-number (dom-attr node-b 'proximity)))
-                                                   node-a node-b)))
-                                           (dom-children headings-dom)
-                                           :initial-value nil))
-              (possible-text (dom-text possible-heading))
-              (match-pos (or (re-search-forward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1)
-                             (re-search-backward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1))))
-    (beginning-of-line)
-    (recenter-top-bottom 0)))
-
-(defun my/eww-goto-heading ()
-  "Go to selected heading line."
-  (interactive)
-  (setq lexical-binding t)
-  (when-let* ((headings-root (eww-headings-dom))
-              (cur-buf (current-buffer))
-              (heading (completing-read
-                        "Heading : "
-                        (mapcar (lambda (heading-node)
-                                  (when-let* ((heading (dom-text heading-node))
-                                              (tag (symbol-name (dom-tag heading-node)))
-                                              (match-pos (string-match "h\\([1-6]\\{1\\}\\)" tag))
-                                              (indent (- (string-to-number (match-string 1 tag)) 1)))
-                                    (format "%s%s"
-                                            (apply 'concat (make-list indent "  "))
-                                            heading)))
-                                (dom-children headings-root))))
-              (match (string-match "\\(?:  \\)*\\(.*\\)" heading))
-              (heading (match-string 1 heading))
-              (match-pos (or (re-search-forward (build-regex heading) nil t 1)
-                             (re-search-backward (build-regex heading) nil t 1))))
-    (with-current-buffer cur-buf
-      (switch-to-buffer cur-buf)
-      (beginning-of-line)
-      (recenter-top-bottom 0))))
-
-(defmacro build-regex (str)
-  "Return a regexp representation for `STR'."
-  `(format "^[[:blank:]SVG Image]*%s[[:blank:]]*$"
-           ,str))
-#+end_src
-
-***** extract_headings
-
-#+begin_src python :tangle (expand-file-name "extract_headings" tangle/local-bin-dir) :tangle-mode o755
-import sys
-import lxml.html as html
-from lxml import etree
-import difflib
-
-if len(sys.argv) == 1:
-    INPUT_STR = sys.stdin.read()
-    ROOT = html.fromstring(INPUT_STR).getroottree()
-else:
-    sys.exit(1)
-
-OUT_ROOT = etree.Element("headings")
-
-# extract title text
-title = ''
-title_text_arr = ROOT.xpath('//title[1]//text()')
-if len(title_text_arr):
-    title = title_text_arr[0]
-    OUT_ROOT.set("title", title.strip())
-
-htag_text_arr = ROOT.xpath('//*[self::h1 or self::h2 or self::h3 or self::h4 or self::h5 or self::h6]')
-for i in range(len(htag_text_arr)):
-    text = ''
-    texts = htag_text_arr[i].xpath('.//text()')
-    if len(texts) == 1:
-        text = texts[0].strip()
-    elif len(texts) > 1:
-        text = ''.join(map(str.strip, texts))
-    else:
-        continue
-    proximity = difflib.SequenceMatcher(None, title, text).ratio()
-    heading = etree.Element(htag_text_arr[i].tag)
-    heading.text = text
-    heading.set('proximity', str(proximity))
-    OUT_ROOT.append(heading)
-
-out_root_str = etree.tostring(OUT_ROOT, encoding='utf-8', method='xml', pretty_print=True)
-if type(out_root_str) is bytes:
-    out_root_str = out_root_str.decode()
-    print(out_root_str)
 #+end_src
 
 **** Info
@@ -11744,6 +11636,127 @@ gnome-epub-thumbnailer
                                  tmp-png)
                          messages-buffer-name))))
     (funcall orig-fun source-file thumbnail-file)))
+#+end_src
+
+***** Jumping between HTML headings in EWW
+:PROPERTIES:
+:CREATED:  [2025-06-24 Tue 17:30]
+:END:
+
+#+NAME: config-eww
+#+begin_src emacs-lisp :noweb tangle
+(defun eww-headings-dom ()
+  "Return heading list as a dom from xml."
+  (let ((source (plist-get eww-data :source))
+        (dom nil))
+    (with-temp-buffer
+      (let ((source-file (make-temp-file "source-"))
+            (coding-system-for-write 'utf-8-unix))
+        (insert source)
+        (write-region (point-min) (point-max) source-file nil)
+        (erase-buffer)
+        (call-process-shell-command
+         (format "guix shell python python-lxml -- bash -c \"cat '%s' | extract_headings\""
+                 source-file)
+         nil t)
+        (libxml-parse-xml-region (point-min) (point-max))))))
+
+(defun eww-goto-title-heading ()
+  "Set point to a line which contaings the possible heading."
+  (interactive)
+  (when-let* ((headings-dom (eww-headings-dom))
+              (possible-heading (cl-reduce (lambda (node-a node-b)
+                                             (if (not (bound-and-true-p node-a))
+                                                 (if (not (bound-and-true-p node-b))
+                                                     nil
+                                                   node-b)
+                                               (if (>= (string-to-number (dom-attr node-a 'proximity))
+                                                       (string-to-number (dom-attr node-b 'proximity)))
+                                                   node-a node-b)))
+                                           (dom-children headings-dom)
+                                           :initial-value nil))
+              (possible-text (dom-text possible-heading))
+              (match-pos (or (re-search-forward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1)
+                             (re-search-backward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1))))
+    (beginning-of-line)
+    (recenter-top-bottom 0)))
+
+(defun my/eww-goto-heading ()
+  "Go to selected heading line."
+  (interactive)
+  (setq lexical-binding t)
+  (when-let* ((headings-root (eww-headings-dom))
+              (cur-buf (current-buffer))
+              (heading (completing-read
+                        "Heading : "
+                        (mapcar (lambda (heading-node)
+                                  (when-let* ((heading (dom-text heading-node))
+                                              (tag (symbol-name (dom-tag heading-node)))
+                                              (match-pos (string-match "h\\([1-6]\\{1\\}\\)" tag))
+                                              (indent (- (string-to-number (match-string 1 tag)) 1)))
+                                    (format "%s%s"
+                                            (apply 'concat (make-list indent "  "))
+                                            heading)))
+                                (dom-children headings-root))))
+              (match (string-match "\\(?:  \\)*\\(.*\\)" heading))
+              (heading (match-string 1 heading))
+              (match-pos (or (re-search-forward (build-regex heading) nil t 1)
+                             (re-search-backward (build-regex heading) nil t 1))))
+    (with-current-buffer cur-buf
+      (switch-to-buffer cur-buf)
+      (beginning-of-line)
+      (recenter-top-bottom 0))))
+
+(defmacro build-regex (str)
+  "Return a regexp representation for `STR'."
+  `(format "^[[:blank:]SVG Image]*%s[[:blank:]]*$"
+           ,str))
+#+end_src
+
+****** extract_headings
+
+#+NAME: python/extract_headings
+#+begin_src python :tangle (expand-file-name "extract_headings" tangle/local-bin-dir) :tangle-mode o755
+import sys
+import lxml.html as html
+from lxml import etree
+import difflib
+
+if len(sys.argv) == 1:
+    INPUT_STR = sys.stdin.read()
+    ROOT = html.fromstring(INPUT_STR).getroottree()
+else:
+    sys.exit(1)
+
+OUT_ROOT = etree.Element("headings")
+
+# extract title text
+title = ''
+title_text_arr = ROOT.xpath('//title[1]//text()')
+if len(title_text_arr):
+    title = title_text_arr[0]
+    OUT_ROOT.set("title", title.strip())
+
+htag_text_arr = ROOT.xpath('//*[self::h1 or self::h2 or self::h3 or self::h4 or self::h5 or self::h6]')
+for i in range(len(htag_text_arr)):
+    text = ''
+    texts = htag_text_arr[i].xpath('.//text()')
+    if len(texts) == 1:
+        text = texts[0].strip()
+    elif len(texts) > 1:
+        text = ''.join(map(str.strip, texts))
+    else:
+        continue
+    proximity = difflib.SequenceMatcher(None, title, text).ratio()
+    heading = etree.Element(htag_text_arr[i].tag)
+    heading.text = text
+    heading.set('proximity', str(proximity))
+    OUT_ROOT.append(heading)
+
+out_root_str = etree.tostring(OUT_ROOT, encoding='utf-8', method='xml', pretty_print=True)
+if type(out_root_str) is bytes:
+    out_root_str = out_root_str.decode()
+    print(out_root_str)
 #+end_src
 
 ***** miscellaneous functions/commands
