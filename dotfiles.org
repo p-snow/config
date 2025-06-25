@@ -13190,13 +13190,13 @@ QUERY must comply to RFC 822 format, which holds attribute/value pairs."
           (recenter-top-bottom 0))
       (browse-url (concat (symbol-name protocol) ":" url) args))))
 
-(org-link-set-parameters "http" :follow
-                         (apply-partially #'org-open-preferred-browse-url 'http)
-                         #'open-preferred-browse-url)
-
-(org-link-set-parameters "https" :follow
-                         (apply-partially #'org-open-preferred-browse-url 'https)
-                         #'open-preferred-browse-url)
+(with-eval-after-load 'ol
+  (org-link-set-parameters "http" :follow
+                           (apply-partially #'org-open-preferred-browse-url 'http)
+                           #'open-preferred-browse-url)
+  (org-link-set-parameters "https" :follow
+                           (apply-partially #'org-open-preferred-browse-url 'https)
+                           #'open-preferred-browse-url))
 
 ;; ==============================================
 ;; dired-open handling
