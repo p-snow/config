@@ -12968,13 +12968,14 @@ This functionality allows for command usage examples that can also be used as Te
 
 (defun tempel-command-example--build-template (command &optional sudo name)
   ""
-  (when-let* ((shell-args (split-string command "[ 	]" t))
+  (when-let* ((shell-args (split-string-shell-command command))
               (template-name (or name command))
-              (templates (mapcar (lambda (arg)
+              (templates (mapcan (lambda (arg)
                                    (pcase arg
                                      ((rx "<" (group (+ graph)) ">")
-                                      `(p ,(match-string 1 arg)))
-                                     (keyword (format "%s " keyword))))
+                                      (list `(p ,(match-string 1 arg))
+                                            " "))
+                                     (keyword (list (format "%s " keyword)))))
                                  shell-args)))
     `(,(intern template-name)
       ,(when sudo (if (executable-find "pwsudo") "pwsudo " "sudo "))
