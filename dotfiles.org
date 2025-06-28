@@ -12984,16 +12984,16 @@ This functionality allows for command usage examples that can also be used as Te
 (defun tempel-command-example ()
   "Return templates from command examples."
   (when (member major-mode '(minibuffer-mode eshell-mode shell-mode))
-    (let (result)
-      (mapc (lambda (file)
+    (mapcan (lambda (file)
               (with-temp-buffer
                 (insert "(\n")
                 (insert-file-contents file)
                 (goto-char (point-max))
                 (insert "\n)")
                 (goto-char (point-min))
-                (let ((data (read (current-buffer))))
-                  (while data
+                (let ((data (read (current-buffer)))
+                      (result nil))
+                  (while (not (null data))
                     (let (templates)
                       (while (consp (car data))
                         (push (pcase (pop data)
@@ -13006,10 +13006,11 @@ This functionality allows for command usage examples that can also be used as Te
                                 (`(\# ,sc-str ,name)
                                  (tempel-command-example--build-template sc-str 'sudo name)))
                               templates))
-                      (mapc (apply-partially 'add-to-list 'result)
-                            templates))))))
-            (reverse (file-expand-wildcards tempel-shell-command-template-dir t)))
-      result)))
+                      (mapc (lambda (temp)
+                              (add-to-list 'result temp))
+                            templates)))
+                  result)))
+            (reverse (file-expand-wildcards tempel-shell-command-template-dir t)))))
 
 (with-eval-after-load 'tempel
   (add-to-list 'tempel-template-sources #'tempel-command-example))
