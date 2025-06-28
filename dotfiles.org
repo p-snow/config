@@ -1595,6 +1595,7 @@ sudo systemctl start keyd
 :CREATED:  [2023-01-20 Fri 10:22]
 :CUSTOM_ID: gnu-emacs
 :header-args:emacs-lisp+: :tangle-mode (identity #o644)
+:header-args:emacs-lisp+: :shebang ;;; -*- lexical-binding: t -*-
 :END:
 
 #+NAME: install/emacs
@@ -11717,7 +11718,6 @@ gnome-epub-thumbnailer
 (defun my/eww-goto-heading ()
   "Go to selected heading line."
   (interactive)
-  (setq lexical-binding t)
   (when-let* ((headings-root (eww-headings-dom))
               (cur-buf (current-buffer))
               (heading (completing-read
