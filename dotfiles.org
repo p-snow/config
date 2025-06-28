@@ -1,5 +1,5 @@
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-06-24 17:33:16>
+#+DATE: Time-stamp: <Last changed 2025-06-28 12:25:43>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -21297,11 +21297,23 @@ Nifty script that executes command with elevating privilege using password from 
 #+begin_src bash :noweb tangle :tangle (expand-file-name "pwsudo" tangle/local-bin-dir)
 _userid=$(whoami)
 _hostname=$(hostname)
-_exec_path=$(which $1)
+
+declare -a switches
+args=()
+flag=false
+
+for arg in "$@"; do
+  if [[ "$arg" == -* && "$flag" = false ]]; then
+    switches+=("$arg")
+  else
+    flag=true
+    args+=("$arg")
+  fi
+done
 
 pas=$(pass show "${_hostname}/${_userid}" 2>/dev/null) \
-  && ( echo "${pas}" | head -1 | sudo -S -p "" "$_exec_path" "${@:2}" ) \
-  || sudo -S "$_exec_path" "${@:2}"
+  && ( echo "${pas}" | head -1 | sudo -S -p "" "${args[@]}" ) \
+  || sudo -S "${args[@]}"
 
 exit $?
 #+end_src
