@@ -11685,7 +11685,8 @@ gnome-epub-thumbnailer
         (dom nil))
     (with-temp-buffer
       (let ((source-file (make-temp-file "source-"))
-            (coding-system-for-write 'utf-8-unix))
+            (coding-system-for-write 'utf-8-unix)
+            (inhibit-message t))
         (insert source)
         (write-region (point-min) (point-max) source-file nil)
         (erase-buffer)
@@ -11693,27 +11694,25 @@ gnome-epub-thumbnailer
          (format "guix shell python python-lxml -- bash -c \"cat '%s' | extract_headings\""
                  source-file)
          nil t)
+        (delete-file source-file)
         (libxml-parse-xml-region (point-min) (point-max))))))
 
 (defun eww-goto-title-heading ()
-  "Set point to a line which contaings the possible heading."
+  "Move to page title in EWW."
   (interactive)
   (when-let* ((headings-dom (eww-headings-dom))
-              (possible-heading (cl-reduce (lambda (node-a node-b)
-                                             (if (not (bound-and-true-p node-a))
-                                                 (if (not (bound-and-true-p node-b))
-                                                     nil
-                                                   node-b)
-                                               (if (>= (string-to-number (dom-attr node-a 'proximity))
-                                                       (string-to-number (dom-attr node-b 'proximity)))
-                                                   node-a node-b)))
-                                           (dom-children headings-dom)
-                                           :initial-value nil))
-              (possible-text (dom-text possible-heading))
-              (match-pos (or (re-search-forward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1)
-                             (re-search-backward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote possible-text)) nil t 1))))
-    (beginning-of-line)
-    (recenter-top-bottom 0)))
+              (title-text
+               (caddr
+                (cl-first
+                 (seq-sort-by (lambda (heading)
+                                (string-to-number (cdaadr heading)))
+                              #'>
+                              (dom-children headings-dom))))))
+    (when (progn
+            (next-line 1)
+            (re-search-forward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote title-text)) nil t 1))
+      (beginning-of-line)
+      (recenter-top-bottom 0))))
 
 (defun my/eww-goto-heading ()
   "Go to selected heading line."
