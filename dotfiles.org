@@ -12659,7 +12659,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :prompt "Input file: "
     :reader transient-read-file
     :always-read t
-    :init-value (lambda (obj) (oset obj value file)))]
+    :init-value
+    ,(my/tsc-build-init-value :infile-orig input-value))]
   my/tsc-optional-menu
   [(my/tsc-execute
     :command-format "pandoc %a")]
