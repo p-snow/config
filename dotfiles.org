@@ -12594,7 +12594,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   ""
   [("c" "shell command" ""
     :class transient-option
-    :init-value (lambda (obj) (oset obj value command))
+    :init-value
+    ,(my/tsc-build-init-value :command input-value)
     :prompt "Shell command: "
     :reader my/tsc-read-shell-command)
    ("o" "option strings" ""
@@ -12603,7 +12604,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :command-format "%a"
     :transient transient--do-return)]
   (interactive (list (my/tsc-read-shell-command)))
-  (transient-setup 'my/arbitrary-shell-command))
+  (transient-setup 'my/arbitrary-shell-command nil nil
+                   :scope (cdr `(_ :command ,command))))
 
 (transient-define-prefix my/rtcwake-command (&optional number)
   ""
