@@ -12808,19 +12808,22 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("z" "output zipfile" ""
     :class my/tsc-file
     :reader my/tsc-output-reader
-    :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}.zip" nil))))]
+    :init-value
+    (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}.zip" nil))))]
   ["Inputs"
    ("f" "file" "--"
     :class my/tsc-file
     :multi-value rest
-    :init-value (lambda (obj) (oset obj value file)))]
+    :init-value ,(my/tsc-build-init-value :file input-value))]
   my/tsc-optional-menu
   [(my/tsc-execute
     :command-format
     "zip -r %a")]
-  (interactive `(,(my/tsc-determine-file t)))
+  (interactive `(,(my/tsc-determine-file 'multi)))
   (transient-setup 'my/zip-command nil nil
-                   :scope (cdr `(_ :infile-orig ,(car file)))))
+                   :scope (cdr `(_ :infile-key "f"
+                                   :infile-orig ,(car file)
+                                   :file ,file))))
 #+end_src
 
 ***** ghq-get command
