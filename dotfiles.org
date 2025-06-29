@@ -1,5 +1,6 @@
+# -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-06-28 12:25:43>
+#+DATE: Time-stamp: <Last changed 2025-06-29 16:40:15>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -1596,6 +1597,7 @@ sudo systemctl start keyd
 :CUSTOM_ID: gnu-emacs
 :header-args:emacs-lisp+: :tangle-mode (identity #o644)
 :header-args:emacs-lisp+: :shebang ;;; -*- lexical-binding: t -*-
+:header-args:emacs-lisp+: :lexical t
 :END:
 
 #+NAME: install/emacs
@@ -12120,6 +12122,12 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                                    "${f%.*}"))))
        (read-string (or prompt "Output file: "))))))
 
+(defmacro my/tsc-build-init-value (scope-keyword infix-value)
+  "Build init function from SCOPE-KEYWORD and INFIX-VALUE for transient-infix."
+  `(lambda (obj)
+     (when-let ((input-value (plist-get (oref transient--prefix scope) ,scope-keyword)))
+       (oset obj value ,infix-value))))
+
 ;;; Classes
 
 (defclass my/tsc-file (transient-option)
@@ -12193,28 +12201,32 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   :value '("--volume=100")
   ["Options"
    ("-R" "noresume" "--no-resume-playback"
-    :init-value (lambda (obj) (oset obj value (if (plist-get args :no-resume) "--no-resume-playback" nil))))
-   ("-s" "Start" "--start=" :prompt "Start at (relative time): "
-    :init-value (lambda (obj) (oset obj value (plist-get args :start))))
+    :init-value
+    ,(my/tsc-build-init-value :no-resume "--no-resume-playback"))
+   ("-s" "start" "--start=" :prompt "Start at (relative time): "
+    :init-value
+    ,(my/tsc-build-init-value :start input-value))
    ("-e" "End" "--end=" :prompt "End at: "
-    :init-value (lambda (obj) (oset obj value (plist-get args :end))))
+    :init-value ,(my/tsc-build-init-value :end input-value))
    ("-ps" "Playlist start" "--playlist-start=" :prompt "Start at (in playlist): "
-    :init-value (lambda (obj) (oset obj value (plist-get args :playlist-start))))
+    :init-value ,(my/tsc-build-init-value :playlist-start input-value))
    ("p" "pause" "" :class transient-switches
     :argument-format "%s" :argument-regexp "\\(--pause\\|--no-pause\\)"
     :choices ("--pause" "--no-pause"))
    ("-v" "volume" "--volume=" :prompt "Volume: ")]
   ["Inputs"
    ("f" "files" "-- "
-    :class my/tsc-file
-    :multi-value rest
-    :init-value (lambda (obj) (oset obj value (ensure-list file))))]
+    :class my/tsc-file :multi-value rest
+    :init-value ,(my/tsc-build-init-value :infile-orig (ensure-list input-value)))]
   my/tsc-optional-menu
   [(my/tsc-execute
     :suppress-output t
     :command-format "mpv %a")]
   (interactive `(,(my/tsc-determine-file t)))
-  (transient-setup 'my/mpv-command))
+  (transient-setup 'my/mpv-command nil nil
+                   :scope (append (cdr `(_ :infile-key "f"
+                                           :infile-orig ,file))
+                                  args)))
 
 (with-eval-after-load 'embark
   (mapc (lambda (map)
