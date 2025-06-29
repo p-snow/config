@@ -5919,7 +5919,6 @@ Ancestors are looked up If current heading has no CATEGORY."
     "Update all web tracking items in `org-web-track-files'
  and send an email if any of them has changed its value."
     (let* ((org-log-into-drawer t)
-           (message-kill-buffer-on-exit t)
            (mail-msg (mapconcat
                       (lambda (chg)
                         (org-with-point-at chg
@@ -5930,6 +5929,7 @@ Ancestors are looked up If current heading has no CATEGORY."
                                     (org-web-track-current-changes nil "%p => %c" " | ")))))
                       (org-web-track-update-files))))
       (unless (string-blank-p mail-msg)
+        (setq message-kill-buffer-on-exit t)
         ;; you need to set SMTP info to smtpmail-xxx variables
         (message-mail user-mail-address "Web Tracking Notification")
         (message-goto-body)
