@@ -4313,7 +4313,7 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
              when (or (caar (elfeed-entry-enclosures entry))
                       (elfeed-entry-link entry))
              do (let ((title (elfeed-entry-title entry)))
-                  (my/yt-dlp-command it title)
+                  (my/yt-dlp-command it :output title)
                   (my/tsc-execute-macro)))
     (mapc #'elfeed-search-update-entry entries)
     (unless (or elfeed-search-remain-on-entry (use-region-p))
@@ -4334,7 +4334,7 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
                ;; Quirk: The message does not echo in the minibuffer.
                (princ (format "Duration: %s"
                               (string-trim (shell-command-to-string command)))))))
-        (my/yt-dlp-command url nil t)
+        (my/yt-dlp-command url :duration t)
         (my/tsc-execute-macro)))))
 #+end_src
 
@@ -12685,11 +12685,11 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 #+name: yt-dlp-command
 #+begin_src emacs-lisp :noweb tangle
-(transient-define-prefix my/yt-dlp-command (url &optional output duration-p play-p)
+(transient-define-prefix my/yt-dlp-command (url &rest args)
   ""
   :man-page "yt-dlp"
   :value '("--paths <<media-dir()>>" "--prefer-free-formats"
-           "--format bestvideo*+bestaudio/best"
+           "--format bestvideo*+bestaudio[language=ja]/best"
            "--format-sort codec,ext,size:1.5G"
            "--cookies /mnt/shared/doc-%_<uname -n>_%/home/records/archives/Firefox/20250322_cookies.txt")
   ["Options"
@@ -12699,7 +12699,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-a" "audio" "-x --embed-thumbnail")
    ("-F" "free format" "--prefer-free-formats")
    ("-d" "duration" "--get-duration --no-warnings"
-    :init-value (lambda (obj) (oset obj value (and duration-p "--get-duration --no-warnings"))))
+    :init-value
+    ,(my/tsc-build-init-value :duration "--get-duration --no-warnings"))
    ("-f" "format" "--format "
     :class my/tsc-literal-option)
    ("-S" "format sort" "--format-sort "
@@ -12713,12 +12714,13 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :argument-regexp "\\(---cookies-from-browser \\(firefox\\|chromium\\|chrome\\)\\)"
     :choices ("firefox" "chromium" "chrome"))
    ("-o" "output" "--output "
-    :class my/yt-dlp-output)]
+    :class my/yt-dlp-output
+    :init-value ,(my/tsc-build-init-value :output input-value))]
   ["Inputs"
    ("u" "url" ""
     :class my/tsc-literal-option
     :prompt "Contents URL: "
-    :init-value (lambda (obj) (oset obj value url)))]
+    :init-value ,(my/tsc-build-init-value :url input-value))]
   my/tsc-optional-menu
   [(my/tsc-execute
     :suppress-output t
@@ -12726,7 +12728,9 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     "yt-dlp --embed-chapters --live-from-start %a")]
   (interactive `(,(my/tsc-determine-url)))
   (setq my/detached-bury-buffer t)
-  (transient-setup 'my/yt-dlp-command))
+  (transient-setup 'my/yt-dlp-command nil nil
+                   :scope (append (cdr `(_ :url ,url))
+                                  args)))
 
 (defclass my/yt-dlp-output (transient-option) ())
 
