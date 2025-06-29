@@ -12285,7 +12285,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :class my/tsc-file
     :prompt "Input file: "
     :always-read t
-    :init-value (lambda (obj) (oset obj value file)))]
+    :init-value
+    ,(my/tsc-build-init-value :infile-orig input-value))]
   ["Filters"
    ("-t" "tempo (e.g. 1.5)" "-filter:a atempo="
     :prompt "tempo (floating number): ")]
@@ -12330,7 +12331,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :prompt "Input file: "
     :always-read t
     :reader transient-read-file
-    :init-value (lambda (obj) (oset obj value file)))]
+    :init-value ;; (lambda (obj) (oset obj value file))
+    ,(my/tsc-build-init-value :infile-orig input-value))]
   ["Outfile options"
    ["Video"
     ("-c" "crf" "-crf " :prompt "CRF: " :class transient-option)]
@@ -12377,7 +12379,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :prompt "Input file: "
     :always-read t
     :reader transient-read-file
-    :init-value (lambda (obj) (oset obj value file)))]
+    :init-value
+    ,(my/tsc-build-init-value :infile-orig input-value))]
   ["Outfile options"
    ["Video"
     ("-c" "crf" "-crf " :prompt "CRF(1-63) " :class transient-option)
@@ -12429,7 +12432,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :prompt "Input device: "
     :reader transient-read-file
     :always-read t
-    :init-value (lambda (obj) (oset obj value file)))
+    :init-value
+    ,(my/tsc-build-init-value :infile-orig input-value))
    ("-t" "Titles" "--title "
     :class transient-option :prompt "Titles (0 to scan): ")
    ("-F" "Main feature title" "--main-feature")]
@@ -12539,7 +12543,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :prompt "Input file: "
     :reader transient-read-file
     :always-read t
-    :init-value (lambda (obj) (oset obj value file)))]
+    :init-value
+    ,(my/tsc-build-init-value :infile-orig input-value))]
   ["Output"
    ("o" "output" ""
     :class my/tsc-file
