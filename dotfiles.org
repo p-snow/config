@@ -12567,9 +12567,9 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 #+NAME: good-night-command
 #+begin_src emacs-lisp
-(transient-define-suffix my/good-night-next (args)
+(transient-define-suffix my/good-night-insert (args)
   :class my/tsc-shell-command
-  :key "RET" :description "Next"
+  :key "RET" :description "insert"
   (interactive (list (transient-args transient-current-command)))
   (let* ((command (my/tsc-build-shell-command)))
     (and (length> command 0)
@@ -12584,8 +12584,10 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   :value '("30m")
   [("t" "amount of time" "" :prompt "Number[SUFFIX(s/m/h/d)]: "
     :class transient-option :always-read t :allow-empty nil)]
-  [(my/good-night-next
-    :command-format "sleep %a")]
+  ["Optional"
+   (my/good-night-insert
+    :command-format "sleep %a"
+    :transient transient--do-return)]
   (interactive)
   (transient-setup 'my/sleep-command))
 
@@ -12598,8 +12600,9 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :reader my/tsc-read-shell-command)
    ("o" "option strings" ""
     :class transient-option)]
-  [(my/good-night-next
-    :command-format "%a")]
+  [(my/good-night-insert
+    :command-format "%a"
+    :transient transient--do-return)]
   (interactive (list (my/tsc-read-shell-command)))
   (transient-setup 'my/arbitrary-shell-command))
 
@@ -12609,32 +12612,20 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   [("t" "wake-up time" "--date " :prompt "Wake-up time: " :class transient-option
     :init-value (lambda (obj) (oset obj value (my/tsc-read-time nil "+6h40m" nil)))
     :allow-empty nil :reader my/tsc-read-time :always-read t)]
-  [(my/good-night-next
-    :command-format "pwsudo rtcwake -m mem %a")]
+  [(my/good-night-insert
+    :command-format "pwsudo rtcwake -m mem %a"
+    :transient transient--do-return)]
   (interactive)
   (transient-setup 'my/rtcwake-command))
 
-(defun my/good-night-command ()
+(transient-define-prefix my/good-night-command ()
   ""
+  [("1" "extension" my/sleep-command :transient transient--do-recurse)
+   ("2" "midnight command" my/arbitrary-shell-command :transient transient--do-recurse)
+   ("3" "rtcwake" my/rtcwake-command :transient transient--do-recurse)
+   ("4" "morning command" my/arbitrary-shell-command :transient transient--do-recurse)]
   (interactive)
-  (setq my/good-night-loop-count 0)
-  (my/sleep-command "30m")
-  (add-hook 'transient-exit-hook
-            'my/transient-next))
-
-(defvar my/good-night-loop-count 0)
-
-(defun my/transient-next ()
-  ""
-  (pcase my/good-night-loop-count
-    (0 (my/arbitrary-shell-command "midnight.sh"))
-    (1 (my/rtcwake-command))
-    (2 (my/arbitrary-shell-command "morning.sh"))
-    (3 (remove-hook 'transient-exit-hook 'my/transient-next)))
-  (setq my/good-night-loop-count
-        (if (< my/good-night-loop-count 3)
-            (1+ my/good-night-loop-count)
-          0)))
+  (transient-setup 'my/good-night-command))
 #+end_src
 
 ***** pandoc command
