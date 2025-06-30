@@ -2939,13 +2939,12 @@ I don't use [[help:which-function-mode][which-function-mode]] directly; I don't 
 #+begin_src emacs-lisp
 (use-package which-func
   :after help
-  :bind (:map help-map
-              ("F" . (lambda ()
-                       "Prints the result of `which-function' in the echo area."
-                       (interactive)
-                       (message (which-function)))))
   :custom
-  (which-function-mode nil))
+  (which-function-mode nil)
+  :config
+  (with-eval-after-load 'my/echo
+    (my/echo-bind-command-create ("function" . "FUN") "f"
+                                 (which-function))))
 #+end_src
 
 ***** Development
@@ -4605,7 +4604,11 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 (use-package org
   :mode ("\\.org$" . org-mode)
   :init
-  (setq org-directory "~/org"))
+  (setq org-directory "~/org")
+  :config
+  (with-eval-after-load 'my/echo
+    (my/echo-bind-command-create "title" "t"
+                                 (org-get-title))))
 
 (defvar my/org-todo-keyword--urgent "UG"
   "TODO keyword acronym standing for 'UrGent'")
@@ -7456,6 +7459,12 @@ sMerge can be utilized to address merging issues.
   :config
   (add-to-list 'project-switch-commands
                '(project-dired "Dired root"))
+  (with-eval-after-load 'my/echo
+    (my/echo-bind-command-create ("project" . "PRJ") "p"
+                                 (when-let ((prj (project-current)))
+                                   (file-name-nondirectory
+                                    (directory-file-name
+                                     (project-root prj))))))
   (with-eval-after-load 'magit
     (bind-keys :map project-prefix-map
                ("M" . magit-project-status))
@@ -10821,6 +10830,104 @@ Suport successive deletion with C-h/M-h
   "M-h" #'my/backward-kill-word-dwim)
 #+end_src
 
+**** Keymaps grouping similar commands
+:PROPERTIES:
+:CREATED:  [2025-06-30 Mon 22:11]
+:END:
+
+***** launch-app-map
+
+A keymap for commands that launch an application in Emacs.
+
+#+begin_src emacs-lisp
+(keymap-global-set "H-x"
+                   (define-keymap
+                     :prefix 'my/launch-app-map
+                     "d" #'dired-jump
+                     "w" #'eww
+                     "W" #'eww-switch-to-buffer
+                     "m" #'mu4e
+                     "p" #'proced
+                     "P" #'list-processes
+                     "k" #'list-keyboard-macros
+                     "/" #'man
+                     "?" #'woman))
+
+(provide 'my-launch-app)
+#+end_src
+
+***** kmacro-map/kmacro-jump-map
+:PROPERTIES:
+:CREATED:  [2024-08-22 Thu 16:44]
+:CUSTOM_ID: emacs-function-insert-last-kbd-macro
+:END:
+
+Calling =my/insert-last-kbd-macro= after saving the keyboard macro will generate lines of code for persistent use.
+
+There are no grammatical errors, but if you want to add some clarity, you could consider the following:
+
+#+begin_src emacs-lisp
+(keymap-global-set "H-k"
+                   (define-keymap
+                     :prefix 'my/kmacro-map))
+(keymap-global-set "H-j"
+                   (define-keymap
+                     :prefix 'my/kmacro-jump-map))
+
+(defun my/insert-last-kbd-macro (macroname keys)
+  "Customized `insert-kbd-macro' to bind last recorded kbd macro to `my/kmacro-map'.."
+  (interactive (list (read-string "Macro name: ")
+                     (read-string "Keys (following H-k): ")))
+  (kmacro-name-last-macro (intern macroname))
+  (insert-kbd-macro (intern macroname))
+  (insert (format "(keymap-set %s"
+                  (completing-read "Map: " '("my/kmacro-map"
+                                             "my/kmacro-jump-map"))))
+  (insert (format " \"%s\"" keys))
+  (insert (format " #'%s)" macroname)))
+
+(keymap-global-set "C-x C-k i" #'my/insert-last-kbd-macro)
+
+(mapc #'load-file
+      (file-expand-wildcards
+       (concat (no-littering-expand-etc-file-name "kmacro")
+               "/*.el")))
+#+end_src
+
+***** echo-map
+:PROPERTIES:
+:CREATED:  [2025-06-30 Mon 22:33]
+:END:
+
+This is a keymap for commands that echo various items as if they were displayed in the mode line, a very congested place since the font size is huge.
+
+#+begin_src emacs-lisp
+(keymap-global-set "H-h"
+                   (define-keymap
+                     :prefix 'my/echo-map))
+
+(defmacro my/echo-bind-command-create (name key sexp)
+  "Create a new command my/echo-\"NAME\" which display SEXP and bind it to KEY."
+  `(keymap-set my/echo-map (kbd ,key)
+               (defun ,(intern (concat "my/echo-"
+                                       (cond
+                                        ((stringp name) name)
+                                        ((consp name) (car name))))) ()
+                 ,(format "Print %s in the echo area." (cond
+                                                        ((stringp name) name)
+                                                        ((consp name) (car name))))
+                 (interactive)
+                 (when-let ((echo-value ,sexp))
+                   (message "%s: %s"
+                            ,(cond
+                              ((stringp name) (upcase name))
+                              ((consp name) (cdr name)))
+                            echo-value)
+                   (kill-new echo-value)))))
+
+(provide 'my/echo)
+#+end_src
+
 **** tailored commands/functions
 :PROPERTIES:
 :CREATED:  [2023-01-20 Fri 10:59]
@@ -11388,25 +11495,6 @@ rm -f ${AUDIO_FILE}
 exit 0
 #+end_src
 
-***** wrap up launch app commands in single keymap
-
-#+begin_src emacs-lisp
-(keymap-global-set "H-x"
-                   (define-keymap
-                     :prefix 'my/launch-app-map
-                     "d" #'dired-jump
-                     "w" #'eww
-                     "W" #'eww-switch-to-buffer
-                     "m" #'mu4e
-                     "p" #'proced
-                     "P" #'list-processes
-                     "k" #'list-keyboard-macros
-                     "/" #'man
-                     "?" #'woman))
-
-(provide 'my-launch-app)
-#+end_src
-
 ***** show the day in calendar
 
 #+begin_src emacs-lisp
@@ -11564,42 +11652,6 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
         (let ((sec (plist-get (car (auth-source-search :host host)) :secret)))
           (if (functionp sec)
               (funcall sec) sec)))))
-#+end_src
-
-***** Binding Saved Kmacro under H-k
-:PROPERTIES:
-:CREATED:  [2024-08-22 Thu 16:44]
-:CUSTOM_ID: emacs-function-insert-last-kbd-macro
-:END:
-
-Calling my/insert-last-kbd-macro after saving the desired keyboard macro will generate a set of code for persistent use.
-
-#+begin_src emacs-lisp
-(keymap-global-set "H-k"
-                   (define-keymap
-                     :prefix 'my/kmacro-map))
-(keymap-global-set "H-j"
-                   (define-keymap
-                     :prefix 'my/kmacro-jump-map))
-
-(defun my/insert-last-kbd-macro (macroname keys)
-  "Customized `insert-kbd-macro' to bind last recorded kbd macro to `my/kmacro-map'.."
-  (interactive (list (read-string "Macro name: ")
-                     (read-string "Keys (following H-k): ")))
-  (kmacro-name-last-macro (intern macroname))
-  (insert-kbd-macro (intern macroname))
-  (insert (format "(keymap-set %s"
-                  (completing-read "Map: " '("my/kmacro-map"
-                                             "my/kmacro-jump-map"))))
-  (insert (format " \"%s\"" keys))
-  (insert (format " #'%s)" macroname)))
-
-(keymap-global-set "C-x C-k i" #'my/insert-last-kbd-macro)
-
-(mapc #'load-file
-      (file-expand-wildcards
-       (concat (no-littering-expand-etc-file-name "kmacro")
-               "/*.el")))
 #+end_src
 
 ***** Highlighting task performed days
