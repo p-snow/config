@@ -3005,8 +3005,10 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
 #+begin_src emacs-lisp
 (use-package eldoc
   :custom
-  (eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
-  (eldoc-echo-area-prefer-doc-buffer 'maybe)
+  (eldoc-documentation-strategy 'eldoc-documentation-default)
+  (eldoc-echo-area-prefer-doc-buffer nil)
+  (eldoc-idle-delay 1.5)
+  (eldoc-print-after-edit nil)
   :config
   (eldoc-add-command-completions "paredit-"))
 #+end_src
