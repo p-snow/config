@@ -10427,20 +10427,19 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
     (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
 #+end_src
 
-***** org-id-backlink
+***** org-nudge
 :PROPERTIES:
 :CREATED:  [2025-06-12 Thu 12:17]
 :END:
 
-#+NAME: config/emacs-org-id-backlink
+#+NAME: config/emacs-org-nudge
 #+begin_src emacs-lisp
-(use-package org-id-backlink
+(use-package org-nudge
   ;; :disabled t
   :after (org denote)
-  :hook (org-mode . org-id-backlink-mode)
+  :hook (org-mode . org-nudge-mode)
   :custom
-  (org-id-backlink-mode t)
-  (org-id-backlink-files
+  (org-nudge-files
    (seq-filter
     (lambda (file)
       (file-in-directory-p file org-directory))
@@ -10449,7 +10448,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
                (string-trim
                 (shell-command-to-string (format "realpath %s" (shell-quote-argument file)))))
              (append (org-files-list)
-                     (take 3 (seq-sort-by (lambda (path) (substring path -8))
+                     (take 2 (seq-sort-by (lambda (path) (substring path -8))
                                           'string>
                                           (mapcar 'expand-file-name
                                                   (file-expand-wildcards (file-name-concat org-directory "archive/archive_202?.org")))))
@@ -16643,19 +16642,19 @@ Provide a function to Build a clock table summing up time by tag.
 ;;; fingertip.el ends here
 #+end_src
 
-**** Package: org-id-backlink
+**** Package: org-nudge
 :PROPERTIES:
 :CREATED:  [2025-06-12 Thu 11:51]
 :END:
 
-#+NAME: package/org-id-backlink
+#+NAME: package/org-nudge
 #+header: :shebang ""
-#+begin_src emacs-lisp :comments no :tangle (expand-file-name "org-id-backlink.el" tangle/emacs-sitelisp-dir)
-;;; org-id-backlink.el --- backlinks for org-id links  -*- lexical-binding: t -*-
+#+begin_src emacs-lisp :comments no :tangle (expand-file-name "org-nudge.el" tangle/emacs-sitelisp-dir)
+;;; org-nudge.el --- backlinks for org-id links  -*- lexical-binding: t -*-
 
 ;; Author: p-snow
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "27.1") (org-ql "0.8.10"))
+;; Package-Requires: ((emacs "27.1") (async "1.9.9") (org-ql "0.8.10"))
 ;; Homepage: TODO
 ;; Keywords: hypermedia
 
@@ -16681,96 +16680,122 @@ Provide a function to Build a clock table summing up time by tag.
 ;;; Code:
 
 (require 'eldoc)
-(require 'org-ql)
 (require 'async)
+(require 'org-ql)
 
-(defvar org-id-backlink-presentation-function
-  'org-id-backlink-count
+(defcustom org-nudge-presentation-function
+  'org-nudge-count
   "")
 
-(defcustom org-id-backlink-files nil
+(defcustom org-nudge-query-function
+  'org-nudge-id-backlink-query
   "")
 
-(defvar org-id-backlink--current-id nil
+(defcustom org-nudge-files nil
   "")
 
-(defvar org-id-backlink--callback nil
+(defvar org-nudge--last-marker nil
   "")
 
-(defvar org-id-backlink--last-message nil
+(defvar org-nudge--callback nil
+  "")
+
+(defvar org-nudge--last-marker-message nil
+  "")
+
+(defvar org-nudge--proc-query nil
+  "")
+
+(defvar org-nudge--proc-point nil
+  "")
+
+(defvar org-nudge--proc-buffer nil
   "")
 
 ;;; Minor modes
 ;;;###autoload
-(define-minor-mode org-id-backlink-mode
+(define-minor-mode org-nudge-mode
   "Global minor mode to display backlinks for org-id links."
-  :lighter " BLink"
-  :group 'org-id-backlink
+  :lighter " Nudge"
+  :group 'org-nudge
   (when (boundp 'eldoc-documentation-functions)
-    (if org-id-backlink-mode
+    (if org-nudge-mode
         (add-hook 'eldoc-documentation-functions
-                  #'org-id-backlink-eldoc nil t)
+                  #'org-nudge-eldoc-documentation nil t)
       (remove-hook 'eldoc-documentation-functions
-                   #'org-id-backlink-eldoc t))))
+                   #'org-nudge-eldoc-documentation t))))
 
-(defun org-id-backlink-eldoc (callback)
+(defun org-nudge-eldoc-documentation (callback)
   "Return description of all backlinks."
-  (if-let ((id-at-point (or (org-id-get nil nil)
-                            (org-entry-get nil "CUSTOM_ID"))))
-      (if-let ((id-neq (not (string= id-at-point
-                                     org-id-backlink--current-id))))
-          (progn
-            (funcall callback "")
-            (setq org-id-backlink--current-id id-at-point)
-            (setq org-id-backlink--callback callback)
-            (setq buf (current-buffer))
-            ;; (message "SEARCHING !!!")
-            (setq org-id-backlink--last-message nil)
-            (async-start
-             `(lambda ()
-                (require 'org-ql)
-                (let ((files-cld ,(async-inject-variables "^org-id-backlink-files$"))
-                      (id-cld ,(async-inject-variables "^org-id-backlink--current-id$")))
-                  (cons id-cld
-                        (org-ql-select files-cld
-                          `(link :target ,id-cld)
-                          :action 'element-with-markers))))
-             `(lambda (id-elements)
-                (with-current-buffer ,(async-inject-variables "^buf$")
-                  (when (derived-mode-p 'org-mode)
-                    (when-let* ((id-target (car id-elements))
-                                (elem (cdr id-elements))
-                                (id-pom (or (org-id-get nil nil)
-                                            (org-entry-get nil "CUSTOM_ID")))
-                                (str-eq (string= id-target id-pom)))
-                      (unless (async-message-p id-elements)
-                        (setq org-id-backlink--last-message
-                              (funcall org-id-backlink-presentation-function elem))
-                        (funcall ,(async-inject-variables "^org-id-backlink--callback$")
-                                 org-id-backlink--last-message)))))))
-            t)
-        (funcall callback org-id-backlink--last-message)
-        nil)
-    (setq org-id-backlink--last-message nil)
-    (setq org-id-backlink--current-id nil)
+  (when-let ((head-marker (org-nudge--entry-marker)))
+    (if (or (not (markerp org-nudge--last-marker))
+            (not (equal (marker-position org-nudge--last-marker)
+                        (marker-position head-marker))))
+        (progn
+          (funcall callback "")
+          (setq org-nudge--last-marker head-marker
+                org-nudge--proc-point (marker-position head-marker)
+                org-nudge--proc-buffer (buffer-name (marker-buffer head-marker))
+                org-nudge--proc-query (funcall org-nudge-query-function)
+                org-nudge--callback callback
+                org-nudge--last-marker-message nil)
+          (async-start
+           `(lambda ()
+              (require 'org-ql)
+              (when-let ((proc-files ,(async-inject-variables "^org-nudge-files$"))
+                         (proc-query ,(async-inject-variables "^org-nudge--proc-query$"))
+                         ;; emacs/async #145: "#" cannot be sent over processes
+                         (proc-point ,(async-inject-variables "^org-nudge--proc-point$"))
+                         (proc-buffer-name ,(async-inject-variables "^org-nudge--proc-buffer$")))
+                (cons (cons proc-buffer-name proc-point)
+                      (org-ql-select proc-files
+                        proc-query
+                        :action 'element-with-markers))))
+           `(lambda (result)
+              (unless (async-message-p result)
+                (when-let ((buffer-name (caar result))
+                           (point (cdar result))
+                           (elements (cdr result)))
+                  (with-current-buffer buffer-name
+                    (when (and (derived-mode-p 'org-mode)
+                               (equal (marker-position (org-nudge--entry-marker))
+                                      point))
+                      (org-with-point-at point
+                        (setq org-nudge--last-marker-message
+                              (funcall org-nudge-presentation-function elements))
+                        (funcall ,(async-inject-variables "^org-nudge--callback$")
+                                 org-nudge--last-marker-message))))))))
+          t)
+      (funcall callback org-nudge--last-marker-message)
+      t)))
+
+(defun org-nudge--entry-marker ()
+  ""
+  (unless (org-before-first-heading-p)
+    (save-excursion
+      (org-back-to-heading 'invisible-ok)
+      (point-marker))))
+
+(defun org-nudge-id-backlink-query ()
+  ""
+  (if-let ((id (org-id-get)))
+      `(link :target ,id)
     nil))
 
-(defun org-id-backlink-count (elements)
+(defun org-nudge-count (elements)
   ""
   (when elements
     (format "%d BACKLINKS" (length elements))))
 
-(defun org-id-backlink-display ()
+(defun org-nudge-search ()
   ""
   (interactive)
-  (when-let ((id (or (org-id-get nil nil)
-                     (org-entry-get nil "CUSTOM_ID"))))
-    (org-ql-search org-id-backlink-files
-      `(link :target ,id)
-      :sort '(closed date))))
+  (org-ql-search org-nudge-files
+    (funcall org-nudge-query-function)
+    :sort '(closed date)))
 
-(provide 'org-id-backlink)
-;;; org-id-backlink.el ends here
+(provide 'org-nudge)
+;;; org-nudge.el ends here
 #+end_src
 
 ** Firefox
