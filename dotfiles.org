@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-06-29 16:40:15>
+#+DATE: Time-stamp: <Last changed 2025-07-02 22:53:23>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -10426,7 +10426,6 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
              ("e r" . my/org-english-drill-resume)
              ("e l" . my/org-english-link)
              ("E" . my/cloze-deletion-replace)
-             ("e q" . my/org-english-search)
              :map engine-mode-prefixed-map
              ("j" . (lambda (word)
                       "Copy Japanese translation as well as the pronunciation to `kill-ring'."
@@ -15760,7 +15759,6 @@ My workflow for acquiring English words is:
 (require 'cl-lib)
 (require 'request)
 (require 'logos)
-(require 'org-tidy)
 
 (defvar my/org-english-file "~/documents/english.org"
   "A file where all english words to learn locate.")
@@ -15780,13 +15778,13 @@ Capture URL or file currently visiting as well as a sentence at point."
   (setq my/org-english-match-entry nil)
   (let* ((sentence-end-double-space nil)
          (my/org-english-match-entry (org-ql-select
-                                      `(,my/org-english-file)
-                                      `(and (heading-regexp
-                                             ,(eval `(rx word-start
-                                                         ,org-english-word
-                                                         word-end)))
-                                            (tags "drill"))
-                                      :action 'element-with-markers))
+                                       `(,my/org-english-file)
+                                       `(and (heading-regexp
+                                              ,(eval `(rx word-start
+                                                          ,org-english-word
+                                                          word-end)))
+                                             (tags "drill"))
+                                       :action 'element-with-markers))
          (sentence (replace-regexp-in-string word
                                              (my/cloze-deletion word)
                                              (or (sentence-at-point) ""))))
@@ -15843,7 +15841,7 @@ Capture URL or file currently visiting as well as a sentence at point."
   %c"))
   (add-to-list 'org-capture-templates
                '("!1" "drill entry for english word"
-                 item (function my/org-english-goto-match)
+                 plain (function my/org-english-goto-match)
                  "- %a
   %c")))
 
@@ -15851,7 +15849,8 @@ Capture URL or file currently visiting as well as a sentence at point."
   "Goto function for org-capture-template designed to insert an edditional example
 to existing english word entry."
   (org-goto-marker-or-bmk
-   (plist-get (cadar my/org-english-match-entry) :org-marker)))
+   (org-element-property :org-marker (car my/org-english-match-entry)))
+  (org-end-of-subtree))
 
 (defun my/org-english-insert-english-translation ()
   "Insert English translation into org capture entry."
@@ -15996,11 +15995,11 @@ Display information and add it to kill ring if called interactively."
   (interactive)
   (save-excursion
     (let ((current-prefix-arg '(4)))
-      (call-interactively #'org-refile ))
+      (call-interactively #'org-refile))
     (call-interactively #'org-store-link))
   (let* ((contexts '("synonym" "antonym" "collocation"
                      "distinct" "similar" "akin" "relevant"
-                     "morphological" "derivative"))
+                     "derivative"))
          (context (completing-read "Context: " contexts))
          (org-log-note-headings (append `((context . ,(format "<%s> %%s %%t" context)))
                                         org-log-note-headings))
@@ -16018,52 +16017,66 @@ Display information and add it to kill ring if called interactively."
 (define-minor-mode org-english-mode
   "Buffer-local mode for English learning."
   :lighter " Eng"
-  (when (boundp 'eldoc-documentation-functions)
-    (add-hook 'eldoc-documentation-functions
-              #'my/org-english-eldoc-documentation-function nil t)))
+  (if org-english-mode
+      (progn (org-nudge-mode 1)
+             (setq-local org-nudge-files '("~/org/notes/20230605T170959--my-english-wordbook__list_record.org"))
+             (setq-local org-nudge-presentation-function #'org-english-link-display)
+             (setq-local org-nudge-query-function #'org-english-backlink-query))
+    (org-nudge-mode 0)))
 
-(defun my/org-english-eldoc-documentation-function (&rest args)
-  "Return description of links both forward and backward "
-  (when (and (derived-mode-p 'org-mode)
-             (not (org-before-first-heading-p)))
-    (string-join (append (my/org-english-links)
-                         (my/org-english-backlinks))
-                 " ")))
+(defun org-english-backlink-query ()
+  ""
+  (if-let ((id (org-id-get)))
+      `(or (link :target ,id)
+           (property "ID" ,id))
+    nil))
 
-(defun my/org-english-links ()
-  "Return description of all links."
-  (org-with-wide-buffer
-   (org-back-to-heading t)
-   (let* ((case-fold-search t)
-          (subtree-end (save-excursion
-                         (org-end-of-subtree)
-                         (point)))
-          (re (rx-to-string `(seq
-                              "- "
-                              "<" (group (1+ alnum)) ">"
-                              (1+ space)
-                              "\" " (regexp ,org-link-any-re) " \"")))
-          link-descs)
-     (while (re-search-forward re subtree-end t)
-       (push (match-string-no-properties 4)
-             link-descs))
-     link-descs)))
+(defun org-english-search-link (epom &optional id)
+  ""
+  (org-with-point-at epom
+    (save-excursion
+      (org-back-to-heading t)
+      (let* ((case-fold-search t)
+             (subtree-end (save-excursion
+                            (org-end-of-subtree)
+                            (point)))
+             (re (rx-to-string `(seq
+                                 "- "
+                                 "<" (group-n 1 (1+ alnum)) ">"
+                                 (1+ space)
+                                 "\" [[id:"
+                                 ,(or id `(regexp ,thing-at-point-uuid-regexp))
+                                 "]["
+                                 (group-n 2 (1+ alnum))
+                                 "]] \"")))
+             (link-descs nil))
+        (while (re-search-forward re subtree-end t)
+          (push (cons (match-string-no-properties 1)
+                      (if id
+                          (org-get-heading t t t t)
+                        (match-string-no-properties 2)))
+                link-descs))
+        link-descs))))
 
-(defun my/org-english-backlinks ()
-  "Return description of all backlinks."
-  (mapcar (lambda (elem)
-            (org-entry-get elem "ITEM"))
-          (let* ((id (org-entry-get nil "ID"))
-                 (custom_id (org-entry-get nil "CUSTOM_ID")))
-            (when (or id custom_id)
-              (org-ql-select (current-buffer)
-                             (cond
-                              ((and (stringp id) (stringp custom_id))
-                               `(or (link :target ,id) (link :target ,custom_id)))
-                              ((stringp id)
-                               `(link :target ,id))
-                              ((stringp custom_id)
-                               `(link :target ,custom_id))))))))
+(defun org-english-link-display (elements)
+  ""
+  (let ((id (org-id-get))
+        (result nil))
+    (mapc (lambda (cons)
+            (setf (alist-get (car cons) result nil nil #'string-match)
+                  (string-join (delq nil (list (assoc-default (car cons) result #'string-match)
+                                               (cdr cons)))
+                               " ")))
+          (append (mapcan (lambda (element)
+                            (let* ((m (make-marker))
+                                   (om (org-element-property :org-marker element)))
+                              (org-english-search-link
+                               (set-marker m (nth 2 om) (get-buffer (symbol-name (nth 4 om))))
+                               id)))
+                          elements)
+                  (org-english-search-link (point))))
+    (mapconcat (lambda (li) (format "<%s>: %s" (car li) (cdr li)))
+               result "\n")))
 
 (defun my/org-english-list-undrilled ()
   "List english words which haven't been tested before in level ascending order."
@@ -16074,17 +16087,6 @@ Display information and add it to kill ring if called interactively."
             (tags "fd_en")
             (not (property "DRILL_LAST_REVIEWED")))
       :sort 'my/org-ql--english-level<)))
-
-(defun my/org-english-search (word)
-  "Look up WORD in my archive files using `org-ql-search'."
-  (interactive (list (if (use-region-p)
-                         (buffer-substring (region-beginning) (region-end))
-                       (read-string "Word: "))))
-  (org-ql-search
-    my/org-english-file
-    `(heading-regexp ,(eval `(rx word-start
-                                 ,(downcase word)
-                                 word-end)))))
 
 (defun my/org-english-level (word)
   "Return difficulty level of `WORD' in number."
