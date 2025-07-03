@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-02 22:53:23>
+#+DATE: Time-stamp: <Last changed 2025-07-03 13:15:31>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -10432,9 +10432,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
                       (interactive (list (determine-search-word)))
                       (kill-new (message "%s %s"
                                          (my/english-japanese-translate word t)
-                                         (my/english-pronunciation word t))))))
-  (with-eval-after-load 'denote-org-extras
-    (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
+                                         (my/english-pronunciation word t)))))))
 #+end_src
 
 ***** org-nudge
@@ -16068,11 +16066,9 @@ Display information and add it to kill ring if called interactively."
                                                (cdr cons)))
                                " ")))
           (append (mapcan (lambda (element)
-                            (let* ((m (make-marker))
-                                   (om (org-element-property :org-marker element)))
-                              (org-english-search-link
-                               (set-marker m (nth 2 om) (get-buffer (symbol-name (nth 4 om))))
-                               id)))
+                            (org-english-search-link
+                             (org-element-property :org-marker element)
+                             id))
                           elements)
                   (org-english-search-link (point))))
     (mapconcat (lambda (li) (format "<%s>: %s" (car li) (cdr li)))
@@ -16818,12 +16814,29 @@ Provide a function to Build a clock table summing up time by tag.
                                       point))
                       (org-with-point-at point
                         (setq org-nudge--last-marker-message
-                              (funcall org-nudge-presentation-function elements))
+                              (funcall org-nudge-presentation-function
+                                       (org-nudge--regain-org-ql-result elements)))
                         (funcall ,(async-inject-variables "^org-nudge--callback$")
                                  org-nudge--last-marker-message))))))))
           t)
       (funcall callback org-nudge--last-marker-message)
       t)))
+
+(defun org-nudge--regain-org-ql-result (elements)
+  "Return original contents of ELEMENTS, matched items of `org-ql-select'.
+
+`org-nudge' should regain the data at the highest fidelity since
+emacs-async fails to send data containing the # string over processes.
+See https://github.com/jwiegley/emacs-async/issues/145"
+  (mapcar (lambda (element)
+            (dolist (property '(:org-marker :org-hd-marker) element)
+              (let ((consed-marker (org-element-property property element))
+                    (genuine-marker (make-marker)))
+                (set-marker genuine-marker
+                            (nth 2 consed-marker)
+                            (get-buffer (symbol-name (nth 4 consed-marker))))
+                (org-element-put-property element property genuine-marker))))
+          elements))
 
 (defun org-nudge--entry-marker ()
   ""
