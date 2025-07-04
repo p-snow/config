@@ -10432,7 +10432,9 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
                       (interactive (list (determine-search-word)))
                       (kill-new (message "%s %s"
                                          (my/english-japanese-translate word t)
-                                         (my/english-pronunciation word t)))))))
+                                         (my/english-pronunciation word t))))))
+  (with-eval-after-load 'denote-org-extras
+    (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
 #+end_src
 
 ***** org-nudge
