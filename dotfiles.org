@@ -15395,25 +15395,23 @@ If `C-u' prefix is given, file: link type will be used instead."
 
 RAW-LINK is supposed to be a file link type with a path and the path is
 converted by `file-name-nondirectory' unless PATH-CONV-FN is supplied."
-  (let* ((link (with-temp-buffer
-                 (let ((org-inhibit-startup nil))
-                   (insert raw-link)
-                   (org-mode)
-                   (goto-char (point-min))
-                   (org-element-link-parser))))
-         (type (org-element-property :type link))
-         (path (org-element-property :path link))
-         (abbrev-link (cond
-                       ((string= type "file")
-                        (format "%s:%s"
-                                "lfile"
-                                (if (functionp path-conv-fn)
-                                    (funcall path-conv-fn path)
-                                  (file-name-nondirectory path))))
-                       ((stringp type)
-                        raw-link)
-                       (t nil))))
-    abbrev-link))
+  (pcase-let ((`(,type . ,path)
+               (let ((org-inhibit-startup nil)
+                     (link (with-temp-buffer
+                             (insert raw-link)
+                             (org-mode)
+                             (goto-char (point-min))
+                             (org-element-link-parser))))
+                 (cons (org-element-property :type link)
+                       (org-element-property :path link)))))
+    (cond ((string= type "file")
+           (format "lfile:%s"
+                   (funcall (if (functionp path-conv-fn)
+                                path-conv-fn #'file-name-nondirectory)
+                            path)))
+          ((stringp type)
+           raw-link)
+          (t nil))))
 
 (with-eval-after-load 'org
   (org-link-set-parameters "lfile"
