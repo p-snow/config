@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-03 13:15:31>
+#+DATE: Time-stamp: <Last changed 2025-07-05 19:09:37>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -1619,6 +1619,11 @@ cd ~/work && curl -O https://ftp.gnu.org/gnu/emacs/emacs-30.1.tar.xz \
 #+NAME: emacs-var-dir
 #+begin_src emacs-lisp :tangle no
 no-littering-var-directory
+#+end_src
+
+#+NAME: emacs-etc-dir
+#+begin_src emacs-lisp :tangle no
+no-littering-etc-directory
 #+end_src
 
 *** Basic Configuration
@@ -8090,22 +8095,6 @@ I have temporarily disabled `ChatGTP-Shell` because `gptel` better meets my need
   (gptel-default-mode 'org-mode)
   (gptel-rewrite-default-action 'merge)
   :config
-  (cl-pushnew '(proofreading
-                . "You are a large language model and a professional proofreader. Please proofread the following text.")
-              gptel-directives)
-  (cl-pushnew '(document
-                . "You are a large language model and a software engeneer. Please rewrite the following snippet of the software document as follows.
-- If the text begins with a verb, it could be a description for a function, which should also commence with that verb.")
-              gptel-directives)
-  (cl-pushnew '(commit-message-pr
-                . "You are a large language model and a software engeneer. Please rewrite the Git commit message as follows.
-- Prefers concise and comprehensible representation as a commit message
-- Starts with a verb in present and remove last period of sentence")
-              gptel-directives)
-  (cl-pushnew '(interpret
-                . "You are a large language model and a professional interpreter. Please interpret the text.
-- Interpret the sentence in Japanese if it is English and vice versa.")
-              gptel-directives)
   (gptel-make-gemini "Gemini"
     :key (apply-partially 'my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
     :stream t)
@@ -10384,6 +10373,26 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
            url))))))
   :custom
   (reddigg-subs '(emacs guix)))
+#+end_src
+
+***** gptel-prompt
+:PROPERTIES:
+:CREATED:  [2025-07-04 Fri 19:35]
+:END:
+
+#+begin_src emacs-lisp :noweb tangle
+(use-package gptel-prompts
+  :vc (:url "https://github.com/jwiegley/gptel-prompts.git"
+            :rev :newest)
+  :after (gptel)
+  :demand t
+  :custom
+  (gptel-prompts-directory
+   (file-name-concat "<<emacs-etc-dir()>>" "gptel-prompt"))
+  :config
+  (gptel-prompts-update)
+  ;; Ensure prompts are updated if prompt files change
+  (gptel-prompts-add-update-watchers))
 #+end_src
 
 **** My Emacs Packages
