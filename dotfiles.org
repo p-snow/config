@@ -10424,7 +10424,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
              ("e e" . my/org-english-capture)
              ("e d" . my/org-english-drill)
              ("e r" . my/org-english-drill-resume)
-             ("e l" . my/org-english-link)
+             ("e l" . my/org-english-create-link)
              ("E" . my/cloze-deletion-replace)
              :map engine-mode-prefixed-map
              ("j" . (lambda (word)
@@ -15988,13 +15988,15 @@ Display information and add it to kill ring if called interactively."
   (interactive)
   (with-org-drill-english-config (org-drill-resume)))
 
-(defun my/org-english-link ()
+(defun my/org-english-create-link ()
   "Make a link pointing the word with context."
   (interactive)
   (save-excursion
     (let ((current-prefix-arg '(4)))
       (call-interactively #'org-refile))
-    (call-interactively #'org-store-link))
+    (let ((org-link-context-for-files nil)
+          (org-id-link-to-org-use-id t))
+      (call-interactively #'org-store-link)))
   (let* ((contexts '("synonym" "antonym" "collocation"
                      "distinct" "similar" "akin" "relevant"
                      "derivative"))
