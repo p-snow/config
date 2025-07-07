@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-07 18:26:22>
+#+DATE: Time-stamp: <Last changed 2025-07-07 21:51:20>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -11503,6 +11503,30 @@ rm -f ${AUDIO_FILE}
 exit 0
 #+end_src
 
+***** Speech-to-Text with AI
+:PROPERTIES:
+:CREATED:  [2025-07-07 Mon 21:18]
+:END:
+
+#+begin_src emacs-lisp :noweb tangle
+(use-package ok-audio-transcription
+  :vc (:url "https://github.com/200ok-ch/ok-audio-transcription.git"
+            :rev :newest)
+  :after (my-launch-app my-credential)
+  :demand t
+  :bind (:map my/launch-app-map
+              ("i" . ok-audio-transcription--record-dwim))
+  :custom
+  (ok-audio-transcription--openai-token
+   (my/credential-info "openai.com" "apikey"))
+  :config
+  (defvar-keymap my/speech-to-text-map
+    :doc "Keymap to repeat commands on dired-subdir."
+    :repeat (:enter (ok-audio-transcription--record-dwim)
+                    :exit (ok-audio-transcription--record-dwim))
+    "i" #'ok-audio-transcription--record-dwim))
+#+end_src
+
 ***** show the day in calendar
 
 #+begin_src emacs-lisp
@@ -11636,7 +11660,7 @@ surrounded by word boundaries."
 :END:
 
 #+begin_src emacs-lisp
-(when (require 'auth-source-pass nil t)
+(when (require-with-check 'auth-source-pass nil t)
   (auth-source-pass-enable)
   (defun my/credential-info (host key)
     "Return API key for HOST or OpenAI."
@@ -11644,6 +11668,8 @@ surrounded by word boundaries."
         (let ((sec (plist-get (car (auth-source-search :host host)) :secret)))
           (if (functionp sec)
               (funcall sec) sec)))))
+
+(provide 'my-credential)
 #+end_src
 
 ***** Highlighting task performed days
