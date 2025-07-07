@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-05 19:09:37>
+#+DATE: Time-stamp: <Last changed 2025-07-07 18:26:22>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -11603,22 +11603,6 @@ surrounded by word boundaries."
               #'my/dired-mark-and-open-file))
 #+end_src
 
-***** open space
-:PROPERTIES:
-:CREATED:  [2023-12-21 Thu 13:00]
-:END:
-
-Like C-o (M-x open-line), it is useful open single space ahead of point.
-
-#+begin_src emacs-lisp
-(defun my/open-space ()
-  "Insert single space ahead of point."
-  (interactive)
-  (insert " ")
-  (backward-char 1))
-(keymap-global-set "M-o" 'my/open-space)
-#+end_src
-
 ***** Reopening the current webpage in org format
 :PROPERTIES:
 :CREATED:  [2024-11-10 Sun 12:27]
@@ -11853,7 +11837,7 @@ if type(out_root_str) is bytes:
     print(out_root_str)
 #+end_src
 
-***** miscellaneous functions/commands
+***** Miscellaneous commands
 
 #+begin_src emacs-lisp
 (defun my/insert-time-stamp ()
@@ -11925,6 +11909,25 @@ if type(out_root_str) is bytes:
                         kansuuji-string
                         :from-end t :initial-value (cons 0 0))))
     (+ (car rs) (cdr rs))))
+#+end_src
+
+****** Insert a single space after point (open space))
+:PROPERTIES:
+:CREATED:  [2023-12-21 Thu 13:00]
+:END:
+
+Insert a single space following each period.
+
+Like C-o (M-x open-line), it is useful open single space ahead of point.
+
+#+begin_src emacs-lisp
+(defun my/open-space ()
+  "Insert a single space after point without changing its position."
+  (interactive)
+  (save-excursion
+    (insert ?\s)))
+
+(keymap-global-set "M-o" 'my/open-space)
 #+end_src
 
 **** literate configuration (this file)
