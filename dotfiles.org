@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-07 21:51:20>
+#+DATE: Time-stamp: <Last changed 2025-07-09 22:49:38>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -4592,6 +4592,160 @@ alias vo view-file-other-window $1
 alias <<print-aliases(lang="plain")>>
 #+end_src
 
+**** LLM powered Generative AI
+:PROPERTIES:
+:CREATED:  [2025-07-08 Tue 18:18]
+:END:
+
+***** gptel                             :convenience:
+:PROPERTIES:
+:CREATED:  [2023-03-28 Tue 13:53]
+:CUSTOM_ID: emacs-gptel
+:END:
+
+[[https://github.com/karthink/gptel][gptel]] is decent AI frontend in Emacs as of [2025-01-08 Wed]. It supports a large number of services (LLM models) and offers elaborate usage options.
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-gptel"
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
+(use-package gptel
+  :after engine-mode
+  :bind (:map engine-mode-prefixed-map
+              ("G" . gptel)
+              ("g RET" . gptel-send)
+              ("g r" . gptel-rewrite)
+              ("g g" . gptel-menu)
+              ("g t" . gptel-tools)
+              ("g s" . gptel-system-prompt)
+              ("g c" . gptel-mcp-connect)
+              ("g d" . gptel-mcp-disconnect))
+  :custom
+  (gptel-api-key (apply-partially #'my/credential-info "openai.com" "apikey"))
+  (gptel-max-tokens 1000)
+  (gptel-model 'gpt-4o-mini)
+  (gptel-default-mode 'org-mode)
+  (gptel-rewrite-default-action 'merge)
+  (gptel-use-tools t)
+  (gptel-confirm-tool-calls 'auto)
+  (gptel-include-tool-results 'auto)
+  :config
+  (gptel-make-gemini "Gemini"
+    :key (apply-partially 'my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
+    :stream t)
+  (gptel-make-openai "Perplexity"
+    :host "api.perplexity.ai"
+    :key (apply-partially 'my/credential-info "perplexity.ai")
+    :endpoint "/chat/completions"
+    :stream t
+    :models '("llama-3.1-sonar-small-128k-online"
+              "llama-3.1-sonar-large-128k-online"
+              "llama-3.1-sonar-small-128k-chat"
+              "llama-3.1-sonar-large-128k-chat"
+              "llama-3.1-70b-instruct"
+              "llama-3.1-8b-instruct"))
+  <<ai-tool>>
+  (require 'gptel-integrations)
+  (gptel-mcp-connect))
+#+end_src
+
+****** tools
+:PROPERTIES:
+:CREATED:  [2025-07-08 Tue 21:12]
+:END:
+
+******* read_buffer AI tool
+:PROPERTIES:
+:CREATED:  [2025-07-09 Wed 15:18]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "read_buffer"                    ; javascript-style snake_case name
+ :function (lambda (buffer)                  ; the function that will run
+             (unless (buffer-live-p (get-buffer buffer))
+               (error "error: buffer %s is not live." buffer))
+             (with-current-buffer  buffer
+               (buffer-substring-no-properties (point-min) (point-max))))
+ :description "return the contents of an emacs buffer"
+ :args (list '(:name "buffer"
+                     :type string            ; :type value must be a symbol
+                     :description "the name of the buffer whose contents are to be retrieved"))
+ :category "emacs")
+#+end_src
+
+******* create_file AI tool
+:PROPERTIES:
+:CREATED:  [2025-07-09 Wed 15:19]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "create_file"                    ; javascript-style  snake_case name
+ :function (lambda (path filename content)   ; the function that runs
+             (let ((full-path (expand-file-name filename path)))
+               (with-temp-buffer
+                 (insert content)
+                 (write-file full-path))
+               (format "Created file %s in %s" filename path)))
+ :description "Create a new file with the specified content"
+ :args (list '(:name "path"             ; a list of argument specifications
+                     :type string
+                     :description "The directory where to create the file")
+             '(:name "filename"
+                     :type string
+                     :description "The name of the file to create")
+             '(:name "content"
+                     :type string
+                     :description "The content to write to the file"))
+ :category "filesystem")
+#+end_src
+
+***** gptel-prompt
+:PROPERTIES:
+:CREATED:  [2025-07-04 Fri 19:35]
+:END:
+
+#+begin_src emacs-lisp :noweb tangle
+(use-package gptel-prompts
+  :vc (:url "https://github.com/jwiegley/gptel-prompts.git"
+            :rev :newest)
+  :after (gptel)
+  :demand t
+  :custom
+  (gptel-prompts-directory
+   (file-name-concat "<<emacs-etc-dir()>>" "gptel-prompt"))
+  :config
+  (gptel-prompts-update)
+  ;; Ensure prompts are updated if prompt files change
+  (gptel-prompts-add-update-watchers))
+#+end_src
+
+***** mcp
+:PROPERTIES:
+:CREATED:  [2025-07-08 Tue 18:18]
+:END:
+
+#+begin_src emacs-lisp
+(use-package mcp
+  :ensure t
+  :hook (emacs-startup . mcp-hub-start-all-server)
+  :custom
+  (mcp-hub-servers
+   `(("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" ,(getenv "HOME"))))
+     ("context7" . (:command "npx" :args ("-y" "@upstash/context7-mcp") :env (:DEFAULT_MINIMUM_TOKENS "6000")))
+     ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
+     ("duckduckgo" . (:command "uvx" :args ("duckduckgo-mcp-server")))
+     ("github" . (:command "docker"
+                           :args ("run" "-i" "--rm"
+                                  "-e" "GITHUB_PERSONAL_ACCESS_TOKEN"
+                                  "ghcr.io/github/github-mcp-server")
+                           :env (:GITHUB_PERSONAL_ACCESS_TOKEN "27ac7ee0200fc9627ee23c9ff7ed0aa071935446")))))
+  :config
+  (require 'mcp-hub))
+#+end_src
+
 **** Org Mode
 :PROPERTIES:
 :CREATED:  [2023-01-24 Tue 16:02]
@@ -8068,49 +8222,6 @@ I have temporarily disabled `ChatGTP-Shell` because `gptel` better meets my need
 "emacs-enlive"
 #+end_src
 
-***** gptel                             :convenience:
-:PROPERTIES:
-:CREATED:  [2023-03-28 Tue 13:53]
-:CUSTOM_ID: emacs-gptel
-:END:
-
-[[https://github.com/karthink/gptel][gptel]] is decent AI frontend in Emacs as of [2025-01-08 Wed]. It supports a large number of services (LLM models) and offers elaborate usage options.
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-gptel"
-#+end_src
-
-#+begin_src emacs-lisp :noweb tangle
-(use-package gptel
-  :after engine-mode
-  :bind (:map engine-mode-prefixed-map
-              ("G" . gptel)
-              ("g RET" . gptel-send)
-              ("g r" . gptel-rewrite)
-              ("g g" . gptel-menu))
-  :custom
-  (gptel-api-key (apply-partially #'my/credential-info "openai.com" "apikey"))
-  (gptel-max-tokens 1000)
-  (gptel-model 'gpt-4o-mini)
-  (gptel-default-mode 'org-mode)
-  (gptel-rewrite-default-action 'merge)
-  :config
-  (gptel-make-gemini "Gemini"
-    :key (apply-partially 'my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
-    :stream t)
-  (gptel-make-openai "Perplexity"
-    :host "api.perplexity.ai"
-    :key (apply-partially 'my/credential-info "perplexity.ai")
-    :endpoint "/chat/completions"
-    :stream t
-    :models '("llama-3.1-sonar-small-128k-online"
-              "llama-3.1-sonar-large-128k-online"
-              "llama-3.1-sonar-small-128k-chat"
-              "llama-3.1-sonar-large-128k-chat"
-              "llama-3.1-70b-instruct"
-              "llama-3.1-8b-instruct")))
-#+end_src
-
 ***** engine-mode
 :PROPERTIES:
 :CREATED:  [2023-03-15 Wed 16:27]
@@ -10373,26 +10484,6 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
            url))))))
   :custom
   (reddigg-subs '(emacs guix)))
-#+end_src
-
-***** gptel-prompt
-:PROPERTIES:
-:CREATED:  [2025-07-04 Fri 19:35]
-:END:
-
-#+begin_src emacs-lisp :noweb tangle
-(use-package gptel-prompts
-  :vc (:url "https://github.com/jwiegley/gptel-prompts.git"
-            :rev :newest)
-  :after (gptel)
-  :demand t
-  :custom
-  (gptel-prompts-directory
-   (file-name-concat "<<emacs-etc-dir()>>" "gptel-prompt"))
-  :config
-  (gptel-prompts-update)
-  ;; Ensure prompts are updated if prompt files change
-  (gptel-prompts-add-update-watchers))
 #+end_src
 
 **** My Emacs Packages
