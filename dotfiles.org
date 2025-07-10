@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-10 16:31:57>
+#+DATE: Time-stamp: <Last changed 2025-07-10 21:03:26>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -4611,7 +4611,7 @@ alias <<print-aliases(lang="plain")>>
 
 #+begin_src emacs-lisp :noweb tangle
 (use-package gptel
-  :after engine-mode
+  :after (engine-mode mcp)
   :bind (:map engine-mode-prefixed-map
               ("G" . gptel)
               ("g RET" . gptel-send)
@@ -4646,8 +4646,10 @@ alias <<print-aliases(lang="plain")>>
               "llama-3.1-70b-instruct"
               "llama-3.1-8b-instruct"))
   <<ai-tool>>
-  (require 'gptel-integrations)
-  (gptel-mcp-connect))
+  (mcp-hub-start-all-server
+   (lambda ()
+     (require 'gptel-integrations)
+     (gptel-mcp-connect))))
 #+end_src
 
 ****** tools
@@ -4730,7 +4732,6 @@ alias <<print-aliases(lang="plain")>>
 #+begin_src emacs-lisp
 (use-package mcp
   :ensure t
-  :hook (emacs-startup . mcp-hub-start-all-server)
   :custom
   (mcp-hub-servers
    `(("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" ,(getenv "HOME"))))
