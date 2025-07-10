@@ -6083,8 +6083,7 @@ Ancestors are looked up If current heading has no CATEGORY."
   (defun my/org-web-track-update-all-and-notify ()
     "Update all web tracking items in `org-web-track-files'
  and send an email if any of them has changed its value."
-    (let* ((org-log-into-drawer t)
-           (mail-msg (mapconcat
+    (let* ((mail-msg (mapconcat
                       (lambda (chg)
                         (org-with-point-at chg
                           (let ((org-trust-scanner-tags t))
@@ -6442,6 +6441,7 @@ export DISPLAY=:0 && \
 
 (defun my/org-web-track-mail ()
   "Update `org-web-track' items along with sending email and immediate exit."
+  (setq org-log-into-drawer t)
   (my/org-web-track-update-all-and-notify)
   (org-save-all-org-buffers)
   (save-buffers-kill-emacs t))
