@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-09 22:49:38>
+#+DATE: Time-stamp: <Last changed 2025-07-10 16:31:57>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -6054,13 +6054,13 @@ Ancestors are looked up If current heading has no CATEGORY."
   ;; :load-path "~/.local/share/ghq/github.com/p-snow/org-web-track"
   :after my-org-global-map
   :bind (:map my/org-global-map
-              ("T q" . my/org-web-track-ql-view)
-              ("T c" . org-web-track-columns)
-              ("T a" . org-web-track-agenda-columns)
-              ("T n" . org-web-track-setup-entry)
-              ("T u" . org-web-track-update-entry)
-              ("T U" . org-web-track-update-files)
-              ("T r" . org-web-track-report))
+              ("w q" . my/org-web-track-ql-view)
+              ("w c" . org-web-track-columns)
+              ("w a" . org-web-track-agenda-columns)
+              ("w n" . org-web-track-setup-entry)
+              ("w u" . org-web-track-update-entry)
+              ("w U" . org-web-track-update-files)
+              ("w r" . org-web-track-report))
   :preface
   (defun my/org-web-track-ql-view ()
     "Open Org Agenda view with tracking items which hold TRACK_URL property."
@@ -8629,9 +8629,26 @@ Typical file downloading workflow:
 #+begin_src emacs-lisp
 (use-package denote
   :bind (("C-c n n" . denote)
-         ("C-c n o" . denote-open-or-create))
+         ("C-c n o" . denote-open-or-create)
+         :map dired-mode-map
+         ("M-o" . my/denote-rename-all-to-reorder-components))
+  :hook
+  (dired-mode . denote-dired-mode-in-directories)
   :custom
   (denote-directory (expand-file-name "~/org/notes"))
+  (denote-file-name-components-order
+   '(signature title keywords))
+  :preface
+  (defun my/denote-rename-all-to-reorder-components ()
+    "Call `denote-dired-rename-files' without any prompts.
+In other words, preserve the value of each Denote file name component.
+
+Use this command if you wish to modify the user option
+`denote-file-name-components-order' and then want your existing Denote
+files to retroactively follow that order."
+    (interactive)
+    (let ((denote-prompts nil))
+      (call-interactively 'denote-dired-rename-files)))
   :config
   (require 'denote-org-extras)
   (with-eval-after-load 'org-capture
@@ -12047,7 +12064,7 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
 (keymap-global-set "M-o" 'my/open-space)
 #+end_src
 
-**** literate configuration (this file)
+**** Literate Configuration
 :PROPERTIES:
 :CREATED:  [2023-10-27 Fri 17:44]
 :END:
@@ -12117,6 +12134,29 @@ I'd share this babel config between literate configuration and main Emacs sessio
                        header-arg))
         `((:tangle-mode . ,(identity #o755))
           (:shebang . "#!/usr/bin/env ruby"))))
+#+end_src
+
+***** Tangle from my notes
+:PROPERTIES:
+:CREATED:  [2025-07-10 Thu 15:56]
+:END:
+
+#+begin_src emacs-lisp
+(use-package tangle-from-note
+  :no-require t
+  :after my-org-global-map
+  :bind (:map my/org-global-map
+              ("T" . my/org-tangle-from-notes))
+  :preface
+  (defun my/org-tangle-from-notes ()
+    "Tangle code snippets from my note files that has `tangle' keyword."
+    (interactive)
+    (when (require-with-check 'denote nil t)
+      (mapc #'org-babel-tangle-file
+            (cl-remove-if-not (lambda (f)
+                                (member "tangle"
+                                        (denote-extract-keywords-from-path f)))
+                              (denote-directory-files))))))
 #+end_src
 
 **** custom RX definitions
