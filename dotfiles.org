@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-11 22:42:01>
+#+DATE: Time-stamp: <Last changed 2025-07-12 08:21:57>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -16153,24 +16153,21 @@ Display information and add it to kill ring if called interactively."
 (defun my/org-english-create-link ()
   "Make a link pointing the word with context."
   (interactive)
-  (save-excursion
-    (let ((current-prefix-arg '(4)))
-      (call-interactively #'org-refile))
-    (let ((org-link-context-for-files nil)
-          (org-id-link-to-org-use-id t))
-      (call-interactively #'org-store-link)))
   (let* ((contexts '("synonym" "antonym" "collocation"
                      "distinct" "similar" "akin" "relevant"
                      "derivative"))
          (context (completing-read "Context: " contexts))
          (org-log-note-headings (append `((context . ,(format "<%s> %%s %%t" context)))
                                         org-log-note-headings))
-         (link-str (with-temp-buffer
-                     (call-interactively #'org-insert-last-stored-link)
-                     (concat " " ; workaround for org-ql failing to recognize org-link with preceding "
-                             (buffer-substring-no-properties (point-min) (1- (point-max)))
-                             " "))))
-    (org-add-log-setup 'context link-str
+         (id nil)
+         (heading nil))
+    (save-excursion
+      (let ((current-prefix-arg '(4)))
+        (call-interactively #'org-refile))
+      (setq id (org-id-get-create))
+      (setq heading (org-get-heading t t t t)))
+    (org-add-log-setup 'context
+                       (format " [[id:%s][%s]] " id heading)
                        nil 'state (format-time-string (org-time-stamp-format t t)))
     (run-hooks 'post-command-hook)))
 
@@ -16181,7 +16178,8 @@ Display information and add it to kill ring if called interactively."
   :lighter " Eng"
   (if org-english-mode
       (progn (org-nudge-mode 1)
-             (setq-local org-nudge-files '("~/org/notes/20230605T170959--my-english-wordbook__list_record.org"))
+             (setq-local org-nudge-files
+                         (list my/org-english-file))
              (setq-local org-nudge-presentation-function #'org-english-link-display)
              (setq-local org-nudge-query-function #'org-english-backlink-query))
     (org-nudge-mode 0)))
