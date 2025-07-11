@@ -4678,31 +4678,22 @@ alias <<print-aliases(lang="plain")>>
  :category "emacs")
 #+end_src
 
-******* create_file AI tool
+******* timer_set AI tool
 :PROPERTIES:
 :CREATED:  [2025-07-09 Wed 15:19]
 :END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
 (gptel-make-tool
- :name "create_file"                    ; javascript-style  snake_case name
- :function (lambda (path filename content)   ; the function that runs
-             (let ((full-path (expand-file-name filename path)))
-               (with-temp-buffer
-                 (insert content)
-                 (write-file full-path))
-               (format "Created file %s in %s" filename path)))
- :description "Create a new file with the specified content"
- :args (list '(:name "path"             ; a list of argument specifications
+ :name "timer_set"
+ :function #'tmr
+ :description "Set a new timer"
+ :args (list '(:name "time"
                      :type string
-                     :description "The directory where to create the file")
-             '(:name "filename"
-                     :type string
-                     :description "The name of the file to create")
-             '(:name "content"
-                     :type string
-                     :description "The content to write to the file"))
- :category "filesystem")
+                     :description
+                     "A time or a duration for the timer. If this is a time, it must be formatted as hh:mm:ss. If this is a duration, it must be an integer followed by s, m, or h representing seconds, minutes, and hours respectively."))
+ :category "emacs"
+ :confirm t)
 #+end_src
 
 ***** gptel-prompt
