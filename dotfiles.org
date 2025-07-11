@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-10 21:03:26>
+#+DATE: Time-stamp: <Last changed 2025-07-11 22:42:01>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -4622,7 +4622,8 @@ alias <<print-aliases(lang="plain")>>
               ("g c" . gptel-mcp-connect)
               ("g d" . gptel-mcp-disconnect))
   :custom
-  (gptel-api-key (apply-partially #'my/credential-info "openai.com" "apikey"))
+  (gptel-api-key
+   (my/credential-info "openai.com" "apikey"))
   (gptel-max-tokens 1000)
   (gptel-model 'gpt-4o-mini)
   (gptel-default-mode 'org-mode)
@@ -4632,11 +4633,11 @@ alias <<print-aliases(lang="plain")>>
   (gptel-include-tool-results 'auto)
   :config
   (gptel-make-gemini "Gemini"
-    :key (apply-partially 'my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
+    :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
     :stream t)
   (gptel-make-openai "Perplexity"
     :host "api.perplexity.ai"
-    :key (apply-partially 'my/credential-info "perplexity.ai")
+    :key (my/credential-info "perplexity.ai" "apikey")
     :endpoint "/chat/completions"
     :stream t
     :models '("llama-3.1-sonar-small-128k-online"
