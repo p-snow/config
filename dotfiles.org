@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-12 08:21:57>
+#+DATE: Time-stamp: <Last changed 2025-07-12 16:58:31>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -4694,6 +4694,75 @@ alias <<print-aliases(lang="plain")>>
                      "A time or a duration for the timer. If this is a time, it must be formatted as hh:mm:ss. If this is a duration, it must be an integer followed by s, m, or h representing seconds, minutes, and hours respectively."))
  :category "emacs"
  :confirm t)
+#+end_src
+
+******* capture_task AI tool
+:PROPERTIES:
+:CREATED:  [2025-07-11 Fri 22:46]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(with-eval-after-load 'org-capture
+  (defun task-timestamp (date deadline-p)
+    ""
+    (unless (string-blank-p date)
+      (with-temp-buffer
+        (insert (if (eq deadline-p ':json-false)
+                    "SCHEDULED: " "DEADLINE: "))
+        (org-insert-timestamp (date-to-time date))
+        (buffer-substring-no-properties (point-min) (point-max)))))
+  (add-to-list 'org-capture-templates
+               `("#tp" "Task for AI"
+                 entry (id "58e12e3e-da50-4089-9d22-565986637121")
+                 ,(format "* %s %%(symbol-value 'task--title)
+%%(task-timestamp (symbol-value 'task--date) (symbol-value 'task--deadline-p))
+%%(symbol-value 'task--content)"
+                          my/org-todo-keyword--todo))))
+
+(gptel-make-tool
+ :name "capture_task"
+ :function (lambda (title content date deadline-p)
+             (setq task--title title)
+             (setq task--content content)
+             (setq task--date date)
+             (setq task--deadline-p deadline-p)
+             (org-capture nil "#tp"))
+ :description "Register a new task"
+ :args (list '(:name "title"
+                     :type string
+                     :description "A title for the task")
+             '(:name "content"
+                     :type string
+                     :description
+                     "Content of the task, such as description or relevant information")
+             '(:name "date"
+                     :type string
+                     :description
+                     "The execution date for the task must be in the format yyyy-mm-dd or yyyy-mm-dd hh:mm if a time is specified. This must be empty if any date or time is specified in the user's prompt.")
+             '(:name "deadline-p"
+                     :type boolean
+                     :description
+                     "Whether the given date designates a deadline. Non-nil means the task has a due date. Note that a scheduled date, such as an appointment, is not a deadline."
+                     ;; "Whether the given date designate deadline. Non-nil means the task has a due date."
+                     )
+             )
+ :category "emacs"
+ :confirm t)
+#+end_src
+
+******* current_time
+:PROPERTIES:
+:CREATED:  [2025-07-12 Sat 15:52]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "current_time"
+ :function
+ (apply-partially #'format-time-string "%Y-%m-%d %H:%M:%S")
+ :description "Return the current time formatted as `yyyy-mm-dd HH:MM:SS`"
+ :category "emacs"
+ :confirm nil)
 #+end_src
 
 ***** gptel-prompt
