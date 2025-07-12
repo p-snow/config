@@ -14441,13 +14441,14 @@ obtained from the org-link at the current point."
 (keymap-global-set "H-o"
                    (define-keymap
                      :prefix 'my/org-global-map
-                     "o" #'org-open-at-point
+                     "o" #'org-open-at-point-global
                      "C-s" #'org-save-all-org-buffers
                      "TAB" #'org-fold-hide-drawer-all
                      "J" #'org-babel-tangle-jump-to-org
                      "i" #'org-info-find-node
                      "&" #'org-mark-ring-goto
-                     "@" #'org-previous-link))
+                     "@" #'org-previous-link
+                     "l" #'org-insert-link-global))
 
 (provide 'my-org-global-map)
 #+end_src
