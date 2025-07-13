@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-12 16:58:31>
+#+DATE: Time-stamp: <Last changed 2025-07-13 23:11:01>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -8706,6 +8706,7 @@ Typical file downloading workflow:
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
 "emacs-denote"
+"emacs-denote-org"
 #+end_src
 
 #+begin_src emacs-lisp
@@ -8743,6 +8744,11 @@ files to retroactively follow that order."
                    :immediate-finish nil
                    :kill-buffer t
                    :jump-to-captured t))))
+
+(use-package denote-org
+  :after denote
+  :custom
+  (denote-org-store-link-to-heading 'id))
 #+end_src
 
 ***** denote-menu
