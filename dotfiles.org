@@ -4765,6 +4765,25 @@ alias <<print-aliases(lang="plain")>>
  :confirm nil)
 #+end_src
 
+******* execute_command
+:PROPERTIES:
+:CREATED:  [2025-07-13 Sun 22:50]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "execute_command"
+ :function #'detached-shell-command
+ :description
+ "Execute given shell command in local machine. Don't care that no output is returned since command execution is complete in an isolated environment."
+ :args (list '(:name "command"
+                     :type string
+                     :description
+                     "A command string that would be executed in a bash shell."))
+ :category "emacs"
+ :confirm t)
+#+end_src
+
 ***** gptel-prompt
 :PROPERTIES:
 :CREATED:  [2025-07-04 Fri 19:35]
