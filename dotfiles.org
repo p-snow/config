@@ -4730,7 +4730,11 @@ alias <<print-aliases(lang="plain")>>
  :description "Register a new task"
  :args (list '(:name "title"
                      :type string
-                     :description "A title for the task")
+                     :description
+                     "Title of the task
+- Begin with a capitalized verb that clearly indicates the action.
+- Ensure the title is concise and clear, ideally within a single line.
+- Limit the length to a maximum of 70 characters to maintain readability.")
              '(:name "content"
                      :type string
                      :description
@@ -4742,10 +4746,7 @@ alias <<print-aliases(lang="plain")>>
              '(:name "deadline-p"
                      :type boolean
                      :description
-                     "Whether the given date designates a deadline. Non-nil means the task has a due date. Note that a scheduled date, such as an appointment, is not a deadline."
-                     ;; "Whether the given date designate deadline. Non-nil means the task has a due date."
-                     )
-             )
+                     "Whether the given date designates a deadline. Non-nil means the task has a due date. Note that a scheduled date, such as an appointment, is not a deadline."))
  :category "emacs"
  :confirm t)
 #+end_src
