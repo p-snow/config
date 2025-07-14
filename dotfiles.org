@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-14 16:16:08>
+#+DATE: Time-stamp: <Last changed 2025-07-14 21:53:02>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -11709,10 +11709,9 @@ exit 0
 (use-package ok-audio-transcription
   :vc (:url "https://github.com/200ok-ch/ok-audio-transcription.git"
             :rev :newest)
-  :after (my-launch-app my-credential)
+  :after my-credential
   :demand t
-  :bind (:map my/launch-app-map
-              ("i" . ok-audio-transcription--record-dwim))
+  :bind ("H-i" . ok-audio-transcription--record-dwim)
   :custom
   (ok-audio-transcription--openai-token
    (my/credential-info "openai.com" "apikey"))
@@ -11720,8 +11719,41 @@ exit 0
   (defvar-keymap my/speech-to-text-map
     :doc "Keymap to repeat commands on dired-subdir."
     :repeat (:enter (ok-audio-transcription--record-dwim)
-                    :exit (ok-audio-transcription--record-dwim))
-    "i" #'ok-audio-transcription--record-dwim))
+                    :exit (ok-audio-transcription--record-dwim
+                           my/audio-transcription--record-dwim))
+    "i" #'ok-audio-transcription--record-dwim
+    "e" #'my/audio-transcription--record-dwim
+    "j" (lambda ()
+          (interactive)
+          (setq my/audio-transcription--language "ja")
+          (funcall-interactively #'my/audio-transcription--record-dwim))))
+
+(defvar my/audio-transcription--language nil)
+
+(defun my/audio-transcription--record-dwim ()
+  ""
+  (interactive)
+  (advice-add 'ok-audio-transcription--call-openai-api :override
+              #'my/audio-transcription--whisper-ctranslate2)
+  (funcall-interactively #'ok-audio-transcription--record-dwim))
+
+(defun my/audio-transcription--whisper-ctranslate2 (audio-path)
+  ""
+  (princ my/audio-transcription--language)
+  (let* ((text-path (concat (file-name-sans-extension audio-path) ".txt"))
+         (command (format "guix shell python-pip -- bash -c \"pip install -U whisper-ctranslate2 && \
+         whisper-ctranslate2 %s -o %s -f txt --model large-v3-turbo --language=%s --batched True\""
+                          (shell-quote-argument audio-path)
+                          (shell-quote-argument (file-name-directory audio-path))
+                          (or my/audio-transcription--language
+                              "en")))
+         (response (shell-command-to-string command)))
+    (insert-file text-path)
+    (delete-file audio-path)
+    (delete-file text-path))
+  (setq my/audio-transcription--language nil)
+  (advice-remove 'ok-audio-transcription--call-openai-api
+                 #'my/audio-transcription--whisper-ctranslate2))
 #+end_src
 
 ***** show the day in calendar
