@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-14 21:53:02>
+#+DATE: Time-stamp: <Last changed 2025-07-15 14:14:24>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -12991,6 +12991,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("-o" "output file" "--output="
     :class my/tsc-file
     :reader my/tsc-output-reader
+    :always-read t
+    :allow-empty nil
     :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}_pandoc.org" nil))))]
   ["Inputs"
    ("f" "file" "-- "
@@ -13011,6 +13013,13 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 (cl-defmethod transient-infix-value ((obj my/pandoc-format))
   ""
+  (mapc (lambda (out-obj)
+          (when (equal (oref out-obj key) "-o")
+            (oset out-obj value
+                  (concat
+                   (file-name-sans-extension (oref out-obj value))
+                   "." (oref obj value)))))
+        (or transient--suffixes transient-current-suffixes))
   (append (list (concat (oref obj argument) (oref obj value)))
           ;; PDF conversion requires an engine specified
           (and (equal (oref obj value) "pdf")
