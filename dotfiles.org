@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-15 14:14:24>
+#+DATE: Time-stamp: <Last changed 2025-07-16 19:33:14>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -443,7 +443,6 @@ done
    "shadow"
    "sshfs"
    "grep"
-   "ripgrep"
    "man-db"
    "less"
    "pwgen"
@@ -6687,7 +6686,12 @@ export DISPLAY=:0 && \
   (with-eval-after-load 'org
     (bind-keys :map org-mode-map
                ("C-c H" . consult-org-heading)))
-  (setq consult-ripgrep-args (concat (default-value 'consult-ripgrep-args) " --hidden --follow")))
+  (setq consult-ripgrep-args
+        `(,(default-value 'consult-ripgrep-args)
+          "--hidden" ;; for dotfiles
+          "--follow" ;; for symlinks
+          "--text"   ;; for *.zip/*.7z files
+          "--pre pre-rg --pre-glob \"*.gpg\""))) ;; for *.gpg files
 #+end_src
 
 ****** consult-dir
@@ -19305,6 +19309,26 @@ export WINEPREFIX=~/.wine
 
 #+begin_src gnuplot :tangle (expand-file-name ".gnuplot") :comments no
 set colorsequence podo
+#+end_src
+
+** Ripgrep
+:PROPERTIES:
+:CREATED:  [2025-07-15 Tue 16:33]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-base
+"ripgrep"
+#+end_src
+
+#+NAME: shell/pre-rg
+#+begin_src shell :tangle (expand-file-name "pre-rg" tangle/local-bin-dir)
+#!/bin/sh
+
+case "$1" in
+,*.gpg)
+  exec gpg -q --for-your-eyes-only --no-tty --batch --no-verbose --skip-verify -d "$1"
+  ;;
+esac
 #+end_src
 
 * Development Infrastructures
