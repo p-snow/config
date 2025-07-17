@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-16 23:38:27>
+#+DATE: Time-stamp: <Last changed 2025-07-17 16:44:26>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -4679,16 +4679,16 @@ alias <<print-aliases(lang="plain")>>
  :category "emacs")
 #+end_src
 
-******* timer_set AI tool
+******* alarm_set AI tool
 :PROPERTIES:
 :CREATED:  [2025-07-09 Wed 15:19]
 :END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
 (gptel-make-tool
- :name "timer_set"
+ :name "alarm_set"
  :function #'tmr
- :description "Set a new timer"
+ :description "Set an alarm timer"
  :args (list '(:name "time"
                      :type string
                      :description
@@ -4782,6 +4782,29 @@ alias <<print-aliases(lang="plain")>>
                      :type string
                      :description
                      "A command string that would be executed in a bash shell."))
+ :category "emacs"
+ :confirm t)
+#+end_src
+
+******* good-night command AI tool
+:PROPERTIES:
+:CREATED:  [2025-07-16 Wed 23:48]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "goodnight_command"
+ :function (lambda (wakeup-time)
+             (with-current-buffer (get-buffer-create "*Command*")
+               (insert
+                (format "sleep 30m; midnight.sh; pwsudo rtcwake -m mem --date '%s'; morning.sh"
+                        wakeup-time))))
+ :description
+ "Start a good-night command. This command may be referred to as おやすみコマンド in Japanese."
+ :args (list '(:name "wakeup-time"
+                     :type string
+                     :description
+                     "The wake-up time must be specified in the format 'yyyy-mm-dd HH:MM'. It should be set for 6 hours and 20 minutes after the current time unless there are specific requirements. Additionally, it should not designate a past time. For example, if the user specifies 05:20 and the current time is 22:00, it means the wake-up time will be set for 05:20 on the following day."))
  :category "emacs"
  :confirm t)
 #+end_src
