@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-07-20 08:16:49>
+#+DATE: Time-stamp: <Last changed 2025-07-21 17:25:51>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -1873,15 +1873,18 @@ Following configuration is for version 4 of modus-themes which takes breaking ch
 "emacs-ef-themes"
 #+end_src
 
+#+NAME: config/emacs-ef-theme
 #+begin_src emacs-lisp
 (use-package ef-themes
   :init
   (setq ef-bio-palette-overrides
         '((cursor "#ffffff")))
   :custom
-  (ef-themes-to-toggle ef-themes-dark-themes)
+  (ef-themes-to-toggle
+   '(ef-bio ef-deuteranopia-light))
   :config
-  (bind-keys ("<f9>" . ef-themes-toggle)))
+  (bind-keys ("<f9>" .   ef-themes-toggle)
+             ("M-<f9>" . ef-themes-rotate)))
 #+end_src
 
 **** Basic Preferences
