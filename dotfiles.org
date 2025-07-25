@@ -6608,21 +6608,35 @@ export DISPLAY=:0 && \
   :defer t)
 #+end_src
 
-****** org-appear
+****** org-appear                          :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2024-09-07 Sat 23:58]
 :END:
 
 [[https://github.com/awth13/org-appear][org-appear]] attentively displays emphasis markers, such as / for italic and _ for underline, only when the cursor is positioned over the word in Org Mode.
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
+#+begin_src scheme :tangle no
 "emacs-org-appear"
 #+end_src
 
 #+begin_src emacs-lisp
 (use-package org-appear
   :after org
+  :disabled t
   :hook (org-mode . (org-appear-mode)))
+#+end_src
+
+****** org-expose-emphasis-markers
+:PROPERTIES:
+:CREATED:  [2025-07-25 Fri 17:24]
+:END:
+
+#+begin_src emacs-lisp
+(use-package org-expose-emphasis-markers
+  :vc (:url "https://github.com/lorniu/org-expose-emphasis-markers.git"
+            :rev :newest)
+  :after org
+  :hook (org-mode . org-expose-emphasis-markers-mode))
 #+end_src
 
 **** Completion
