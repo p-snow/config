@@ -17441,6 +17441,8 @@ build/
 	xfuncname="^\\((((def\\S+)|use-package)\\s+\\S+)"
 [diff "org"]
 	xfuncname="^\\*+ +(.*)$"
+[diff "scheme"]
+	xfuncname="^\\((define\\S*\\s+\\S+)"
 [help]
 	autocorrect = 0
 [alias]
@@ -17497,20 +17499,21 @@ build/
 ,*.org diff=org
 ,*.lisp diff=common-lisp
 ,*.el diff=elisp
+,*.scm diff=scheme
 #+END_SRC
 
 ** pass-git-helper
 
 [[https://github.com/languitar/pass-git-helper][pass-git-helper]] is a utility program that allows users to use password-store's passwords for git credentials.
 
-#+begin_src scheme :noweb-ref guix-base
-"pass-git-helper"
-#+end_src
+# #+begin_src scheme :noweb-ref guix-base
+# "pass-git-helper"
+# #+end_src
 
-#+begin_src gitconfig :noweb yes :tangle no :noweb-ref git-config
-[credential]
-	helper = !pass-git-helper -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini $@
-#+end_src
+# #+begin_src gitconfig :noweb yes :tangle no :noweb-ref git-config
+# [credential]
+# 	helper = !pass-git-helper -m <<home-dir()>>/.config/pass-git-helper/git-pass-mapping.ini $@
+# #+end_src
 
 ** git-annex
 
