@@ -11817,7 +11817,6 @@ exit 0
 
 (defun my/audio-transcription--whisper-ctranslate2 (audio-path)
   ""
-  (princ my/audio-transcription--language)
   (let* ((text-path (concat (file-name-sans-extension audio-path) ".txt"))
          (command (format "guix shell python-pip -- bash -c \"pip install -U whisper-ctranslate2 && \
          whisper-ctranslate2 %s -o %s -f txt --model large-v3-turbo --language=%s --batched True\""
@@ -11826,12 +11825,14 @@ exit 0
                           (or my/audio-transcription--language
                               "en")))
          (response (shell-command-to-string command)))
-    (insert-file text-path)
-    (delete-file audio-path)
-    (delete-file text-path))
-  (setq my/audio-transcription--language nil)
-  (advice-remove 'ok-audio-transcription--call-openai-api
-                 #'my/audio-transcription--whisper-ctranslate2))
+    (unwind-protect
+        (progn
+          (insert-file text-path)
+          (delete-file audio-path)
+          (delete-file text-path))
+      (setq my/audio-transcription--language nil)
+      (advice-remove 'ok-audio-transcription--call-openai-api
+                     #'my/audio-transcription--whisper-ctranslate2))))
 #+end_src
 
 ***** show the day in calendar
