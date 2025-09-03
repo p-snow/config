@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-09-03 22:25:14>
+#+DATE: Time-stamp: <Last changed 2025-09-03 22:27:40>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -9208,10 +9208,7 @@ Handy commands
   (flycheck-textlint-config ".textlintrc")
   :config
   (add-hook 'flycheck-mode-hook
-            (lambda ()
-              (if (my/ascii-string-p (buffer-string))
-                  (setq flycheck-textlint-config ".textlintrc")
-                (setq flycheck-textlint-config ".config/textlint/textlintrc_ja"))))
+            (lambda () (setq flycheck-textlint-config ".textlintrc")))
   (add-to-list 'display-buffer-alist
                `(,flycheck-error-message-buffer
                  . (display-buffer-reuse-window
