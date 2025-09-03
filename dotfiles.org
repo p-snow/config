@@ -1940,21 +1940,10 @@ Settings in this section are influenced a great deal by my personal preference. 
                            'downcase-dwim
                            global-map)
 (keymap-global-set "C-x C-c" #'capitalize-dwim)
+
+;; set up key binds for find-functions such as C-x F for find-function
+(find-function-setup-keys)
 #+end_src
-
-- Bind for C-x C-b, use [[help:ibuffer][ibuffer]] which has more features than [[help:list-buffers][list-buffers]] based on [[https://irreal.org/blog/?p=10329][this advice]].
-  #+begin_src emacs-lisp
-  (substitute-key-definition 'list-buffers
-                             'ibuffer
-                             global-map)
-  #+end_src
-
-- bind find-functions and finder commands
-  #+begin_src emacs-lisp
-  (find-function-setup-keys)
-
-  (keymap-set ctl-x-map "C" 'finder-commentary)
-  #+end_src
 
 ***** Unleash Disabled Commands
 :PROPERTIES:
@@ -2738,6 +2727,31 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 #+begin_src emacs-lisp
 (use-package completion-preview
   :hook (prog-mode . completion-preview-mode))
+#+end_src
+
+****** Ibuffer
+:PROPERTIES:
+:CREATED:  [2025-08-29 Fri 09:28]
+:END:
+
+#+NAME: config/emacs-ibuffer
+#+begin_src emacs-lisp :noweb tangle
+(use-package ibuffer
+  :custom
+  (ibuffer-show-empty-filter-groups nil)
+  (ibuffer-formats '((mark modified read-only locked " " (name 14 14 :left :elide) " "
+                           (mode 8 8 :left :elide) " " filename-and-process)
+                     (mark " " (name 8 -1) " " filename)))
+  (ibuffer-saved-filter-groups
+   `(("Home"
+      ("Doc" (filename . "^<<doc-dir>>"))
+      ("Project" (filename . ,(concat "^" (regexp-quote (expand-file-name "<<ghq-root()>>"))))))))
+  :hook
+  (ibuffer-mode . (lambda ()
+                    (ibuffer-switch-to-saved-filter-groups "Home")))
+  :config
+  (keymap-substitute global-map
+                     #'list-buffers #'ibuffer))
 #+end_src
 
 ***** Editing
@@ -7642,7 +7656,7 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 (keymap-set special-mode-map "C-j" #'push-button)
 #+end_src
 
-***** help
+***** help mode
 :PROPERTIES:
 :ID:       a55da7a2-6525-4788-ba56-085eb61928d4
 :END:
@@ -7651,7 +7665,9 @@ I'm in the trial of pp-eval-last-sexp instead of eval-last-sexp adviced from [[h
 (with-eval-after-load 'help
   (keymap-set help-map "C-?" #'help-for-help)
   (keymap-set help-map "c" #'describe-face)
-  (keymap-set help-map "K" #'describe-keymap))
+  (keymap-set help-map "K" #'describe-keymap)
+  (with-eval-after-load 'finder
+    (keymap-set help-map "#" #'finder-commentary)))
 #+end_src
 
 ***** woman
@@ -8448,12 +8464,12 @@ Default to the symbol at point."
               ("t" . tmr)))
 #+end_src
 
-***** beframe
+***** beframe                                 :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-03-01 Wed 15:47]
 :END:
 
-#+begin_src scheme :noweb-ref guix-emacs :tangle no
+#+begin_src scheme :tangle no
 "emacs-beframe"
 #+end_src
 
