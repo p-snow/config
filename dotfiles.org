@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-09-05 20:07:16>
+#+DATE: Time-stamp: <Last changed 2025-09-05 21:59:53>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -10702,6 +10702,24 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   (add-to-list 'display-buffer-alist
                `("*vundo-diff.+" .
                  (display-buffer-use-least-recent-window))))
+#+end_src
+
+***** p-search
+:PROPERTIES:
+:CREATED:  [2025-09-05 Fri 21:59]
+:END:
+
+#+begin_src emacs-lisp
+(use-package p-search
+  :ensure t
+  :bind ("M-s p" . p-search)
+  :custom
+  (p-search-default-document-preview-size 5)
+  :config
+  (require 'p-search-x-info)
+  (require 'p-search-x-filesplit)
+  (bind-keys :map p-search-mode-map
+             ("C-m" . p-search-find-document)))
 #+end_src
 
 **** My Emacs Packages
