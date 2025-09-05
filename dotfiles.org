@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-09-03 22:27:40>
+#+DATE: Time-stamp: <Last changed 2025-09-05 20:07:16>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -10681,6 +10681,27 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
 
 #+begin_src emacs-lisp
 (use-package git-timemachine)
+#+end_src
+
+***** vundo
+:PROPERTIES:
+:CREATED:  [2025-09-05 Fri 17:55]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-vundo"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package vundo
+  :bind ("C-M-/" . vundo)
+  :custom
+  (vundo-compact-display t)
+  (vundo-diff-quit t)
+  :config
+  (add-to-list 'display-buffer-alist
+               `("*vundo-diff.+" .
+                 (display-buffer-use-least-recent-window))))
 #+end_src
 
 **** My Emacs Packages
