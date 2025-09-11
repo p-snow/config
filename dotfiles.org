@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-09-10 08:44:49>
+#+DATE: Time-stamp: <Last changed 2025-09-11 23:44:21>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -10419,13 +10419,17 @@ EWW is a nice place for intensive reading. When there are articles or documents 
 :CREATED:  [2024-04-28 Sun 12:56]
 :END:
 
+In order to work in KDE Wayland, you need to install wtype and kdotool, which can be installed with "cargo install kdotool".
+
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-everywhere"
+;; "emacs-everywhere"
 "xdotool"
+"wtype"
 #+end_src
 
 #+begin_src emacs-lisp
 (use-package emacs-everywhere
+  :ensure t
   :hook (emacs-everywhere-mode
          . (lambda () (when emacs-everywhere-mode
                     (set-frame-parameter nil 'fullscreen 'fullboth)))))
