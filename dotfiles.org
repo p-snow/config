@@ -4835,10 +4835,12 @@ alias <<print-aliases(lang="plain")>>
 :CREATED:  [2025-07-04 Fri 19:35]
 :END:
 
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-gptel-prompts"
+#+end_src
+
 #+begin_src emacs-lisp :noweb tangle
 (use-package gptel-prompts
-  :vc (:url "https://github.com/jwiegley/gptel-prompts.git"
-            :rev :newest)
   :after (gptel)
   :demand t
   :custom
@@ -4855,14 +4857,18 @@ alias <<print-aliases(lang="plain")>>
 :CREATED:  [2025-07-19 Sat 20:39]
 :END:
 
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-ob-gptel"
+#+end_src
+
 #+begin_src emacs-lisp :noweb tangle
 (use-package ob-gptel
-  :vc (:url "https://github.com/jwiegley/ob-gptel.git"
-            :rev :newest)
   :after (gptel ob-core)
   :config
   (add-to-list 'org-babel-load-languages
-               '(gptel . t)))
+               '(gptel . t))
+  (add-to-list 'org-structure-template-alist
+               '("g" . "src gptel")))
 #+end_src
 
 ***** mcp
@@ -8815,7 +8821,6 @@ files to retroactively follow that order."
     (let ((denote-prompts nil))
       (call-interactively 'denote-dired-rename-files)))
   :config
-  (require 'denote-org-extras)
   (with-eval-after-load 'org-capture
     (setq denote-org-capture-specifiers "%l\n%i\n%?")
     (add-to-list 'org-capture-templates
