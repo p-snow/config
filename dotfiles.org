@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-09-14 16:36:08>
+#+DATE: Time-stamp: <Last changed 2025-09-14 19:05:28>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -10382,37 +10382,38 @@ EWW is a nice place for intensive reading. When there are articles or documents 
   :preface
   (defun my/view-htmlized ()
     (interactive)
-    (pcase-let* ((`(,fname . ,write-proc)
-                  (if (derived-mode-p 'org-mode)
+    (when (require-with-check 'ox)
+      (pcase-let* ((`(,fname . ,write-proc)
+                    (if (derived-mode-p 'org-mode)
+                        (cons (format "%s.html"
+                                      (secure-hash 'md5 (or (org-id-get)
+                                                            (org-id-uuid))))
+                              (lambda (file)
+                                (let ((org-export-show-temporary-export-buffer nil)
+                                      (org-export-preserve-breaks t)
+                                      (org-export-use-babel nil))
+                                  (org-html-export-as-html nil (if (org-before-first-heading-p) nil t) nil)
+                                  (with-current-buffer "*Org HTML Export*"
+                                    (write-file file)))))
                       (cons (format "%s.html"
-                                    (secure-hash 'md5 (or (org-id-get)
-                                                          (org-id-uuid))))
+                                    (secure-hash 'md5
+                                                 (apply 'buffer-substring-no-properties
+                                                        (if (region-active-p)
+                                                            (list (region-beginning) (region-end))
+                                                          (list (point-min) (point-max))))))
                             (lambda (file)
-                              (let ((org-export-show-temporary-export-buffer nil)
-                                    (org-export-preserve-breaks t)
-                                    (org-export-use-babel nil))
-                                (org-html-export-as-html nil (if (org-before-first-heading-p) nil t) nil)
-                                (with-current-buffer "*Org HTML Export*"
-                                  (write-file file)))))
-                    (cons (format "%s.html"
-                                  (secure-hash 'md5
-                                               (apply 'buffer-substring-no-properties
-                                                      (if (region-active-p)
-                                                          (list (region-beginning) (region-end))
-                                                        (list (point-min) (point-max))))))
-                          (lambda (file)
-                            (let ((region-text (apply 'htmlize-region-for-paste
-                                                      (if (region-active-p)
-                                                          (list (region-beginning) (region-end))
-                                                        (list (point-min) (point-max))))))
-                              (with-temp-buffer
-                                (insert region-text)
-                                (write-file file nil)))))))
-                 (file-path (file-name-concat "<<htmlize-dir()>>" fname)))
-      (when (or (not (file-exists-p file-path))
-                (derived-mode-p 'org-mode))
-        (apply write-proc (list file-path)))
-      (browse-url-of-file file-path)))
+                              (let ((region-text (apply 'htmlize-region-for-paste
+                                                        (if (region-active-p)
+                                                            (list (region-beginning) (region-end))
+                                                          (list (point-min) (point-max))))))
+                                (with-temp-buffer
+                                  (insert region-text)
+                                  (write-file file nil)))))))
+                   (file-path (file-name-concat "<<htmlize-dir()>>" fname)))
+        (when (or (not (file-exists-p file-path))
+                  (derived-mode-p 'org-mode))
+          (apply write-proc (list file-path)))
+        (browse-url-of-file file-path))))
   :config
   (bind-keys ("C-!" . my/view-htmlized)))
 #+end_src
