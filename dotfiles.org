@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-09-15 14:31:34>
+#+DATE: Time-stamp: <Last changed 2025-09-16 08:24:27>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -9452,7 +9452,7 @@ d <<undo-tree-hist-dir()>> - - - 3w
 helpful-mode displays more sources compared to help-mode, including callers, debugging information, and source code.
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
-  "emacs-helpful"
+"emacs-helpful"
 #+end_src
 
 #+begin_src emacs-lisp
@@ -10782,7 +10782,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
                       (kill-new (message "%s %s"
                                          (my/english-japanese-translate word t)
                                          (my/english-pronunciation word t))))))
-  (with-eval-after-load 'denote
+  (when (require-with-check 'denote)
     (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
 #+end_src
 
