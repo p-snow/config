@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-09-16 08:24:27>
+#+DATE: Time-stamp: <Last changed 2025-09-18 23:06:43>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -3863,7 +3863,7 @@ sudo systemctl start dictd
   (dired-open-query-before-exit nil)
   (completion-ignored-extensions nil)
   (dired-movement-style 'bounded)
-  (dired-filename-display-length 'window)
+  (dired-filename-display-length nil)
   :config
   (with-eval-after-load 'open-file
     (setq dired-guess-shell-alist-user
@@ -10733,6 +10733,25 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   (require 'p-search-x-filesplit)
   (bind-keys :map p-search-mode-map
              ("C-m" . p-search-find-document)))
+#+end_src
+
+***** all-the-icons-dired
+:PROPERTIES:
+:CREATED:  [2025-09-18 Thu 21:26]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-all-the-icons-dired"
+#+end_src
+
+#+NAME: config/emacs-all-the-icons-dired
+#+begin_src emacs-lisp
+(use-package all-the-icons-dired
+  :hook (dired-mode . all-the-icons-dired-mode)
+  :custom
+  ((all-the-icons-dired-v-adjust 0.2)
+   (all-the-icons-dired-monochrome nil)
+   (all-the-icons-scale-factor 0.8)))
 #+end_src
 
 **** My Emacs Packages
