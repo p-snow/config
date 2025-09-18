@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-09-18 23:06:43>
+#+DATE: Time-stamp: <Last changed 2025-09-18 23:14:45>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -4134,7 +4134,9 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
 #+begin_src emacs-lisp
 (use-package mu4e
   :commands (mu4e)
-  :hook (emacs-startup . (lambda () (mu4e t)))
+  :hook (emacs-startup . (lambda ()
+                           (when (string= system-name "pc-k8p")
+                             (mu4e t))))
   :delight
   (mu4e-main-mode    " MU")
   (mu4e-headers-mode " MU")
