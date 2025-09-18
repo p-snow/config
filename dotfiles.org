@@ -1,6 +1,6 @@
 # -*- lexical-binding: t -*-
 #+TITLE: Dotfiles
-#+DATE: Time-stamp: <Last changed 2025-09-18 23:14:45>
+#+DATE: Time-stamp: <Last changed 2025-09-18 23:31:55>
 #+STARTUP: overview
 
 #+OPTIONS: toc:t
@@ -2468,6 +2468,14 @@ Icomplete is nice, but Vertico takes a more supple approach, so I would use Vert
 (setopt line-number-mode nil
         column-number-mode nil
         mode-line-compact t)
+
+(defun my/tab-bar-mode-line-string ()
+  "Return the name for the current tab."
+  (format "%s)"
+          (assoc-default 'name
+                         (assoc-default 'current-tab
+                                        (funcall tab-bar-tabs-function)))))
+
 (setopt mode-line-format
         '("%e"
           (:eval (my/tab-bar-mode-line-string))
@@ -2658,12 +2666,6 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
   (tab-bar-tab-hints t)
   (tab-bar-tab-name-function (apply-partially #'my/project-root-path t))
   :preface
-  (defun my/tab-bar-mode-line-string ()
-    "Return the name for the current tab."
-    (format "%s)"
-            (assoc-default 'name
-                           (assoc-default 'current-tab
-                                          (funcall tab-bar-tabs-function)))))
   (defun my/project-root-path (&optional base-name)
     "Return an absolute path for `project-current' or base name if BASE-NAME is non-nil."
     (if-let (project (project-current))
