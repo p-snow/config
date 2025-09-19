@@ -17684,7 +17684,11 @@ sync_doc /mnt/shared/doc-$(hostname)/ 0
 sync_doc /mnt/vt-ex/doc/ 1
 sync_doc /mnt/vt-h/doc/ 1
 sync_doc /mnt/vt-j/doc/ 1
-sync_doc /mnt/shared/doc-$(hostname)/ 0
+if [ "$#" -eq 0 ]; then
+  sync_doc /mnt/shared/doc-$(hostname)/ 0
+else
+  sync_doc /mnt/shared/doc-$(hostname)/ "$1"
+fi
 #+end_src
 
 ** ghq
