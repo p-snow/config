@@ -10455,13 +10455,15 @@ Major mode for manupulating password store file.
   (setq nov-file-name (abbreviate-file-name nov-file-name)))
 #+end_src
 
-***** yasnippet               :emulation:convenience:
+***** yasnippet         :emulation:convenience:ARCHIVE:
 :PROPERTIES:
 :ID:       e91bfa7e-79be-4abc-ac0c-232aa3ccddda
 :CREATED:  [2023-06-11 Sun 18:40]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
+YASnippet is a powerful template system I used until a few years ago. Now I'm using a more flexible template engine, [[id:1da2261f-30f6-49b2-9f26-e4c2c7438288][TempEL]].
+
+#+begin_src scheme :tangle no
 "emacs-yasnippet"
 "emacs-yasnippet-snippets"
 #+end_src
@@ -10486,12 +10488,12 @@ Major mode for manupulating password store file.
   (require 'yasnippet-snippets))
 #+end_src
 
-***** auto-yasnippet
+***** auto-yasnippet                          :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-06-26 Mon 10:52]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
+#+begin_src scheme :tangle no
 "emacs-auto-yasnippet"
 #+end_src
 
@@ -10801,19 +10803,6 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
   (logos-buffer-read-only t)
   (logos-olivetti nil)
   (logos-hide-fringe t))
-#+end_src
-
-***** editorconfig
-:PROPERTIES:
-:CREATED:  [2024-01-13 Sat 15:13]
-:END:
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-editorconfig"
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package editorconfig)
 #+end_src
 
 ***** elisp-demos
@@ -12861,19 +12850,6 @@ if type(out_root_str) is bytes:
    (completing-read "Format: "
                     (mapcar #'format-time-string
                             '("%Y%m%d" "%Y-%m-%d" "%Y-%m-%d %H:%M:%S")))))
-
-(defun my/drag-line-backward ()
-  "Drag up current line for one."
-  (interactive)
-  (transpose-lines 1)
-  (previous-line 2))
-
-(defun my/drag-line-forward ()
-  "Drag down current line for one."
-  (interactive)
-  (next-line 1)
-  (transpose-lines 1)
-  (previous-line 1))
 
 (defun my/comment-box (b e)
   "Draw a box comment around the region but arrange for the region
