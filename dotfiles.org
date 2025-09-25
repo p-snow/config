@@ -11936,7 +11936,7 @@ Every frame will be spawn in maximized and initial frame will be full screen at 
             #'native-compile-prune-cache))
 #+end_src
 
-***** Increasing the number at point
+***** Operating on the number at point
 :PROPERTIES:
 :CREATED:  [2023-09-06 Wed 21:53]
 :CUSTOM_ID: emacs-increase-number
@@ -11948,30 +11948,94 @@ Every frame will be spawn in maximized and initial frame will be full screen at 
 Org Mode offers handy commands, namely org-increase-number-at-point and org-decrease-number-at-point. I often find myself handling zero-padded numbers such as '010'. I thought it would be nice if there was a command that could increase a number at point while preserving the preceding zeros - and this is the solution.
 
 #+begin_src emacs-lisp
-(defun my/increase-number-at-point (&optional inc)
-  "Increase the number at point by INC."
-  (interactive "p")
-  (let (number)
-    (pcase-let* ((`(,beg . ,end) (save-match-data
-                                   (setq number (number-at-point))
-                                   (cons (match-beginning 0) (match-end 0)))))
-      (when (numberp number)
+(defvar my/operate-number-fixed-operand 1)
+
+(defun my/operate-number-at-point (operator operand)
+  "Apply OPERATOR to the number at point with OPERAND."
+  (let (number-str answer-str)
+    (pcase-let* ((`(,beg . ,end)
+                  (save-match-data
+                    (when (thing-at-point-looking-at thing-at-point-decimal-regexp 500)
+                      (setq number-str
+                            (buffer-substring (match-beginning 0) (match-end 0)))
+                      (cons (match-beginning 0) (match-end 0))))))
+      (when (stringp number-str)
+        (setq answer-str
+              (number-to-string
+               (funcall operator
+                        (string-to-number number-str)
+                        (setq my/operate-number-fixed-operand operand))))
+        ;; restore leading zeros
+        (when (string-match-p "\\`0" number-str)
+          (let ((len-diff (- (length number-str) (length answer-str))))
+            (when (> len-diff 0)
+              (setq answer-str (concat (make-string len-diff ?0) answer-str)))))
         (delete-region beg end)
-        (insert (number-to-string (+ number inc)))))))
+        (insert answer-str)))))
 
-(defun my/decrease-number-at-point (dec)
-  "Decrease the number at point by DEC."
+(defun my/add-number-at-point (step)
+  ""
   (interactive "p")
-  (funcall #'my/increase-number-at-point (* dec -1)))
+  (my/operate-number-at-point #'+ step))
 
-(keymap-global-set "C-c u" #'my/increase-number-at-point)
-(keymap-global-set "C-c l" #'my/decrease-number-at-point)
+(defun my/increase-number-at-point ()
+  ""
+  (interactive)
+  (funcall-interactively #'my/add-number-at-point
+                         (abs my/operate-number-fixed-operand)))
+
+(defun my/subtract-number-at-point (step)
+  "Decrease the operand at point by STEP."
+  (interactive "p")
+  (funcall-interactively #'my/add-number-at-point (* -1 step)))
+
+(defun my/decrease-number-at-point ()
+  ""
+  (interactive)
+  (funcall-interactively #'my/add-number-at-point
+                         (* -1 (abs my/operate-number-fixed-operand))))
+
+(defun my/multiply-number-at-point (factor)
+  ""
+  (interactive (list (if current-prefix-arg
+                         (prefix-numeric-value current-prefix-arg)
+                       2)))
+  (my/operate-number-at-point #'* factor))
+
+(defun my/fold-number-at-point ()
+  ""
+  (interactive)
+  (funcall-interactively #'my/multiply-number-at-point
+                         (abs my/operate-number-fixed-operand)))
+
+(defun my/devide-number-at-point (devisor)
+  ""
+  (interactive (list (if current-prefix-arg
+                         (prefix-numeric-value current-prefix-arg)
+                       2)))
+  (my/operate-number-at-point #'/ devisor))
+
+(defun my/split-number-at-point ()
+  ""
+  (interactive)
+  (funcall-interactively #'my/devide-number-at-point
+                         (abs my/operate-number-fixed-operand)))
+
+(keymap-global-set "C-M-+" #'my/add-number-at-point)
+(keymap-global-set "H-# +" #'my/add-number-at-point)
+(keymap-global-set "H-# -" #'my/subtract-number-at-point)
+(keymap-global-set "H-# *" #'my/multiply-number-at-point)
+(keymap-global-set "H-# /" #'my/devide-number-at-point)
 (defvar-keymap my/increase-number-repeat-map
   :doc "Repeat keymap for increasing/decreasing numbers."
-  :repeat (:enter (my/increase-number-at-point
-                   my/decrease-number-at-point))
-  "u" #'my/increase-number-at-point
-  "l" #'my/decrease-number-at-point)
+  :repeat (:enter (my/add-number-at-point
+                   my/subtract-number-at-point
+                   my/multiply-number-at-point
+                   my/devide-number-at-point))
+  "+" #'my/increase-number-at-point
+  "-" #'my/decrease-number-at-point
+  "*" #'my/fold-number-at-point
+  "/" #'my/split-number-at-point)
 #+end_src
 
 ***** edit local file as root (sudo)
