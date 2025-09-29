@@ -13427,9 +13427,11 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
     :always-read t
     :init-value
     ,(my/tsc-build-init-value :infile-orig input-value))]
-  ["Filters"
-   ("-t" "tempo (e.g. 1.5)" "-filter:a atempo="
-    :prompt "tempo (floating number): ")]
+  ["Audio Filters"
+   ("-t" "tempo (e.g. 1.5)" "atempo="
+    :prompt "tempo: ")
+   ("-v" "volume (e.g. 2.0, 6dB)" "volume="
+    :prompt "volume: ")]
   ["Outfile"
    ("o" "output" "-- "
     :class my/tsc-file
@@ -13439,9 +13441,13 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   my/tsc-optional-menu
   [(my/tsc-execute
     :command-format
-    "ffmpeg %i -map_metadata 0 %O %o"
+    "ffmpeg %i -map_metadata 0 %O%f %o"
     :command-format-spec ((?i . (my/tsc-infix-values '("-i")))
-                          (?O . (my/tsc-infix-values '("a" "-B" "-t")))
+                          (?O . (my/tsc-infix-values '("a" "-B")))
+                          (?f . (if-let* ((afilter-objs (mapcar #'my/tsc-suffix '("-t" "-v")))
+                                          (afilter-strs (delq nil (mapcar #'transient-infix-value afilter-objs))))
+                                    (format " -filter:a \"%s\"" (string-join afilter-strs ","))
+                                  ""))
                           (?o . (my/tsc-infix-values '("o")))))]
   (interactive (list (my/tsc-determine-file nil)))
   (transient-setup 'my/ffmpeg-libopus-command nil nil
