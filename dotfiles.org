@@ -7288,7 +7288,9 @@ Configuration for scheme-mode includes indentation settings for Guix, which are 
 (use-package scheme
   :mode (("\\.guix-channel" . scheme-mode)
          ("\\.guix-authorizations" . scheme-mode))
-  :hook (scheme-mode . (lambda () (setq-local indent-tabs-mode nil)))
+  :hook (scheme-mode . (lambda ()
+                         (setq-local indent-tabs-mode nil)
+                         (setq-local sentence-end-double-space t)))
   :config
   (put 'with-transformation 'scheme-indent-function 1)
   (put 'nonguix-container 'scheme-indent-function 0)
