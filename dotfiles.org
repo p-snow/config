@@ -11420,6 +11420,18 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
                        (denote-directory-files))))))))
 #+end_src
 
+***** heart-rate
+:PROPERTIES:
+:CREATED:  [2025-10-01 Wed 22:43]
+:END:
+
+#+NAME: config/emacs-org-nudge
+#+begin_src emacs-lisp
+(use-package heart-rate
+  :custom
+  (heart-rate-device-address "E8:6B:F8:05:CF:2A"))
+#+end_src
+
 *** Advanced Customization
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "ext-config.el" tangle/emacs-config-dir)
@@ -18004,6 +18016,211 @@ See https://github.com/jwiegley/emacs-async/issues/145"
 
 (provide 'org-nudge)
 ;;; org-nudge.el ends here
+#+end_src
+
+**** Package: heart-rate
+:PROPERTIES:
+:CREATED:  [2025-10-01 Wed 22:39]
+:END:
+
+#+NAME: package/heart-rate
+#+header: :shebang ""
+#+begin_src emacs-lisp :comments no :tangle (expand-file-name "heart-rate.el" tangle/emacs-sitelisp-dir)
+;;; *heart-rate.el --- summary -*- lexical-binding: t -*-
+
+;; Author: p-snow
+;; Version: version
+;; Package-Requires: dependencies
+;; Homepage: homepage
+;; Keywords: keywords
+
+;; This file is not part of GNU Emacs
+
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; commentary
+
+;;; Code:
+
+(require 'dbus)
+
+
+;;;; customization
+
+(defcustom heart-rate-device-address nil
+  ""
+  :set (lambda (sym val)
+         (custom-set-default sym val)
+         (setq heart-rate-dbus-device-path
+               (concat "/org/bluez/hci0/dev_"
+                       (replace-regexp-in-string ":" "_" val))))
+  :initialize #'custom-initialize-changed
+  :group 'heart-rate)
+
+
+;;;; internal constants and variables
+
+(defconst heart-rate-dbus-bus :system
+  "")
+
+(defconst heart-rate-bluez-service "org.bluez"
+  "")
+
+(defconst heart-rate-bluez-service-adapter "org.bluez.Adapter1"
+  "")
+
+(defconst heart-rate-bluez-service-device "org.bluez.Device1"
+  "")
+
+(defvar heart-rate-dbus-device-path nil)
+
+(defvar heart-rate-dbus-gtch-path nil)
+
+(defvar heart-rate-dbus-signal-object nil)
+
+(defvar heart-rate-mode-line-string nil
+  "Heart-rate mode-line string.")
+(put 'heart-rate-mode-line-string 'risky-local-variable t)
+
+;;; Minor modes
+;;;###autoload
+(define-minor-mode heart-rate-mode
+  ""
+  :init-value nil
+  :global t
+  :group 'heart-rate
+  (if heart-rate-mode
+      (progn
+        (let* ((pos (1+ (cl-position "" global-mode-string :test 'equal)))
+               (precedes (take pos global-mode-string))
+               (succeeds (nthcdr pos global-mode-string)))
+          (setq global-mode-string
+                (append precedes '(heart-rate-mode-line-string) succeeds)))
+        (heart-rate-ble-change-power-state 'power-on)
+        (heart-rate-ble-connect)
+        (heart-rate-start-notify))
+    (setq global-mode-string
+          (delq 'heart-rate-mode-line-string global-mode-string))
+    (heart-rate-stop-notify)
+    (heart-rate-ble-disconnect)))
+
+(defun heart-rate-ble-change-power-state (power-on)
+  ""
+  (if (heart-rate--bluez-property "/org/bluez/hci0"
+                                  heart-rate-bluez-service-adapter
+                                  "Powered")
+      (unless power-on
+        (heart-rate--bluez-property "/org/bluez/hci0"
+                                    heart-rate-bluez-service-adapter
+                                    "Powered"
+                                    'set nil))
+    (when power-on
+      (heart-rate--bluez-property "/org/bluez/hci0"
+                                  heart-rate-bluez-service-adapter
+                                  "Powered"
+                                  'set t))))
+
+(defun heart-rate-ble-connect ()
+  ""
+  (unless (heart-rate--bluez-property heart-rate-dbus-device-path
+                                      heart-rate-bluez-service-device
+                                      "Connected")
+    (dbus-call-method :system
+                      "org.bluez"
+                      heart-rate-dbus-device-path
+                      heart-rate-bluez-service-device
+                      "Connect")))
+
+(defun heart-rate-ble-disconnect ()
+  ""
+  (when (heart-rate--bluez-property heart-rate-dbus-device-path
+                                    heart-rate-bluez-service-device
+                                    "Connected")
+    (dbus-call-method :system
+                      "org.bluez"
+                      heart-rate-dbus-device-path
+                      heart-rate-bluez-service-device
+                      "Disconnect")))
+
+(defun heart-rate-start-notify ()
+  ""
+  (seq-find (lambda (obj)
+              (when-let* ((path (car obj))
+                          (gtch-props (dbus-get-all-properties :system
+                                                               "org.bluez"
+                                                               path
+                                                               "org.bluez.GattCharacteristic1"))
+                          (uuid (rassoc "00002a37-0000-1000-8000-00805f9b34fb"
+                                        gtch-props)))
+                (unless (dbus-get-property :system
+                                           "org.bluez"
+                                           path
+                                           "org.bluez.GattCharacteristic1"
+                                           "Notifying")
+                  (dbus-call-method :system
+                                    "org.bluez"
+                                    path
+                                    "org.bluez.GattCharacteristic1"
+                                    "StartNotify"))
+                (when (setq heart-rate-dbus-signal-object
+                            (dbus-register-signal :system
+                                                  "org.bluez"
+                                                  path
+                                                  "org.freedesktop.DBus.Properties"
+                                                  "PropertiesChanged"
+                                                  #'heart-rate-notify-callback))
+                  (setq heart-rate-dbus-gtch-path path))))
+            (dbus-get-all-managed-objects
+             :system "org.bluez" heart-rate-dbus-device-path)))
+
+(defun heart-rate-stop-notify ()
+  ""
+  (dbus-call-method :system
+                    "org.bluez"
+                    heart-rate-dbus-gtch-path
+                    "org.bluez.GattCharacteristic1"
+                    "StopNotify"))
+
+(defun heart-rate-notify-callback (interface changed invalidated)
+  ""
+  (when-let ((value (caar (assoc-default "Value" changed))))
+    (setq heart-rate-mode-line-string
+          `(:propertize ,(concat (number-to-string (nth 1 value)) " ") nil))
+    (force-mode-line-update t)))
+
+(defun heart-rate-scan-on ()
+  ""
+  (unless (dbus-get-property :system "org.bluez" "/org/bluez/hci0" "org.bluez.Adapter1" "Discovering")
+    (dbus-call-method :system "org.bluez" "/org/bluez/hci0" "org.bluez.Adapter1" "StartDiscovery")))
+
+(defun heart-rate-scan-off ()
+  ""
+  (when (dbus-get-property :system "org.bluez" "/org/bluez/hci0" "org.bluez.Adapter1" "Discovering")
+    (dbus-call-method :system "org.bluez" "/org/bluez/hci0" "org.bluez.Adapter1" "StopDiscovery")))
+
+(defun heart-rate--bluez-property (path interface property &optional set value)
+  ""
+  (if set
+      (dbus-set-property :system heart-rate-bluez-service
+                         path interface property value)
+    (dbus-get-property :system heart-rate-bluez-service
+                       path interface property)))
+
+(provide 'heart-rate)
+;;; *heart-rate.el ends here
 #+end_src
 
 ** Firefox
