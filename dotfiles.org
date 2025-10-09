@@ -6249,7 +6249,7 @@ Ancestors are looked up If current heading has no CATEGORY."
         (insert mail-msg)
         (message-send-and-exit))))
   (defvar my/usd-exchange-rates nil)
-  (defun my/usd-excange-rate (currency)
+  (defun my/usd-exchange-rate (currency)
     "Return the exchange rate between CURRENCY and the US dollar.
 
 This function also Update `my/usd-exchange-rates', a list of
@@ -6277,9 +6277,9 @@ exchange rate against US dollar."
                                         (group-n 2 (1+ digit))))))
       (when (string-match curr-re amount)
         (let ((amt-in-usd (string-to-number (match-string 2 amount)))
-              (to-usd-rate (my/usd-excange-rate
+              (to-usd-rate (my/usd-exchange-rate
                             (assoc-default (match-string 1 amount) currs)))
-              (from-usd-rate (my/usd-excange-rate target-currency)))
+              (from-usd-rate (my/usd-exchange-rate target-currency)))
           (format "%s%.2f"
                   (car (rassq target-currency currs))
                   (/ (* amt-in-usd from-usd-rate) to-usd-rate))))))
