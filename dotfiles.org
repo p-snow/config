@@ -2845,11 +2845,13 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
 :CUSTOM_ID: emacs-bookmark
 :END:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
 (use-package bookmark
   :bind (("H-b" . bookmark-jump)
          ("C-x 5 B" . bookmark-jump-other-frame))
   :custom
+  (bookmark-default-file (expand-file-name "emacs/bookmark-default.el"
+                                           "<<share-dir()>>"))
   (bookmark-save-flag 1)
   (bookmark-menu-confirm-deletion t)
   (bookmark-watch-bookmark-file 'silent))
