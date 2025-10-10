@@ -3670,7 +3670,7 @@ sudo systemctl start dictd
 
 #+NAME: config/emacs-ddskk
 #+begin_src emacs-lisp :noweb tangle
-(defvar skk-dir (expand-file-name "skk" "<<share-dir()>>"))
+(defvar skk-user-jisyo-dir (expand-file-name "skk" "<<share-dir()>>"))
 
 (use-package skk
   :defer t
@@ -3704,6 +3704,15 @@ sudo systemctl start dictd
   (skk-egg-like-newline t)
   (skk-henkan-strict-okuri-precedence t)
   (skk-check-okurigana-on-touroku t)
+  (skk-auto-okuri-process nil)
+  ;; completion
+  (skk-comp-circulate t)
+  (skk-completion-prog-list
+   '((skk-comp-by-history)
+     (skk-comp-from-jisyo skk-jisyo)
+     (skk-comp-from-jisyo skk-large-jisyo)
+     (skk-comp-from-jisyo (expand-file-name "open-jisyo/SKK-JISYO.kannyouku" skk-user-jisyo-dir))
+     (skk-look-completion)))
   ;; annotation
   (skk-show-annotation t)
   (skk-annotation-delay 0.3)
@@ -3734,15 +3743,15 @@ sudo systemctl start dictd
   (skk-dcomp-activate nil)
   (skk-dcomp-multiple-activate nil)
   ;; config file
-  (skk-record-file (expand-file-name "record" skk-dir))
-  (skk-emacs-id-file (expand-file-name "emacs-id" skk-dir))
+  (skk-record-file (expand-file-name "record" skk-user-jisyo-dir))
+  (skk-emacs-id-file (expand-file-name "emacs-id" skk-user-jisyo-dir))
   ;; jisyo
   (skk-share-private-jisyo t)
   (skk-compare-jisyo-size-when-saving t)
   (skk-save-jisyo-instantly t)
   ;; jisyo file/directory
-  (skk-jisyo `(,(expand-file-name "~/.config/skk/jisyo.txt") . utf-8))
-  (skk-backup-jisyo (expand-file-name "jisyo.bak" skk-dir))
+  (skk-jisyo `(,(expand-file-name "jisyo.txt" skk-user-jisyo-dir) . utf-8))
+  (skk-backup-jisyo (expand-file-name "jisyo.bak" skk-user-jisyo-dir))
   (skk-large-jisyo (expand-file-name "SKK-JISYO.L" skk-get-jisyo-directory))
   (skk-itaiji-jisyo (expand-file-name "SKK-JISYO.itaiji" skk-get-jisyo-directory))
   (skk-extra-jisyo-file-list
@@ -3751,14 +3760,14 @@ sudo systemctl start dictd
                              (string-suffix-p (symbol-name suffix) dic))
                            '(L itaiji tar)))
                (append (file-expand-wildcards (expand-file-name "SKK-JISYO.*" skk-get-jisyo-directory))
-                       (file-expand-wildcards (expand-file-name "open-jisyo/SKK-JISYO.*" skk-dir)))))
+                       (file-expand-wildcards (expand-file-name "open-jisyo/SKK-JISYO.*" skk-user-jisyo-dir)))))
   ;; jisyo server
   ;; (skk-server-host "localhost")
   ;; (skk-server-portnum 1178)
   ;; (skk-server-inhibit-startup-server t)
   ;; study
-  (skk-study-file (expand-file-name "study" skk-dir))
-  (skk-study-backup-file (expand-file-name "study.bak" skk-dir))
+  (skk-study-file (expand-file-name "study" skk-user-jisyo-dir))
+  (skk-study-backup-file (expand-file-name "study.bak" skk-user-jisyo-dir))
   :config
   ;; ward off activating skk-auto-fill-mode inadvertently
   (bind-keys ("C-x j" . skk-mode)))
