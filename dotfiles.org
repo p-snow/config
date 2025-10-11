@@ -14172,9 +14172,16 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 :CREATED:  [2024-11-16 Sat 16:07]
 :END:
 
+#+NAME: template/eshell-mode
 #+header: :shebang "eshell-mode"
 #+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "tempel/templates/eshell.eld" tangle/emacs-etc-dir)
 <<eshell-mode-template>>
+
+(redirect-to-buffer (p (completing-read "fd" '("" "2" "&")))
+                    (p (completing-read "mode" '(">" ">>")))
+                    " #<" (p "buffer-name") ">")
+(redirect (p (completing-read "fd" '("" "2" "&")))
+          (p (completing-read "mode" '(">" ">>"))))
 #+end_src
 
 ***** emacs-lisp-mode templates
