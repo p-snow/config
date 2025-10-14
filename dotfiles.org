@@ -543,7 +543,6 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
                               "isync"
                               "stunnel"
                               "wordnet"
-                              "emacs-mocker"
                               "emacs-compat"))
   (list <<guix-emacs-package>>)))
 #+end_src
@@ -1707,17 +1706,27 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 
 use-package depends on following packages internally
 
-****** diminish
+****** diminish                              :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-10-14 Tue 15:49]
+:END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-diminish"
-#+end_src
+Diminish does not need to be listed since it is included in the use-package Guix package.
 
-****** delight
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-diminish"
+# #+end_src
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-delight"
-#+end_src
+****** delight                               :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-10-14 Tue 15:48]
+:END:
+
+Delight does not need to be listed since it is included in the use-package Guix package.
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-delight"
+# #+end_src
 
 ***** straight.el                           :ARCHIVE:
 :PROPERTIES:
@@ -3940,11 +3949,16 @@ whether files are going to be in trash box."
                                          file)) " ")))
           files)))
 #+end_src
-***** dired-rsync
+***** dired-rsync                             :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-10-14 Tue 15:50]
+:END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-dired-rsync"
-#+end_src
+I ditched dired-rsync since [[id:e3b373ac-6e14-470f-bb9c-80abdc8c028a][dired-async]] offers the same functionality.
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-dired-rsync"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package dired-rsync
@@ -5849,14 +5863,16 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   :commands org-modern-mode)
 #+end_src
 
-****** org-transclusion
+****** org-transclusion                      :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-03-02 Thu 14:10]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-org-transclusion"
-#+end_src
+[[https://github.com/nobiot/org-transclusion][Org-transclusion]] offers embed functionality for Org entries anywhere. Once I imagined this, I thought it was super useful until I realized the overhead is not negligible and refiling is sufficient in most cases.
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-org-transclusion"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package org-transclusion
@@ -6127,11 +6143,16 @@ Ancestors are looked up If current heading has no CATEGORY."
         ("C-@" . org-clock-convenience-fill-gap-both)))
 #+end_src
 
-****** org-reveal
+****** org-reveal                            :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-10-14 Tue 15:56]
+:END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-org-reveal"
-#+end_src
+[[https://github.com/yjwen/org-reveal][Org-reveal]] is a very nice package for creating decent slide shows from Org files. I decided to disable this package for the time being since I have few opportunities to make slides.
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-org-reveal"
+# #+end_src
 
 ****** org-expiry
 
@@ -6184,14 +6205,16 @@ Ancestors are looked up If current heading has no CATEGORY."
   (org-babel-lilypond-arrange-mode t))
 #+end_src
 
-****** ox-hugo
+****** ox-hugo                               :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-01-26 Thu 18:33]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-ox-hugo"
-#+end_src
+Ox-hugo helps to convert Org files to Markdown for Hugo. I switched my blog system to [[id:e4eaa9c4-9d2e-43bb-acaf-2e1e7c342a70][Haunt]]; this package went to the substitution list.
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-ox-hugo"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package ox-hugo
@@ -8025,11 +8048,14 @@ Configuration for scheme-mode includes indentation settings for Guix, which are 
                     (match-string 1 item))))))))))
 #+end_src
 
-****** emacs-project
+****** emacs-project                         :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-10-14 Tue 15:47]
+:END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-company-jedi"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-company-jedi"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package company-jedi
@@ -8072,11 +8098,14 @@ Configuration for scheme-mode includes indentation settings for Guix, which are 
   (my/add-dash-docsets-hook 'ruby-mode-hook '("Ruby")))
 #+end_src
 
-****** inf-ruby
+****** inf-ruby                              :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-10-14 Tue 15:53]
+:END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-inf-ruby"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-inf-ruby"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package inf-ruby
@@ -8779,9 +8808,9 @@ Packages below are out of categories above. Packages which have ARCHIVE tag is n
 
 I have temporarily disabled `ChatGTP-Shell` because `gptel` better meets my needs.
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-chatgpt-shell"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-chatgpt-shell"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package chatgpt-shell
@@ -8834,6 +8863,7 @@ I have temporarily disabled `ChatGTP-Shell` because `gptel` better meets my need
 ***** async
 :PROPERTIES:
 :CREATED:  [2023-07-15 Sat 08:18]
+:ID:       e3b373ac-6e14-470f-bb9c-80abdc8c028a
 :END:
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
@@ -8863,14 +8893,14 @@ I have temporarily disabled `ChatGTP-Shell` because `gptel` better meets my need
   (global-visible-mark-mode 1))
 #+end_src
 
-***** ement                                    :comm:
+***** ement                              :comm:ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-06-27 Tue 10:45]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-ement"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-ement"
+# #+end_src
 
 ***** ligature                      :extensions:data:
 :PROPERTIES:
@@ -10636,16 +10666,16 @@ YASnippet is a powerful template system I used until a few years ago. Now I'm us
               ("a" . app-launcher-run-app)))
 #+end_src
 
-***** tldr                               :tools:docs:
+***** tldr                         :tools:docs:ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-06-11 Sun 18:42]
 :END:
 
 I ran into a problem with downloading TL;DR document. I forcibly download, uncompress and locate that to `tldr-directory-path'.
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-tldr"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-tldr"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package tldr
@@ -10707,14 +10737,16 @@ I ran into a problem with downloading TL;DR document. I forcibly download, uncom
   :after tempel)
 #+end_src
 
-***** literate calc mode       :tools:languages:calc:
+***** literate calc mode :tools:languages:calc:ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-11-09 Thu 21:35]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-literate-calc-mode"
-#+end_src
+Literate-calc-mode shows calculation results on the fly, which is very interesting. However, I found it a bit difficult to incorporate these packages into my daily workflow.
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-literate-calc-mode"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package literate-calc-mode
@@ -19270,9 +19302,9 @@ echo ${dic_uniq}
 
 [[http://festvox.org/festival/][Festival]] is a framework for building and manipulating speech synthesis engine.
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"festival"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "festival"
+# #+end_src
 
 - configuration
   #+begin_src scheme :noweb tangle :tangle (expand-file-name ".festivalrc" tangle/home) :shebang ";; -*- mode:scheme; -*-"
@@ -20388,6 +20420,7 @@ They are mostly written in Rust. [[https://github.com/mhoye/moderntools/][modern
 ** Haunt
 :PROPERTIES:
 :CREATED:  [2024-04-02 Tue 11:15]
+:ID:       e4eaa9c4-9d2e-43bb-acaf-2e1e7c342a70
 :END:
 
 #+begin_src scheme :noweb-ref guix-base
