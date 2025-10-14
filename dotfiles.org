@@ -13192,7 +13192,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
       `((?a . ,(string-join (flatten-list
                              (seq-reduce (lambda (li char) (delete char li))
                                          '("M-w" "M-i")
-                                         (transient-get-value)))
+                                         (transient--get-savable-value)))
                             " ")))
       (when command-format-spec
         (mapcar (lambda (key-val) (cons (car key-val) (eval (cdr key-val))))
