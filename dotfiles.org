@@ -5993,9 +5993,17 @@ If TAGS contains a group tag, all tags in the group is used to match.
 Both inherited and local tags is tested."
     :normalizers ((`(,predicate-names . ,tags)
                    `(tags-expanded ,@tags)))
-    :body (apply #'org-ql--predicate-tags
-                 (seq-uniq (--mapcat (org-tags-expand it t)
-                                     tags))))
+    :body (let* ((tags-regexps
+                  (seq-group-by (lambda (elt)
+                                  (string-match-p "{.*}" elt))
+                                (--mapcat (org-tags-expand it t)
+                                          tags)))
+                 (tags (assoc-default nil tags-regexps))
+                 (regexps (mapcar (lambda (regexp)
+                                    (substring regexp 1 -1))
+                                  (assoc-default 0 tags-regexps))))
+            (append (and tags (apply #'org-ql--predicate-tags tags))
+                    (and regexps (apply #'org-ql--predicate-tags-regexp regexps)))))
   (org-ql-defpred (category-inherited) (&rest categories)
     "Return non-nil if current heading has CATEGORY.
 Ancestors are looked up If current heading has no CATEGORY."
