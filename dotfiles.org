@@ -5259,10 +5259,14 @@ If entry at POM has no clock log time stamp, this function returns 0."
 
 #+begin_src emacs-lisp
 (with-eval-after-load 'org-agenda
-  (setopt org-agenda-start-on-weekday 1)
-  (setopt org-agenda-skip-deadline-if-done t)
-  (setopt org-agenda-include-diary t)
-  (setopt org-agenda-dim-blocked-tasks nil))
+  (setopt org-agenda-start-on-weekday 1
+          org-agenda-skip-deadline-if-done t
+          org-agenda-include-diary t
+          org-agenda-dim-blocked-tasks nil
+          org-agenda-clockreport-parameter-plist
+          (append (plist-put org-agenda-clockreport-parameter-plist
+                             :maxlevel 3)
+                  '(:fileskip0 t :stepskip0 t))))
 #+end_src
 
 ******* Org Agenda Line Format
