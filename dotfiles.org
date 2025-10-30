@@ -16587,10 +16587,32 @@ Org speed command is a swift way of manipulating subtrees. It would be even more
           (org-up-element))))
 #+end_src
 
+**** Moving to cadet
+:PROPERTIES:
+:CREATED:  [2025-10-30 Thu 22:18]
+:END:
+
+#+begin_src emacs-lisp
+(defun my/org-cadet-heading ()
+  "Move point to the cadet, namely the last child."
+  (interactive)
+  (org-fold-hide-subtree)
+  (org-fold-show-children 1)
+  (when (org-goto-first-child)
+    (let ((prev-point))
+      (while (org-get-next-sibling)
+        (setq prev-point (point)))
+      (goto-char prev-point))))
+
+(keymap-global-set "C-c M->"
+                   #'my/org-cadet-heading)
+#+end_src
+
 **** Archived Org tweaks                       :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2025-10-30 Thu 22:05]
 :END:
+
 ***** download media files in org              :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-01-27 Fri 10:43]
