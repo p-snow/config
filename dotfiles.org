@@ -15572,27 +15572,6 @@ obtained from the org-link at the current point."
 (provide 'my-org-global-map)
 #+end_src
 
-**** remove empty clock log unless manually clocked out :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-06-06 Tue 10:23]
-:END:
-
-(setq org-clock-out-remove-zero-time-clocks t) makes this setting happen.
-
-Removing zero time clock log makes sense that you can exclude undesirable line. But there is some sxception. Suppose you want to make clock log afterwards. Then you must create zero time clock log first and tune beginning and/or end of time. So I decided to retain zero time clock log only if clocked out manually (called org-clock-out interactively).
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org-clock
-  (setq org-clock-out-remove-zero-time-clocks t)
-  (advice-add #'org-clock-out :around #'my/org-clock-out-force-keep))
-
-(defun my/org-clock-out-force-keep (oldfun &rest r)
-  "Clock out with removing zero time clock log if called interactively."
-  (let ((org-clock-out-remove-zero-time-clocks
-         (if (called-interactively-p) nil t)))
-    (apply oldfun r)))
-#+end_src
-
 **** embark keymaps for consult-org-heading and consult-location
 :PROPERTIES:
 :CREATED:  [2023-04-16 Sun 17:13]
@@ -15692,32 +15671,6 @@ These commands show back links even in [[id:d5bd559a-2cab-4495-993b-f7a21637f0ea
       `(tags ,@tags)
       :super-groups '((:auto-tags)))))
 (keymap-global-set "C-c b t" #'my/org-backlink-by-tag)
-#+end_src
-
-**** Setting a timer when a task is clocked in :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2025-06-28 Sat 22:10]
-:END:
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org-clock
-  (add-hook 'org-clock-in-prepare-hook
-            #'my/org-clock-in-set-timer))
-
-(defun my/org-clock-in-set-timer ()
-  "Start count down timer for a clocked in entry.
-
-If the entry has ATTENTION_SPAN property, use it for `org-timer-default-timer'.
-Otherwise count down time is Effort property value.
-In neither case, count down time is 25 min which is suggested in the Pomodoro-technique."
-  (let* ((todo (org-get-todo-state))
-         (attention-span (org-entry-get (point) "ATTENTION_SPAN" 'selective))
-         (effort (org-entry-get (point) "Effort" 'selective))
-         (countdown-time (or attention-span
-                             (and todo "25")))
-         (org-timer-default-timer countdown-time))
-    (and countdown-time
-         (org-timer-set-timer '(16)))))
 #+end_src
 
 **** stop timer at clocking out
@@ -15941,55 +15894,6 @@ The previous heading is logged as a log note."
            (push (match-string-no-properties 1)
                  heading-history)))))
     (delete-dups heading-history)))
-#+end_src
-
-**** download media files in org             :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 10:43]
-:END:
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org
-  (bind-keys :map org-mode-map
-             ("C-c D v" . my/org-download-video-link-at-point)
-             ("C-c D a" . my/org-download-audio-link-at-point)
-             ("C-c D =" . my/org-show-media-duration-at-point)))
-
-(defun my/org-download-video-link-at-point ()
-  "Download video file described in org link at point.
-
-With `C-u' prefix find `my/download-video-dir' instead."
-  (interactive)
-  (cl-multiple-value-bind (url title)
-      (ignore-errors
-        (org-link-at-point-map
-         (lambda (link desc)
-           (cl-values link desc))))
-    (if (and (not current-prefix-arg)
-             url)
-        (my/download-video url title)
-      (call-interactively #'my/download-video))))
-
-(defun my/org-download-audio-link-at-point ()
-  "Download audio file described in org link at point.
-
-With `C-u' prefix find `my/download-audio-dir' instead."
-  (interactive)
-  (cl-multiple-value-bind (url title)
-      (ignore-errors
-        (org-link-at-point-map
-         (lambda (link desc)
-           (cl-values link desc))))
-    (if (and (not current-prefix-arg)
-             url)
-        (my/download-audio url title)
-      (call-interactively #'my/download-audio))))
-
-(defun my/org-show-media-duration-at-point ()
-  "Show duration of media at point."
-  (interactive)
-  (org-link-at-point-map (lambda (url title)
-                           (show-media-duration url))))
 #+end_src
 
 **** Managing Someday Tasks
@@ -16682,6 +16586,107 @@ Org speed command is a swift way of manipulating subtrees. It would be even more
           (org-speed-move-safe 'outline-up-heading)
           (org-up-element))))
 #+end_src
+
+**** Archived Org tweaks                       :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-10-30 Thu 22:05]
+:END:
+***** download media files in org              :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-01-27 Fri 10:43]
+:END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  (bind-keys :map org-mode-map
+             ("C-c D v" . my/org-download-video-link-at-point)
+             ("C-c D a" . my/org-download-audio-link-at-point)
+             ("C-c D =" . my/org-show-media-duration-at-point)))
+
+(defun my/org-download-video-link-at-point ()
+  "Download video file described in org link at point.
+
+With `C-u' prefix find `my/download-video-dir' instead."
+  (interactive)
+  (cl-multiple-value-bind (url title)
+      (ignore-errors
+        (org-link-at-point-map
+         (lambda (link desc)
+           (cl-values link desc))))
+    (if (and (not current-prefix-arg)
+             url)
+        (my/download-video url title)
+      (call-interactively #'my/download-video))))
+
+(defun my/org-download-audio-link-at-point ()
+  "Download audio file described in org link at point.
+
+With `C-u' prefix find `my/download-audio-dir' instead."
+  (interactive)
+  (cl-multiple-value-bind (url title)
+      (ignore-errors
+        (org-link-at-point-map
+         (lambda (link desc)
+           (cl-values link desc))))
+    (if (and (not current-prefix-arg)
+             url)
+        (my/download-audio url title)
+      (call-interactively #'my/download-audio))))
+
+(defun my/org-show-media-duration-at-point ()
+  "Show duration of media at point."
+  (interactive)
+  (org-link-at-point-map (lambda (url title)
+                           (show-media-duration url))))
+#+end_src
+
+***** Setting a timer when a task is clocked in :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-06-28 Sat 22:10]
+:END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org-clock
+  (add-hook 'org-clock-in-prepare-hook
+            #'my/org-clock-in-set-timer))
+
+(defun my/org-clock-in-set-timer ()
+  "Start count down timer for a clocked in entry.
+
+If the entry has ATTENTION_SPAN property, use it for `org-timer-default-timer'.
+Otherwise count down time is Effort property value.
+In neither case, count down time is 25 min which is suggested in the Pomodoro-technique."
+  (let* ((todo (org-get-todo-state))
+         (attention-span (org-entry-get (point) "ATTENTION_SPAN" 'selective))
+         (effort (org-entry-get (point) "Effort" 'selective))
+         (countdown-time (or attention-span
+                             (and todo "25")))
+         (org-timer-default-timer countdown-time))
+    (and countdown-time
+         (org-timer-set-timer '(16)))))
+#+end_src
+
+***** remove empty clock log unless manually clocked out :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2023-06-06 Tue 10:23]
+:END:
+
+(setq org-clock-out-remove-zero-time-clocks t) makes this setting happen.
+
+Removing zero time clock log makes sense that you can exclude undesirable line. But there is some sxception. Suppose you want to make clock log afterwards. Then you must create zero time clock log first and tune beginning and/or end of time. So I decided to retain zero time clock log only if clocked out manually (called org-clock-out interactively).
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org-clock
+  (setq org-clock-out-remove-zero-time-clocks t)
+  (advice-add #'org-clock-out :around #'my/org-clock-out-force-keep))
+
+(defun my/org-clock-out-force-keep (oldfun &rest r)
+  "Clock out with removing zero time clock log if called interactively."
+  (let ((org-clock-out-remove-zero-time-clocks
+         (if (called-interactively-p) nil t)))
+    (apply oldfun r)))
+#+end_src
+
 
 *** would-be packages
 :PROPERTIES:
