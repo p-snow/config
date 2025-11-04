@@ -4738,6 +4738,21 @@ alias <<print-aliases(lang="plain")>>
  :category "emacs")
 #+end_src
 
+******* get_predefined_tags AI tool
+:PROPERTIES:
+:CREATED:  [2025-11-04 Tue 17:03]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "get_predefined-tags"
+ :function (lambda ()
+             (with-current-buffer (find-file-noselect "/mnt/shared/doc-pc-k8p/home/org/notes/--my-org-tags__org@@20251021T162933.org")
+               (buffer-substring-no-properties (point-min) (point-max))))
+ :description "return the predefined org tags"
+ :category "emacs")
+#+end_src
+
 ******* alarm_set AI tool
 :PROPERTIES:
 :CREATED:  [2025-07-09 Wed 15:19]
@@ -4897,6 +4912,28 @@ alias <<print-aliases(lang="plain")>>
                      :type string
                      :description
                      "Account type"))
+ :category "emacs"
+ :confirm nil)
+#+end_src
+
+******* set_tags AI tool
+:PROPERTIES:
+:CREATED:  [2025-11-04 Tue 16:40]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "set_tags"
+ :function (lambda (tags)
+             (save-excursion
+               (org-back-to-heading)
+               (org-set-tags tags))
+             t)
+ :description "Set tags for a current Org entry"
+ :args (list '(:name "tags"
+                     :type string
+                     :description
+                     "The tag is surrounded by colon(:) and if multiple tags declared they are look like :tag1:tag2:."))
  :category "emacs"
  :confirm nil)
 #+end_src
