@@ -4665,7 +4665,7 @@ alias <<print-aliases(lang="plain")>>
 #+NAME: config/emacs-gptel
 #+begin_src emacs-lisp :noweb tangle
 (use-package gptel
-  :after (engine-mode mcp)
+  :after (engine-mode)
   :bind (:map engine-mode-prefixed-map
               ("G" . gptel)
               ("g RET" . gptel-send)
@@ -4687,6 +4687,7 @@ alias <<print-aliases(lang="plain")>>
   (gptel-include-tool-results 'auto)
   (gptel-track-media t)
   :config
+  (require 'mcp)
   (gptel-make-gemini "Gemini"
     :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
     :stream t)
@@ -4949,7 +4950,7 @@ alias <<print-aliases(lang="plain")>>
 #+begin_src emacs-lisp
 (use-package mcp
   :ensure t
-  :after my-credential
+  :after (my-credential gptel)
   :custom
   (mcp-hub-servers
    `(("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" ,(getenv "HOME"))))
@@ -6761,6 +6762,7 @@ org-hide-drawers is yet another [[id:2aa4d500-a244-41d2-8435-b8a9f24e2b7f][org-t
 #+begin_src emacs-lisp
 (use-package org-hide-drawers
   :ensure t
+  :after org
   :bind (:map org-mode-map
               ("C-c w" . org-hide-drawers-mode))
   :custom
@@ -11352,6 +11354,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
 #+begin_src emacs-lisp
 (use-package reddigg
   :ensure t
+  :defer t
   :preface
   (defun my/open-reddit-with-reddigg (url &optional _ignore)
     "Open URL by using `reddigg--view-comments'."
