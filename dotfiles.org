@@ -6808,6 +6808,102 @@ org-hide-drawers is yet another [[id:2aa4d500-a244-41d2-8435-b8a9f24e2b7f][org-t
    (org-hide-drawers-keep-visible-properties-ignore-case t)))
 #+end_src
 
+****** org-password-store
+:PROPERTIES:
+:CREATED:  [2025-11-11 Tue 16:41]
+:END:
+
+#+begin_src emacs-lisp
+(use-package org-password-store
+  ;; :vc (:url "https://github.com/p-snow/org-password-store#.git"
+  ;;           :rev :newest)
+  :load-path "~/.local/share/ghq/github.com/p-snow/org-password-store"
+  :after org
+  :bind (:map org-mode-map
+              ("C-c p c c" . org-password-store-copy)
+              ("C-c p c f" . org-password-store-copy-field)
+              ("C-c p s" . org-password-store-show-field)
+              ("C-c p w" . org-password-store-url)
+              ("C-c p l" . org-password-store-web-login)
+              ("C-c p n" . org-password-store-create)
+              ("C-c p e" . org-password-store-edit)
+              ("C-c p v" . org-password-store-edit)
+              ("C-c p k" . org-password-store-remove)))
+#+end_src
+
+****** org-english
+
+#+begin_src emacs-lisp
+(use-package org-english
+  :after (org my-org-global-map)
+  :config
+  (bind-keys :map my/org-global-map
+             ("e e" . my/org-english-capture)
+             ("e d" . my/org-english-drill)
+             ("e r" . my/org-english-drill-resume)
+             ("e l" . my/org-english-create-link)
+             ("E" . my/cloze-deletion-replace)
+             :map engine-mode-prefixed-map
+             ("j" . (lambda (word)
+                      "Copy Japanese translation as well as the pronunciation to `kill-ring'."
+                      (interactive (list (determine-search-word)))
+                      (kill-new (message "%s %s"
+                                         (my/english-japanese-translate word t)
+                                         (my/english-pronunciation word t))))))
+  (when (require-with-check 'denote)
+    (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
+#+end_src
+
+****** org-nudge
+:PROPERTIES:
+:CREATED:  [2025-06-12 Thu 12:17]
+:END:
+
+#+NAME: config/emacs-org-nudge
+#+begin_src emacs-lisp
+(use-package org-nudge
+  :after (org denote)
+  :custom
+  (org-nudge-files
+   (seq-filter
+    (lambda (file)
+      (file-in-directory-p file org-directory))
+    (delete-dups
+     (mapcar (lambda (file)
+               (string-trim
+                (shell-command-to-string (format "realpath %s" (shell-quote-argument file)))))
+             (append (org-files-list)
+                     (take 2 (seq-sort-by (lambda (path) (substring path -8))
+                                          'string>
+                                          (mapcar 'expand-file-name
+                                                  (file-expand-wildcards (file-name-concat org-directory "archive/archive_202?.org")))))
+                     (let ((denote-excluded-files-regexp
+                            "20230605T170959"))
+                       (denote-directory-files))))))))
+#+end_src
+
+****** org-tag-tree
+:PROPERTIES:
+:CREATED:  [2025-10-21 Tue 16:28]
+:END:
+
+#+NAME: config/emacs-org-tag-tree
+#+begin_src emacs-lisp
+(use-package org-tag-tree
+  ;; :disabled t
+  ;; :load-path "~/.local/share/ghq/github.com/p-snow/org-tag-tree"
+  :after org
+  :hook (org-mode . org-tag-tree-load-buffer-tags)
+  :custom
+  (org-tag-tree-global-tag-files '("~/org/notes/--my-org-tags__org@@20251021T162933.org"
+                                   ;; "~/org/notes/--my-english-wordbook__list_record_tangle@@20230605T170959.org"
+                                   ))
+  (org-tag-tree-global-tag-persistent t)
+  :config
+  (org-tag-tree-load-global-tags)
+  )
+#+end_src
+
 **** Completion
 
 ***** vertico
@@ -11478,26 +11574,6 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
    (all-the-icons-scale-factor 0.8)))
 #+end_src
 
-***** org-tag-tree
-:PROPERTIES:
-:CREATED:  [2025-10-21 Tue 16:28]
-:END:
-
-#+NAME: config/emacs-org-tag-tree
-#+begin_src emacs-lisp
-(use-package org-tag-tree
-  :disabled t
-  :after org
-  :custom
-  ((org-tag-tree-global-tag-files '("~/org/notes/--my-org-tags__org@@20251021T162933.org"
-                                    ;; "~/org/notes/--my-english-wordbook__list_record_tangle@@20230605T170959.org"
-                                    )))
-  :config
-  (org-tag-tree-load-global-tags))
-#+end_src
-
-**** My Emacs Packages
-
 ***** lfile
 
 #+begin_src emacs-lisp
@@ -11505,74 +11581,6 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   :after org
   :config
   (put 'lfile-locate 'org-link-abbrev-safe t))
-#+end_src
-
-***** org-password-store
-
-#+begin_src emacs-lisp
-(use-package org-password-store
-  :after org
-  :bind (:map org-mode-map
-              ("C-c p c c" . my/password-store-copy)
-              ("C-c p c f" . my/password-store-copy-field)
-              ("C-c p s" . my/password-store-show-field)
-              ("C-c p w" . my/password-store-url)
-              ("C-c p l" . my/password-store-web-login)
-              ("C-c p n" . my/password-store-create)
-              ("C-c p e" . my/password-store-edit)
-              ("C-c p v" . my/password-store-edit)
-              ("C-c p k" . my/password-store-remove)))
-#+end_src
-
-***** org-english
-
-#+begin_src emacs-lisp
-(use-package org-english
-  :after (org my-org-global-map)
-  :config
-  (bind-keys :map my/org-global-map
-             ("e e" . my/org-english-capture)
-             ("e d" . my/org-english-drill)
-             ("e r" . my/org-english-drill-resume)
-             ("e l" . my/org-english-create-link)
-             ("E" . my/cloze-deletion-replace)
-             :map engine-mode-prefixed-map
-             ("j" . (lambda (word)
-                      "Copy Japanese translation as well as the pronunciation to `kill-ring'."
-                      (interactive (list (determine-search-word)))
-                      (kill-new (message "%s %s"
-                                         (my/english-japanese-translate word t)
-                                         (my/english-pronunciation word t))))))
-  (when (require-with-check 'denote)
-    (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
-#+end_src
-
-***** org-nudge
-:PROPERTIES:
-:CREATED:  [2025-06-12 Thu 12:17]
-:END:
-
-#+NAME: config/emacs-org-nudge
-#+begin_src emacs-lisp
-(use-package org-nudge
-  :after (org denote)
-  :custom
-  (org-nudge-files
-   (seq-filter
-    (lambda (file)
-      (file-in-directory-p file org-directory))
-    (delete-dups
-     (mapcar (lambda (file)
-               (string-trim
-                (shell-command-to-string (format "realpath %s" (shell-quote-argument file)))))
-             (append (org-files-list)
-                     (take 2 (seq-sort-by (lambda (path) (substring path -8))
-                                          'string>
-                                          (mapcar 'expand-file-name
-                                                  (file-expand-wildcards (file-name-concat org-directory "archive/archive_202?.org")))))
-                     (let ((denote-excluded-files-regexp
-                            "20230605T170959"))
-                       (denote-directory-files))))))))
 #+end_src
 
 ***** heart-rate
@@ -17000,134 +17008,6 @@ A link consists of LINK and DESCRIPTION."
                            :follow #'my/lfile-follow-link--sys))
 
 (provide 'lfile)
-#+end_src
-
-**** Package: org-password-store
-:PROPERTIES:
-:CREATED:  [2023-01-27 Fri 17:48]
-:END:
-
-#+begin_src emacs-lisp :tangle (expand-file-name "org-password-store.el" tangle/emacs-sitelisp-dir)
-(require 'password-store)
-
-(defcustom my/org-password-store-property "PASSWORD_STORE"
-  "Property used in my/password-store feature to get password-store entry name attached to current org entry.")
-
-(defmacro with-password-store-entry (entry &rest body)
-  "Eval BODY that can refer password-store ENTRY."
-  (declare (indent defun))
-  `(let ((entry (or ,entry
-                    (when (derived-mode-p 'org-mode) (org-entry-get (point) my/org-password-store-property))
-                    (password-store--completing-read t))))
-     ,@body))
-
-(defmacro with-password-store-entry-field (entry field &rest body)
-  "Eval BODY which can refer password-store ENTRY and FIELD..
-
-Plus, OBDY can refer value of FIELD named field-value."
-  (declare (indent defun))
-  `(let* ((entry (or ,entry
-                     (when (derived-mode-p 'org-mode) (org-entry-get (point) my/org-password-store-property))
-                     (password-store--completing-read t)))
-          (field (or ,field
-                     (password-store-read-field entry)))
-          (field-value (password-store-get-field entry
-                                                 (or (and (string= field "secret")
-                                                          'secret)
-                                                     (and (stringp field)
-                                                          field)))))
-     ,@body))
-
-(defun my/password-store-copy ()
-  "Add the secret to system clipboard and the login name to primary `x-selection'.
-
-`password-store-copy' is responsible for managing the kill ring."
-  (interactive)
-  (with-password-store-entry-field nil "login"
-    (let ((select-enable-clipboard t)
-          (select-enable-primary nil))
-      (gui-select-text (password-store-get entry)))
-    (let ((select-enable-clipboard nil)
-          (select-enable-primary t))
-      (gui-select-text (or (password-store-get-field entry "login")
-                           (password-store-get-field entry "email")
-                           (nth 1 (password-store-parse-entry entry)))))
-    (message "LOGIN NAME => X-SEL, SECRET => CLIPBOARD")))
-
-(defun my/password-store-copy-field ()
-  "Add field for entry into the kill ring.
-
-entry and field is determined by appropriate manner."
-  (interactive)
-  (with-password-store-entry-field nil nil
-                                   (password-store-copy-field entry field)))
-
-(defun my/password-store-url (&optional arg)
-  "Browse url stored in entry by appropriate manner determined by ARG."
-  (interactive "P")
-  (with-password-store-entry-field nil "url"
-                                   (browse-url field-value)))
-
-(defun my/password-store-show-field ()
-  "Show a field value in the minibuffer.
-
-Password-store entry and field used to derive this value are from org property
-or selected by user."
-  (interactive)
-  (with-password-store-entry-field nil nil
-                                   (message "%s: %s" field field-value)))
-
-(defun my/password-store-create ()
-  (interactive)
-  (let* ((input (read-string "Entry-name or URL: "))
-         (domain (when (string-match-p browse-url-button-regexp input)
-                   (string-trim-right
-                    (shell-command-to-string (format "echo %s | awk -F[/:] '{print $4}'"
-                                                     (shell-quote-argument input)))))))
-    (with-password-store-entry (cond
-                                ((> (length domain) 0) domain)
-                                (input))
-                               (when (derived-mode-p 'org-mode)
-                                 (org-entry-put (point) my/org-password-store-property entry))
-                               (password-store-edit entry))))
-
-;;;###autoload
-(defun my/password-store-edit ()
-  (interactive)
-  (with-password-store-entry nil
-                             (password-store-edit entry)))
-
-;; TODO: make my/password-store-insert as soon after
-;;     : password-store--run-insert has been implemented
-
-(defun my/password-store-remove ()
-  (interactive)
-  (with-password-store-entry nil
-                             (password-store-remove entry)
-                             (when (derived-mode-p 'org-mode)
-                               (org-entry-delete (point) my/org-password-store-property))))
-
-(defun my/password-store-web-login ()
-  "Open url for the entry at point.
-
-Additionally the login name and the secret are saved in X selection and clipboard respectively."
-  (interactive)
-  (my/password-store-copy)
-  (funcall-interactively #'my/password-store-url '(16)))
-
-(advice-add #'password-store-clear :before #'my/password-store-clear)
-
-(defun my/password-store-clear (&optional field)
-  "Overwrite clipboard data so that password once saved in clipboard is deleted
- for security risk.
-
-FIELD originally for messaging is ignored in this function."
-  (interactive)
-  (when password-store-kill-ring-pointer
-    (kill-new "")
-    (setcar kill-ring-yank-pointer "")))
-
-(provide 'org-password-store)
 #+end_src
 
 **** text-mail                               :ARCHIVE:
