@@ -6904,6 +6904,28 @@ org-hide-drawers is yet another [[id:2aa4d500-a244-41d2-8435-b8a9f24e2b7f][org-t
   )
 #+end_src
 
+****** ol-local-file
+
+#+NAME: config/ol-local-file
+#+begin_src emacs-lisp :noweb tangle
+(use-package ol-local-file
+  :load-path "~/.local/share/ghq/github.com/p-snow/ol-local-file"
+  :after org
+  :init
+  (setq ol-local-file-locate-db "<<locate-db-doc()>>")
+  :preface
+  (defun embark-org-target-lfile-link ()
+    "Target an org link at point of the form [[lfile:<file-name>][desc]]>."
+    (pcase (org-in-regexp ol-local-file-link-re)
+      (`(,start . ,end)
+       (when-let ((file-path (ol-local-file-locate (match-string 1))))
+         `(file ,file-path ,start . ,end)))))
+  :config
+  (put 'ol-local-file-locate 'org-link-abbrev-safe t)
+  (with-eval-after-load 'embark
+    (add-to-list 'embark-target-finders 'embark-org-target-lfile-link)))
+#+end_src
+
 **** Completion
 
 ***** vertico
@@ -11572,15 +11594,6 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   ((all-the-icons-dired-v-adjust 0.2)
    (all-the-icons-dired-monochrome nil)
    (all-the-icons-scale-factor 0.8)))
-#+end_src
-
-***** lfile
-
-#+begin_src emacs-lisp
-(use-package lfile
-  :after org
-  :config
-  (put 'lfile-locate 'org-link-abbrev-safe t))
 #+end_src
 
 ***** heart-rate
@@ -16763,252 +16776,6 @@ Removing zero time clock log makes sense that you can exclude undesirable line. 
 :CREATED:  [2023-01-12 Thu 14:14]
 :header-args:emacs-lisp+: :shebang ";; -*- lexical-binding: t -*-"
 :END:
-
-**** Package: lfile (custom org link type)
-:PROPERTIES:
-:CREATED:  [2023-04-14 Fri 14:24]
-:ID:       6c7027a8-b023-4752-967d-c6c0a8834d2c
-:END:
-
-lfile is an extended org link type for files in local machine. It is inspired by [[https://karl-voit.at/2022/02/10/lfile/][Kerl Voit's implementation]].
-It is implemented using abbrev mechanism since functionality of file: link type such as inline image or exporting can be easily imparted.
-
-#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "lfile.el" tangle/emacs-sitelisp-dir)
-(require 'ol)
-(require 'org-element)
-
-(defvar org-lfile-link-re
-  (rx "["
-      "[lfile" (opt (or "+emacs" "+sys")) ":"
-      (group (minimal-match (1+ print))) "]"
-      (opt "[" (0+ print) "]")
-      "]")
-  "Regular expression matching lfile any link.")
-
-(with-eval-after-load 'ol
-  (mapc (apply-partially 'add-to-list 'org-link-abbrev-alist)
-        '(("lfile" . "file:%(lfile-locate)")
-          ("lfile+emacs" . "file+emacs:%(lfile-locate)")
-          ("lfile+sys" . "file+sys:%(lfile-locate)"))))
-
-(defun lfile-locate (tag)
-  "Return a path found using TAG with locate program."
-  (let* ((match-idx (string-match "^\\([^:]*\\)\\(::?\\(.*\\)\\)?$" tag))
-         (link (if match-idx (match-string 1 tag) tag)))
-    (concat (string-trim
-             (shell-command-to-string
-              (concat (format "plocate -d <<locate-db-doc()>> -e \"%s\" 2>/dev/null"
-                              (shell-quote-argument link))
-                      " | head --lines=1")))
-            (when match-idx (match-string 2 tag)))))
-
-(defun lfile-store-link ()
-  "Store a lfile link.
-
-Prefix argument does matter in this function call.
-If `C-u' prefix is given, file: link type will be used instead."
-  (when (and (derived-mode-p 'dired-mode)
-             (string-match-p
-              (format "^%s" (expand-file-name "~"))
-              (dired-current-directory nil)))
-    (let ((path (dired-get-filename nil t)))
-      (if (equal current-prefix-arg '(4))
-          (org-link-store-props
-           :type "file"
-           :link (concat "file:" (abbreviate-file-name
-                                  (expand-file-name path))))
-        (org-link-store-props
-         :type "lfile"
-         :link (concat "lfile:" (file-name-nondirectory path)))))))
-
-(defun lfile-abbrev (raw-link &optional path-conv-fn)
-  "Return an abbreviated lfile link from RAW-LINK.
-
-RAW-LINK is supposed to be a file link type with a path and the path is
-converted by `file-name-nondirectory' unless PATH-CONV-FN is supplied."
-  (pcase-let ((`(,type . ,path)
-               (let ((org-inhibit-startup nil)
-                     (link (with-temp-buffer
-                             (insert raw-link)
-                             (org-mode)
-                             (goto-char (point-min))
-                             (org-element-link-parser))))
-                 (cons (org-element-property :type link)
-                       (org-element-property :path link)))))
-    (cond ((string= type "file")
-           (format "lfile:%s"
-                   (funcall (if (functionp path-conv-fn)
-                                path-conv-fn #'file-name-nondirectory)
-                            path)))
-          ((stringp type)
-           raw-link)
-          (t nil))))
-
-(with-eval-after-load 'org
-  (org-link-set-parameters "lfile"
-                           :store #'lfile-store-link))
-
-(defun embark-org-target-lfile-link ()
-  "Target an org link at point of the form [[lfile:<file-name>][desc]]>."
-  (pcase (org-in-regexp org-lfile-link-re)
-    (`(,start . ,end)
-     (when-let ((file-path (lfile-locate (match-string 1))))
-       `(file ,file-path ,start . ,end)))))
-
-(with-eval-after-load 'embark
-  (add-to-list 'embark-target-finders 'embark-org-target-lfile-link))
-
-(provide 'lfile)
-#+end_src
-
-***** lfile (legacy)                        :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2023-04-16 Sun 11:43]
-:END:
-
-#+begin_src emacs-lisp :noweb tangle :tangle no
-(defcustom my/lfile-root "~/" "docstring")
-(defcustom my/lfile-exclude-string ".local/share/Trash" "")
-
-(defmacro my/expand-lfile (file body exclude-search)
-  "Evaluate BODY with resolving a path from FILE.
-
-In BODY, caller could refer a resolved file path as `file-resolved'.
-If exclude-search is non-nil, search specifier after \"::\" will be removed in `file-resolved'."
-  `(let* ((paths (my/lfile--locate ,file ,exclude-search))
-          (file-resolved (car paths)))
-     (cond
-      ((= 0 (length paths))
-       (message "Sorry, no results found for query: %s" file))
-      ((<= 1 (length paths))
-       ,body))))
-
-(defun my/lfile-follow-link (file _)
-  "Open FILE given in lfile org link type."
-  (my/expand-lfile file
-                   (org-link-open-as-file file-resolved current-prefix-arg)
-                   nil))
-
-(defun my/lfile-follow-link--emacs (file _)
-  "Open FILE in Emacs given in lfile+emacs org link type."
-  (my/expand-lfile file
-                   (org-open-file file-resolved t)
-                   t))
-
-(defun my/lfile-follow-link--sys (file _)
-  "Open FILE out of Emacs given in lfile+sys org link type."
-  (my/expand-lfile file
-                   (org-open-file file-resolved 'system)
-                   t))
-
-(defun my/lfile-store-link ()
-  "Store a link to the file.
-
-Prefix argument does matter in this function call.
-If `C-u' prefix is given, file link is stored instead of lfile link."
-  (when (and (derived-mode-p 'dired-mode)
-             (string-match-p
-              (format "^%s" (expand-file-name my/lfile-root))
-              (dired-current-directory nil)))
-    (let ((path (dired-get-filename nil t)))
-      (if (equal current-prefix-arg '(4))
-          (org-link-store-props
-           :type "file"
-           :link (concat "file:" (abbreviate-file-name
-                                  (expand-file-name path))))
-        (org-link-store-props
-         :type "lfile"
-         :link (concat "lfile:" (file-name-nondirectory path)))))))
-
-(defun my/lfile-completing-read (&optional arg)
-  "Create a lfile link using completion."
-  (let* ((paths (my/lfile--locate nil))
-         (files (mapcar #'file-name-nondirectory paths))
-         (file (completing-read "Local file: " files nil 'confirm)))
-    (concat "lfile:" file)))
-
-(defun my/lfile-export (link description format)
-  "Return an exported string from lfile link for format FORMAT.
-A link consists of LINK and DESCRIPTION."
-  (when-let* ((paths (my/lfile--locate link))
-              (path (org-export-file-uri (expand-file-name (car paths))))
-              (desc (or description link)))
-    (when (stringp path)
-      (cond
-       ((eq format 'html)
-        (if (string-match-p (regexp-opt '(".jpeg" ".jpg" ".png" ".gif" ".svg" ".webp"))
-                            path)
-            (format "<img src=\"%s\" alt=\"%s\"/>" path desc)
-          (format "<a href=\"%s\">%s</a>" path desc)))
-       ((eq format 'latex) (format "\\href{%s}{%s}" path desc))
-       ((eq format 'ascii) (format "%s (%s)" desc path))
-       (t path)))))
-
-(defun my/lfile-from-file-link ()
-  "Replace file link type with lfile link type only if hte path in my/lfile-root."
-  (interactive)
-  (let* ((context (org-element-lineage
-                   (org-element-context)
-                   '(link desc)
-                   t))
-         (type (org-element-property :type context))
-         (path (org-element-property :path context))
-         (app (org-element-property :application context))
-         (search-option (org-element-property :search-option context))
-         (desc-begin (org-element-property :contents-begin context))
-         (desc-end (org-element-property :contents-end context))
-         (desc (and (and (integerp desc-begin) (integerp desc-begin))
-                    (substring-no-properties (buffer-substring desc-begin desc-end)))))
-    (when (and (string= type "file")
-               (string-match-p
-                (format "^%s" (expand-file-name my/lfile-root))
-                (expand-file-name path)))
-      (delete-region (org-element-property :begin context)
-                     (org-element-property :end context))
-      (insert (org-link-make-string (concat "lfile" (and app (concat "+" app)) ":"
-                                            (file-name-nondirectory path)
-                                            (and search-option (concat "::" search-option)))
-                                    desc)))))
-
-(defun my/lfile--locate (pattern &optional exclude-search)
-  "Determine an absolute path from given FILE name using `locate' program."
-  (if pattern
-      (save-match-data
-        (let ((match-idx (string-match "\\(.+\\)\\(::.+\\)\\'"
-                                       pattern))
-              (data (match-data)))
-          (mapcar (lambda (resolved-path)
-                    (set-match-data data)
-                    (concat resolved-path
-                            (when (and match-idx
-                                       (not exclude-search))
-                              (match-string 2 pattern))))
-                  (split-string
-                   (shell-command-to-string
-                    (concat (format "plocate -d <<locate-db-doc()>> -ie \"%s\""
-                                    (shell-quote-argument
-                                     (or (and match-idx
-                                              (match-string 1 pattern))
-                                         pattern)))
-                            (and (stringp my/lfile-exclude-string)
-                                 (format " | grep -v %s"
-                                         (shell-quote-argument  my/lfile-exclude-string)))))
-                   "\n" t))))
-    ""))
-
-(with-eval-after-load 'org
-  (org-link-set-parameters "lfile"
-                           :follow #'my/lfile-follow-link
-                           :store #'my/lfile-store-link
-                           :complete #'my/lfile-completing-read
-                           :export #'my/lfile-export)
-  (org-link-set-parameters "lfile+emacs"
-                           :follow #'my/lfile-follow-link--emacs)
-  (org-link-set-parameters "lfile+sys"
-                           :follow #'my/lfile-follow-link--sys))
-
-(provide 'lfile)
-#+end_src
 
 **** text-mail                               :ARCHIVE:
 :PROPERTIES:
