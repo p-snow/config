@@ -20621,61 +20621,26 @@ opus_opts="-c:a libopus -b:a 64k -ac 2"
 ffmpeg -i "${INPUT_VIDEO}" ${opus_opts} "${OUTPUT_VIDEO}"
 #+end_src
 
-** DVD Packing
+** DVD Rip
 
-#+begin_src scheme :noweb-ref guix-base
-"libdvdnav"
-"libdvdcss"
-"libdvdread"
-"handbrake"
+#+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/dvd-rip.scm")
+(specifications->manifest
+ '("libdvdnav"
+   "libdvdcss"
+   "libdvdread"
+   "handbrake"))
 #+end_src
 
-#+begin_src bash :tangle (expand-file-name "dvdpack" tangle/local-bin-dir)
-set -euo pipefail
+** CD Rip
 
-if [ "${OPTIND}" = 1 ]; then
-  while getopts t: OPT
-  do
-    case ${OPT} in
-    t)
-      TITLE=${OPTARG}
-      ;;
-    esac
-  done
-else
-  echo "No installed getopts-command." 1>&2
-  exit 1
-fi
-shift $((OPTIND - 1))
-
-if [[ $# -ge 1 ]]; then
-  DVD_DIR=$1
-  if [[ $# -eq 2 ]]; then
-    DVD_PACK_VIDEO=$2
-  else
-    DVD_PACK_VIDEO=$(basename "${DVD_DIR}").mkv
-  fi
-fi
-
-if [ -v TITLE ]; then
-  title_opt="--title ${TITLE}"
-else
-  title_opt='--main-feature'
-fi
-
-hb_opts="--x264-preset veryslow --quality 18 --aencoder copy ${title_opt} --markers --all-audio --all-subtitles"
-
-HandBrakeCLI --input "${DVD_DIR}" --output "${DVD_PACK_VIDEO}" ${hb_opts}
-#+end_src
-** CD Ripping
-
-#+begin_src scheme :noweb-ref guix-base
-"abcde"
-"eyed3"
-"lame"
-"opus-tools"
-"cdrtools"
-"easytag"
+#+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/cd-rip.scm")
+(specifications->manifest
+ '("abcde"
+   "eyed3"
+   "lame"
+   "opus-tools"
+   "cdrtools"
+   "easytag"))
 #+end_src
 
 *** abcde
@@ -20700,32 +20665,13 @@ OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
 :CREATED:  [2022-08-15 Mon 20:13]
 :END:
 
-#+begin_src scheme :noweb-ref guix-desktop
-"slop"
-"gimp"
-"obs"
-"kdenlive"
-"audacity"
-#+end_src
-
-*** Screenkey
-:PROPERTIES:
-:CREATED:  [2023-03-19 Sun 16:43]
-:END:
-
-#+begin_src scheme :noweb-ref guix-desktop
-"python-screenkey"
-#+end_src
-
-#+begin_src json :tangle no :tangle (expand-file-name ".config/screenkey.json")  :tangle-mode (identity #o644) :comments no
-{
-  "timeout": 0.8,
-  "key_mode": "composed",
-  "bak_mode": "normal",
-  "mods_mode": "emacs",
-  "opacity": 0.3,
-  "screen": 0
-}
+#+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/video-creation.scm")
+(specifications->manifest
+ '("slop"
+   "gimp"
+   "obs"
+   "kdenlive"
+   "audacity"))
 #+end_src
 
 ** Sync Git Repos Automatically
