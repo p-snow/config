@@ -16892,7 +16892,7 @@ Capture URL or file currently visiting as well as a sentence at point."
   (push `("English words to learn"
           :buffers-files ,(list my/org-english-file)
           :query (and (tags "drill")
-                      (tags "fd_en"))
+                      (tags "english"))
           :sort (scheduled date))
         org-ql-views))
 
@@ -16900,7 +16900,7 @@ Capture URL or file currently visiting as well as a sentence at point."
   (add-to-list 'org-capture-templates
                '("!0" "drill entry for english word"
                  entry (id "de0983a7-9d1a-4ef8-b882-148c401e862d")
-                 "* %i :drill:fd_en:
+                 "* %i :drill:english:
 [%(my/english-japanese-translate org-english-word t) %(my/english-pronunciation org-english-word t)]
 %(my/org-english-insert-english-translation)
 - %a
@@ -17148,7 +17148,7 @@ Display information and add it to kill ring if called interactively."
   (with-current-buffer (find-file-noselect my/org-english-file)
     (org-ql-search my/org-english-file
       '(and (tags "drill")
-            (tags "fd_en")
+            (tags "english")
             (not (property "DRILL_LAST_REVIEWED")))
       :sort 'my/org-ql--english-level<)))
 
