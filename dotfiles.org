@@ -3529,7 +3529,18 @@ In ARGS, execution file paths are abbreviated using their base names."
 #+begin_src emacs-lisp
 (use-package eglot
   :custom
-  (eglot-extend-to-xref t))
+  (eglot-extend-to-xref t)
+  :config
+  (bind-keys :map eglot-mode-map
+             ("C-c i i" . eglot-find-implementation)
+             ("C-c i e" . eglot)
+             ("C-c i k" . eglot-shutdown-all)
+             ("C-c i r" . eglot-rename)
+             ("C-c i x" . eglot-reconnect)
+             ("C-c i a" . eglot-code-actions)
+             ("C-c i m" . eglot-menu)
+             ("C-c i f" . eglot-format-buffer)
+             ("C-c i h" . eglot-inlay-hints-mode)))
 #+end_src
 
 ****** Games
