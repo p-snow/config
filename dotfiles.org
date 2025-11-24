@@ -16856,6 +16856,10 @@ My workflow for acquiring English words is:
 Capture URL or file currently visiting as well as a sentence at point."
   (interactive (list (determine-search-word "Word to capture: ")))
   (setq org-english-word (downcase word))
+  (setq org-english-sentence
+        (replace-regexp-in-string word
+                                  (my/cloze-deletion word)
+                                  (or (sentence-at-point) "")))
   (setq my/org-english-match-entry nil)
   (let* ((sentence-end-double-space nil)
          (my/org-english-match-entry (org-ql-select
@@ -16865,11 +16869,7 @@ Capture URL or file currently visiting as well as a sentence at point."
                                                           ,org-english-word
                                                           word-end)))
                                              (tags "drill"))
-                                       :action 'element-with-markers))
-         (sentence (replace-regexp-in-string word
-                                             (my/cloze-deletion word)
-                                             (or (sentence-at-point) ""))))
-    (kill-new (if (stringp sentence) sentence ""))
+                                       :action 'element-with-markers)))
     (cond
      (my/org-english-match-entry (org-capture nil "!1"))
      (t (org-capture nil "!0")))))
@@ -16918,13 +16918,25 @@ Capture URL or file currently visiting as well as a sentence at point."
                  "* %i :drill:english:
 [%(my/english-japanese-translate org-english-word t) %(my/english-pronunciation org-english-word t)]
 %(my/org-english-insert-english-translation)
-- %a
-  %c"))
+- %a"
+                 :hook org-english-complete-entry))
   (add-to-list 'org-capture-templates
                '("!1" "drill entry for english word"
                  plain (function my/org-english-goto-match)
-                 "- %a
-  %c")))
+                 "- %a"
+                 :hook org-english-complete-entry)))
+
+(defun org-english-complete-entry ()
+  (princ org-english-sentence)
+  (save-excursion
+    (when (string= "" (org-get-heading t t t t))
+      (org-back-to-heading)
+      (org-back-to-heading)
+      (forward-char 3)
+      (insert org-english-word))
+    (end-of-buffer)
+    (org-newline-and-indent)
+    (insert org-english-sentence)))
 
 (defun my/org-english-goto-match ()
   "Goto function for org-capture-template designed to insert an edditional example
