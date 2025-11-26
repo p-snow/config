@@ -8795,7 +8795,7 @@ sMerge can be utilized to address merging issues.
 (require 'makem)
 #+end_src
 
-**** Blogging
+**** Blogging/Social Media
 :PROPERTIES:
 :CREATED:  [2023-12-29 Fri 14:36]
 :END:
@@ -8869,9 +8869,26 @@ This subtree holds resources for [[https://p-snow.org/][my blog]].
 "emacs-ox-haunt"
 #+end_src
 
+#+header: :tangle (expand-file-name "org-config.el" tangle/emacs-config-dir)
 #+begin_src emacs-lisp
 (use-package ox-haunt
   :after ox)
+#+end_src
+
+***** org-social
+:PROPERTIES:
+:CREATED:  [2025-11-26 Wed 16:40]
+:END:
+
+#+header: :tangle (expand-file-name "org-config.el" tangle/emacs-config-dir)
+#+begin_src emacs-lisp :noweb tangle
+(use-package org-social
+  :ensure t
+  :after org
+  :custom
+  (org-social-file "<<ghq-proj-path(name="p-snow.github.io")>>/docs/social.org")
+  (org-social-relay "https://relay.org-social.org/")
+  (org-social-my-public-url "https://p-snow.org/social.org"))
 #+end_src
 
 **** Journaling
