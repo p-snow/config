@@ -4693,8 +4693,6 @@ alias <<print-aliases(lang="plain")>>
   (gptel-default-mode 'org-mode)
   (gptel-rewrite-default-action 'merge)
   (gptel-use-tools t)
-  (gptel-confirm-tool-calls 'auto)
-  (gptel-include-tool-results 'auto)
   (gptel-track-media t)
   :config
   (require 'mcp)
@@ -4712,10 +4710,10 @@ alias <<print-aliases(lang="plain")>>
               "llama-3.1-sonar-large-128k-chat"
               "llama-3.1-70b-instruct"
               "llama-3.1-8b-instruct"))
-  (gptel-make-ollama "Ollama"
-    :host "localhost:11434"
-    :stream t
-    :models '(minimax-m2:cloud gpt-oss-safeguard:20b gpt-oss:latest gemma3:latest gemma3:27b deepseek-r1 phi4 mistral))
+  ;; (gptel-make-ollama "Ollama"
+  ;;                    :host "localhost:11434"
+  ;;                    :stream t
+  ;;                    :models '(minimax-m2:cloud gpt-oss-safeguard:20b gpt-oss:latest gemma3:latest gemma3:27b deepseek-r1 phi4 mistral))
   <<ai-tool>>
   (mcp-hub-start-all-server
    (lambda ()
