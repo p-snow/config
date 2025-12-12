@@ -1863,25 +1863,29 @@ I love modus-theme which [[https://protesilaos.com/codelog/2019-08-07-emacs-modu
 
 Following configuration is for version 4 of modus-themes which takes breaking change from previous major version.
 
+#+header: :tangle no
 #+begin_src emacs-lisp
 (use-package modus-themes
-  :disabled t
-  :custom
-  (modus-themes-to-toggle '(modus-vivendi
-                            modus-vivendi-tinted
-                            modus-vivendi-deuteranopia))
-  (modus-themes-org-blocks 'tinted-background)
-  (modus-themes-bold-constructs t)
-  :config
-  (customize-set-variable 'modus-themes-common-palette-overrides
-                          modus-themes-preset-overrides-faint)
-  (bind-keys ("<f6>" . modus-themes-toggle)))
+   :disabled t
+   :custom
+   (modus-themes-to-toggle '(modus-vivendi
+                             modus-vivendi-tinted
+                             modus-vivendi-deuteranopia))
+   (modus-themes-org-blocks 'tinted-background)
+   (modus-themes-bold-constructs t)
+   :config
+   (customize-set-variable 'modus-themes-common-palette-overrides
+                           modus-themes-preset-overrides-faint)
+   (bind-keys ("<f6>" . modus-themes-toggle)))
 #+end_src
 
 ***** ef-themes
 :PROPERTIES:
 :CREATED:  [2023-05-15 Mon 15:41]
 :END:
+
+Ef-theme underwent a redesign and was merged with modus-theme, placing Ef-theme atop modus-theme. The article below shows how to configure the redesigned Ef-theme.
+- [[https://protesilaos.com/codelog/2025-10-01-emacs-modus-framework-ef-built-on-top/][Emacs: ‘modus-themes’ as a basis for other themes; ‘ef-themes’ is first | Protesilaos Stavrou]]
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
 "emacs-ef-themes"
@@ -1891,14 +1895,16 @@ Following configuration is for version 4 of modus-themes which takes breaking ch
 #+begin_src emacs-lisp
 (use-package ef-themes
   :init
-  (setq ef-bio-palette-overrides
-        '((cursor "#ffffff")))
-  :custom
-  (ef-themes-to-toggle
-   '(ef-bio ef-deuteranopia-light))
+  (ef-themes-take-over-modus-themes-mode 1)
+  :bind
+  (("<f9>" . modus-themes-rotate)
+   ("M-<f9>" . modus-themes-select))
   :config
-  (bind-keys ("<f9>" .   ef-themes-toggle)
-             ("M-<f9>" . ef-themes-rotate)))
+  ;; All customisations here.
+  (setq modus-themes-mixed-fonts t)
+  (setq ef-themes-common-palette-overrides
+        '((cursor "#ffffff")))
+  (load-theme 'ef-bio :no-confirm))
 #+end_src
 
 **** Basic Preferences
