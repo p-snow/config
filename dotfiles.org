@@ -6525,40 +6525,40 @@ Entry order matters.
  "htmlq --text dd | head -n 1 | cut -d ' ' -f 1")
 #+end_src
 
-******** Smart phone special price in IIJmio
+******** Smart phone special price in IIJmio :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2025-06-09 Mon 19:31]
 :END:
 
 Content Fetcher
-#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-content-fetcher
-(,(regexp-quote "www.iijmio.jp/campaign/auth") .
- (lambda (url)
-   (shell-command-to-string
-    (format "fetch-dynamic-page '%s' '%s' '%s'"
-            url
-            (my/credential-info "www.iijmio.jp/gigaplan" "login")
-            (my/credential-info "www.iijmio.jp/gigaplan" 'secret)))))
-#+end_src
+# #+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-content-fetcher
+# (,(regexp-quote "www.iijmio.jp/campaign/auth") .
+#  (lambda (url)
+#    (shell-command-to-string
+#     (format "fetch-dynamic-page '%s' '%s' '%s'"
+#             url
+#             (my/credential-info "www.iijmio.jp/gigaplan" "login")
+#             (my/credential-info "www.iijmio.jp/gigaplan" 'secret)))))
+# #+end_src
 
 Selector
-#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-selector
-(,(regexp-quote "www.iijmio.jp/campaign") .
- "htmlq -t div[devicename=AQUOS_wish3] article section.-label")
-#+end_src
+# #+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-selector
+# (,(regexp-quote "www.iijmio.jp/campaign") .
+#  "htmlq -t div[devicename=AQUOS_wish3] article section.-label")
+# #+end_src
 
 User input in fetch-dynamic-page
-#+begin_src python :tangle no :noweb-ref dynamic-page-user-input
-if re.search(r'iijmio.jp', url):
-    username = sys.argv[2]
-    password = sys.argv[3]
-    username_input = driver.find_element(By.NAME, 'j_username')
-    password_input = driver.find_element(By.NAME, 'j_password')
-    username_input.send_keys(username)
-    password_input.send_keys(password)
-    login_button = driver.find_element(By.CLASS_NAME, 'pink_btn')
-    login_button.click()
-#+end_src
+# #+begin_src python :tangle no :noweb-ref dynamic-page-user-input
+# if re.search(r'iijmio.jp', url):
+#     username = sys.argv[2]
+#     password = sys.argv[3]
+#     username_input = driver.find_element(By.NAME, 'j_username')
+#     password_input = driver.find_element(By.NAME, 'j_password')
+#     username_input.send_keys(username)
+#     password_input.send_keys(password)
+#     login_button = driver.find_element(By.CLASS_NAME, 'pink_btn')
+#     login_button.click()
+# #+end_src
 
 ******** Age-restricted games in Steam
 :PROPERTIES:
