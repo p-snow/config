@@ -6645,6 +6645,23 @@ if re.search(r'www.amazon.co.jp/product-reviews', url):
  [div:availability span])
 #+end_src
 
+******** Product price in aliexpress.com
+:PROPERTIES:
+:CREATED:  [2025-12-20 Sat 18:10]
+:END:
+
+Content Fetcher
+#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-content-fetcher
+(,(regexp-quote "ja.aliexpress.com") .
+ "fetch-dynamic-page %s")
+#+end_src
+
+Selector
+#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-selector
+(,(regexp-quote "ja.aliexpress.com")
+ [.price-kr--current--NhhwBO1])
+#+end_src
+
 ******* contents fetcher
 :PROPERTIES:
 :CREATED:  [2025-05-08 Thu 15:54]
