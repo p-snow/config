@@ -11658,6 +11658,40 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   (heart-rate-device-address "E8:6B:F8:05:CF:2A"))
 #+end_src
 
+***** minuet
+:PROPERTIES:
+:CREATED:  [2025-12-22 Mon 15:24]
+:END:
+
+#+begin_src emacs-lisp :noweb tangle
+(use-package minuet
+  :ensure t
+  :bind
+  (("M-n TAB" . #'minuet-complete-with-minibuffer) ;; use minibuffer for completion
+   ("M-n M-i" . #'minuet-show-suggestion) ;; use overlay for completion
+   ("M-n p" . #'minuet-configure-provider)
+   :map minuet-active-mode-map
+   ;; These keymaps activate only when a minuet suggestion is displayed in the current buffer
+   ("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
+   ("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
+   ("M-m" . #'minuet-accept-suggestion) ;; accept whole completion
+   ;; Accept the first line of completion, or N lines with a numeric-prefix:
+   ;; e.g. C-u 2 M-a will accepts 2 lines of completion.
+   ("M-a" . #'minuet-accept-suggestion-line)
+   ("M-e" . #'minuet-dismiss-suggestion))
+  ;; :hook
+  ;; (prog-mode #'minuet-auto-suggestion-mode)
+  :config
+  (setq minuet-provider 'openai)
+  (plist-put minuet-openai-options :model "gpt-4.1-mini")
+  (plist-put minuet-openai-options
+             :api-key (apply-partially #'my/credential-info "openai.com" "apikey"))
+  (minuet-set-optional-options minuet-openai-options :max_tokens 64)
+  (plist-put minuet-gemini-options :model "gemini-2.0-flash")
+  (plist-put minuet-gemini-options
+             :api-key (apply-partially #'my/credential-info "www.google.com/<<full-name>>" "gemini apikey")))
+#+end_src
+
 *** Advanced Customization
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "ext-config.el" tangle/emacs-config-dir)
