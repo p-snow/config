@@ -4990,21 +4990,29 @@ alias <<print-aliases(lang="plain")>>
 :CREATED:  [2025-07-08 Tue 18:18]
 :END:
 
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
+(define emacs-mcp-transform
+  ((options->transformation
+    (list '(with-commit . "emacs-mcp=125e0a4478ff1404880ea4e593f5e4ff0122cb83")))
+   emacs-mcp))
+(define emacs-mcp-latest
+  (package/inherit
+      emacs-mcp-transform
+    (name "emacs-mcp-latest")
+    (version "0.1.0")))
+#+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-package
+emacs-mcp-latest
+#+end_src
+
 #+begin_src emacs-lisp
 (use-package mcp
-  :ensure t
   :after (my-credential gptel)
   :custom
   (mcp-hub-servers
    `(("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" ,(getenv "HOME"))))
-     ("context7" . (:command "npx" :args ("-y" "@upstash/context7-mcp") :env (:DEFAULT_MINIMUM_TOKENS "6000")))
-     ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
-     ("duckduckgo" . (:command "uvx" :args ("duckduckgo-mcp-server")))
-     ("github" . (:command "docker"
-                           :args ("run" "-i" "--rm"
-                                  "-e" "GITHUB_PERSONAL_ACCESS_TOKEN"
-                                  "ghcr.io/github/github-mcp-server")
-                           :env (:GITHUB_PERSONAL_ACCESS_TOKEN ,(my/credential-info "github.com/p-snow" "token"))))))
+     ("duckduckgo" . (:command "uvx" :args ("duckduckgo-mcp-server")))))
   :config
   (require 'mcp-hub))
 #+end_src
