@@ -4695,27 +4695,19 @@ alias <<print-aliases(lang="plain")>>
   :custom
   (gptel-api-key
    (my/credential-info "openai.com" "apikey"))
-  (gptel-model 'gpt-5-nano)
+  (gptel-model 'gemini-3-flash-preview)
   (gptel-default-mode 'org-mode)
   (gptel-rewrite-default-action 'merge)
   (gptel-use-tools t)
   (gptel-track-media t)
+  (gptel-include-reasoning nil)
   :config
   (require 'mcp)
-  (gptel-make-gemini "Gemini"
-    :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
-    :stream t)
-  (gptel-make-openai "Perplexity"
-    :host "api.perplexity.ai"
-    :key (my/credential-info "perplexity.ai" "apikey")
-    :endpoint "/chat/completions"
-    :stream t
-    :models '("llama-3.1-sonar-small-128k-online"
-              "llama-3.1-sonar-large-128k-online"
-              "llama-3.1-sonar-small-128k-chat"
-              "llama-3.1-sonar-large-128k-chat"
-              "llama-3.1-70b-instruct"
-              "llama-3.1-8b-instruct"))
+  (setq
+   gptel-model 'gemini-3-flash-preview
+   gptel-backend (gptel-make-gemini "Gemini"
+                   :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
+                   :stream t))
   ;; (gptel-make-ollama "Ollama"
   ;;                    :host "localhost:11434"
   ;;                    :stream t
