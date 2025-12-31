@@ -4682,7 +4682,7 @@ alias <<print-aliases(lang="plain")>>
 #+NAME: config/emacs-gptel
 #+begin_src emacs-lisp :noweb tangle
 (use-package gptel
-  :after (engine-mode)
+  :after (engine-mode my-credential mcp)
   :bind (:map engine-mode-prefixed-map
               ("G" . gptel)
               ("g RET" . gptel-send)
@@ -4944,6 +4944,22 @@ alias <<print-aliases(lang="plain")>>
  :confirm nil)
 #+end_src
 
+***** gptel-agent
+:PROPERTIES:
+:CREATED:  [2025-12-30 Tue 22:19]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-gptel-agent-latest"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package gptel-agent
+  :after gptel
+  :bind (:map engine-mode-prefixed-map
+              ("g a" . gptel-agent)))
+#+end_src
+
 ***** gptel-prompt
 :PROPERTIES:
 :CREATED:  [2025-07-04 Fri 19:35]
@@ -5008,7 +5024,7 @@ emacs-mcp-latest
 
 #+begin_src emacs-lisp
 (use-package mcp
-  :after (my-credential gptel)
+  :after (my-credential)
   :custom
   (mcp-hub-servers
    `(("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" ,(getenv "HOME"))))
