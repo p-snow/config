@@ -6827,10 +6827,12 @@ org-tidy was replaced with [[id:a86b82a7-c955-494c-9b60-37e602c9d0af][org-hide-d
 :CREATED:  [2025-07-25 Fri 17:24]
 :END:
 
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-org-expose-emphasis-markers"
+#+end_src
+
 #+begin_src emacs-lisp
 (use-package org-expose-emphasis-markers
-  :vc (:url "https://github.com/lorniu/org-expose-emphasis-markers.git"
-            :rev :newest)
   :after org
   :hook (org-mode . org-expose-emphasis-markers-mode))
 #+end_src
@@ -6843,9 +6845,12 @@ org-tidy was replaced with [[id:a86b82a7-c955-494c-9b60-37e602c9d0af][org-hide-d
 
 org-hide-drawers is yet another [[id:2aa4d500-a244-41d2-8435-b8a9f24e2b7f][org-tidy]]. It offers hiding functionality for org drawers more quickly and reliably.
 
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-org-hide-drawers"
+#+end_src
+
 #+begin_src emacs-lisp
 (use-package org-hide-drawers
-  :ensure t
   :after org
   :bind (:map org-mode-map
               ("C-c w" . org-hide-drawers-mode))
@@ -6934,21 +6939,20 @@ org-hide-drawers is yet another [[id:2aa4d500-a244-41d2-8435-b8a9f24e2b7f][org-t
 :CREATED:  [2025-10-21 Tue 16:28]
 :END:
 
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-org-tag-tree"
+#+end_src
+
 #+NAME: config/emacs-org-tag-tree
 #+begin_src emacs-lisp
 (use-package org-tag-tree
-  ;; :disabled t
-  ;; :load-path "~/.local/share/ghq/github.com/p-snow/org-tag-tree"
   :after org
   :hook (org-mode . org-tag-tree-load-buffer-tags)
   :custom
-  (org-tag-tree-global-tag-files '("~/org/notes/--my-org-tags__org@@20251021T162933.org"
-                                   ;; "~/org/notes/--my-english-wordbook__list_record_tangle@@20230605T170959.org"
-                                   ))
+  (org-tag-tree-global-tag-files '("~/org/notes/--my-org-tags__org@@20251021T162933.org"))
   (org-tag-tree-global-tag-persistent t)
   :config
-  (org-tag-tree-load-global-tags)
-  )
+  (org-tag-tree-load-global-tags))
 #+end_src
 
 ****** ol-local-file
@@ -7149,9 +7153,12 @@ org-hide-drawers is yet another [[id:2aa4d500-a244-41d2-8435-b8a9f24e2b7f][org-t
 :CREATED:  [2023-02-24 Fri 15:56]
 :END:
 
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-consult-ghq"
+#+end_src
+
 #+begin_src emacs-lisp
 (use-package consult-ghq
-  :ensure t
   :after consult
   :custom
   (consult-ghq-find-function 'dired)
@@ -8917,10 +8924,13 @@ This subtree holds resources for [[https://p-snow.org/][my blog]].
 :CREATED:  [2025-11-26 Wed 16:40]
 :END:
 
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-org-social"
+#+end_src
+
 #+header: :tangle (expand-file-name "org-config.el" tangle/emacs-config-dir)
 #+begin_src emacs-lisp :noweb tangle
 (use-package org-social
-  :ensure t
   :after org
   :custom
   (org-social-file "<<ghq-proj-path(name="p-snow.github.io")>>/docs/social.org")
@@ -9448,9 +9458,12 @@ Default to the symbol at point."
 :CREATED:  [2023-02-11 Sat 22:31]
 :END:
 
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-consult-recoll"
+#+end_src
+
 #+begin_src emacs-lisp
 (use-package consult-recoll
-  :ensure t
   :after consult
   :bind ("M-s c" . consult-recoll)
   :preface
@@ -11679,9 +11692,12 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
 :CREATED:  [2025-12-22 Mon 15:24]
 :END:
 
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-minuet"
+#+end_src
+
 #+begin_src emacs-lisp :noweb tangle
 (use-package minuet
-  :ensure t
   :bind
   (("M-n TAB" . #'minuet-complete-with-minibuffer) ;; use minibuffer for completion
    ("M-n M-i" . #'minuet-show-suggestion) ;; use overlay for completion
