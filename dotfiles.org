@@ -11724,6 +11724,24 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
              :api-key (apply-partially #'my/credential-info "www.google.com/<<full-name>>" "gemini apikey")))
 #+end_src
 
+***** whisper
+:PROPERTIES:
+:CREATED:  [2025-12-31 Wed 21:10]
+:END:
+
+#+NAME: config/emacs-whisper
+#+begin_src emacs-lisp
+(use-package whisper
+  :vc (:url "https://github.com/natrys/whisper.el" :branch "master")
+  :bind ("H-w" . whisper-run)
+  :config
+  (setq whisper-install-directory "~/.local/share"
+        whisper-model "base"
+        whisper-language "ja"
+        whisper-translate nil
+        whisper-use-threads (/ (num-processors) 2)))
+#+end_src
+
 *** Advanced Customization
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "ext-config.el" tangle/emacs-config-dir)
