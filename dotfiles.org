@@ -4979,7 +4979,9 @@ alias <<print-aliases(lang="plain")>>
   :config
   (gptel-prompts-update)
   ;; Ensure prompts are updated if prompt files change
-  (gptel-prompts-add-update-watchers))
+  (gptel-prompts-add-update-watchers)
+  (setq gptel--system-message
+        (alist-get 'default gptel-directives)))
 #+end_src
 
 ***** ob-gptel
