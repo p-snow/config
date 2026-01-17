@@ -3515,8 +3515,8 @@ In ARGS, execution file paths are abbreviated using their base names."
 #+begin_src emacs-lisp
 (use-package appt
   :custom
-  (appt-message-warning-time 60)
-  (appt-display-interval 5)
+  (appt-message-warning-time 30)
+  (appt-display-interval 3)
   :config
   (appt-activate 1)
   (with-eval-after-load 'org-agenda
@@ -5174,7 +5174,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (org-agenda-mode . (lambda ()
                        ;; TODO: this can be rewritten with `display-buffer'
                        (delete-other-windows)
-                       (org-agenda-to-appt t '((category "appt")))))
+                       (org-agenda-to-appt 'refresh)))
   :custom
   (org-agenda-files
    `(,(file-name-as-directory
@@ -5184,7 +5184,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   :config
   (bind-keys :map org-agenda-mode-map
              ("C-j" . org-agenda-switch-to)
-             ("M" . org-agenda-month-view)))
+             ("M" . org-agenda-month-view))
+  ;; Append newly registered time specific tasks at least in an huur
+  (run-at-time "30 minutes" 3600 (apply-partially #'org-agenda-to-appt 'refresh)))
 
 (defun org-agenda-cmp-latest-clock-log (a b)
   "Compare two org entry A and B in terms of clock log.
