@@ -5153,7 +5153,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
     (keymap-set map "M-h" nil)))
 #+end_src
 
-***** org core feature setup
+***** Org customize variables
 :PROPERTIES:
 :CREATED:  [2023-01-24 Tue 16:14]
 :END:
@@ -5988,6 +5988,21 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 #+begin_src emacs-lisp
 (use-package ox-texinfo
   :after ox)
+#+end_src
+
+****** Org Footnote
+:PROPERTIES:
+:CREATED:  [2026-01-18 Sun 11:59]
+:END:
+
+#+begin_src emacs-lisp
+(use-package org-footnote
+  :after org
+  :bind (:map org-mode-map
+              ("C-c f" . org-footnote-action))
+  :custom
+  (org-footnote-auto-adjust t)
+  (org-footnote-section "Footer"))
 #+end_src
 
 ***** org external packages
