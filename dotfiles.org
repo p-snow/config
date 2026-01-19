@@ -11798,13 +11798,18 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
 #+begin_src emacs-lisp
 (use-package whisper
   :vc (:url "https://github.com/natrys/whisper.el" :branch "master")
-  :bind ("H-w" . whisper-run)
-  :config
-  (setq whisper-install-directory "~/.local/share"
-        whisper-model "base"
-        whisper-language "ja"
-        whisper-translate nil
-        whisper-use-threads (/ (num-processors) 2)))
+  :bind (("H-w" . whisper-run)
+         ("H-W" . whisper-select-language))
+  :custom
+  (whisper-quantize "q8_0")
+  (whisper-install-directory "~/.local/share")
+  (whisper-model "base")
+  (whisper-server-mode 'local)
+  (whisper-language "ja")
+  (whisper-return-cursor-to-start nil)
+  (whisper-translate nil)
+  (whisper-use-threads (1- (num-processors)))
+  (whisper-transcription-buffer-name-function 'whisper--simple-transcription-buffer-name))
 #+end_src
 
 *** Advanced Customization
