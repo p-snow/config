@@ -2308,8 +2308,12 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
 ****** Display
 
 #+begin_src emacs-lisp
-;; do not use visual bell
-(setopt visible-bell nil)
+;; Flash screen except in the C-g case
+(setopt visible-bell t)
+(setq ring-bell-function
+      (lambda ()
+        (unless (memq this-command '(keyboard-quit))
+          (beep))))
 
 (setopt text-scale-mode-step 1.0625
         highlight-nonselected-windows t
