@@ -2308,12 +2308,9 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
 ****** Display
 
 #+begin_src emacs-lisp
-;; Flash screen except in the C-g case
+;; Absolutely ignore beep message
 (setopt visible-bell t)
-(setq ring-bell-function
-      (lambda ()
-        (unless (memq this-command '(keyboard-quit))
-          (beep))))
+(setq ring-bell-function #'ignore)
 
 (setopt text-scale-mode-step 1.0625
         highlight-nonselected-windows t
@@ -3521,10 +3518,9 @@ In ARGS, execution file paths are abbreviated using their base names."
   :custom
   (appt-message-warning-time 30)
   (appt-display-interval 3)
+  (appt-display-format 'window)
   :config
-  (appt-activate 1)
-  (with-eval-after-load 'org-agenda
-    (org-agenda-to-appt)))
+  (appt-activate 1))
 #+end_src
 
 ****** Package
