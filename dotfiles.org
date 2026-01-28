@@ -4646,6 +4646,9 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
 
 ***** Eshell
 
+Charles Choi explained how to reference a capability for the command history in his blog post.
+[[http://yummymelon.com/devnull/getting-eshell-nth-history-to-work.html][nfdn: Getting Eshell nth History to Work]]
+
 #+begin_src emacs-lisp
 (use-package eshell
   :after my-launch-app
@@ -4672,7 +4675,8 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
     ;; narrow down eshell history using vertico
     (when (require 'em-hist nil t)
       (bind-keys :map eshell-hist-mode-map
-                 ("C-M-n" . consult-history)))))
+                 ("C-M-n" . consult-history))))
+  (add-to-list 'eshell-expand-input-functions #'eshell-expand-history-references))
 
 (defun eshell-command-alert (process status)
   "Send `alert' with severity based on STATUS when PROCESS finished."
