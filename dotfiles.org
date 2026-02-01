@@ -1900,11 +1900,11 @@ Ef-theme underwent a redesign and was merged with modus-theme, placing Ef-theme 
   (("<f9>" . modus-themes-rotate)
    ("M-<f9>" . modus-themes-select))
   :config
-  ;; All customisations here.
   (setq modus-themes-mixed-fonts t)
+  (setq modus-themes-italic-constructs t)
   (setq ef-themes-common-palette-overrides
         '((cursor "#ffffff")))
-  (load-theme 'ef-bio :no-confirm))
+  (modus-themes-load-theme 'ef-bio))
 #+end_src
 
 **** Basic Preferences
@@ -5727,7 +5727,11 @@ If entry at POM has no clock log time stamp, this function returns 0."
   (org-habit-graph-column 32)
   (org-habit-preceding-days 21)
   (org-habit-following-days 14)
-  (org-habit-show-habits-only-for-today t))
+  (org-habit-show-habits-only-for-today t)
+  :config
+  (custom-set-faces
+   '(org-habit-ready-face ((((background dark)) (:foreground "black"))))
+   '(org-habit-clear-face ((((background dark)) (:foreground "black"))))))
 #+end_src
 
 ******** Org Clock
