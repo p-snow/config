@@ -257,7 +257,7 @@ Below is Elisp code defining Guix templates for TempEL.
                                     (mapcar (lambda (elt)
                                               (string-join elt " "))
                                             (my/combinations
-                                             '("base" "desktop" "emacs")))))
+                                             '("base" "app" "emacs")))))
 #+end_src
 
 *** Channels
@@ -425,7 +425,7 @@ done
   Update packages in base profile at morning
   #+begin_src shell :eval no :tangle no :noweb-ref midnight-batch
   pwsudo -i guix pull && pwsudo systemctl restart guix-daemon.service
-  update-channels && activate-profiles base emacs desktop && guix gc -d 1m -F 10G
+  update-channels && activate-profiles base emacs app && guix gc -d 1m -F 10G
   #+end_src
 
 **** guix base profile
@@ -502,18 +502,24 @@ done
    <<guix-base>>))
 #+end_src
 
-**** guix desktop profile
+**** guix app profile
 
-#+begin_src scheme :noweb yes :tangle (expand-file-name ".config/guix/manifests/desktop.scm")
-(specifications->manifest
- '("gparted"
-   "gcompris-qt"
-   "gnome-disk-utility"
-   "kdeconnect"
-   "shotwell"
-   "vlc"
-   "syncthing"
-   <<guix-desktop>>))
+#+begin_src scheme :noweb yes :noweb-prefix no :tangle (expand-file-name ".config/guix/manifests/app.scm")
+(use-modules (guix packages))
+
+<<guix-app-preface>>
+
+(packages->manifest
+ (append
+  (specifications->packages '(<<guix-app>>
+                              "gparted"
+                              "gcompris-qt"
+                              "gnome-disk-utility"
+                              "kdeconnect"
+                              "shotwell"
+                              "vlc"
+                              "syncthing"))
+  (list <<guix-app-package>>)))
 #+end_src
 
 **** guix creative profile                   :ARCHIVE:
@@ -535,9 +541,8 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
 #+begin_src scheme :noweb yes :noweb-prefix no :tangle (expand-file-name ".config/guix/manifests/emacs.scm")
 (use-modules (guix profiles)
              (guix transformations)
-             (guix packages))
-
-(use-modules (gnu packages emacs-xyz))
+             (guix packages)
+             (gnu packages emacs-xyz))
 
 <<guix-emacs-preface>>
 
@@ -19488,7 +19493,7 @@ XRandR is a command line utility for changing display options without restarting
   xrandr --output HDMI-2 --auto
   #+end_src
 
-#+begin_src scheme :noweb-ref guix-desktop
+#+begin_src scheme :noweb-ref guix-app
 "xrandr"
 #+end_src
 ** C/Migemo
@@ -20245,7 +20250,7 @@ fi
 :ID:       4736bf4d-4185-4683-818d-700f980bc6ca
 :END:
 
-#+begin_src scheme :noweb-ref guix-desktop
+#+begin_src scheme :noweb-ref guix-app
 "libvirt"
 "virt-manager"
 #+end_src
@@ -20288,7 +20293,7 @@ uri_default = "qemu:///system"
 
 A simple document viewer.
 
-#+begin_src scheme :noweb-ref guix-desktop
+#+begin_src scheme :noweb-ref guix-app
 "okular"
 #+end_src
 
@@ -20495,7 +20500,7 @@ export WINEPREFIX=~/.wine
 :CREATED:  [2022-09-13 Tue 16:24]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-desktop
+#+begin_src scheme :tangle no :noweb-ref guix-app
 "gnome-font-viewer"
 #+end_src
 
