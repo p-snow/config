@@ -4199,26 +4199,26 @@ You might need to [[https://www.djcbsoftware.nl/code/mu/mu4e/Initializing-the-me
 
 This is provisional code to alleviate a dbus.el-related problem in mu v1.12.14. This issue will be solved in v1.12.15-pre1. More on [[https://github.com/djcb/mu/issues/2894][the issue topic]].
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
-(use-modules (gnu packages mail))
-
-(define mu-transform
-  ((options->transformation
-    (list '(with-commit . "mu=da246bba4439271bff04fca6ea4aaba5bad3ca4b")))
-   mu))
-(define mu-stable
-  (package/inherit
-      mu-transform
-    (name "mu-stable")
-    (version "1.12.14")))
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"mu"
 #+end_src
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs-package
-mu-stable
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
+# (use-modules (gnu packages mail))
 
-# #+begin_src scheme :tangle no :noweb-ref guix-emacs
-# "mu"
+# (define mu-transform
+#   ((options->transformation
+#     (list '(with-commit . "mu=da246bba4439271bff04fca6ea4aaba5bad3ca4b")))
+#    mu))
+# (define mu-stable
+#   (package/inherit
+#       mu-transform
+#     (name "mu-stable")
+#     (version "1.12.14")))
+# #+end_src
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs-package
+# mu-stable
 # #+end_src
 
 #+begin_src emacs-lisp
