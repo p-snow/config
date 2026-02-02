@@ -5088,6 +5088,51 @@ emacs-mcp-latest
   (require 'mcp-hub))
 #+end_src
 
+***** agent-shell
+:PROPERTIES:
+:CREATED:  [2026-01-19 Mon 22:37]
+:END:
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-agent-shell"
+# #+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
+(define emacs-agent-shell-transform
+  ((options->transformation
+    (list '(with-version . "emacs-agent-shell=0.33.1")))
+   emacs-agent-shell))
+
+(define emacs-agent-shell-latest
+  (package/inherit
+      emacs-agent-shell-transform
+    (name "emacs-agent-shell-latest")
+    (version "0.33.1")))
+#+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-package
+emacs-agent-shell-latest
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle
+(use-package agent-shell
+  :config
+  (setq agent-shell-google-authentication
+        (agent-shell-google-make-authentication
+         :api-key (lambda ()
+                    (my/credential-info "www.google.com/<<full-name>>" "gemini apikey"))))
+  ;; Minimize icon
+  (advice-add
+   'agent-shell--make-header :around
+   (lambda (fn state &rest args)
+     (let ((orig-default-font-height (symbol-function 'default-font-height)))
+       (cl-letf (((symbol-function 'default-font-height)
+                  (lambda (&rest fh-args)
+                    (* 0.1 (apply orig-default-font-height fh-args)))))
+         (apply fn state args)))))
+  )
+#+end_src
+
 **** Org Mode
 :PROPERTIES:
 :CREATED:  [2023-01-24 Tue 16:02]
