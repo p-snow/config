@@ -6921,8 +6921,26 @@ org-tidy was replaced with [[id:a86b82a7-c955-494c-9b60-37e602c9d0af][org-hide-d
 
 org-hide-drawers is yet another [[id:2aa4d500-a244-41d2-8435-b8a9f24e2b7f][org-tidy]]. It offers hiding functionality for org drawers more quickly and reliably.
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-org-hide-drawers"
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-org-hide-drawers"
+# #+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
+(use-modules (p-snow packages emacs-xyz))
+
+(define emacs-org-hide-drawers-transform
+  ((options->transformation
+    (list '(with-branch . "emacs-org-hide-drawers=devel")
+          '(with-commit . "emacs-org-hide-drawers=7f8bdaf7fc70deb4f7fb37cf0fd42fdf2ba77e3d")))
+   emacs-org-hide-drawers))
+(define emacs-org-hide-drawers-head
+  (package/inherit
+      emacs-org-hide-drawers-transform
+    (name "emacs-org-hide-drawers-head")))
+#+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-package
+emacs-org-hide-drawers-head
 #+end_src
 
 #+begin_src emacs-lisp
@@ -6932,8 +6950,20 @@ org-hide-drawers is yet another [[id:2aa4d500-a244-41d2-8435-b8a9f24e2b7f][org-t
               ("C-c w" . org-hide-drawers-mode))
   :custom
   ((org-hide-drawers-mode nil)
-   (org-hide-drawers-keep-visible-drawers-ignore-case t)
-   (org-hide-drawers-keep-visible-properties-ignore-case t)))
+   (org-hide-drawers-display-strings
+    (list
+     ;; Show top-level drawer in all cases
+     (list 'top-level-property-drawer nil)
+     (list 'property-drawer-regexp
+           (propertize "" 'face 'shadow)
+           (rx (0+ anychar)))
+     (list 'drawer-regexp
+           (propertize "" 'face 'shadow)
+           "^LOGBOOK$")
+     (list 'drawer-regexp
+           (propertize "" 'face 'shadow)
+           "^CLOCK$")
+     (list 'all (propertize " #A" 'face 'org-hide))))))
 #+end_src
 
 ****** org-password-store
