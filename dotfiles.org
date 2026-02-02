@@ -14337,7 +14337,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   :value '("--paths <<media-dir()>>" "--prefer-free-formats"
            "--format bestvideo*+bestaudio/best"
            "--format-sort codec,ext,size:1.5G"
-           "--cookies /mnt/shared/doc-%_<uname -n>_%/home/records/archives/Firefox/20250322_cookies.txt")
+           ;; "--cookies /mnt/shared/doc-%_<uname -n>_%/home/records/archives/Firefox/20250322_cookies.txt"
+           )
   ["Options"
    ("-P" "download path" "--paths "
     :class transient-option
@@ -20302,8 +20303,27 @@ A simple document viewer.
 :CREATED:  [2022-08-19 Fri 08:06]
 :END:
 
-#+begin_src scheme :noweb-ref guix-base
-"yt-dlp"
+# #+begin_src scheme :noweb-ref guix-app
+# "yt-dlp"
+# #+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-app-preface
+(use-modules (guix transformations))
+(use-modules (gnu packages video))
+
+(define yt-dlp-transform
+  ((options->transformation
+    (list '(with-version . "yt-dlp=2026.01.31")))
+   yt-dlp))
+
+(define yt-dlp-latest
+  (package/inherit
+      yt-dlp-transform
+    (name "yt-dlp-latest")))
+#+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-app-package
+yt-dlp-latest
 #+end_src
 
 #+begin_src conf :tangle (expand-file-name ".config/yt-dlp/config")
