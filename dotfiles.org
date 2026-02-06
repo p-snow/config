@@ -7062,9 +7062,9 @@ emacs-org-hide-drawers-head
 
 #+begin_src emacs-lisp
 (use-package org-password-store
-  ;; :vc (:url "https://github.com/p-snow/org-password-store#.git"
-  ;;           :rev :newest)
-  :load-path "~/.local/share/ghq/github.com/p-snow/org-password-store"
+  :vc (:url "https://github.com/p-snow/org-password-store"
+            :rev :newest)
+  ;; :load-path "~/.local/share/ghq/github.com/p-snow/org-password-store"
   :after org
   :bind (:map org-mode-map
               ("C-c p c c" . org-password-store-copy)
@@ -7155,7 +7155,9 @@ emacs-org-hide-drawers-head
 #+NAME: config/ol-local-file
 #+begin_src emacs-lisp :noweb tangle
 (use-package ol-local-file
-  :load-path "~/.local/share/ghq/github.com/p-snow/ol-local-file"
+  ;; :load-path "~/.local/share/ghq/github.com/p-snow/ol-local-file"
+  :vc (:url "https://github.com/p-snow/ol-local-file"
+            :rev :newest)
   :after org
   :init
   (setq ol-local-file-locate-db "<<locate-db-doc()>>")
