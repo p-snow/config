@@ -508,8 +508,9 @@ done
 
 #+begin_src scheme :noweb yes :noweb-prefix no :tangle (expand-file-name ".config/guix/manifests/app.scm")
 (use-modules (guix packages))
+(use-modules (guix transformations))
 
-<<guix-app-preface>>
+;; \<\<guix-app-preface\>\> will be here
 
 (packages->manifest
  (append
@@ -521,7 +522,8 @@ done
                               "shotwell"
                               "vlc"
                               "syncthing"))
-  (list <<guix-app-package>>)))
+  ;; (list \<\<guix-app-package\>\>) will be here
+  ))
 #+end_src
 
 **** guix creative profile                   :ARCHIVE:
@@ -20423,33 +20425,40 @@ A simple document viewer.
 :CREATED:  [2022-08-19 Fri 08:06]
 :END:
 
-# #+begin_src scheme :noweb-ref guix-app
-# "yt-dlp"
-# #+end_src
-
-#+begin_src scheme :tangle no :noweb-ref guix-app-preface
-(use-modules (guix transformations))
-(use-modules (gnu packages video))
-
-(define yt-dlp-transform
-  ((options->transformation
-    (list '(with-version . "yt-dlp=2026.01.31")))
-   yt-dlp))
-
-(define yt-dlp-latest
-  (package/inherit
-      yt-dlp-transform
-    (name "yt-dlp-latest")))
-#+end_src
-
-#+begin_src scheme :tangle no :noweb-ref guix-app-package
-yt-dlp-latest
+#+begin_src scheme :noweb-ref guix-app
+"yt-dlp"
 #+end_src
 
 #+begin_src conf :tangle (expand-file-name ".config/yt-dlp/config")
 --output %(title)s.%(ext)s
 --trim-filenames 70
 #+end_src
+
+*** yt-dlp latest                               :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2026-02-10 Tue 11:21]
+:END:
+
+The latest version definition using Guix Transformation is useful when the yt-dlp package falls behind in the Guix main channel.
+
+# #+begin_src scheme :tangle no :noweb-ref guix-app-preface
+# (use-modules (guix transformations))
+# (use-modules (gnu packages video))
+
+# (define yt-dlp-transform
+#   ((options->transformation
+#     (list '(with-version . "yt-dlp=2026.02.04")))
+#    yt-dlp))
+
+# (define yt-dlp-latest
+#   (package/inherit
+#       yt-dlp-transform
+#     (name "yt-dlp-latest")))
+# #+end_src
+
+# #+begin_src scheme :tangle no :noweb-ref guix-app-package
+# yt-dlp-latest
+# #+end_src
 
 ** rTorrent                                    :ARCHIVE:
 :PROPERTIES:
