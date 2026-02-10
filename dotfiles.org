@@ -587,45 +587,45 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
              (guix gexp))
 
 (home-environment
- ;; Below is the list of packages that will show up in your
- ;; Home profile, under ~/.guix-home/profile.
- (packages (list glibc-locales fontconfig which
-                 font-iosevka font-ipa font-ipa-ex font-google-noto font-inconsolata
-                 font-adobe-source-han-sans))
+  ;; Below is the list of packages that will show up in your
+  ;; Home profile, under ~/.guix-home/profile.
+  (packages (list glibc-locales fontconfig which
+                  font-iosevka font-ipa font-ipa-ex font-google-noto font-inconsolata
+                  font-adobe-source-han-sans))
 
- ;; Below is the list of Home services.  To search for available
- ;; services, run 'guix home search KEYWORD' in a terminal.
- (services
-  (list
-   (simple-service 'basic-env-vars-service
-                   home-environment-variables-service-type
-                   `(("EMAIL" . "<<email>>")
-                     ("VIEWER" . "less")
-                     ("EDITOR" . "emacsclient -c -a emacs")
-                     ("LC_TIME" . "en_US.UTF-8")))
-   (service home-bash-service-type
-            (home-bash-configuration
-             (guix-defaults? #t)
-             (aliases '(<<print-aliases(lang="scheme")>>))
-             (bashrc (list (local-file "./.bashrc" "bashrc")))))
-   (service home-openssh-service-type
-            (home-openssh-configuration
-             (hosts
-              (list (openssh-host (name "pc-t480s")
-                                  (host-name "192.168.100.126"))
-                    (openssh-host (name "pc-k8p")
-                                  (host-name "192.168.100.130"))
-                    (openssh-host (name "vm-emacs")
-                                  (host-name "192.168.122.229"))))))
-   (service home-dotfiles-service-type
-            (home-dotfiles-configuration
-             (layout 'plain)
-             (source-directory
-              (let ((path "~/dotfiles"))
-                (if (string-prefix? "~" path)
-                    (string-append (getenv "HOME") (substring path 1))
-                    path)))
-             (directories '("build")))))))
+  ;; Below is the list of Home services.  To search for available
+  ;; services, run 'guix home search KEYWORD' in a terminal.
+  (services
+   (list
+    (simple-service 'basic-env-vars-service
+                    home-environment-variables-service-type
+                    `(("EMAIL" . "<<email>>")
+                      ("VIEWER" . "less")
+                      ("EDITOR" . "emacsclient -c -a emacs")
+                      ("LC_TIME" . "en_US.UTF-8")))
+    (service home-bash-service-type
+             (home-bash-configuration
+               (guix-defaults? #t)
+               (aliases '(<<print-aliases(lang="scheme")>>))
+               (bashrc (list (local-file "./.bashrc" "bashrc")))))
+    ;; (service home-openssh-service-type
+    ;;          (home-openssh-configuration
+    ;;           (hosts
+    ;;            (list (openssh-host (name "pc-t480s")
+    ;;                                (host-name "192.168.100.126"))
+    ;;                  (openssh-host (name "pc-k8p")
+    ;;                                (host-name "192.168.100.130"))
+    ;;                  (openssh-host (name "vm-emacs")
+    ;;                                (host-name "192.168.122.229"))))))
+    (service home-dotfiles-service-type
+             (home-dotfiles-configuration
+               (layout 'plain)
+               (source-directory
+                (let ((path "~/dotfiles"))
+                  (if (string-prefix? "~" path)
+                      (string-append (getenv "HOME") (substring path 1))
+                      path)))
+               (directories '("build")))))))
 #+end_src
 
 A script for activating home configuration
