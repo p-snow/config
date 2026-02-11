@@ -10874,26 +10874,20 @@ Configuration for shutting down Emacs moved to [[id:1a73e0cf-f851-4f48-9a22-1ec3
          ("C-M-S-<delete>" . save-buffers-kill-emacs)))
 #+end_src
 
-***** pangu-spacing                         :ARCHIVE:
+***** pangu-spacing
+:PROPERTIES:
+:CREATED:  [2026-02-11 Wed 16:07]
+:END:
 
-#+begin_src emacs-lisp :tangle no
-("https://github.com/coldnew/pangu-spacing/releases.atom" soft_update)
-#+end_src
+[[https://github.com/coldnew/pangu-spacing][pangu-spacing]] shows text as if a space is inserted between CJK and ASCII characters by manipulating overlays. If you want to insert a REAL space, [[https://github.com/wowhxj/auto-space-mode][auto-space-mode]] is a good choice.
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
 (use-package pangu-spacing
-  :straight t
-  :diminish pangu-spacing-mode
-  :custom
-  (pangu-spacing-real-insert-separtor t)
-  :config
-  (setq pangu-spacing-chinese-before-english-regexp
-        (rx (group-n 1 (category japanese))
-            (group-n 2 (in "a-zA-Z0-9"))))
-  (setq pangu-spacing-chinese-after-english-regexp
-        (rx (group-n 1 (in "a-zA-Z0-9"))
-            (group-n 2 (category japanese)))))
+  :ensure t
+  :hook
+  (text-mode . pangu-spacing-mode))
 #+end_src
+
 ***** which-key                             :ARCHIVE:
 
 [[https://github.com/justbur/emacs-which-key][which-key]] guides me "which key is available" after current key stroke in the mini buffer.
