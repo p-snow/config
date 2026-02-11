@@ -4583,22 +4583,6 @@ This is provisional code to alleviate a dbus.el-related problem in mu v1.12.14. 
   (elfeed-org))
 #+end_src
 
-Packages managed by other than guix (i.e. straight.el or apt) are encouraged to register feed since updating information channel is desirable to exist.
-
-#+begin_src emacs-lisp :noweb yes
-(advice-add #'rmh-elfeed-org-process
-            :after #'my/elfeed-org-add-feeds)
-
-(defun my/elfeed-org-add-feeds (rmh-elfeed-org-files rmh-elfeed-org-tree-id)
-  "Add feeds in addition to feeds in `rmh-elfeed-org-files'.
-
-This function needs to be invoked after `rmh-elfeed-org-process' which clear all feeds."
-  (setf elfeed-feeds
-        (append elfeed-feeds
-                '(;; s-exps for feeds will be inserted here
-                  <<elfeed-feeds>>))))
-#+end_src
-
 **** Terminal Emulators
 
 ***** shell
@@ -6419,10 +6403,6 @@ Ancestors are looked up If current heading has no CATEGORY."
 #+NAME: install/org-clock-convenience
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
 "emacs-org-clock-convenience"
-#+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-("https://github.com/dfeich/org-clock-convenience/tags.atom" soft_update)
 #+end_src
 
 #+begin_src emacs-lisp
@@ -10030,10 +10010,6 @@ Tree-sitter module for Elisp had been incorporated into Emacs core since Emacs 2
 "emacs-whole-line-or-region"
 #+end_src
 
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-("https://github.com/purcell/whole-line-or-region/tags.atom" soft_update)
-#+end_src
-
 #+begin_src emacs-lisp
 (use-package whole-line-or-region
   :config
@@ -10614,10 +10590,6 @@ helpful-mode displays more sources compared to help-mode, including callers, deb
 #+NAME: install/define-word
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
 "emacs-define-word"
-#+end_src
-
-#+begin_src emacs-lisp :tangle no :noweb-ref elfeed-feeds
-("https://github.com/abo-abo/define-word/tags.atom" soft_update)
 #+end_src
 
 #+begin_src emacs-lisp
