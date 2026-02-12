@@ -5123,25 +5123,8 @@ emacs-mcp-latest
 :CREATED:  [2026-01-19 Mon 22:37]
 :END:
 
-# #+begin_src scheme :tangle no :noweb-ref guix-emacs
-# "emacs-agent-shell"
-# #+end_src
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
-(define emacs-agent-shell-transform
-  ((options->transformation
-    (list '(with-version . "emacs-agent-shell=0.33.1")))
-   emacs-agent-shell))
-
-(define emacs-agent-shell-latest
-  (package/inherit
-      emacs-agent-shell-transform
-    (name "emacs-agent-shell-latest")
-    (version "0.33.1")))
-#+end_src
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs-package
-emacs-agent-shell-latest
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-agent-shell"
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle
@@ -5162,6 +5145,28 @@ emacs-agent-shell-latest
          (apply fn state args)))))
   )
 #+end_src
+
+****** agent-shell latest                    :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2026-02-12 Thu 15:47]
+:END:
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
+# (define emacs-agent-shell-transform
+#   ((options->transformation
+#     (list '(with-version . "emacs-agent-shell=0.33.1")))
+#    emacs-agent-shell))
+
+# (define emacs-agent-shell-latest
+#   (package/inherit
+#       emacs-agent-shell-transform
+#     (name "emacs-agent-shell-latest")
+#     (version "0.33.1")))
+# #+end_src
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs-package
+# emacs-agent-shell-latest
+# #+end_src
 
 **** Org Mode
 :PROPERTIES:
