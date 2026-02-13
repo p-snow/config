@@ -5140,6 +5140,8 @@ emacs-mcp-latest
   (setq agent-shell-anthropic-authentication
         (agent-shell-anthropic-make-authentication
          :api-key (lambda () (my/credential-info "platform.claude.com" "apikey"))))
+  (setq agent-shell-goose-authentication
+        (agent-shell-make-goose-authentication :openai-api-key "TERM"))
   ;; Minimize icon
   (advice-add
    'agent-shell--make-header :around
@@ -11892,16 +11894,25 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   ;; :hook
   ;; (prog-mode #'minuet-auto-suggestion-mode)
   :config
+  ;; OpenAI
   (setq minuet-provider 'openai)
   (plist-put minuet-openai-options :model "gpt-4.1-mini")
   (plist-put minuet-openai-options
              :api-key (apply-partially #'my/credential-info "openai.com" "apikey"))
   (minuet-set-optional-options minuet-openai-options :max_tokens 64)
+  ;; Gemini
   (plist-put minuet-gemini-options :model "gemini-2.0-flash")
   (plist-put minuet-gemini-options
              :api-key (apply-partially #'my/credential-info "www.google.com/<<full-name>>" "gemini apikey"))
+  ;; Claude
   (plist-put minuet-claude-options
-             :api-key (apply-partially #'my/credential-info "platform.claude.com" "apikey")))
+             :api-key (apply-partially #'my/credential-info "platform.claude.com" "apikey"))
+  ;; Ollama
+  (setq minuet-provider 'openai-fim-compatible)
+  (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
+  (plist-put minuet-openai-fim-compatible-options :name "Ollama")
+  (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
+  (plist-put minuet-openai-fim-compatible-options :model "qwen2.5-coder"))
 #+end_src
 
 ***** whisper
