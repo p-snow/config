@@ -4777,12 +4777,15 @@ alias <<print-aliases(lang="plain")>>
   (setq
    gptel-model 'gemini-3-flash-preview
    gptel-backend (gptel-make-gemini "Gemini"
-                   :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
-                   :stream t))
+                                    :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
+                                    :stream t))
+  (gptel-make-anthropic "Claude"
+                        :stream t
+                        :key (my/credential-info "platform.claude.com" "apikey"))
   (gptel-make-ollama "Ollama"
-    :host "localhost:11434"
-    :stream t
-    :models '(gemma3))
+                     :host "localhost:11434"
+                     :stream t
+                     :models '(gemma3))
   <<ai-tool>>
   (mcp-hub-start-all-server
    (lambda ()
@@ -5134,6 +5137,9 @@ emacs-mcp-latest
         (agent-shell-google-make-authentication
          :api-key (lambda ()
                     (my/credential-info "www.google.com/<<full-name>>" "gemini apikey"))))
+  (setq agent-shell-anthropic-authentication
+        (agent-shell-anthropic-make-authentication
+         :api-key (lambda () (my/credential-info "platform.claude.com" "apikey"))))
   ;; Minimize icon
   (advice-add
    'agent-shell--make-header :around
@@ -11865,7 +11871,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
 :END:
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-minuet"
+"emacs-minuet-latest"
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle
@@ -11893,7 +11899,9 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   (minuet-set-optional-options minuet-openai-options :max_tokens 64)
   (plist-put minuet-gemini-options :model "gemini-2.0-flash")
   (plist-put minuet-gemini-options
-             :api-key (apply-partially #'my/credential-info "www.google.com/<<full-name>>" "gemini apikey")))
+             :api-key (apply-partially #'my/credential-info "www.google.com/<<full-name>>" "gemini apikey"))
+  (plist-put minuet-claude-options
+             :api-key (apply-partially #'my/credential-info "platform.claude.com" "apikey")))
 #+end_src
 
 ***** whisper
