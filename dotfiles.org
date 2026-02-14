@@ -13218,17 +13218,26 @@ surrounded by word boundaries."
 :CREATED:  [2024-08-21 Wed 14:18]
 :END:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
 (when (require-with-check 'auth-source-pass nil t)
   (auth-source-pass-enable)
-  (defun my/credential-info (host key)
+  (defun my/credential-info (&optional host key)
     "Return API key for HOST or OpenAI."
-    (or (cdr (assoc key (auth-source-pass-parse-entry host)))
-        (let ((sec (plist-get (car (auth-source-search :host host)) :secret)))
-          (if (functionp sec)
-              (funcall sec) sec)))))
+    (let ((real-key (if (or (not key) (equal key "")) "gemini apikey" key))
+          (real-host (if (or (not host) (equal host "")) "www.google.com/<<full-name>>" host)))
+      (or (cdr (assoc real-key
+                      (auth-source-pass-parse-entry real-host)))
+          (let ((sec (plist-get (car (auth-source-search :host real-host)) :secret)))
+            (if (functionp sec)
+                (funcall sec) sec))))))
 
 (provide 'my-credential)
+#+end_src
+
+#+NAME: credential
+#+header: :var host="" key=""
+#+begin_src emacs-lisp :noweb no
+(my/credential-info host key)
 #+end_src
 
 ***** Highlighting task performed days
@@ -20729,6 +20738,15 @@ esac
 #+begin_src scheme :noweb-ref guix-app
 "tesseract-ocr"
 "tesseract-ocr-tessdata-fast"
+#+end_src
+
+** Gemini CLI
+:PROPERTIES:
+:CREATED:  [2026-02-13 Fri 16:07]
+:END:
+
+#+begin_src bash :eval no :tangle no :noweb yes :noweb-ref bashrc
+export GEMINI_API_KEY="<<credential()>>"
 #+end_src
 
 * Development Infrastructures
