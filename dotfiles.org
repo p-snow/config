@@ -4777,15 +4777,15 @@ alias <<print-aliases(lang="plain")>>
   (setq
    gptel-model 'gemini-3-flash-preview
    gptel-backend (gptel-make-gemini "Gemini"
-                                    :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
-                                    :stream t))
+                   :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey")
+                   :stream t))
   (gptel-make-anthropic "Claude"
-                        :stream t
-                        :key (my/credential-info "platform.claude.com" "apikey"))
+    :stream t
+    :key (my/credential-info "platform.claude.com" "apikey"))
   (gptel-make-ollama "Ollama"
-                     :host "localhost:11434"
-                     :stream t
-                     :models '(gemma3))
+    :host "localhost:11434"
+    :stream t
+    :models '(gemma3 qwen2.5-coder qwen3-coder))
   <<ai-tool>>
   (mcp-hub-start-all-server
    (lambda ()
