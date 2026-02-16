@@ -7145,26 +7145,29 @@ emacs-org-hide-drawers-head
   (org-tag-tree-load-global-tags))
 #+end_src
 
-****** ol-local-file
+****** ol-locate-file
+:PROPERTIES:
+:CREATED:  [2026-02-16 Mon 16:40]
+:END:
 
 #+NAME: config/ol-local-file
 #+begin_src emacs-lisp :noweb tangle
-(use-package ol-local-file
-  ;; :load-path "~/.local/share/ghq/github.com/p-snow/ol-local-file"
-  :vc (:url "https://github.com/p-snow/ol-local-file"
-            :rev :newest)
+(use-package ol-locate-file
+  :load-path "~/.local/share/ghq/github.com/p-snow/ol-locate-file"
+  ;; :vc (:url "https://github.com/p-snow/ol-locate-file"
+  ;;           :rev :newest)
   :after org
   :init
-  (setq ol-local-file-locate-db "<<locate-db-doc()>>")
+  (setq ol-locate-file-locate-db "<<locate-db-doc()>>")
   :preface
   (defun embark-org-target-lfile-link ()
     "Target an org link at point of the form [[lfile:<file-name>][desc]]>."
-    (pcase (org-in-regexp ol-local-file-link-re)
+    (pcase (org-in-regexp ol-locate-file-link-re)
       (`(,start . ,end)
-       (when-let ((file-path (ol-local-file-locate (match-string 1))))
+       (when-let ((file-path (ol-locate-file-locate (match-string 1))))
          `(file ,file-path ,start . ,end)))))
   :config
-  (put 'ol-local-file-locate 'org-link-abbrev-safe t)
+  (put 'ol-locate-file-locate 'org-link-abbrev-safe t)
   (with-eval-after-load 'embark
     (add-to-list 'embark-target-finders 'embark-org-target-lfile-link)))
 #+end_src
