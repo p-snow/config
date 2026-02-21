@@ -520,6 +520,7 @@ done
                               "gnome-disk-utility"
                               "kdeconnect"
                               "shotwell"
+                              "kid3"
                               "vlc"
                               "syncthing"))
   ;; (list \<\<guix-app-package\>\>) will be here
@@ -13714,8 +13715,12 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 (defun my/tsc-infix-values (keys)
   (mapconcat
-   ;; TODO: 'transient--get-wrapped-value may suit better
-   'transient-infix-value
+   ;; FIXME: This is quick and dirty code
+   (lambda (obj)
+     (let ((val (car (transient--get-wrapped-value obj))))
+       (if (consp val)
+           (concat (car val) (cdr val))
+         val)))
    (delq nil (mapcar #'my/tsc-suffix keys))
    " "))
 
@@ -14573,6 +14578,42 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
                           (my/tsc-execute-macro)))))
         (list embark-kill-ring-map embark-url-map
               embark-org-link-map)))
+#+end_src
+
+***** kid3 command
+:PROPERTIES:
+:CREATED:  [2026-02-21 Sat 20:02]
+:END:
+
+#+name: kid3-command
+#+begin_src emacs-lisp
+(transient-define-prefix my/kid3-command (file &rest args)
+  ""
+  :man-page "kid3-cli"
+  ["Commands"
+   ("p" "picture" ""
+    :class my/tsc-file
+    :prompt "picture file: "
+    :always-read t
+    :reader transient-read-file)]
+  ["Inputs"
+   ("f" "files" ""
+    :class my/tsc-file :multi-value rest
+    :init-value ,(my/tsc-build-init-value :infile-orig (ensure-list input-value)))]
+  my/tsc-optional-menu
+  [(my/tsc-execute
+    :description "Set picture"
+    :suppress-output t
+    :command-format "kid3-cli -c 'set picture:\"%p\" \"\"' %f"
+    :command-format-spec ((?p . (my/tsc-infix-values '("p")))
+                          (?f . (my/tsc-infix-values '("f")))))]
+  (interactive `(,(my/tsc-determine-file t)))
+  ;; WORK AROUND: Use shell-command since detached fails to process command line with nested quotes
+  (setq-local my/tsc-execute-function 'shell-command)
+  (transient-setup 'my/kid3-command nil nil
+                   :scope (append (cdr `(_ :infile-key "p"
+                                           :infile-orig ,file))
+                                  args)))
 #+end_src
 
 ***** du command
