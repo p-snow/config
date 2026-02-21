@@ -4010,7 +4010,7 @@ sudo systemctl start dictd
   (mapc (apply-partially #'add-to-list 'dired-compress-files-alist)
         '(("\\.tar\\.7z\\'" . "tar cf - %i | 7z a -si %o")
           ("\\.7z\\'" . "7z a %o %i")
-          ("\\.zstd?\\'" . "zstd %i -o %o")))
+          ("\\.t\\(ar.\\)?zstd?\\'" . "tar --zstd -cf %o %i")))
   (mapc (apply-partially #'add-to-list 'dired-compress-file-suffixes)
         '(("\\.tar\\.7z\\'" "" "7z x -so %i | tar xf -")
           ("\\.zip\\'" "" "unzip %i")))
