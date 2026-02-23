@@ -11942,6 +11942,20 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   (whisper-transcription-buffer-name-function 'whisper--simple-transcription-buffer-name))
 #+end_src
 
+***** consult-gh
+:PROPERTIES:
+:CREATED:  [2026-02-23 Mon 16:12]
+:END:
+
+To enable consult-gh in Emacs, you should install and activate the gh command on your system.
+: $ sudo apt install gh
+: $ gh auth login
+
+#+begin_src emacs-lisp
+(use-package consult-gh
+  :ensure t)
+#+end_src
+
 *** Advanced Customization
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "ext-config.el" tangle/emacs-config-dir)
