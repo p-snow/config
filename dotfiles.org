@@ -7300,11 +7300,12 @@ emacs-org-hide-drawers-head
 
 #+begin_src emacs-lisp :noweb tangle
 (use-package consult-dir
-  :after consult-ghq
-  :bind ("H-d" . consult-dir)
+  :after consult
+  :bind (("H-d" . consult-dir)
+         ("H-Q" . consult-dir-ghq))
   :preface
   (defvar consult-dir--source-doc-repo
-    `(:name "Document Directories"
+    `(:name "Doc"
             :narrow ?d
             :category file
             :face consult-file
@@ -7314,17 +7315,39 @@ emacs-org-hide-drawers-head
                              (all-files (project-files project))
                              (completion-ignore-case read-file-name-completion-ignore-case))
                         (mapcar #'file-name-directory all-files))))
-    "Directory source in my document folder for `consult-dir--pick'.")
+    "Directories in my doc folder for `consult-dir-sources'")
   (defvar consult-dir--source-ghq
-    `(:name "Projects in ghq"
+    `(:name "GHQ"
             :narrow ?q
             :category file
             :face consult-file
             :history file-name-history
-            :items ,(lambda () (consult-ghq--list-candidates)))
-    "Directory source in my document folder for `consult-dir--pick'.")
+            :items ,(lambda ()
+                      (with-temp-buffer
+                        (unless (zerop (apply #'call-process
+                                              "ghq" nil t nil
+                                              '("list" "--full-path")))
+                          (error "Failed: Cannot get ghq list candidates"))
+                        (let ((paths))
+                          (goto-char (point-min))
+                          (while (not (eobp))
+                            (push
+                             (buffer-substring-no-properties
+                              (line-beginning-position) (line-end-position))
+                             paths)
+                            (forward-line 1))
+                          (nreverse paths)))))
+    "Projects in the directory managed by GHQ for `consult-dir-sources'")
+  (defun consult-dir-ghq ()
+    "Invoke `consult-dir` for projects in GHQ as its only source."
+    (interactive)
+    (when (require-with-check 'consult-dir)
+      (let ((consult-dir-sources '(consult-dir--source-ghq)))
+        (consult-dir))))
   :custom
-  (consult-dir-default-command 'dired)
+  (consult-dir-default-command (lambda ()
+                                 (interactive)
+                                 (dired default-directory)))
   :config
   (add-to-list 'consult-dir-sources 'consult-dir--source-doc-repo)
   (add-to-list 'consult-dir-sources 'consult-dir--source-ghq))
@@ -7344,14 +7367,14 @@ emacs-org-hide-drawers-head
          ("M-s a g" . affe-grep)))
 #+end_src
 
-****** consult-ghq
+****** consult-ghq                           :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-02-24 Fri 15:56]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-consult-ghq"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-consult-ghq"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package consult-ghq
