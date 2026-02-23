@@ -13902,7 +13902,8 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
    ("p" "pause" "" :class transient-switches
     :argument-format "%s" :argument-regexp "\\(--pause\\|--no-pause\\)"
     :choices ("--pause" "--no-pause"))
-   ("-v" "volume" "--volume=" :prompt "Volume: ")]
+   ("-v" "volume" "--volume=" :prompt "Volume: ")
+   ("t" "thumbnail" "--vid=2")]
   ["Inputs"
    ("f" "files" "-- "
     :class my/tsc-file :multi-value rest
@@ -14525,13 +14526,15 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
   :value '("--paths <<media-dir()>>" "--prefer-free-formats"
            "--format bestvideo*+bestaudio/best"
            "--format-sort codec,ext,size:1.5G"
+           "--embed-thumbnail"
            ;; "--cookies /mnt/shared/doc-%_<uname -n>_%/home/records/archives/Firefox/20250322_cookies.txt"
            )
   ["Options"
    ("-P" "download path" "--paths "
     :class transient-option
     :reader transient-read-existing-directory)
-   ("-a" "audio" "-x --embed-thumbnail")
+   ("-a" "audio" "--extract-audio")
+   ("-t" "thumbnail" "--embed-thumbnail")
    ("-F" "free format" "--prefer-free-formats")
    ("-d" "duration" "--get-duration --no-warnings"
     :init-value
