@@ -10591,11 +10591,18 @@ d <<undo-tree-hist-dir()>> - - - 3w
 ;; (use-package quickrun)
 #+end_src
 
-***** expand-region
+***** expand-region                           :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2026-03-05 Thu 17:35]
+:END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-expand-region"
-#+end_src
+[[https://github.com/magnars/expand-region.el][expand-region]] surrounds a thing at point by creating a region and expanding it with successive calls. This functionality is powered by syntax analysis.
+
+[[id:f1322cfb-645a-4349-af1c-98449f7001b9][expreg]], on the other hand, offers the same functionality powered by Tree-sitter, which is more sophisticated. So I decided to use expreg instead.
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-expand-region"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package expand-region
@@ -11984,6 +11991,22 @@ To enable consult-gh in Emacs, you should install and activate the gh command on
 #+begin_src emacs-lisp
 (use-package consult-gh
   :ensure t)
+#+end_src
+
+***** expreg
+:PROPERTIES:
+:CREATED:  [2026-03-05 Thu 17:31]
+:ID:       f1322cfb-645a-4349-af1c-98449f7001b9
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-expreg"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package expreg
+  :bind (("C-,"   . expreg-expand)
+         ("C-M-," . expreg-contract)))
 #+end_src
 
 *** Advanced Customization
