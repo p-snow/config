@@ -4757,7 +4757,7 @@ alias <<print-aliases(lang="plain")>>
 #+NAME: config/emacs-gptel
 #+begin_src emacs-lisp :noweb tangle
 (use-package gptel
-  :after (engine-mode my-credential mcp)
+  :after (engine-mode my-credential)
   :bind (:map engine-mode-prefixed-map
               ("G" . gptel)
               ("g RET" . gptel-send)
@@ -5109,6 +5109,7 @@ emacs-mcp-latest
 
 #+begin_src emacs-lisp
 (use-package mcp
+  :defer t
   :after (my-credential)
   :custom
   (mcp-hub-servers
