@@ -11907,7 +11907,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
 :CREATED:  [2025-10-01 Wed 22:43]
 :END:
 
-#+NAME: config/emacs-org-nudge
+#+NAME: config/emacs-heart-rate
 #+begin_src emacs-lisp
 (use-package heart-rate
   :custom
@@ -12072,7 +12072,7 @@ To enable consult-gh in Emacs, you should install and activate the gh command on
 #+end_src
 
 #+NAME: emacs-combinations-test
-#+begin_src emacs-lisp :tnagle no
+#+begin_src emacs-lisp :tangle no
 (ert-deftest test-combinations ()
   "Tests `my/combinations'."
   (should (equal (my/combinations '(base desktop emacs))
@@ -12093,7 +12093,7 @@ To enable consult-gh in Emacs, you should install and activate the gh command on
 
 - [[https://rosettacode.org/wiki/Knapsack_problem/0-1][Knapsack problem/0-1 - Rosetta Code]]
 
-#+NAME: emacs-knapsack-test
+#+NAME: emacs-knapsack
 #+begin_src emacs-lisp
 (defun my/knapsack (max-w items)
   "Return a subset of ITEMS that amounts to the maximal value within MAX-W.
@@ -15015,6 +15015,7 @@ This functionality allows for command usage examples that can also be used as Te
 :END:
 
 This customization allows brouwse-url, org-file-open and dired-open to open files as follows:
+#+begin_src org :tangle no
 - Open EPUB/PDF files in EWW after converting them to HTML files.
   + In org-link, point will move to the specified position conducted in search string (after ::)
     - [[file:book.epub::Chapter01]] # Open the HTML file converted from "book.epub" and navigate to "Chapter01."
@@ -15025,6 +15026,7 @@ This customization allows brouwse-url, org-file-open and dired-open to open file
     + [[file:music.mp3::03:00]] # Play "music.mp3" starting at 3 minutes from the beginning
     + file:music.mp3::#10   # Play "music.mp3" at chapter 10
 - Open Subreddit (http://www.reddit.com/r/) with [[#emacs-reddigg][reddigg]]
+#+end_src
 
 #+begin_src emacs-lisp :noweb tangle
 ;; general functions
@@ -19298,7 +19300,6 @@ target=github.com
   #loop-file=yes
   #+end_src
 - input.conf
-  [[~/data/home/.local/share/ghq/github.com/mpv-player/mpv/etc/input.conf][input.conf (sample)]]
   #+begin_src conf  :tangle (expand-file-name "mpv/input.conf" tangle/config-dir)
   RIGHT  seek  5
   LEFT   seek -5
