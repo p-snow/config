@@ -11329,42 +11329,65 @@ Literate-calc-mode shows calculation results on the fly, which is very interesti
 #+NAME: config/emacs-logos
 #+begin_src emacs-lisp
 (use-package logos
-  :config
-  (require 'fingertip)
-  :preface
-  (defun logos-toggle-read-only ()
-    "Toggle read only state in `logos-focus-mode'"
-    (interactive)
-    (let ((current-ro-state logos-buffer-read-only))
-      (logos-focus-mode -1)
-      (setq logos-buffer-read-only (not current-ro-state))
-      (logos-focus-mode 1)
-      (unless logos-buffer-read-only
-        (fingertip-mode -1))
-      (message "Buffer is %s"
-               (if logos-buffer-read-only
-                   "read-only" "editable"))))
-  :bind (("H-;" . logos-focus-mode)
-         ("H-n" . logos-narrow-dwim)
-         :map logos-focus-mode-map
-         ("H-e" . logos-toggle-read-only))
+  :bind (("H-;" . my/logos-focus-mode)
+         ("H-n" . logos-narrow-dwim))
   :hook (((help-mode helpful-mode Info-mode eww-mode nov-mode mu4e-view-mode
                      woman-mode mastodon-mode Custom-mode devdocs-mode)
-          . logos-focus-mode)
-         (logos-focus-mode
-          . (lambda () (if logos-focus-mode
-                       (fingertip-mode 1)
-                     (setq logos-buffer-read-only t)
-                     (fingertip-mode -1)))))
+          . logos-focus-mode))
+  :preface
+  (defun my/logos-focus-mode ()
+    "Toggle `logos-focus-mode' as setting `logos-buffer-read-only'."
+    (interactive)
+    (if logos-focus-mode
+        (logos-focus-mode -1)
+      (setq-local logos-buffer-read-only
+                  (if (derived-mode-p '(Custom-mode))
+                      nil t))
+      (logos-focus-mode 1)))
+  (defun my/logos-command-filter (cmd)
+    "Return CMD if condition permit to execute it in logos-focus-mode.
+
+Intended :filter function in menu-itmm clause."
+    (unless (or (and (derived-mode-p 'eww-mode)
+                     (get-text-property (point) 'eww-form))
+                ;; point is in text field for search in custom-mode
+                (and (derived-mode-p 'Custom-mode)
+                     (let ((w (widget-at (point))))
+                       (and w
+                            (eq (widget-type w) 'editable-field)))))
+      cmd))
+  (defun my/logos-forward-paragraph ()
+    (interactive)
+    (forward-paragraph 2)
+    (backward-paragraph 1)
+    (forward-line 1)
+    (recenter-top-bottom 0))
+  (defun my/logos-backward-paragraph ()
+    (interactive)
+    (backward-paragraph 2)
+    (forward-paragraph 1)
+    (backward-paragraph 1)
+    (forward-line 1)
+    (recenter-top-bottom 0))
   :custom
   (logos-scroll-lock nil)
   (logos-variable-pitch nil)
   (logos-hide-cursor nil)
   (logos-hide-mode-line t)
   (logos-hide-buffer-boundaries t)
-  (logos-buffer-read-only t)
   (logos-olivetti nil)
-  (logos-hide-fringe t))
+  (logos-hide-fringe t)
+  :config
+  (mapc (lambda (key-command)
+          (keymap-set logos-focus-mode-map (car key-command)
+                      `(menu-item "conditional scroll-up" ,(cdr key-command)
+                                  :filter my/logos-command-filter)))
+        '(("f" . scroll-up-line)
+          ("e" . scroll-down-line)
+          ("SPC" . my/logos-forward-paragraph)
+          ("E" . my/logos-backward-paragraph)
+          (">" . (lambda () (interactive) (scroll-left 1)))
+          ("<" . (lambda () (interactive) (scroll-right 1))))))
 #+end_src
 
 ***** elisp-demos
@@ -18234,7 +18257,7 @@ Provide a function to Build a clock table summing up time by tag.
 (provide 'dispatch-dwim)
 #+end_src
 
-**** Package: fingertip mode
+**** Package: fingertip mode                   :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2024-04-10 Wed 00:24]
 :END:
