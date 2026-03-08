@@ -11333,8 +11333,12 @@ Literate-calc-mode shows calculation results on the fly, which is very interesti
          ("H-n" . logos-narrow-dwim))
   :hook (((help-mode helpful-mode Info-mode eww-mode nov-mode mu4e-view-mode
                      woman-mode mastodon-mode Custom-mode devdocs-mode)
-          . logos-focus-mode))
+          . logos-focus-mode)
+         (logos-page-motion . my/logos-recenter-top))
   :preface
+  (defun my/logos-recenter-top ()
+    "Use `recenter' to reposition the view at the top."
+    (recenter 0))
   (defun my/logos-focus-mode ()
     "Toggle `logos-focus-mode' as setting `logos-buffer-read-only'."
     (interactive)
@@ -11356,19 +11360,6 @@ Intended :filter function in menu-itmm clause."
                        (and w
                             (eq (widget-type w) 'editable-field)))))
       cmd))
-  (defun my/logos-forward-paragraph ()
-    (interactive)
-    (forward-paragraph 2)
-    (backward-paragraph 1)
-    (forward-line 1)
-    (recenter-top-bottom 0))
-  (defun my/logos-backward-paragraph ()
-    (interactive)
-    (backward-paragraph 2)
-    (forward-paragraph 1)
-    (backward-paragraph 1)
-    (forward-line 1)
-    (recenter-top-bottom 0))
   :custom
   (logos-scroll-lock nil)
   (logos-variable-pitch nil)
@@ -11377,15 +11368,18 @@ Intended :filter function in menu-itmm clause."
   (logos-hide-buffer-boundaries t)
   (logos-olivetti nil)
   (logos-hide-fringe t)
+  (logos-outlines-are-pages t)
   :config
+  (add-to-list 'logos-outline-regexp-alist
+               '(eww-mode . "^[ \n\t]+"))
   (mapc (lambda (key-command)
           (keymap-set logos-focus-mode-map (car key-command)
                       `(menu-item "conditional scroll-up" ,(cdr key-command)
                                   :filter my/logos-command-filter)))
         '(("f" . scroll-up-line)
           ("e" . scroll-down-line)
-          ("SPC" . my/logos-forward-paragraph)
-          ("E" . my/logos-backward-paragraph)
+          ("E" . logos-backward-page-dwim)
+          ("SPC" . logos-forward-page-dwim)
           (">" . (lambda () (interactive) (scroll-left 1)))
           ("<" . (lambda () (interactive) (scroll-right 1))))))
 #+end_src
