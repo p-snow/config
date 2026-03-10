@@ -11361,7 +11361,8 @@ Literate-calc-mode shows calculation results on the fly, which is very interesti
 
 Intended :filter function in menu-itmm clause."
     (unless (or (and (derived-mode-p 'eww-mode)
-                     (get-text-property (point) 'eww-form))
+                     (when-let ((eww-form (get-text-property (point) 'eww-form)))
+                       (string= (plist-get eww-form :type) "text")))
                 ;; point is in text field for search in custom-mode
                 (and (derived-mode-p 'Custom-mode)
                      (let ((w (widget-at (point))))
