@@ -6625,8 +6625,6 @@ exchange rate against US dollar."
           (assoc-default 'content (cadr price-node)))))
      (,(regexp-quote "www.yodobashi.com/product")
       [:js_scl_unitPrice])
-     (,(regexp-quote "kakaku.com/item")
-      [.priceTxt])
      (,(regexp-quote "store.steampowered.com")
       (lambda (dom)
         (when-let ((products (dom-search dom (lambda (node) (string-prefix-p "game_area_purchase_game"
@@ -6847,6 +6845,17 @@ Selector
 #+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-selector
 (,(regexp-quote "ja.aliexpress.com")
  [.price-kr--current--NhhwBO1])
+#+end_src
+
+******** price in kakaku.com
+:PROPERTIES:
+:CREATED:  [2026-03-10 Tue 17:42]
+:END:
+
+Selector
+#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-selector
+(,(regexp-quote "kakaku.com/item")
+ [.p-prdInfoLowprice_entity])
 #+end_src
 
 ******* contents fetcher
