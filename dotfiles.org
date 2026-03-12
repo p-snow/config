@@ -1498,7 +1498,7 @@ TAP: KEY_EQUAL
 HOLD: KEY_RIGHTSHIFT
 #+end_src
 
-*** keyd
+*** keyd                                        :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2024-10-23 Wed 13:24]
 :END:
@@ -1513,10 +1513,10 @@ make && sudo make install
 #+end_src
 
 #+NAME: systemd/keyd
-#+begin_src conf :tangle no :noweb yes :noweb-ref systemd-service
-sudo systemctl enable keyd
-sudo systemctl start keyd
-#+end_src
+# #+begin_src conf :tangle no :noweb yes :noweb-ref systemd-service
+# sudo systemctl enable keyd
+# sudo systemctl start keyd
+# #+end_src
 
 **** keyd configuration
 :PROPERTIES:
@@ -1599,6 +1599,79 @@ sudo systemctl start keyd
   leftmeta = oneshot(alt)
   rightmeta = oneshot(alt)
   #+end_src
+
+*** kanata
+:PROPERTIES:
+:CREATED:  [2026-03-09 Mon 21:35]
+:END:
+
+[[https://github.com/jtroo/kanata][Kanata]] is a cross-platform, feature-rich key remapper written in Rust. It's unique because its configuration language looks like Lisp.
+
+#+begin_src scheme :tangle no :noweb-ref guix-base
+"kanata"
+#+end_src
+
+Configuration
+#+NAME: config/kanata
+#+begin_src conf :comments no :tangle (expand-file-name "kanata/base.kbd" tangle/config-dir)
+(defcfg
+  process-unmapped-keys yes)
+
+(defsrc
+  grv   1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab   q    w    e    r    t    y    u    i    o    p    [    ]    \
+  caps  a    s    d    f    g    h    j    k    l    ;    '    ret
+  lsft  z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl  lmet lalt           spc            ralt      rctl)
+
+(deflayer base
+  @cma  1    2    3    4    5    6    7    8    9    0    -     =    bspc
+  @num  q    w    e    r    t    y    u    i    o    p    [     ]    \
+  lctl  a    s    d    f    g    h    j    k    l    ;    @metq ret
+  @smin z    x    c    v    b    n    m    ,    .    /    @seq
+  esc   lmet lalt       @spc-shift         ralt      @cma)
+
+(deflayer numpad
+  _     _    _    _    _    _    _    _    _    _    _    _     _    _
+  _     _    _    _    _    _    _    7    8    9    _    _     _    _
+  _     _    _    _    _    _    _    4    5    6    -    _     _
+  _     _    _    _    _    _    _    1    2    3    .    _
+  _     _    _              0              _         _)
+
+(defalias
+  spc-shift (tap-hold 160 160 spc lshift)
+  metq (tap-hold 100 110 ' rmeta)
+  smin (tap-hold 150 150 min lshift)
+  seq (tap-hold 170 170 eql rshift)
+  num (tap-hold 200 200 tab (layer-while-held numpad))
+  cma (tap-hold 150 150 grv (multi lctl lalt lmeta)))
+#+end_src
+
+The following systemd unit file does not work with user privileges. To solve the issue, the kanata systemd service must run with root privileges by locating the unit file under /usr/local/lib/systemd/system or a similar directory and summoning the following voila incantation:
+
+#+begin_example
+sudo systemctl enable kanata
+sudo systemctl start kanata
+#+end_example
+
+Systemd Unit File
+#+NAME: service/kanata
+#+begin_src conf :noweb tangle :comments no :tangle (expand-file-name "systemd/user/kanata.service" tangle/config-dir)
+[Unit]
+Description=Kanata keyboard remapper
+Documentation=https://github.com/jtroo/kanata
+
+[Service]
+ExecStartPre=/sbin/modprobe uinput
+Environment=PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/bin
+Environment=DISPLAY=:0
+Type=simple
+ExecStart=<<which(filename="kanata")>> --cfg <<home-dir()>>/.config/kanata/base.kbd
+Restart=no
+
+[Install]
+WantedBy=default.target
+#+end_src
 
 * Application Configurations
 
@@ -1959,6 +2032,7 @@ Settings in this section are influenced a great deal by my personal preference. 
 (keymap-global-set "C-z" #'repeat)
 (keymap-global-set "C-x M-t" #'transpose-sentences)
 (keymap-global-set "M-T" #'transpose-paragraphs)
+(keymap-global-set "H-u" #'universal-argument)
 
 (keymap-global-set "C-;" #'backward-delete-char)
 (keymap-global-set "C-:" #'backward-kill-word)
