@@ -5223,6 +5223,8 @@ emacs-mcp-latest
 
 #+begin_src emacs-lisp :noweb tangle
 (use-package agent-shell
+  :custom
+  (agent-shell-header-style 'text)
   :config
   (setq agent-shell-google-authentication
         (agent-shell-google-make-authentication
@@ -5232,17 +5234,7 @@ emacs-mcp-latest
         (agent-shell-anthropic-make-authentication
          :api-key (lambda () (my/credential-info "platform.claude.com" "apikey"))))
   (setq agent-shell-goose-authentication
-        (agent-shell-make-goose-authentication :openai-api-key "TERM"))
-  ;; Minimize icon
-  (advice-add
-   'agent-shell--make-header :around
-   (lambda (fn state &rest args)
-     (let ((orig-default-font-height (symbol-function 'default-font-height)))
-       (cl-letf (((symbol-function 'default-font-height)
-                  (lambda (&rest fh-args)
-                    (* 0.1 (apply orig-default-font-height fh-args)))))
-         (apply fn state args)))))
-  )
+        (agent-shell-make-goose-authentication :openai-api-key "TERM")))
 #+end_src
 
 ****** agent-shell latest                    :ARCHIVE:
