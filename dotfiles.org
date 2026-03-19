@@ -12115,6 +12115,49 @@ To enable consult-gh in Emacs, you should install and activate the gh command on
          ("C-M-," . expreg-contract)))
 #+end_src
 
+***** popper
+:PROPERTIES:
+:CREATED:  [2026-03-19 Thu 18:57]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-popper"
+#+end_src
+
+#+NAME: config/popper
+#+begin_src emacs-lisp
+(use-package popper
+  :bind (("H-p" . popper-cycle)
+         ("H-[" . popper-toggle)
+         ("H-]" . popper-mode))
+  :preface
+  (defun my/popper-select-popup-same (buffer &optional alist)
+    ""
+    (let ((window (display-buffer-same-window buffer alist)))
+      (select-window window)))
+  (defun my/popper-group ()
+    ""
+    (or (and (derived-mode-p 'org-mode)
+             (boundp 'gptel-mode)
+             gptel-mode
+             "gptel-org")
+        (and (derived-mode-p 'eww-mode)
+             "EWW")
+        (popper-group-by-directory)))
+  :custom
+  (popper-reference-buffers
+   '(eww-mode
+     org-mode
+     scheme-mode
+     emacs-lisp-mode
+     dired-mode
+     eshell-mode))
+  (popper-group-function 'my/popper-group)
+  (popper-display-function 'my/popper-select-popup-same)
+  :config
+  (popper-mode 1))
+#+end_src
+
 *** Advanced Customization
 :PROPERTIES:
 :header-args+: :tangle (expand-file-name "ext-config.el" tangle/emacs-config-dir)
