@@ -2036,7 +2036,10 @@ Settings in this section are influenced a great deal by my personal preference. 
 
 (keymap-global-set "C-;" #'backward-delete-char)
 (keymap-global-set "C-:" #'backward-kill-word)
+(keymap-global-set "C-M-:" #'backward-kill-sexp)
 
+(keymap-global-set "H-g" #'previous-buffer)
+(keymap-global-set "H-v" #'next-buffer)
 (keymap-global-set "C-c k" #'kill-current-buffer)
 (keymap-global-set "C-x M-r" #'rename-visited-file)
 (keymap-global-set "C-M-<delete>" #'restart-emacs)
@@ -2800,7 +2803,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
     (bind-keys :map tab-prefix-map
                ("B" . consult-buffer-other-tab))))
 
-(keymap-global-set "H-t" tab-prefix-map)
+(keymap-global-set "C-x t" tab-prefix-map)
 (keymap-set tab-prefix-map "s" #'tab-switcher)
 #+end_src
 
@@ -10344,8 +10347,7 @@ Tree-sitter module for Elisp had been incorporated into Emacs core since Emacs 2
   (avy-timeout-seconds 0.4)
   :config
   (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark)
-  (bind-keys ("M-g g" . avy-goto-line)
-             ("H-g" . avy-goto-line)))
+  (bind-keys ("M-g g" . avy-goto-line)))
 #+end_src
 
 ****** avy-migemo
