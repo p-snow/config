@@ -4862,29 +4862,32 @@ alias <<print-aliases(lang="plain")>>
   :config
   (require 'mcp)
   (gptel-make-gemini "Gemini"
-                     :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey") :stream t)
+    :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey") :stream t)
   (gptel-make-anthropic "Claude"
-                        :stream t
-                        :key (my/credential-info "platform.claude.com" "apikey"))
+    :stream t
+    :key (my/credential-info "platform.claude.com" "apikey"))
+  (gptel-make-perplexity "Perplexity"
+    :key (my/credential-info "perplexity.ai" "apikey")
+    :stream t)
   (gptel-make-ollama "Ollama"
-                     :host "localhost:11434"
-                     :stream t
-                     :models '(lfm2
-                               lfm2.5-thinking
-                               gemma3
-                               qwen3
-                               qwen3.5
-                               glm-4.7-flash
-                               devstral-small-2
-                               qwen2.5-coder
-                               qwen3-coder
-                               deepseek-coder-v2))
+    :host "localhost:11434"
+    :stream t
+    :models '(lfm2
+              lfm2.5-thinking
+              gemma3
+              qwen3
+              qwen3.5
+              glm-4.7-flash
+              devstral-small-2
+              qwen2.5-coder
+              qwen3-coder
+              deepseek-coder-v2))
   (gptel-make-openai "OpenRouter"
-                     :host "openrouter.ai"
-                     :endpoint "/api/v1/chat/completions"
-                     :stream t
-                     :key (apply-partially #'my/credential-info "openrouter.ai" "api-key")
-                     :models '(minimax/minimax-m2.7))
+    :host "openrouter.ai"
+    :endpoint "/api/v1/chat/completions"
+    :stream t
+    :key (apply-partially #'my/credential-info "openrouter.ai" "api-key")
+    :models '(minimax/minimax-m2.7))
   <<ai-tool>>
   (mcp-hub-start-all-server
    (lambda ()
