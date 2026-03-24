@@ -4883,7 +4883,7 @@ alias <<print-aliases(lang="plain")>>
      (gptel-mcp-connect))))
 #+end_src
 
-****** tools
+****** gptel tools
 :PROPERTIES:
 :CREATED:  [2025-07-08 Tue 21:12]
 :END:
@@ -5106,6 +5106,33 @@ alias <<print-aliases(lang="plain")>>
                      "The tag is surrounded by colon(:) and if multiple tags declared they are look like :tag1:tag2:."))
  :category "emacs"
  :confirm nil)
+#+end_src
+
+******* journal
+:PROPERTIES:
+:CREATED:  [2026-03-24 Tue 12:01]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "journal"
+ :function
+ (lambda (date)
+   (let ((current-buffer (current-buffer))
+         subtree)
+     (my/org-archive-find--iso-datetree date)
+     (org-copy-subtree)
+     (setq subtree (pop kill-ring))
+     (switch-to-buffer current-buffer)
+     subtree))
+ :description
+ "Return my personal journal for the given date in org-mode format."
+ :args (list '(:name "date"
+                     :type string
+                     :description
+                     "Must be yyyy-mm-dd format"))
+ :category "emacs"
+ :confirm t)
 #+end_src
 
 ***** gptel-agent
