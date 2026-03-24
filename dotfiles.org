@@ -4859,23 +4859,29 @@ alias <<print-aliases(lang="plain")>>
   :config
   (require 'mcp)
   (gptel-make-gemini "Gemini"
-    :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey") :stream t)
+                     :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey") :stream t)
   (gptel-make-anthropic "Claude"
-    :stream t
-    :key (my/credential-info "platform.claude.com" "apikey"))
+                        :stream t
+                        :key (my/credential-info "platform.claude.com" "apikey"))
   (gptel-make-ollama "Ollama"
-    :host "localhost:11434"
-    :stream t
-    :models '(lfm2
-              lfm2.5-thinking
-              gemma3
-              qwen3
-              qwen3.5
-              glm-4.7-flash
-              devstral-small-2
-              qwen2.5-coder
-              qwen3-coder
-              deepseek-coder-v2))
+                     :host "localhost:11434"
+                     :stream t
+                     :models '(lfm2
+                               lfm2.5-thinking
+                               gemma3
+                               qwen3
+                               qwen3.5
+                               glm-4.7-flash
+                               devstral-small-2
+                               qwen2.5-coder
+                               qwen3-coder
+                               deepseek-coder-v2))
+  (gptel-make-openai "OpenRouter"
+                     :host "openrouter.ai"
+                     :endpoint "/api/v1/chat/completions"
+                     :stream t
+                     :key (apply-partially #'my/credential-info "openrouter.ai" "api-key")
+                     :models '(minimax/minimax-m2.7))
   <<ai-tool>>
   (mcp-hub-start-all-server
    (lambda ()
@@ -5258,6 +5264,8 @@ emacs-mcp-latest
         (agent-shell-google-make-authentication
          :api-key (lambda ()
                     (my/credential-info "www.google.com/<<full-name>>" "gemini apikey"))))
+  (setq agent-shell-google-authentication
+        (agent-shell-google-make-authentication :vertex-ai t))
   (setq agent-shell-anthropic-authentication
         (agent-shell-anthropic-make-authentication
          :api-key (lambda () (my/credential-info "platform.claude.com" "apikey"))))
@@ -12085,7 +12093,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-every
   (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
   (plist-put minuet-openai-fim-compatible-options :name "Ollama")
   (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
-  (plist-put minuet-openai-fim-compatible-options :model "qwen2.5-coder"))
+  (plist-put minuet-openai-fim-compatible-options :model "glm-4.7-flash"))
 #+end_src
 
 ***** whisper
@@ -21064,13 +21072,27 @@ esac
 "tesseract-ocr-tessdata-fast"
 #+end_src
 
-** Gemini CLI
+* Service Providers
+:PROPERTIES:
+:CREATED:  [2026-03-23 Mon 21:21]
+:END:
+
+** Gemini
 :PROPERTIES:
 :CREATED:  [2026-02-13 Fri 16:07]
 :END:
 
 #+begin_src bash :eval no :tangle no :noweb yes :noweb-ref bashrc
 export GEMINI_API_KEY="<<credential()>>"
+#+end_src
+
+** OpenRouter
+:PROPERTIES:
+:CREATED:  [2026-03-23 Mon 21:22]
+:END:
+
+#+begin_src bash :eval no :tangle no :noweb yes :noweb-ref bashrc
+export OPENROUTER_API_KEY="<<credential(host="openrouter.ai", key="api-key")>>"
 #+end_src
 
 * Development Infrastructures
