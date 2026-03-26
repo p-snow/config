@@ -14665,7 +14665,10 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
             (oset out-obj value
                   (concat
                    (file-name-sans-extension (oref out-obj value))
-                   "." (oref obj value)))))
+                   "." (let ((out-format (oref obj value)))
+                         (pcase out-format
+                           ("markdown" "md")
+                           (t out-format)))))))
         (or transient--suffixes transient-current-suffixes))
   (append (list (concat (oref obj argument) (oref obj value)))
           ;; PDF conversion requires an engine specified
