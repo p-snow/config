@@ -3090,11 +3090,7 @@ I don't use [[help:which-function-mode][which-function-mode]] directly; I don't 
 (use-package which-func
   :after help
   :custom
-  (which-function-mode nil)
-  :config
-  (with-eval-after-load 'my/echo
-    (my/echo-bind-command-create ("function" . "FUN") "f"
-                                 (which-function))))
+  (which-function-mode nil))
 #+end_src
 
 ***** Development
@@ -5319,11 +5315,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 (use-package org
   :mode ("\\.org$" . org-mode)
   :init
-  (setq org-directory "~/org")
-  :config
-  (with-eval-after-load 'my/echo
-    (my/echo-bind-command-create "title" "t"
-                                 (org-get-title))))
+  (setq org-directory "~/org"))
 
 (defvar my/org-todo-keyword--urgent "UG"
   "TODO keyword acronym standing for 'UrGent'")
@@ -9051,12 +9043,6 @@ sMerge can be utilized to address merging issues.
   :config
   (add-to-list 'project-switch-commands
                '(project-dired "Dired root"))
-  (with-eval-after-load 'my/echo
-    (my/echo-bind-command-create ("project" . "PRJ") "p"
-                                 (when-let ((prj (project-current)))
-                                   (file-name-nondirectory
-                                    (directory-file-name
-                                     (project-root prj))))))
   (with-eval-after-load 'magit
     (bind-keys :map project-prefix-map
                ("M" . magit-project-status))
@@ -12648,13 +12634,36 @@ This is a keymap for commands that echo various items as if they were displayed 
                                                         ((stringp name) name)
                                                         ((consp name) (car name))))
                  (interactive)
-                 (when-let ((echo-value ,sexp))
+                 (when-let ((echo-value
+                             (if (functionp ,sexp)
+                                 (funcall ,sexp current-prefix-arg)
+                               ,sexp)))
                    (message "%s: %s"
                             ,(cond
                               ((stringp name) (upcase name))
                               ((consp name) (cdr name)))
                             echo-value)
                    (kill-new echo-value)))))
+
+(my/echo-bind-command-create ("section" . "sec") "s"
+                             (which-function))
+
+(my/echo-bind-command-create "title" "t"
+                             (org-get-title))
+
+(my/echo-bind-command-create "file" "f"
+                             (lambda (&optional full-path)
+                               (let ((fname buffer-file-name))
+                                 (if full-path
+                                     fname
+                                   (file-name-nondirectory fname)))))
+
+(my/echo-bind-command-create ("project" . "PRJ") "p"
+                             (lambda (&optional full-path)
+                               (when-let* ((prj (project-current))
+                                           (root (project-root prj))
+                                           (dir (directory-file-name root)))
+                                 (funcall (if full-path #'identity #'file-name-nondirectory) dir))))
 
 (provide 'my/echo)
 #+end_src
