@@ -6321,15 +6321,28 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 emacs-org-drill-latest
 #+end_src
 
+#+NAME: config/emacs-org-drill
 #+begin_src emacs-lisp :noweb tangle
 (use-package org-drill
+  :load-path "~/.local/share/ghq/gitlab.com/p-snow/org-drill"
   :after org
   :bind (:map org-mode-map
               ("C-c D" . org-drill-tree))
   :custom
   (org-drill-spaced-repetition-algorithm 'sm5)
+  (org-drill-presentation-prompt-with-typing t)
   :config
-  (copy-face 'highlight 'org-drill-hidden-cloze-face))
+  (copy-face 'highlight 'org-drill-hidden-cloze-face)
+  (keymap-set org-drill-response-mode-map "SPC" 'org-drill-response-rtn)
+  (keymap-set org-drill-response-mode-map "<f1>" 'org-drill-response-quit)
+  (keymap-set org-drill-response-mode-map "<f2>" 'org-drill-response-edit)
+  (keymap-set org-drill-response-mode-map "<f3>" 'org-drill-response-skip)
+  (keymap-set org-drill-response-mode-map "<f4>" 'org-drill-response-tags)
+  (add-to-list 'display-buffer-alist
+               '("^\\*Org-Drill\\*"
+                 (display-buffer-in-side-window)
+                 (side . right)
+                 (window-width . 2))))
 #+end_src
 
 ****** org-ql
