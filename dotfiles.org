@@ -10378,58 +10378,81 @@ Tree-sitter module for Elisp had been incorporated into Emacs core since Emacs 2
 :END:
 
 Handy commands
-- press '(' to insert '()' pair
-- C-<left/right> to barf and slurp s-expressions
-- call paredit-splice-sexp to strip embracing parenthes
-- press M-<up> or M-r to delete upper sexp except pointing one
-- DEL, C-d, C-k act like originals but care for parenthes
-- press DEL to remedy unbalanced parenthes
-- press C-q ( to insert ( char manually
+- =(=: Insert =()= pair
+- =C-(= / =C-)=: Backward/forward slurp s-expressions
+- =C-M-(= / =C-M-)=: Backward/forward barf s-expressions
+- =C-M-g=: =paredit-splice-sexp= (strip surrounding parentheses)
+- =M-d=: =paredit-forward-kill-word=
+- =M-D=: =paredit-splice-sexp-killing-forward=
+- =C-M-;=: =paredit-backward-kill-word=
+- =C-M-:=: =paredit-splice-sexp-killing-backward=
+- =C-M-?=: =paredit-convolute-sexp=
+- =DEL=, =C-d=, =C-k=: Perform original actions while maintaining parenthesis balance
+- =DEL=: Used to remedy unbalanced parentheses
+- =C-q (=: Manually insert a =(= character
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
 "emacs-paredit"
 #+end_src
 
+#+NAME: config/emacs-paredit
 #+begin_src emacs-lisp
 (use-package paredit
   :bind (:map paredit-mode-map
               ("<backspace>" . paredit-backward-delete)
+              ;; give way M-s to search-map
               ("C-M-g" .  paredit-splice-sexp)
               ("M-s" . nil)
-              ("C-M-;" . paredit-comment-dwim)
+              ;; give way M-? to xref-find-references
+              ("C-M-?" . paredit-convolute-sexp)
+              ("M-?" . nil)
+              ;; barf/slurp
+              ("C-(" . paredit-backward-slurp-sexp)
+              ("C-)" . paredit-forward-slurp-sexp)
+              ("C-M-(" . paredit-backward-barf-sexp)
+              ("C-M-)" . paredit-forward-barf-sexp)
+              ;; arrow keys too far
+              ("M-d" . paredit-forward-kill-word)
+              ("M-D" . paredit-splice-sexp-killing-forward)
+              ("C-M-;" . paredit-backward-kill-word)
+              ;; give way M-; to comment-dwim
               ("M-;" . nil))
   :hook (((emacs-lisp-mode lisp-mode scheme-mode) . enable-paredit-mode)))
 #+end_src
 
-- workaround
-  Thanks to [[https://andreyorst.gitlab.io/posts/2021-09-30-why-is-paredit-is-so-un-emacsy/][this blog post]], a couple of commands in paredit.el are fixed with transient-mark-mode
+****** paredit with transient mark mode deletion :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2026-03-28 Sat 09:49]
+:END:
 
-  #+begin_src emacs-lisp
-  (defvar my/paredit-delete-region-functions
-    '(paredit-forward-delete
-      paredit-backward-delete)
-    "List of `paredit-mode' functions that should support tmm region deletion.")
+Thanks to [[https://andreyorst.gitlab.io/posts/2021-09-30-why-is-paredit-is-so-un-emacsy/][this blog post]], a couple of commands in paredit.el are fixed with transient-mark-mode
 
-  (defvar my/paredit-kill-region-functions
-    '(paredit-forward-kill-word
-      paredit-backward-kill-word)
-    "List of `paredit-mode' functions that should support tmm region killing.")
+#+begin_src emacs-lisp
+(defvar my/paredit-delete-region-functions
+  '(paredit-forward-delete
+    paredit-backward-delete)
+  "List of `paredit-mode' functions that should support tmm region deletion.")
 
-  (defun my/paredit-fix-transient-mark-mode (orig-fn &rest args)
-    "Allow deleting/killing a region if expression is balanced."
-    (if (and transient-mark-mode
-             mark-active)
-        (cond ((memq this-command my/paredit-delete-region-functions)
-               (paredit-delete-region (region-beginning) (region-end)))
-              ((memq this-command my/paredit-kill-region-functions)
-               (paredit-kill-region (region-beginning) (region-end)))
-              (t (apply orig-fn args)))
-      (apply orig-fn args)))
+(defvar my/paredit-kill-region-functions
+  '(paredit-forward-kill-word
+    paredit-backward-kill-word)
+  "List of `paredit-mode' functions that should support tmm region killing.")
 
-  (dolist (fun (append my/paredit-delete-region-functions
-                       my/paredit-kill-region-functions))
-    (advice-add fun :around #'my/paredit-fix-transient-mark-mode))
-  #+end_src
+(defun my/paredit-fix-transient-mark-mode (orig-fn &rest args)
+  "Allow deleting/killing a region if expression is balanced."
+  (if (and transient-mark-mode
+           mark-active)
+      (cond ((memq this-command my/paredit-delete-region-functions)
+             (paredit-delete-region (region-beginning) (region-end)))
+            ((memq this-command my/paredit-kill-region-functions)
+             (paredit-kill-region (region-beginning) (region-end)))
+            (t (apply orig-fn args)))
+    (apply orig-fn args)))
+
+(dolist (fun (append my/paredit-delete-region-functions
+                     my/paredit-kill-region-functions))
+  (advice-add fun :around #'my/paredit-fix-transient-mark-mode))
+#+end_src
 
 ***** lsp-mode                              :ARCHIVE:
 :PROPERTIES:
