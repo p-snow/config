@@ -2053,8 +2053,6 @@ Settings in this section are influenced a great deal by my personal preference. 
 (keymap-global-set "H-v" #'next-buffer)
 (keymap-global-set "C-c k" #'kill-current-buffer)
 (keymap-global-set "C-x M-r" #'rename-visited-file)
-(keymap-global-set "C-M-<delete>" #'restart-emacs)
-(keymap-global-set "C-M-S-<delete>" #'save-buffers-kill-emacs)
 
 (keymap-substitute global-map
                    #'upcase-region
@@ -2375,19 +2373,32 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
 :CREATED:  [2022-12-20 Tue 16:06]
 :END:
 
-[[info:emacs#Saving Emacs Sessions][Info manual for Saving Emacs Sessions]] describes how to set up desktop-save-mode.
-'--no-desktop' option for emacs command will disable forcibly desktop-save-mode .
+I whimsically want—or want not—to restore my previous Emacs session. To do so, desktop-save-mode saves the session whenever I kill Emacs, and I can selectively restore the session by pressing—or not pressing—the <menu> button.
 
 #+begin_src emacs-lisp
 (use-package desktop
-  :commands (desktop-save)
+  :init
+  (setq desktop-dirname
+        (no-littering-expand-var-file-name "desktop"))
+  :bind (("<menu>" . desktop-read)
+         ("C-M-<delete>" . my/restart-emacs-desktop-save))
+  :preface
+  (defun my/restart-emacs-desktop-save (&optional kill)
+    "Enable desktop saving and trigger a session save.
+
+If KILL is non-nil (typically provided via a prefix argument), this will
+save the current desktop state and proceed to kill the Emacs process.
+
+This function enables `desktop-save-mode', ensures the save hooks are active,
+and executes the save command."
+    (interactive "P")
+    (desktop-save-mode 1)
+    (add-hook 'desktop-save-hook
+              (save-buffers-kill-emacs 'silent-save (not kill))))
   :custom
   (desktop-restore-frames t)
   (desktop-restore-eager 1)
-  (desktop-lazy-idle-delay 5)
-  :config
-  (desktop-change-dir (expand-file-name "desktop" user-emacs-directory))
-  (desktop-save-mode 1))
+  (desktop-lazy-idle-delay 3))
 #+end_src
 
 ******* Cursor
@@ -3615,8 +3626,7 @@ This configuration offers directories and branches as candidates for git add/rm 
 
 #+begin_src emacs-lisp
 (use-package calc
-  :bind (("<f7>" . calc)
-         ("<menu>" . quick-calc))
+  :bind (("<f7>" . calc))
   :commands (calc quick-calc))
 #+end_src
 
