@@ -4257,6 +4257,8 @@ dired-omit-mode took over [[https://github.com/mattiasb/dired-hide-dotfiles#star
 #+begin_src emacs-lisp
 (use-package magit
   :commands (magit magit-status magit-dispatch)
+  :custom
+  (magit-log-margin '(t age-abbreviated 12 t 7))
   :config
   (bind-keys :map magit-status-mode-map
              ("/" . magit-file-checkout)
