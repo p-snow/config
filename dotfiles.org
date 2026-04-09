@@ -3262,11 +3262,11 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
 File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of Files]].
 
 #+begin_src emacs-lisp
-(require 'saveplace)
-
-(setopt save-place-abbreviate-file-names t
-        save-place-version-control t
-        save-place-mode t)
+(use-package saveplace
+  :custom
+  (save-place-abbreviate-file-names t)
+  (save-place-version-control t)
+  (save-place-mode t))
 #+end_src
 
 ****** Compression
@@ -16551,7 +16551,6 @@ Including:
         (org-clock-in)))))
 #+end_src
 
-
 **** Editing Org Entries
 :PROPERTIES:
 :CREATED:  [2026-02-24 Tue 18:45]
@@ -16850,7 +16849,6 @@ It's handy to jump to the last sibling of the current org entry, especially when
                    #'my/org-cadet-heading)
 #+end_src
 
-
 **** Searching
 :PROPERTIES:
 :CREATED:  [2026-02-24 Tue 19:10]
@@ -16904,7 +16902,6 @@ It's handy to jump to the last sibling of the current org entry, especially when
   (keymap-set my/org-global-map "Q"
               #'my/org-ql-search-under))
 #+end_src
-
 
 **** Misc
 :PROPERTIES:
