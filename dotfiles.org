@@ -2050,7 +2050,7 @@ Settings in this section are influenced a great deal by my personal preference. 
 (keymap-global-set "C-M-:" #'backward-kill-sexp)
 
 (keymap-global-set "H-g" #'previous-buffer)
-(keymap-global-set "H-v" #'next-buffer)
+(keymap-global-set "H-t" #'next-buffer)
 (keymap-global-set "C-c k" #'kill-current-buffer)
 (keymap-global-set "C-x M-r" #'rename-visited-file)
 
@@ -5816,8 +5816,6 @@ If entry at POM has no clock log time stamp, this function returns 0."
 #+begin_src emacs-lisp
 (use-package org-indent
   :after org
-  :bind (:map org-mode-map
-              ("C-c C-M-i" . org-indent-mode))
   :hook (org-mode . org-indent-mode)
   :custom
   (org-startup-indented t)
@@ -7239,9 +7237,9 @@ emacs-org-hide-drawers-head
 
 #+begin_src emacs-lisp
 (use-package org-hide-drawers
-  :after org
-  :bind (:map org-mode-map
-              ("C-c w" . org-hide-drawers-mode))
+  :after (org my/org-visual-cycle)
+  :bind (:map my/org-visual-map
+              ("d" . org-hide-drawers-mode))
   :custom
   ((org-hide-drawers-mode nil)
    (org-hide-drawers-display-strings
@@ -12568,7 +12566,7 @@ As of 28.1, Emacs won't steal keyboard focus at startup which means we can use e
 (use-package emacs
   :no-require t
   :bind-keymap
-  ("H-c" . my/cycle-visual-repeat-map)
+  ("H-v" . my/cycle-visual-repeat-map)
   :preface
   (defvar-keymap my/cycle-visual-repeat-map
     :doc "Keymap to repeat toggle/cycling appearance.  Used in `repeat-mode'."
@@ -16973,7 +16971,6 @@ obtained from the org-link at the current point."
                      :prefix 'my/org-global-map
                      "o" #'org-open-at-point-global
                      "C-s" #'org-save-all-org-buffers
-                     "TAB" #'org-fold-hide-drawer-all
                      "J" #'org-babel-tangle-jump-to-org
                      "i" #'org-info-find-node
                      "&" #'org-mark-ring-goto
@@ -17006,6 +17003,31 @@ obtained from the org-link at the current point."
   "M-b" #'org-previous-block
   "M-F" #'org-forward-paragraph
   "M-B" #'org-backward-paragraph)
+#+end_src
+
+**** Cycling Org visual appearance (my/org-visual-map)
+:PROPERTIES:
+:CREATED:  [2023-06-20 Tue 11:31]
+:END:
+
+Wrapping up a bunch of Org commands that toggle/cycle Org-mode's visual appearance.
+
+#+begin_src emacs-lisp
+(defvar-keymap my/org-visual-map
+  :doc "Keymap to repeat toggle/cycling appearance in Org.  Used in `repeat-mode'."
+  :repeat (_ :enter (org-indent-mode)
+             :exit (org-fold-hide-drawer-all))
+  "TAB" #'org-fold-hide-drawer-all
+  "C-M-i" #'org-indent-mode
+  "i" #'org-toggle-inline-images
+  "l" #'org-toggle-link-display)
+
+(with-eval-after-load 'org
+  (keymap-set org-mode-map
+              "C-c v"
+              my/org-visual-map))
+
+(provide 'my/org-visual-cycle)
 #+end_src
 
 **** show org entries pointing to the current (backlink)
