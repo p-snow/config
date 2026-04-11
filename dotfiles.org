@@ -13813,13 +13813,19 @@ if type(out_root_str) is bytes:
 ***** Miscellaneous commands
 
 #+begin_src emacs-lisp
-(defun my/insert-time-stamp ()
-  "Insert time stamp with preferred format."
-  (interactive)
+(defun my/insert-time-stamp (&optional time)
+  "Insert a formatted time stamp of TIME.
+
+When called interactively, prompts for the desired timestamp format."
+  (interactive (list (if current-prefix-arg
+                         (org-read-date nil t nil "Date for time stamp: ")
+                       (current-time))))
   (insert
    (completing-read "Format: "
-                    (mapcar #'format-time-string
+                    (mapcar (lambda (str)
+                              (format-time-string str time))
                             '("%Y%m%d" "%Y-%m-%d" "%Y-%m-%d %H:%M:%S")))))
+(keymap-global-set "C-c C-." #'my/insert-time-stamp)
 
 (defun my/comment-box (b e)
   "Draw a box comment around the region but arrange for the region
@@ -15136,7 +15142,6 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 
 #+header: :shebang "fundamental-mode"
 #+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "tempel/templates/fundamental.eld" tangle/emacs-etc-dir)
-(timestamp (my/insert-time-stamp))
 (symbols "!\"#$%&'()+,-./:;<=>?@[\\]^_{|}~")
 #+end_src
 
