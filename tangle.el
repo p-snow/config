@@ -14,8 +14,8 @@
       tangle/emacs-config-dir (file-name-concat tangle/user-emacs-directory "lisp")
       tangle/emacs-etc-dir (file-name-concat tangle/user-emacs-directory "etc")
       tangle/local-bin-dir (file-name-concat tangle/home ".local/bin/")
-      tangle/dedicated-elisp-dir
-      (file-name-concat tangle/user-emacs-directory "lisp/dedicated")
+      tangle/private-elisp-dir
+      (file-name-concat tangle/user-emacs-directory "lisp/tailored")
       tangle/tempel-template-dir
       (file-name-concat tangle/emacs-etc-dir "tempel/templates")
       tangle/tempel-command-example-dir
