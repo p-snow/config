@@ -8488,13 +8488,16 @@ emacs-mcp-latest
   :custom
   (mcp-hub-servers
    `(("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" ,(getenv "HOME"))))
+     ("time" . (:command "uvx" :args ("mcp-server-time")))
+     ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
+     ("git" . (:command "uvx" :args ("mcp-server-git")))
+     ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
      ("duckduckgo" . (:command "uvx" :args ("duckduckgo-mcp-server")))
      ("github" . (
                   :command "npx"
                   :args ("-y" "@modelcontextprotocol/server-github")
                   :env (:GITHUB_PERSONAL_ACCESS_TOKEN
                         ,(my/credential-info "github.com/p-snow" "token"))))
-     ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
      ;; ("brave" . (
      ;;             :command "npx"
      ;;             :args ("-y" "@brave/brave-search-mcp-server")
