@@ -7699,33 +7699,40 @@ PATH is the command to execute with `detached-shell-command'."
   :bind ("M-Q" . unfill-toggle))
 #+end_src
 
-***** emacs-everywhere
+***** tinee
 :PROPERTIES:
-:CREATED:  [2024-04-28 Sun 12:56]
-:END:
-:LOGBOOK:
-- Refiled on [2026-04-12 Sun 22:14]
+:CREATED:  [2026-04-15 Wed 15:39]
 :END:
 
-In order to work in KDE Wayland, you need to install wtype and kdotool, which can be installed with "cargo install kdotool".
+Also, [[id:55c1de9e-f0ad-4971-9a19-85d151102863][ydotool]] needs to be installed.
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
-;; "emacs-everywhere"
-"xdotool"
-"wtype"
+"emacs-tinee"
+#+end_src
+
+This script should be called from outside of Emacs in KDE Plasma.
+#+NAME: bash/emacs-tinee
+#+begin_src sh :noweb tangle :tangle (expand-file-name "emacs-tinee" tangle/local-bin-dir) :tangle-mode o755
+emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a ''
 #+end_src
 
 #+begin_src emacs-lisp
-(use-package emacs-everywhere
-  :ensure t
-  :hook (emacs-everywhere-mode
-         . (lambda () (when emacs-everywhere-mode
-                    (set-frame-parameter nil 'fullscreen 'fullboth)))))
-#+end_src
+(use-package tinee
+  ;; :vc (:url "https://codeberg.org/tusharhero/tinee.git")
 
-#+NAME: bash/emacs-everywhere
-#+begin_src sh :noweb tangle :tangle (expand-file-name "emacs-everywhere" tangle/local-bin-dir) :tangle-mode o755
-emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(emacs-everywhere)"
+  ;; uncomment to make tinee automatically copy and insert text area contents.
+  ;; :hook (tinee-before-make-frame-hook . tinee-copy)
+  ;; :hook (tinee-after-make-frame-hook . (lambda () (insert (or (gui-selection-value) ""))))
+  :preface
+  (defun my/tinee-write (string)
+    "Write STRING into KDE Plasma windows from within Emacs."
+    (start-process "my-tinee-copy" nil
+                   "wl-copy" string)
+    (start-process "my-tinee-write" nil
+                   "ydotool" "key" "-d" "500" "42:1" "110:1" "42:0" "110:0"))
+  :custom
+  ((tinee-send-text-function 'my/tinee-write) ; or 'tinee-paste or 'tinee-paste-c-v
+   (tinee-frame-name "tinee")))
 #+end_src
 
 ***** popper
@@ -12454,6 +12461,40 @@ Though I prefer vertico more for completion interface, [[https://github.com/mina
   :custom
   (flycheck-javascript-eslint-executable "eslint")
   (my/add-dash-docsets-hook 'js2-mode-hook '("JavaScript")))
+#+end_src
+
+***** emacs-everywhere                        :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2024-04-28 Sun 12:56]
+:END:
+:LOGBOOK:
+- Refiled on [2026-04-16 Thu 16:10]
+- Refiled on [2026-04-12 Sun 22:14]
+:END:
+
+In order to work in KDE Wayland, you need to install wtype and kdotool, which can be installed with "cargo install kdotool".
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs-package
+# emacs-everywhere-latest
+# #+end_src
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
+# (define emacs-everywhere-transform
+#   ((options->transformation
+#     (list '(with-commit . "emacs-everywhere=09a6a64dd07a712aad8ef1d0b99c086f025540d3")))
+#    emacs-everywhere))
+
+# (define emacs-everywhere-latest
+#   (package/inherit
+#       emacs-everywhere-transform
+#     (name "emacs-everywhere-latest")))
+# #+end_src
+
+#+begin_src emacs-lisp
+(use-package emacs-everywhere
+  :hook (emacs-everywhere-mode
+         . (lambda () (when emacs-everywhere-mode
+                    (set-frame-parameter nil 'fullscreen 'fullboth)))))
 #+end_src
 
 *** Advanced Customizations
@@ -21757,6 +21798,47 @@ esac
 #+begin_src scheme :noweb-ref guix-app
 "tesseract-ocr"
 "tesseract-ocr-tessdata-fast"
+#+end_src
+
+** ydotool
+:PROPERTIES:
+:CREATED:  [2026-04-16 Thu 16:05]
+:ID:       55c1de9e-f0ad-4971-9a19-85d151102863
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-base
+"ydotool"
+#+end_src
+
+Socket path used to communicate between ydotoold and ydotool
+#+begin_src shell :noweb-ref bashrc
+export YDOTOOL_SOCKET=/tmp/.ydotool_socket
+#+end_src
+
+How to start ydotoold via systemd
+#+begin_example
+sudo systemctl enable ydotoold
+sudo systemctl start ydotoold
+#+end_example
+
+Systemd Unit File (This file should be placed at /usr/local/lib/systemd/system)
+#+NAME: service/ydotoold
+#+begin_src conf :noweb tangle :comments no :tangle (expand-file-name "systemd/system/ydotoold.service" tangle/config-dir)
+[Unit]
+Description=Starts ydotoold Daemon
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=3
+ExecStartPre=/bin/sleep 2
+ExecStart=<<which(filename="ydotoold")>> --socket-path=/tmp/.ydotool_socket --socket-perm=0666
+ExecReload=/usr/bin/kill -HUP $MAINPID
+KillMode=process
+TimeoutSec=180
+
+[Install]
+WantedBy=basic.target
 #+end_src
 
 * Service Providers
