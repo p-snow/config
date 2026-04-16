@@ -14193,22 +14193,18 @@ Calling =my/insert-last-kbd-macro= after saving the keyboard macro will generate
 There are no grammatical errors, but if you want to add some clarity, you could consider the following:
 
 #+begin_src emacs-lisp
-(keymap-global-set "H-k"
-                   (define-keymap
-                     :prefix 'my/kmacro-map))
 (keymap-global-set "H-j"
                    (define-keymap
-                     :prefix 'my/kmacro-jump-map))
+                     :prefix 'my/conjure-map))
 
 (defun my/insert-last-kbd-macro (macroname keys)
-  "Customized `insert-kbd-macro' to bind last recorded kbd macro to `my/kmacro-map'.."
+  "Customized `insert-kbd-macro' to bind last recorded kbd macro to `my/conjure-map'.."
   (interactive (list (read-string "Macro name: ")
                      (read-string "Keys (following H-k): ")))
   (kmacro-name-last-macro (intern macroname))
   (insert-kbd-macro (intern macroname))
   (insert (format "(keymap-set %s"
-                  (completing-read "Map: " '("my/kmacro-map"
-                                             "my/kmacro-jump-map"))))
+                  (completing-read "Map: " '("my/conjure-map"))))
   (insert (format " \"%s\"" keys))
   (insert (format " #'%s)" macroname)))
 
