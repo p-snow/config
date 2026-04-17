@@ -7730,11 +7730,22 @@ Also, [[id:55c1de9e-f0ad-4971-9a19-85d151102863][ydotool]] needs to be installed
 This script should be called from outside of Emacs in KDE Plasma.
 #+NAME: bash/emacs-tinee
 #+begin_src sh :noweb tangle :tangle (expand-file-name "emacs-tinee" tangle/local-bin-dir) :tangle-mode o755
+#!/bin/bash
+
+# WORK AROUND: ydotoold is deactivated when KDE Plasma launches
+SERVICE="ydotoold"
+# Restart ydotoold if it is not active
+STATUS=$(systemctl is-active "$SERVICE")
+if [ "$STATUS" != "active" ]; then
+    pwsudo systemctl restart "$SERVICE"
+fi
+
 emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a ''
 #+end_src
 
 #+begin_src emacs-lisp
 (use-package tinee
+  :defer 10
   ;; :vc (:url "https://codeberg.org/tusharhero/tinee.git")
 
   ;; uncomment to make tinee automatically copy and insert text area contents.
@@ -21823,6 +21834,8 @@ esac
 :CREATED:  [2026-04-16 Thu 16:05]
 :ID:       55c1de9e-f0ad-4971-9a19-85d151102863
 :END:
+
+[[https://github.com/ReimuNotMoe/ydotool][ydotool]] emulates key input by manipulating /dev/input. I use ydotool mainly for insertint text from Emacs.
 
 #+begin_src scheme :tangle no :noweb-ref guix-base
 "ydotool"
