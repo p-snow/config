@@ -2413,7 +2413,8 @@ whether files are going to be in trash box."
 #+NAME: config/initialization
 #+begin_src emacs-lisp
 (setopt initial-scratch-message ""
-        inhibit-startup-screen t)
+        inhibit-startup-screen t
+        initial-major-mode 'text-mode)
 #+end_src
 
 ****** Frames
@@ -6992,6 +6993,8 @@ emacs-org-hide-drawers-head
 (use-package org-tag-tree
   :after org
   :hook (org-mode . org-tag-tree-load-buffer-tags)
+  :commands (org-tag-tree-load-buffer-tags
+             org-tag-tree-load-global-tags)
   :custom
   (org-tag-tree-global-tag-files '("~/org/notes/--my-org-tags__org@@20251021T162933.org"))
   (org-tag-tree-global-tag-persistent t)
