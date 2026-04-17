@@ -6924,14 +6924,15 @@ emacs-org-hide-drawers-head
 #+begin_src emacs-lisp
 (use-package org-english
   :after (org my-org-global-map)
+  :commands org-english-mode
+  :bind (:map my/org-global-map
+              ("e e" . my/org-english-capture)
+              ("e d" . my/org-english-drill)
+              ("e r" . my/org-english-drill-resume)
+              ("e l" . my/org-english-create-link)
+              ("E" . my/cloze-deletion-replace))
   :config
-  (bind-keys :map my/org-global-map
-             ("e e" . my/org-english-capture)
-             ("e d" . my/org-english-drill)
-             ("e r" . my/org-english-drill-resume)
-             ("e l" . my/org-english-create-link)
-             ("E" . my/cloze-deletion-replace)
-             :map engine-mode-prefixed-map
+  (bind-keys :map engine-mode-prefixed-map
              ("j" . (lambda (word)
                       "Copy Japanese translation as well as the pronunciation to `kill-ring'."
                       (interactive (list (determine-search-word)))
@@ -6954,6 +6955,7 @@ emacs-org-hide-drawers-head
 #+begin_src emacs-lisp
 (use-package org-nudge
   :after (org denote)
+  :commands ace-nudge-mode
   :custom
   (org-nudge-files
    (seq-filter
@@ -18325,6 +18327,7 @@ My workflow for acquiring English words is:
 (require 'define-word)
 (require 'org)
 (require 'org-drill)
+(require 'org-nudge)
 (require 'cl-lib)
 (require 'request)
 (require 'logos)
