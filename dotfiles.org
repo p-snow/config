@@ -14933,21 +14933,37 @@ Org Mode offers handy commands, namely org-increase-number-at-point and org-decr
   (funcall-interactively #'my/devide-number-at-point
                          (abs my/operate-number-fixed-operand)))
 
+(defun my/power-number-at-point (exponent)
+  ""
+  (interactive (list (if current-prefix-arg
+                         (prefix-numeric-value current-prefix-arg)
+                       2)))
+  (my/operate-number-at-point #'expt exponent))
+
+(defun my/scale-number-at-point ()
+  ""
+  (interactive)
+  (funcall-interactively #'my/power-number-at-point
+                         (abs my/operate-number-fixed-operand)))
+
 (keymap-global-set "C-M-+" #'my/add-number-at-point)
 (keymap-global-set "H-# +" #'my/add-number-at-point)
 (keymap-global-set "H-# -" #'my/subtract-number-at-point)
 (keymap-global-set "H-# *" #'my/multiply-number-at-point)
 (keymap-global-set "H-# /" #'my/devide-number-at-point)
+(keymap-global-set "H-# ^" #'my/power-number-at-point)
 (defvar-keymap my/increase-number-repeat-map
   :doc "Repeat keymap for increasing/decreasing numbers."
   :repeat (:enter (my/add-number-at-point
                    my/subtract-number-at-point
                    my/multiply-number-at-point
-                   my/devide-number-at-point))
+                   my/devide-number-at-point
+                   my/power-number-at-point))
   "+" #'my/increase-number-at-point
   "-" #'my/decrease-number-at-point
   "*" #'my/fold-number-at-point
-  "/" #'my/split-number-at-point)
+  "/" #'my/split-number-at-point
+  "^" #'my/scale-number-at-point)
 #+end_src
 
 ***** edit local file as root (sudo)
