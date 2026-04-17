@@ -16974,6 +16974,10 @@ I'd share this babel config between literate configuration and main Emacs sessio
                           (my/tsc-execute-macro)))))
         (list embark-kill-ring-map embark-url-map
               embark-org-link-map)))
+
+(with-eval-after-load 'my-launch-app
+  (keymap-set my/launch-app-map (kbd "y")
+              #'my/yt-dlp-command))
 #+end_src
 
 ***** kid3 command
@@ -17126,6 +17130,10 @@ I'd share this babel config between literate configuration and main Emacs sessio
   (interactive `(,(my/tsc-determine-url)))
   (transient-setup 'my/ghq-get-command nil nil
                    :scope (cdr `(_ :url ,url))))
+
+(with-eval-after-load 'my-launch-app
+  (keymap-set my/launch-app-map (kbd "q")
+              #'my/ghq-get-command))
 #+end_src
 
 **** Generating TempEL templates from command examples
@@ -22732,6 +22740,9 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> \
   (pcase command
     ("download"
      (my/yt-dlp-command args)
+     (my/tsc-execute-macro))
+    ("ghq-get"
+     (my/ghq-get-command args)
      (my/tsc-execute-macro))
     ("browse"
      (eww args))))
