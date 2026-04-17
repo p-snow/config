@@ -957,6 +957,21 @@ export PS1="[\u@$(uname -n):\\W]\n\$ "
 <<systemd-service>>
 #+end_src
 
+A utility script to copy systemd unit files from ~/.config/systemd/system to /usr/local/lib/systemd/system, where this tangling system itself cannot reach and restart their systemd services.
+#+name: shell/activate-local-system-services
+#+begin_src shell :noweb tangle :tangle (expand-file-name "activate-local-system-services" tangle/local-bin-dir)
+SRC=<<home-dir()>>/.config/systemd/system
+DEST=/usr/local/lib/systemd/system
+
+cp -L $SRC/* $DEST
+
+# Restart all systemd services based on unit files under /usr/local/lib/systemd/system
+systemctl daemon-reload
+for service in $DEST/*.service; do
+    systemctl restart "$(basename "$service")"
+done
+#+end_src
+
 *** systemd-tmpfiles
 :PROPERTIES:
 :ID:       44d6dd73-d34e-43f7-9026-e6439a05203e
