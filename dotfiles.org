@@ -6789,7 +6789,6 @@ if __name__ == "__main__":
 export DISPLAY=:0 && \
   emacs -Q --batch \
         -l $XDG_CONFIG_HOME/emacs/early-init.el \
-        -l $XDG_CONFIG_HOME/emacs/lisp/00-my-early-config.el \
         -l $XDG_CONFIG_HOME/emacs/lisp/org-web-track-config.el \
         -l $XDG_CONFIG_HOME/emacs/batch/org-web-track-mail.el \
         -f my/org-web-track-mail
@@ -9845,7 +9844,7 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
   :bind ("M-s M-d" . consult-dash))
 #+end_src
 
-#+begin_src emacs-lisp :tangle (expand-file-name "00-my-early-config.el" tangle/emacs-config-dir)
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
 (defmacro my/add-dash-docsets-hook (hook docsets)
   `(add-hook ,hook
              (lambda ()
@@ -14559,7 +14558,7 @@ This subtree holds resources for [[https://p-snow.org/][my blog]].
 **** utility macros/functions
 :PROPERTIES:
 :CREATED:  [2023-01-19 Thu 16:56]
-:header-args+: :tangle (expand-file-name "00-my-early-config.el" tangle/emacs-config-dir)
+:header-args+: :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
 :END:
 
 ***** lambda key
