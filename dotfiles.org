@@ -8453,34 +8453,36 @@ EWW is a nice place for intensive reading. When there are articles or documents 
   :config
   (require 'mcp)
   (gptel-make-gemini "Gemini"
-                     :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey") :stream t)
+    :key (my/credential-info "www.google.com/<<full-name>>" "gemini apikey") :stream t)
   (gptel-make-anthropic "Claude"
-                        :stream t
-                        :key (my/credential-info "platform.claude.com" "apikey"))
+    :stream t
+    :key (my/credential-info "platform.claude.com" "apikey"))
   (gptel-make-perplexity "Perplexity"
-                         :key (my/credential-info "perplexity.ai" "apikey")
-                         :stream t)
+    :key (my/credential-info "perplexity.ai" "apikey")
+    :stream t)
   (gptel-make-ollama "Ollama"
-                     :host "localhost:11434"
-                     :stream t
-                     :models '(lfm2
-                               lfm2.5-thinking
-                               gemma3
-                               gemma4
-                               qwen3
-                               qwen3.5
-                               glm-4.7-flash
-                               qwen2.5-coder
-                               qwen3-coder))
+    :host "localhost:11434"
+    :stream t
+    :models '(lfm2
+              gemma3
+              gemma4
+              gemma4:e2b
+              gemma4:26b
+              qwen3
+              qwen3.5
+              qwen3.6
+              glm-4.7-flash
+              qwen2.5-coder
+              qwen3-coder))
   (gptel-make-openai "OpenRouter"
-                     :host "openrouter.ai"
-                     :endpoint "/api/v1/chat/completions"
-                     :stream t
-                     :key (apply-partially #'my/credential-info "openrouter.ai" "api-key")
-                     :models '(minimax/minimax-m2.7
-                               deepseek/deepseek-v3.2
-                               anthropic/claude-sonnet-4.6
-                               google/gemini-3.1-flash-lite-preview))
+    :host "openrouter.ai"
+    :endpoint "/api/v1/chat/completions"
+    :stream t
+    :key (apply-partially #'my/credential-info "openrouter.ai" "api-key")
+    :models '(minimax/minimax-m2.7
+              deepseek/deepseek-v3.2
+              anthropic/claude-sonnet-4.6
+              google/gemini-3.1-flash-lite-preview))
   (mcp-hub-start-all-server
    (lambda ()
      (require 'gptel-integrations)
