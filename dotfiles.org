@@ -1733,20 +1733,14 @@ no-littering-var-directory
 no-littering-etc-directory
 #+end_src
 
-*** Emacs Core Configuration
-:PROPERTIES:
-:header-args:emacs-lisp+: :tangle (expand-file-name "core-config.el" tangle/emacs-config-dir)
-:CREATED:  [2023-01-20 Fri 10:22]
-:END:
-
-**** early-init.el
+*** early-init.el
 :PROPERTIES:
 :header-args:emacs-lisp+: :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
 :END:
 
 Early init file defines fundamental variables used from both normal Emacs session and batch mode.
 
-***** Paths for tangling
+**** Paths for tangling
 :PROPERTIES:
 :ID:       e69ebc68-c604-4f37-b61b-59f4fb5440b0
 :END:
@@ -1770,7 +1764,7 @@ Variables that start with "tangle/" and are used during the tangling process are
   syms)
 #+end_src
 
-***** package.el
+**** package.el
 
 #+begin_src emacs-lisp
 (require 'package)
@@ -1791,7 +1785,7 @@ Variables that start with "tangle/" and are used during the tangling process are
 (package-initialize)
 #+end_src
 
-***** load cl-lib
+**** load cl-lib
 
 Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah-checkouts/gnu/emacs/news/NEWS.27.1][officially deprecated]].
 
@@ -1799,7 +1793,7 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 (require 'cl-lib)
 #+end_src
 
-***** use-package
+**** use-package
 
 [[https://jwiegley.github.io/use-package/][Official manual]] is handy especially when you look up [[https://jwiegley.github.io/use-package/keywords/][Keywords]].
 
@@ -1816,7 +1810,7 @@ Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah
 
 use-package depends on following packages internally
 
-****** diminish                              :ARCHIVE:
+***** diminish                                 :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2025-10-14 Tue 15:49]
 :END:
@@ -1827,7 +1821,7 @@ Diminish does not need to be listed since it is included in the use-package Guix
 # "emacs-diminish"
 # #+end_src
 
-****** delight                               :ARCHIVE:
+***** delight                                  :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2025-10-14 Tue 15:48]
 :END:
@@ -1838,7 +1832,7 @@ Delight does not need to be listed since it is included in the use-package Guix 
 # "emacs-delight"
 # #+end_src
 
-***** straight.el                           :ARCHIVE:
+**** straight.el                               :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2022-12-23 Fri 20:17]
 :END:
@@ -1887,7 +1881,7 @@ Delight does not need to be listed since it is included in the use-package Guix 
     ("q" nil)))
 #+end_src
 
-***** safe local eval forms
+**** safe local eval forms
 :PROPERTIES:
 :CREATED:  [2023-11-09 Thu 10:19]
 :END:
@@ -1904,7 +1898,7 @@ Following hook statements are likely written in .dir-locals.el at the top level 
                            (lambda () (setq-local buffer-save-without-query t))))
 #+end_src
 
-***** no-littering
+**** no-littering
 :PROPERTIES:
 :CREATED:  [2024-02-04 Sun 16:29]
 :END:
@@ -1921,45 +1915,36 @@ Following hook statements are likely written in .dir-locals.el at the top level 
 (require 'no-littering)
 #+end_src
 
-**** loading sequence
-
-***** custom file
-:PROPERTIES:
-:CREATED:  [2023-01-10 Tue 18:48]
-:END:
-
-#+begin_src emacs-lisp
-(setopt custom-file
-        (expand-file-name "custom.el" user-emacs-directory))
-
-(when (file-readable-p custom-file)
-  (load custom-file))
-#+end_src
-
-***** init.el
+*** init.el
 :PROPERTIES:
 :CREATED:  [2022-12-24 Sat 14:56]
 :END:
 
-init.el devote itself to call for remaining config files.
+init.el is suposed to be dedicated to invoking the remaining Lisp files.
 
+#+name: config/emacs-init
 #+begin_src emacs-lisp :tangle (expand-file-name "init.el" tangle/user-emacs-directory)
 (push (file-name-concat user-emacs-directory "lisp") load-path)
 (push (file-name-concat user-emacs-directory "site-lisp") load-path)
 
-(let ((load-match "\\.el$"))
-  (mapc #'load-file
-        (append (directory-files (file-name-concat user-emacs-directory "lisp") t load-match)
-                (directory-files (file-name-concat user-emacs-directory "lisp/emacs-packages") t load-match)
-                (directory-files (file-name-concat user-emacs-directory "lisp/custom") t load-match)
-                (directory-files (file-name-concat user-emacs-directory "lisp/tailored") t load-match))))
+(mapc #'load-file
+      (flatten-list
+       (mapcar (lambda (dir)
+                 (directory-files dir t "\\.el$"))
+               (append (list (file-name-concat user-emacs-directory "lisp"))
+                       (file-expand-wildcards
+                        (file-name-concat user-emacs-directory "lisp" "*/"))))))
 #+end_src
 
-**** Basic Preferences
+*** Basic Preferences
+:PROPERTIES:
+:CREATED:  [2026-04-18 Sat 10:50]
+:header-args:emacs-lisp+: :tangle (expand-file-name "preferences.el" tangle/emacs-config-dir)
+:END:
 
 Settings in this section are influenced a great deal by my personal preference. Please be meticulous when you borrow.
 
-***** Modifier Keys
+**** Modifier Keys
 
 #+begin_src emacs-lisp
 (cond
@@ -1978,7 +1963,7 @@ Settings in this section are influenced a great deal by my personal preference. 
         mac-function-modifier      'hyper)))
 #+end_src
 
-***** Key Bindings
+**** Key Bindings
 
 #+begin_src emacs-lisp
 (keymap-global-set "M-F" #'forward-to-word)
@@ -2018,7 +2003,7 @@ Settings in this section are influenced a great deal by my personal preference. 
 (keymap-set special-mode-map "C-j" #'push-button)
 #+end_src
 
-***** Unleash Disabled Commands
+**** Unleash Disabled Commands
 :PROPERTIES:
 :CREATED:  [2023-07-01 Sat 13:59]
 :END:
@@ -2033,7 +2018,7 @@ Settings in this section are influenced a great deal by my personal preference. 
 (put 'scroll-right 'disabled nil)
 #+end_src
 
-***** Coding System
+**** Coding System
 :PROPERTIES:
 :CUSTOM_ID: emacs-language
 :END:
@@ -2058,7 +2043,7 @@ Settings in this section are influenced a great deal by my personal preference. 
 (setq locale-coding-system 'utf-8-unix)
 #+end_src
 
-***** Fontsets
+**** Fontsets
 :PROPERTIES:
 :CUSTOM_ID: emacs-fontset
 :END:
@@ -2086,7 +2071,7 @@ Settings in this section are influenced a great deal by my personal preference. 
 (set-fontset-font t 'symbol "Noto Sans Symbols2" nil 'append)
 #+end_src
 
-***** Faces
+**** Faces
 :PROPERTIES:
 :CREATED:  [2022-09-11 Sun 16:55]
 :ID:       9edc9c6a-607c-4a06-8f75-c04de9a32abb
@@ -2152,7 +2137,7 @@ It tries to proportionate ORIGINAL-SIZE in `my/default-pixel-width' in the displ
        (buffer-face-set (check-face 'fixed-pitch)))))
 #+end_src
 
-***** Performance Tuning
+**** Performance Tuning
 :PROPERTIES:
 :CREATED:  [2022-09-16 Fri 12:08]
 :END:
@@ -2166,15 +2151,16 @@ It tries to proportionate ORIGINAL-SIZE in `my/default-pixel-width' in the displ
 (setq redisplay-skip-fontification-on-input t)
 #+end_src
 
-**** Custom Variables and Additional Settings   :refile:
+*** Custom Variables and Additional Settings    :refile:
 :PROPERTIES:
 :ID:       587bc395-6321-4f59-97e6-6f0b62518b20
 :CREATED:  [2026-04-13 Mon 14:59]
+:header-args:emacs-lisp+: :tangle (expand-file-name "custom-groups.el" tangle/emacs-config-dir)
 :END:
 
 Entries in this section represnets [[info:emacs#Customization Groups][Customization Groups]] hierarchy.
 
-***** Files
+**** Files
 :PROPERTIES:
 :ID:       1a73e0cf-f851-4f48-9a22-1ec37fdcf960
 :END:
@@ -2184,7 +2170,7 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
         remote-file-name-inhibit-locks t)
 #+end_src
 
-****** Auto Revert
+***** Auto Revert
 
 [[info:emacs#Auto Revert][Auto Revert]]: Keeping buffers automatically up-to-date.
 
@@ -2199,7 +2185,7 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
   (global-auto-revert-mode t))
 #+end_src
 
-****** Auto Save
+***** Auto Save
 
 [[info:emacs#Auto Save][Auto Save mode]] saves the file you are editing periodically, whereas [[help:auto-save-visited-mode][auto-save-visited-mode]] saves all  open buffers in Emacs session.
 
@@ -2221,7 +2207,7 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 (setopt save-some-buffers-default-predicate 'save-some-buffers-root)
 #+end_src
 
-****** Uniquify
+***** Uniquify
 
 [[info:emacs#Uniquify][Uniquify]] shows buffer name easy to distinguish.
 
@@ -2231,7 +2217,7 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
   (uniquify-buffer-name-style 'post-forward))
 #+end_src
 
-****** Recentf
+***** Recentf
 
 [[info:emacs#File Conveniences][emacs#File Conveniences]]
 
@@ -2246,7 +2232,7 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
   (recentf-auto-cleanup (* 7 60)))
 #+end_src
 
-****** Tramp
+***** Tramp
 
 #+begin_src emacs-lisp
 (use-package tramp
@@ -2259,14 +2245,14 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
   (add-to-list 'tramp-remote-path "~/bin"))
 #+end_src
 
-****** Find File
+***** Find File
 
 #+begin_src emacs-lisp
 (setopt large-file-warning-threshold 300000000)
 (setopt revert-buffer-quick-short-answers t)
 #+end_src
 
-****** Backup
+***** Backup
 :PROPERTIES:
 :CREATED:  [2023-10-13 Fri 09:53]
 :END:
@@ -2280,7 +2266,7 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
         `(("." . ,(no-littering-expand-var-file-name "backup"))))
 #+end_src
 
-****** Dired
+***** Dired
 :PROPERTIES:
 :CREATED:  [2026-04-12 Sun 21:25]
 :END:
@@ -2385,7 +2371,7 @@ whether files are going to be in trash box."
           files)))
 #+end_src
 
-******* Find Dired
+****** Find Dired
 
 #+begin_src emacs-lisp
 (use-package find-dired
@@ -2403,9 +2389,9 @@ whether files are going to be in trash box."
   (find-ls-option '("-print0 | xargs -0 ls -ldN" . "-ldN")))
 #+end_src
 
-***** Environment
+**** Environment
 
-****** Initialization
+***** Initialization
 :PROPERTIES:
 :CREATED:  [2023-10-08 Sun 22:24]
 :END:
@@ -2417,7 +2403,7 @@ whether files are going to be in trash box."
         initial-major-mode 'text-mode)
 #+end_src
 
-****** Frames
+***** Frames
 
 #+begin_src emacs-lisp
 (tool-bar-mode -1)
@@ -2425,7 +2411,7 @@ whether files are going to be in trash box."
 (scroll-bar-mode -1)
 #+end_src
 
-******* Fringe
+****** Fringe
 :PROPERTIES:
 :CREATED:  [2023-09-15 Fri 08:53]
 :END:
@@ -2435,7 +2421,7 @@ whether files are going to be in trash box."
 (setq-default indicate-buffer-boundaries 'left)
 #+end_src
 
-******* Two Column
+****** Two Column
 :PROPERTIES:
 :CREATED:  [2023-09-07 Thu 10:45]
 :END:
@@ -2447,7 +2433,7 @@ whether files are going to be in trash box."
   (2C-window-width 25))
 #+end_src
 
-******* Desktop
+****** Desktop
 :PROPERTIES:
 :CREATED:  [2022-12-20 Tue 16:06]
 :END:
@@ -2480,7 +2466,7 @@ and executes the save command."
   (desktop-lazy-idle-delay 3))
 #+end_src
 
-******* Cursor
+****** Cursor
 
 #+begin_src emacs-lisp
 (setopt blink-cursor-blinks 15
@@ -2490,7 +2476,7 @@ and executes the save command."
 (setq-default cursor-in-non-selected-windows nil)
 #+end_src
 
-******* Scrolling
+****** Scrolling
 :PROPERTIES:
 :CREATED:  [2023-09-28 Thu 00:14]
 :END:
@@ -2499,7 +2485,7 @@ and executes the save command."
 (setopt fast-but-imprecise-scrolling t)
 #+end_src
 
-****** Display
+***** Display
 
 #+begin_src emacs-lisp
 ;; Absolutely ignore beep message
@@ -2518,7 +2504,7 @@ and executes the save command."
 (setopt global-text-scale-adjust-resizes-frames t)
 #+end_src
 
-****** Windows
+***** Windows
 
 [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager?utm_source=newsletter&utm_medium=email&utm_campaign=rss][This blog post]] is must-read when you tweak display-buffer facilities or something related to display settings.
 
@@ -2541,7 +2527,7 @@ and executes the save command."
            ("1" . delete-other-windows))
 #+end_src
 
-******* Winner
+****** Winner
 
 Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit-function.
 
@@ -2555,7 +2541,7 @@ Triple Escape (M-ESC ESC) has got to reset window layout by tweaking buffer-quit
   (setq buffer-quit-function 'winner-undo))
 #+end_src
 
-******* Windmove
+****** Windmove
 
 You can now switch windows with your shift key by pressing S-<left>, S-<right>, S-<up>, S-<down>.
 
@@ -2605,7 +2591,7 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
     "M-<down>"  #'windmove-delete-down))
 #+end_src
 
-****** Minibuffer
+***** Minibuffer
 :PROPERTIES:
 :CUSTOM_ID: emacs-minibuffer
 :END:
@@ -2640,7 +2626,7 @@ Formerly, I used to bind C-h to =backward-delete-char= and M-h to =backward-kill
 (keymap-set minibuffer-mode-map "TAB" 'minibuffer-complete)
 #+end_src
 
-******* Savehist
+****** Savehist
 
 [[help:savehist-mode][savehist-mode]] saves minibuffer history and additionals.
 
@@ -2658,7 +2644,7 @@ Formerly, I used to bind C-h to =backward-delete-char= and M-h to =backward-kill
   (after-init . savehist-mode))
 #+end_src
 
-******* Icomplete                         :ARCHIVE:
+****** Icomplete                               :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2025-01-02 Thu 18:05]
 :END:
@@ -2672,7 +2658,7 @@ Icomplete is nice, but Vertico takes a more supple approach, so I would use Vert
   (icomplete-prospects-height 11))
 #+end_src
 
-****** Menu
+***** Menu
 
 [[https://christiantietze.de/posts/2022/12/use-file-open-dialog-for-file-actions/][This blog post]] demonstrates for emacsers who have disabled file pickers and dialog boxes to adversely use them temporalily.
 
@@ -2682,7 +2668,7 @@ Icomplete is nice, but Vertico takes a more supple approach, so I would use Vert
       use-file-dialog nil)
 #+end_src
 
-****** Mode Line
+***** Mode Line
 
 #+begin_src emacs-lisp
 (defvar my/mode-line-buffer-name-length-max 15
@@ -2724,7 +2710,7 @@ Icomplete is nice, but Vertico takes a more supple approach, so I would use Vert
           global-mode-string))
 #+end_src
 
-******* Display Time
+****** Display Time
 
 #+begin_src emacs-lisp
 (setopt
@@ -2733,7 +2719,7 @@ Icomplete is nice, but Vertico takes a more supple approach, so I would use Vert
 (setopt display-time-mode t)
 #+end_src
 
-******** World Clock
+******* World Clock
 :PROPERTIES:
 :CREATED:  [2026-01-08 Thu 15:58]
 :END:
@@ -2745,7 +2731,7 @@ Icomplete is nice, but Vertico takes a more supple approach, so I would use Vert
                'append))
 #+end_src
 
-****** Mouse
+***** Mouse
 
 Mouse needs to be unobtrusive in my Emacs experience.
 
@@ -2761,7 +2747,7 @@ Mouse needs to be unobtrusive in my Emacs experience.
   (pixel-scroll-precision-mode t))
 #+end_src
 
-******* Tool Tips
+****** Tool Tips
 :PROPERTIES:
 :CREATED:  [2023-10-08 Sun 22:14]
 :END:
@@ -2771,12 +2757,12 @@ Mouse needs to be unobtrusive in my Emacs experience.
 (setq x-gtk-use-system-tooltips nil)
 #+end_src
 
-****** Hardware
+***** Hardware
 :PROPERTIES:
 :CREATED:  [2023-03-18 Sat 14:00]
 :END:
 
-******* Battery
+****** Battery
 :PROPERTIES:
 :CREATED:  [2023-03-18 Sat 14:01]
 :END:
@@ -2788,7 +2774,7 @@ Mouse needs to be unobtrusive in my Emacs experience.
               ("b" . battery)))
 #+end_src
 
-****** Installation
+***** Installation
 :PROPERTIES:
 :CREATED:  [2024-02-11 Sun 16:10]
 :END:
@@ -2806,7 +2792,7 @@ Mouse needs to be unobtrusive in my Emacs experience.
               #'my/tutorial--saved-dir))
 #+end_src
 
-***** Convenience
+**** Convenience
 
 subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFeed'
 
@@ -2815,7 +2801,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
 (global-subword-mode 1)
 #+end_src
 
-****** Abbreviations
+***** Abbreviations
 
 #+begin_src emacs-lisp
 (use-package abbrev
@@ -2824,7 +2810,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
   (save-abbrevs t))
 #+end_src
 
-****** Hippie Expand
+***** Hippie Expand
 
 [[https://www.masteringemacs.org/article/text-expansion-hippie-expand][As this blog post mentions]], Hippie Expansion is superior to dabbrev, skeleton and company in the field of auto typing.
 
@@ -2833,7 +2819,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
   :bind ([remap dabbrev-expand] . hippie-expand))
 #+end_src
 
-****** Hl Line
+***** Hl Line
 
 #+begin_src emacs-lisp
 (use-package hl-line
@@ -2842,7 +2828,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
   (hl-line-mode 1))
 #+end_src
 
-****** Visual Line
+***** Visual Line
 
 #+begin_src emacs-lisp
 (use-package visual-wrap
@@ -2857,7 +2843,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
   (visual-wrap-extra-indent 1))
 #+end_src
 
-****** Whitespace
+***** Whitespace
 
 [[info:emacs#Useless Whitespace][emacs#Useless Whitespace]]
 
@@ -2881,7 +2867,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
   (global-whitespace-mode nil))
 #+end_src
 
-****** So Long
+***** So Long
 :PROPERTIES:
 :ID:       9b051905-c21b-492b-ba0b-4468f53cb975
 :END:
@@ -2890,7 +2876,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
 (setopt global-so-long-mode t)
 #+end_src
 
-****** Tab Bar
+***** Tab Bar
 
 #+begin_src emacs-lisp
 (use-package tab-bar
@@ -2915,7 +2901,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
 (keymap-set tab-prefix-map "s" #'tab-switcher)
 #+end_src
 
-****** Ffap
+***** Ffap
 
 #+begin_src emacs-lisp
 (require 'ffap)
@@ -2923,7 +2909,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
 (ffap-bindings)
 #+end_src
 
-****** Kmacro
+***** Kmacro
 
 The power of keyboard macro is more than repeating editing commands. [[https://masteringemacs.org/article/keyboard-macros-are-misunderstood][This post explains fluently]].
 
@@ -2934,7 +2920,7 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 (keymap-set kmacro-keymap "I" #'kmacro-insert-macro)
 #+end_src
 
-****** Register
+***** Register
 :PROPERTIES:
 :CREATED:  [2024-04-06 Sat 16:24]
 :CUSTOM_ID: emacs-register
@@ -2950,7 +2936,7 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
                  'register-alist)))
 #+end_src
 
-****** Completion
+***** Completion
 :PROPERTIES:
 :CREATED:  [2025-06-24 Tue 19:46]
 :END:
@@ -2960,7 +2946,7 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
         #'command-completion-default-include-p)
 #+end_src
 
-******* Completion Preview
+****** Completion Preview
 :PROPERTIES:
 :CREATED:  [2025-06-24 Tue 19:46]
 :END:
@@ -2970,7 +2956,7 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
   :hook (prog-mode . completion-preview-mode))
 #+end_src
 
-****** Ibuffer
+***** Ibuffer
 :PROPERTIES:
 :CREATED:  [2025-08-29 Fri 09:28]
 :END:
@@ -2995,7 +2981,7 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
                      #'list-buffers #'ibuffer))
 #+end_src
 
-****** Repeat
+***** Repeat
 :PROPERTIES:
 :CREATED:  [2026-04-06 Mon 12:02]
 :END:
@@ -3004,7 +2990,7 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 (setopt repeat-exit-timeout 3)
 #+end_src
 
-***** Editing
+**** Editing
 
 #+begin_src emacs-lisp
 (setopt ;; the point will be at the beginning of duplicated lines
@@ -3013,7 +2999,7 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
  duplicate-region-final-position -1)
 #+end_src
 
-****** Indent
+***** Indent
 
 See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
 
@@ -3023,7 +3009,7 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
         tab-first-completion 'word-or-paren-or-punct)
 #+end_src
 
-****** Electricity
+***** Electricity
 
 #+begin_src emacs-lisp
 (setopt electric-indent-mode nil)
@@ -3040,14 +3026,14 @@ See also [[id:4a58219c-74dd-4135-b56d-876b0db2cd83][aggressive-indent-mode]]
              (electric-pair-local-mode 1))))
 #+end_src
 
-****** Fill
+***** Fill
 
 #+begin_src emacs-lisp
 (setopt fill-column 80
         sentence-end-double-space nil)
 #+end_src
 
-****** Killing
+***** Killing
 
 The =save-interprogram-paste-before-kill= variable controls whether clipboard text is moved to the kill-ring when some text is killed in Emacs. This is something I've been longing for!
 
@@ -3059,7 +3045,7 @@ The =save-interprogram-paste-before-kill= variable controls whether clipboard te
         save-interprogram-paste-before-kill (expt 2 16))
 #+end_src
 
-****** Undo
+***** Undo
 
 The older undo step which exceeds [[help:undo-limit][undo-limit]] in byte is eliminated at garbage collection.
 The oldest undo step, if undo info exceeds [[help:undo-strong-limit][undo-strong-limit]] in total, is removed instantaneously.
@@ -3072,8 +3058,8 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
         undo-no-redo nil)
 #+end_src
 
-****** Matching
-******* Isearch
+***** Matching
+****** Isearch
 
 #+begin_src emacs-lisp
 (use-package isearch
@@ -3088,7 +3074,7 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
              ("C-j" . isearch-exit)))
 #+end_src
 
-******* Bookmark
+****** Bookmark
 :PROPERTIES:
 :CUSTOM_ID: emacs-bookmark
 :END:
@@ -3105,7 +3091,7 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
   (bookmark-watch-bookmark-file 'silent))
 #+end_src
 
-******* Imenu
+****** Imenu
 
 #+begin_src emacs-lisp
 (use-package imenu
@@ -3113,11 +3099,11 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
   (imenu-auto-rescan t))
 #+end_src
 
-******* Paren Matching
+****** Paren Matching
 :PROPERTIES:
 :CREATED:  [2026-04-13 Mon 15:12]
 :END:
-******** Paren Showing
+******* Paren Showing
 
 #+begin_src emacs-lisp
 (use-package paren
@@ -3129,7 +3115,7 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
   (show-paren-context-when-offscreen t))
 #+end_src
 
-****** Paragraph
+***** Paragraph
 :PROPERTIES:
 :CREATED:  [2023-09-28 Thu 00:23]
 :END:
@@ -3138,9 +3124,9 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
 (setopt bidi-paragraph-direction 'left-to-right)
 #+end_src
 
-***** Multimedia
+**** Multimedia
 
-****** Image
+***** Image
 
 [[https://xenodium.com/emacs-viewing-webp-images/][This post]] teaches me how to enable converting external formats (i.e. webp) to internal ones.
 
@@ -3150,7 +3136,7 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
   (image-use-external-converter t))
 #+end_src
 
-****** Image Dired
+***** Image Dired
 :PROPERTIES:
 :CREATED:  [2025-01-10 Fri 14:02]
 :END:
@@ -3162,7 +3148,7 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
   (image-dired-thumb-size 256))
 #+end_src
 
-****** Doc View
+***** Doc View
 :PROPERTIES:
 :CREATED:  [2025-02-19 Wed 18:33]
 :END:
@@ -3178,17 +3164,17 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
   (doc-view-image-width 200))
 #+end_src
 
-***** Programming
+**** Programming
 :PROPERTIES:
 :CREATED:  [2023-03-19 Sun 12:43]
 :END:
 
-****** Tools
+***** Tools
 :PROPERTIES:
 :CREATED:  [2023-03-19 Sun 12:43]
 :END:
 
-******* Xref
+****** Xref
 :PROPERTIES:
 :CREATED:  [2023-03-19 Sun 12:43]
 :END:
@@ -3207,12 +3193,12 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
                          'grep))))
 #+end_src
 
-******* Ediff
+****** Ediff
 :PROPERTIES:
 :CREATED:  [2023-11-19 Sun 06:17]
 :END:
 
-******** Ediff Window
+******* Ediff Window
 :PROPERTIES:
 :CREATED:  [2023-11-19 Sun 06:17]
 :END:
@@ -3225,7 +3211,7 @@ No more new undo step than [[help:undo-outer-limit][undo-outer-limit]] could not
   (ediff-split-window-function 'split-window-horizontally))
 #+end_src
 
-******* Which Func
+****** Which Func
 :PROPERTIES:
 :CREATED:  [2025-06-23 Mon 18:56]
 :END:
@@ -3239,7 +3225,7 @@ I don't use [[help:which-function-mode][which-function-mode]] directly; I don't 
   (which-function-mode nil))
 #+end_src
 
-******* sMerge
+****** sMerge
 :PROPERTIES:
 :CREATED:  [2022-10-25 Tue 19:57]
 :ID:       e28ea681-854e-4972-ad48-ab7e2466c285
@@ -3256,7 +3242,7 @@ sMerge can be utilized to address merging issues.
   (smerge-command-prefix (kbd "H-m")))
 #+end_src
 
-******* Compilation
+****** Compilation
 :PROPERTIES:
 :CREATED:  [2026-04-13 Mon 14:56]
 :END:
@@ -3267,13 +3253,13 @@ sMerge can be utilized to address merging issues.
               ("C-j" . compile-goto-error)))
 #+end_src
 
-******** Next Error
+******* Next Error
 
 #+begin_src emacs-lisp
 (setopt next-error-message-highlight t)
 #+end_src
 
-******* Grep
+****** Grep
 
 #+begin_src emacs-lisp
 (use-package grep
@@ -3292,7 +3278,7 @@ sMerge can be utilized to address merging issues.
 (keymap-global-set "M-s R" 'my/grep-ripgrep-all)
 #+end_src
 
-******* Project
+****** Project
 
 #+begin_src emacs-lisp
 (use-package project
@@ -3308,12 +3294,12 @@ sMerge can be utilized to address merging issues.
                  '(magit-project-status "Magit"))))
 #+end_src
 
-******* Pcl Cvs
+****** Pcl Cvs
 :PROPERTIES:
 :CREATED:  [2026-04-13 Mon 15:14]
 :END:
 
-******** Log View
+******* Log View
 
 #+begin_src emacs-lisp
 (use-package log-view
@@ -3325,7 +3311,7 @@ sMerge can be utilized to address merging issues.
 #+end_src
 
 
-******* Vc
+****** Vc
 
 #+begin_src emacs-lisp
 (use-package vc-hooks
@@ -3333,10 +3319,10 @@ sMerge can be utilized to address merging issues.
   (vc-follow-symlinks t))
 #+end_src
 
-***** Development
+**** Development
 
-****** Internal
-******* Storage Allocation
+***** Internal
+****** Storage Allocation
 :PROPERTIES:
 :ID:       ff1cc31b-756f-4442-acef-907ebeb872f6
 :END:
@@ -3352,14 +3338,14 @@ The Emacs package [[help:Package][emacs-gc-stats]] is useful for collecting stat
       gc-cons-percentage 0.3)
 #+end_src
 
-****** Lisp
+***** Lisp
 
 #+begin_src emacs-lisp
 (setopt delete-pair-blink-delay 0)
 (keymap-global-set "C-M-z" #'delete-pair)
 #+end_src
 
-******* Shortdoc
+****** Shortdoc
 
 #+begin_src emacs-lisp
 (use-package shortdoc
@@ -3368,7 +3354,7 @@ The Emacs package [[help:Package][emacs-gc-stats]] is useful for collecting stat
          . shortdoc-help-fns-examples-function))
 #+end_src
 
-******* Re Builder
+****** Re Builder
 
 #+begin_src emacs-lisp
 (use-package re-builder
@@ -3376,7 +3362,7 @@ The Emacs package [[help:Package][emacs-gc-stats]] is useful for collecting stat
   (reb-re-syntax 'string))
 #+end_src
 
-******* Comp
+****** Comp
 
 For [[info:elisp#Native Compilation][native compilation feature]] introduced at Emacs 28.1.
 
@@ -3391,7 +3377,7 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
   (native-comp-verbose 1))
 #+end_src
 
-******* Eldoc
+****** Eldoc
 
 #+begin_src emacs-lisp
 (use-package eldoc
@@ -3404,18 +3390,18 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
   (eldoc-add-command-completions "paredit-"))
 #+end_src
 
-****** Debug
+***** Debug
 
 #+begin_src emacs-lisp
 (setopt message-log-max 10000)
 #+end_src
 
-****** Extensions
+***** Extensions
 :PROPERTIES:
 :CREATED:  [2024-01-28 Sun 19:30]
 :END:
 
-******* Transient
+****** Transient
 :PROPERTIES:
 :CREATED:  [2024-01-28 Sun 19:31]
 :END:
@@ -3432,16 +3418,16 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
   (transient-force-single-column t))
 #+end_src
 
-****** Languages
+***** Languages
 :PROPERTIES:
 :CREATED:  [2026-04-13 Mon 12:14]
 :END:
 
-******* Sh
+****** Sh
 :PROPERTIES:
 :CREATED:  [2026-04-12 Sun 21:10]
 :END:
-******** Sh Script
+******* Sh Script
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
 "tree-sitter-bash"
@@ -3467,7 +3453,7 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
   (sh-indent-for-case-alt '+))
 #+end_src
 
-******* Nxml
+****** Nxml
 
 #+begin_src emacs-lisp
 (use-package nxml-mode
@@ -3494,7 +3480,7 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
                      nil)))
 #+end_src
 
-******* Hideshow
+****** Hideshow
 
 #+begin_src emacs-lisp
 (use-package hideshow
@@ -3513,7 +3499,7 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
               ("S-TAB" . my/hs-hide-all)))
 #+end_src
 
-******* Python
+****** Python
 
 #+NAME: config/emacs-python
 #+begin_src emacs-lisp :noweb tangle
@@ -3532,7 +3518,7 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
                             '("Python 3")))
 #+end_src
 
-******* Ruby
+****** Ruby
 
 #+begin_src emacs-lisp
 (use-package ruby
@@ -3558,7 +3544,7 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
   (my/add-dash-docsets-hook 'ruby-mode-hook '("Ruby")))
 #+end_src
 
-******** inf-ruby                            :ARCHIVE:
+******* inf-ruby                               :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2025-10-14 Tue 15:53]
 :END:
@@ -3578,7 +3564,7 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
   (setq inf-ruby-prompt-pattern "^\\[[0-9]+\\] pry\\((.*)\\)[>*\"'] *"))
 #+end_src
 
-******* C
+****** C
 
 #+begin_src emacs-lisp
 (use-package cc-mode
@@ -3637,7 +3623,7 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
                      (arglist-cont-nonempty . c-lineup-arglist))))))
 #+end_src
 
-******* Emacs Lisp
+****** Emacs Lisp
 
 #+begin_src emacs-lisp
 (use-package elisp-mode
@@ -3682,7 +3668,7 @@ return value."
   (keymap-set lisp-interaction-mode-map "C-S-j" #'my/elisp-eval-and-print-last-sexp))
 #+end_src
 
-******* Lisp
+****** Lisp
 :PROPERTIES:
 :CREATED:  [2023-12-20 Wed 16:53]
 :END:
@@ -3695,7 +3681,7 @@ return value."
                             '("Common Lisp")))
 #+end_src
 
-******* Scheme
+****** Scheme
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
 "tree-sitter-scheme"
@@ -4291,7 +4277,7 @@ Indentation settings for Guix, which are adapted from [[https://codeberg.org/mrh
   (put 'zram-device-configuration 'scheme-indent-function 0))
 #+end_src
 
-******* Rust
+****** Rust
 :PROPERTIES:
 :CREATED:  [2024-04-29 Mon 21:35]
 :END:
@@ -4304,7 +4290,7 @@ Indentation settings for Guix, which are adapted from [[https://codeberg.org/mrh
              (setq-local devdocs-current-docs '("rust")))))
 #+end_src
 
-******* Java
+****** Java
 :PROPERTIES:
 :CREATED:  [2024-04-29 Mon 19:58]
 :END:
@@ -4317,7 +4303,7 @@ Indentation settings for Guix, which are adapted from [[https://codeberg.org/mrh
              (setq-local devdocs-current-docs '("openjdk~21")))))
 #+end_src
 
-******* Lua
+****** Lua
 
 #+begin_src emacs-lisp
 (use-package lua-ts-mode
@@ -4328,14 +4314,14 @@ Indentation settings for Guix, which are adapted from [[https://codeberg.org/mrh
              (setq-local devdocs-current-docs '("lua~3.2")))))
 #+end_src
 
-******* Perl
+****** Perl
 
 #+begin_src emacs-lisp
 (use-package perl-mode
   :delight " PL")
 #+end_src
 
-******* Css
+****** Css
 
 #+begin_src emacs-lisp
 (use-package css-mode
@@ -4348,7 +4334,7 @@ Indentation settings for Guix, which are adapted from [[https://codeberg.org/mrh
   (css-indent-offset 2))
 #+end_src
 
-******* Js
+****** Js
 :PROPERTIES:
 :CREATED:  [2026-04-14 Tue 23:24]
 :END:
@@ -4359,7 +4345,7 @@ Indentation settings for Guix, which are adapted from [[https://codeberg.org/mrh
   (js-indent-level 2))
 #+end_src
 
-******* Sql
+****** Sql
 
 #+begin_src emacs-lisp
 (use-package sql
@@ -4372,7 +4358,7 @@ Indentation settings for Guix, which are adapted from [[https://codeberg.org/mrh
                       (setq-local flycheck-checker 'sql-sqlint))))
 #+end_src
 
-***** Help
+**** Help
 :PROPERTIES:
 :CREATED:  [2023-10-08 Sun 23:04]
 :END:
@@ -4393,7 +4379,20 @@ Indentation settings for Guix, which are adapted from [[https://codeberg.org/mrh
              ("#"   . finder-commentary)))
 #+end_src
 
-****** Info
+***** Customize
+:PROPERTIES:
+:CREATED:  [2023-01-10 Tue 18:48]
+:END:
+
+#+begin_src emacs-lisp
+(setopt custom-file
+        (expand-file-name "custom.el" user-emacs-directory))
+
+(when (file-readable-p custom-file)
+  (load custom-file))
+#+end_src
+
+***** Info
 
 #+begin_src emacs-lisp
 (use-package info
@@ -4403,16 +4402,16 @@ Indentation settings for Guix, which are adapted from [[https://codeberg.org/mrh
   (bind-keys :map Info-mode-map ("a" . info-apropos)))
 #+end_src
 
-****** Woman
+***** Woman
 
 #+begin_src emacs-lisp
 (use-package woman
   :commands (woman))
 #+end_src
 
-***** Data
+**** Data
 
-****** Save Place
+***** Save Place
 
 File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of Files]].
 
@@ -4424,26 +4423,26 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (save-place-mode t))
 #+end_src
 
-****** Compression
+***** Compression
 
 - Jka Compr (auto compression mode)
   #+begin_src emacs-lisp
   (setopt auto-compression-mode t)
   #+end_src
 
-****** Tar
+***** Tar
 
 #+begin_src emacs-lisp
 (require 'tar-mode)
 #+end_src
 
-****** Archive
+***** Archive
 
 #+begin_src emacs-lisp
 (require 'archive-mode)
 #+end_src
 
-****** Remember
+***** Remember
 :PROPERTIES:
 :CREATED:  [2025-03-05 Wed 18:23]
 :END:
@@ -4462,7 +4461,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (remember-text-format-function #'my/remember-text))
 #+end_src
 
-****** Time Stamp
+***** Time Stamp
 :PROPERTIES:
 :CREATED:  [2025-04-26 Sat 08:54]
 :END:
@@ -4472,7 +4471,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
         time-stamp-format "Last changed %Y-%02m-%02d %02H:%02M:%02S")
 #+end_src
 
-***** Editing Basics
+**** Editing Basics
 
 #+begin_src emacs-lisp
 (setopt set-mark-command-repeat-pop t
@@ -4491,9 +4490,9 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 (setq delete-auto-save-files t)
 #+end_src
 
-***** External
+**** External
 
-****** EasyPG
+***** EasyPG
 
 #+begin_src emacs-lisp
 (use-package epg
@@ -4502,7 +4501,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (epg-pinentry-mode 'loopback))
 #+end_src
 
-******* Epa (EasyPG Assistant)
+****** Epa (EasyPG Assistant)
 :PROPERTIES:
 :CREATED:  [2023-01-01 Sun 15:03]
 :END:
@@ -4511,10 +4510,9 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 
 #+begin_src emacs-lisp :noweb tangle
 (use-package epa
-  :bind (("C-x : l" . epa-list-keys)
-         ("C-x : L" . epa-list-secret-keys)
-         :map dired-mode-map
-         (": E" . my/epa-dired-do-encrypt-armor))
+  :bind ( :map ctl-x-map
+          (": l" . epa-list-keys)
+          (": L" . epa-list-secret-keys))
   :preface
   (defun my/epa-dired-do-encrypt-armor ()
     "Encrypt mark files in ASCII armored format."
@@ -4522,10 +4520,13 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (let ((epa-armor t))
       (epa-dired-do-encrypt)))
   :config
-  (setq epa-file-encrypt-to "<<email>>"))
+  (setq epa-file-encrypt-to "<<email>>")
+  (with-eval-after-load 'dired
+    (bind-keys :map dired-mode-map
+               (": E" . my/epa-dired-do-encrypt-armor))))
 #+end_src
 
-****** Server
+***** Server
 
 #+begin_src emacs-lisp :noweb tangle
 (use-package server
@@ -4536,8 +4537,8 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
   (server-client-instructions t))
 #+end_src
 
-****** Processes
-******* Proced
+***** Processes
+****** Proced
 
 [[https://www.masteringemacs.org/article/displaying-interacting-processes-proced][This blog post]] explains how to use proced, process monitoring package for emacs.
 
@@ -4569,7 +4570,7 @@ In ARGS, execution file paths are abbreviated using their base names."
               #'proced-format-args-base-name))
 #+end_src
 
-******* Shell
+****** Shell
 :PROPERTIES:
 :CREATED:  [2024-04-13 Sat 16:14]
 :END:
@@ -4588,7 +4589,7 @@ In ARGS, execution file paths are abbreviated using their base names."
              ("C-j" . comint-send-input)))
 #+end_src
 
-******* Term
+****** Term
 :PROPERTIES:
 :CREATED:  [2026-04-13 Mon 11:01]
 :END:
@@ -4603,7 +4604,7 @@ In ARGS, execution file paths are abbreviated using their base names."
              ("C-j" . term-send-input)))
 #+end_src
 
-******* Comint
+****** Comint
 :PROPERTIES:
 :CREATED:  [2025-06-21 Sat 13:51]
 :END:
@@ -4613,7 +4614,7 @@ In ARGS, execution file paths are abbreviated using their base names."
           #'comint-osc-process-output)
 #+end_src
 
-******* Pcomplete
+****** Pcomplete
 :PROPERTIES:
 :CREATED:  [2026-02-03 Tue 17:43]
 :END:
@@ -4654,7 +4655,7 @@ This configuration offers directories and branches as candidates for git add/rm 
     (pcomplete-here* (pcmpl-git-get-refs "heads")))))
 #+end_src
 
-******* Executable
+****** Executable
 
 [[https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/][The post]] says it is useful to set executable bit if the saved file seems to be script.
 
@@ -4664,7 +4665,7 @@ This configuration offers directories and branches as candidates for git add/rm 
             'executable-make-buffer-file-executable-if-script-p))
 #+end_src
 
-****** Browse Url
+***** Browse Url
 
 #+begin_src emacs-lisp
 (use-package browse-url
@@ -4676,7 +4677,7 @@ This configuration offers directories and branches as candidates for git add/rm 
   (browse-url-secondary-browser-function 'browse-url-firefox))
 #+end_src
 
-******* Webjump
+****** Webjump
 :PROPERTIES:
 :CREATED:  [2023-10-10 Tue 19:01]
 :END:
@@ -4688,7 +4689,7 @@ This configuration offers directories and branches as candidates for git add/rm 
   (webjump-use-internal-browser t))
 #+end_src
 
-****** locate
+***** locate
 
 #+begin_src emacs-lisp :noweb yes
 (use-package locate
@@ -4703,7 +4704,7 @@ This configuration offers directories and branches as candidates for git add/rm 
   (list locate-command "-d" (expand-file-name "<<locate-db-home()>>") "--ignore-case" "--existing" "--regexp" search-string))
 #+end_src
 
-****** With Editor
+***** With Editor
 :PROPERTIES:
 :CREATED:  [2024-04-13 Sat 16:11]
 :END:
@@ -4714,14 +4715,14 @@ This configuration offers directories and branches as candidates for git add/rm 
   (shell-command-with-editor-mode t))
 #+end_src
 
-***** Applications
+**** Applications
 
-****** Mail
+***** Mail
 :PROPERTIES:
 :CREATED:  [2023-10-28 Sat 11:54]
 :END:
 
-******* Smtpmail
+****** Smtpmail
 :PROPERTIES:
 :CREATED:  [2023-10-28 Sat 11:54]
 :END:
@@ -4738,12 +4739,12 @@ This configuration offers directories and branches as candidates for git add/rm 
   (smtpmail-mail-address user-mail-address))
 #+end_src
 
-******* Message
+****** Message
 :PROPERTIES:
 :CREATED:  [2023-10-28 Sat 17:23]
 :END:
 
-******** Message Mail
+******* Message Mail
 :PROPERTIES:
 :CREATED:  [2023-10-28 Sat 17:24]
 :END:
@@ -4755,7 +4756,7 @@ This configuration offers directories and branches as candidates for git add/rm 
   (message-send-mail-function 'smtpmail-send-it))
 #+end_src
 
-******* Mime Security
+****** Mime Security
 :PROPERTIES:
 :CREATED:  [2023-10-28 Sat 17:50]
 :END:
@@ -4773,7 +4774,7 @@ This configuration offers directories and branches as candidates for git add/rm 
   (mml-default-sign-method 'pgpmime))
 #+end_src
 
-****** Ispell/FlySpell
+***** Ispell/FlySpell
 :PROPERTIES:
 :CREATED:  [2023-10-07 Sat 10:40]
 :END:
@@ -4813,11 +4814,11 @@ This configuration offers directories and branches as candidates for git add/rm 
   (flyspell-check-changes t))
 #+end_src
 
-****** News
+***** News
 
-******* Gnus
+****** Gnus
 
-******** Auth Source
+******* Auth Source
 
 #+begin_src emacs-lisp
 (use-package auth-source
@@ -4831,7 +4832,7 @@ This configuration offers directories and branches as candidates for git add/rm 
   (auth-source-pass-enable))
 #+end_src
 
-****** Calc (The GNU Emacs Calculator)
+***** Calc (The GNU Emacs Calculator)
 
 #+begin_src emacs-lisp
 (use-package calc
@@ -4839,7 +4840,7 @@ This configuration offers directories and branches as candidates for git add/rm 
   :commands (calc quick-calc))
 #+end_src
 
-****** Calendar
+***** Calendar
 
 #+begin_src emacs-lisp
 (use-package calendar
@@ -4858,7 +4859,7 @@ This configuration offers directories and branches as candidates for git add/rm 
   (holiday ((t (:foreground "dark orange" :box t)))))
 #+end_src
 
-******* Midnight
+****** Midnight
 :PROPERTIES:
 :CREATED:  [2023-06-08 Thu 18:20]
 :END:
@@ -4872,7 +4873,7 @@ This configuration offers directories and branches as candidates for git add/rm 
   (midnight-delay "4:00"))
 #+end_src
 
-******* Appt
+****** Appt
 :PROPERTIES:
 :CREATED:  [2024-10-29 Tue 15:32]
 :END:
@@ -4887,7 +4888,7 @@ This configuration offers directories and branches as candidates for git add/rm 
   (appt-activate 1))
 #+end_src
 
-****** Package
+***** Package
 
 #+begin_src emacs-lisp
 (use-package package
@@ -4901,7 +4902,7 @@ This configuration offers directories and branches as candidates for git add/rm 
                 #'list-packages)))
 #+end_src
 
-****** Eglot
+***** Eglot
 :PROPERTIES:
 :CREATED:  [2022-08-04 Thu 13:32]
 :END:
@@ -4925,12 +4926,12 @@ This configuration offers directories and branches as candidates for git add/rm 
              ("C-c i h" . eglot-inlay-hints-mode)))
 #+end_src
 
-****** Games
+***** Games
 :PROPERTIES:
 :CREATED:  [2025-01-26 Sun 16:08]
 :END:
 
-******* Tetris
+****** Tetris
 :PROPERTIES:
 :CREATED:  [2025-01-26 Sun 16:08]
 :END:
@@ -4947,7 +4948,7 @@ This configuration offers directories and branches as candidates for git add/rm 
              ("SPC" . tetris-move-bottom)))
 #+end_src
 
-****** Eshell
+***** Eshell
 :PROPERTIES:
 :CREATED:  [2026-04-13 Mon 11:02]
 :END:
@@ -5001,21 +5002,21 @@ Charles Choi explained how to reference a capability for the command history in 
       (alert msg :buffer buffer :severity 'urgent))))
 #+end_src
 
-***** Text
+**** Text
 
-****** View
+***** View
 
 #+begin_src emacs-lisp
 (use-package view
   :defer t)
 #+end_src
 
-****** Outlines
+***** Outlines
 :PROPERTIES:
 :CREATED:  [2026-04-13 Mon 12:05]
 :END:
 
-******* Org
+****** Org
 :PROPERTIES:
 :CREATED:  [2023-01-24 Tue 16:14]
 :END:
@@ -5076,7 +5077,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
 (defvar my/org-project-tag "project" "A tag for projects")
 #+end_src
 
-******** Org Agenda
+******* Org Agenda
 
 #+begin_src emacs-lisp
 (use-package org-agenda
@@ -5147,7 +5148,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
   latest-time)
 #+end_src
 
-********* Org Agenda Custom Commands
+******** Org Agenda Custom Commands
 :PROPERTIES:
 :CREATED:  [2023-11-06 Mon 11:05]
 :END:
@@ -5321,7 +5322,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
            ((org-agenda-sorting-strategy '(scheduled-up)))))))
 #+end_src
 
-********* Org Agenda Daily/Weekly
+******** Org Agenda Daily/Weekly
 :PROPERTIES:
 :CREATED:  [2023-11-06 Mon 14:08]
 :END:
@@ -5338,7 +5339,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
                   '(:fileskip0 t :stepskip0 t))))
 #+end_src
 
-********* Org Agenda Line Format
+******** Org Agenda Line Format
 :PROPERTIES:
 :CREATED:  [2023-11-06 Mon 14:21]
 :END:
@@ -5352,7 +5353,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
                                    (search   . " "))))
 #+end_src
 
-******** Org Capture
+******* Org Capture
 
 #+begin_src emacs-lisp
 (use-package org-capture
@@ -5385,7 +5386,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
       "- %i%?"))))
 #+end_src
 
-******** Org Startup
+******* Org Startup
 
 #+begin_src emacs-lisp
 (setopt org-startup-folded 'fold
@@ -5398,7 +5399,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
 (setopt org-use-sub-superscripts '{})
 #+end_src
 
-******** Org TODO
+******* Org TODO
 
 #+begin_src emacs-lisp
 (setopt org-enforce-todo-dependencies t)
@@ -5439,7 +5440,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
         org-closed-keep-when-no-todo nil)
 #+end_src
 
-******** Org Structure
+******* Org Structure
 
 #+begin_src emacs-lisp
 (use-package org-indent
@@ -5478,7 +5479,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
     (os-set "`" #'ignore)))
 #+end_src
 
-********* Org Edit Structure
+******** Org Edit Structure
 
 #+begin_src emacs-lisp
 (use-package org-src
@@ -5527,7 +5528,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
                 (delete-trailing-whitespace))))
 #+end_src
 
-********* Org Plain lists
+******** Org Plain lists
 
 #+begin_src emacs-lisp
 (setopt org-list-demote-modify-bullet
@@ -5538,7 +5539,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
         org-list-allow-alphabetical t)
 #+end_src
 
-********* Org Archive
+******** Org Archive
 
 #+begin_src emacs-lisp
 (use-package org-archive
@@ -5549,7 +5550,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
 (setopt org-cycle-open-archived-trees t)
 #+end_src
 
-********* Org Inline Tasks
+******** Org Inline Tasks
 
 #+begin_src emacs-lisp
 (use-package org-inlinetask
@@ -5561,7 +5562,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
   (org-inlinetask-min-level 10))
 #+end_src
 
-******** Org Goto
+******* Org Goto
 :PROPERTIES:
 :CREATED:  [2025-01-21 Tue 08:34]
 :END:
@@ -5574,7 +5575,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
   (org-goto-max-level 7))
 #+end_src
 
-******** Org Tags
+******* Org Tags
 
 #+begin_src emacs-lisp
 (with-eval-after-load 'org
@@ -5584,7 +5585,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
           org-complete-tags-always-offer-all-agenda-tags nil))
 #+end_src
 
-******** Org Properties
+******* Org Properties
 
 #+begin_src emacs-lisp
 (setopt org-use-property-inheritance "TIMELIMIT.*"
@@ -5595,7 +5596,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
         '(("Effort_ALL". "0 0:10 0:20 0:30 1:00 1:30 2:00 3:00 4:00 6:00 8:00")))
 #+end_src
 
-******** Org Refile
+******* Org Refile
 
 #+begin_src emacs-lisp
 (use-package org-refile
@@ -5613,16 +5614,16 @@ If entry at POM has no clock log time stamp, this function returns 0."
       :tag . "refile"))))
 #+end_src
 
-******** Org Time
+******* Org Time
 
 #+begin_src emacs-lisp
 (setopt org-time-stamp-custom-formats
         '("<%m-%d %a>" . "<%H:%M>"))
 #+end_src
 
-********* Org Progress
+******** Org Progress
 
-********** Org Habit
+********* Org Habit
 :PROPERTIES:
 :CREATED:  [2022-12-27 Tue 12:58]
 :END:
@@ -5641,7 +5642,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
    '(org-habit-clear-face ((((background dark)) (:foreground "black"))))))
 #+end_src
 
-********** Org Clock
+********* Org Clock
 
 #+begin_src emacs-lisp
 (use-package org-clock
@@ -5671,7 +5672,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
       (add-to-list 'org-speed-commands elt t))))
 #+end_src
 
-******** Org Appearance
+******* Org Appearance
 
 #+begin_src emacs-lisp
 (setopt org-hide-leading-stars t
@@ -5681,7 +5682,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
         org-display-remote-inline-images 'cache)
 #+end_src
 
-******** Babel
+******* Babel
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
 "plantuml"
@@ -5716,7 +5717,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
                               (lilypond   . t))))
 #+end_src
 
-********* Org Babel Tangle
+******** Org Babel Tangle
 :PROPERTIES:
 :CREATED:  [2023-10-29 Sun 11:23]
 :END:
@@ -5731,7 +5732,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   (org-babel-tangle-use-relative-file-links nil))
 #+end_src
 
-******** Org ID
+******* Org ID
 
 #+begin_src emacs-lisp
 (use-package org-id
@@ -5756,7 +5757,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
                        (file-name-concat org-directory "**/*.org"))))
 #+end_src
 
-******** Org Crypt
+******* Org Crypt
 
 #+begin_src emacs-lisp
 (use-package org-crypt
@@ -5774,7 +5775,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
                org-crypt-tag-matcher))
 #+end_src
 
-******** Org Attach                         :ARCHIVE:
+******* Org Attach                             :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2024-03-23 Sat 18:22]
 :END:
@@ -5783,7 +5784,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 (setopt org-attach-preferred-new-method nil)
 #+end_src
 
-******** Org Link
+******* Org Link
 
 #+begin_src emacs-lisp
 (use-package ol
@@ -5794,7 +5795,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   (org-link-set-parameters "src" :follow #'org-babel-ref-resolve))
 #+end_src
 
-********* Org Follow Link
+******** Org Follow Link
 
 #+begin_src emacs-lisp
 (with-eval-after-load 'ol
@@ -5805,9 +5806,9 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   (setopt org-return-follows-link t))
 #+end_src
 
-******** Org Export
+******* Org Export
 
-********* Org Export General
+******** Org Export General
 
 #+begin_src emacs-lisp
 (use-package ox
@@ -5849,7 +5850,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   (org-export-dispatch-use-expert-ui nil))
 #+end_src
 
-********* Org Export HTML
+******** Org Export HTML
 
 #+begin_src emacs-lisp
 (use-package ox-html
@@ -5863,7 +5864,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   (org-html-doctype "xhtml-strict"))
 #+end_src
 
-********* Org Export LaTeX
+******** Org Export LaTeX
 
 #+begin_src emacs-lisp
 (use-package ox-latex
@@ -5895,7 +5896,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
                  ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))))
 #+end_src
 
-********* Org Export Texinfo
+******** Org Export Texinfo
 :PROPERTIES:
 :CREATED:  [2024-04-16 Tue 22:05]
 :END:
@@ -5905,7 +5906,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   :after ox)
 #+end_src
 
-******** Org Footnote
+******* Org Footnote
 :PROPERTIES:
 :CREATED:  [2026-01-18 Sun 11:59]
 :END:
@@ -5921,7 +5922,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 #+end_src
 
 
-****** Toml
+***** Toml
 :PROPERTIES:
 :CREATED:  [2023-06-01 Thu 18:01]
 :END:
@@ -5931,7 +5932,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   :mode "\\.toml$")
 #+end_src
 
-****** Json
+***** Json
 :PROPERTIES:
 :CREATED:  [2022-08-01 Mon 15:07]
 :END:
@@ -5941,7 +5942,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   :mode "\\.json$")
 #+end_src
 
-****** Tex
+***** Tex
 
 #+begin_src emacs-lisp
 (use-package tex-mode
@@ -5951,11 +5952,11 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   (my/add-dash-docsets-hook 'latex-mode-hook '("LaTeX")))
 #+end_src
 
-***** Hypermedia
+**** Hypermedia
 :PROPERTIES:
 :CREATED:  [2022-10-20 Thu 16:59]
 :END:
-****** Dictionary
+***** Dictionary
 :PROPERTIES:
 :CREATED:  [2022-10-20 Thu 17:01]
 :END:
@@ -5984,12 +5985,12 @@ sudo systemctl start dictd
                  display-buffer-in-tab)))
 #+end_src
 
-***** Communication
+**** Communication
 :PROPERTIES:
 :CREATED:  [2023-03-18 Sat 12:58]
 :END:
 
-****** Net Utils
+***** Net Utils
 :PROPERTIES:
 :CREATED:  [2023-03-18 Sat 12:58]
 :END:
@@ -6004,12 +6005,12 @@ sudo systemctl start dictd
               ("n p" . ping)))
 #+end_src
 
-***** Web
+**** Web
 :PROPERTIES:
 :CREATED:  [2025-06-24 Tue 16:53]
 :END:
 
-****** Shr
+***** Shr
 :PROPERTIES:
 :CREATED:  [2025-06-24 Tue 16:53]
 :END:
@@ -6026,7 +6027,7 @@ sudo systemctl start dictd
           shr-cookie-policy nil))
 #+end_src
 
-****** EWW
+***** EWW
 :PROPERTIES:
 :CREATED:  [2025-06-24 Tue 16:56]
 :END:
@@ -12539,13 +12540,13 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
 *** Advanced Customizations
 :PROPERTIES:
 :CREATED:  [2026-04-13 Mon 16:30]
-:header-args+: :tangle (expand-file-name "custom.el" tangle/emacs-config-dir)
+:header-args+: :tangle (expand-file-name "advanced.el" tangle/emacs-config-dir)
 :END:
 
 **** Gptel Tools
 :PROPERTIES:
 :CREATED:  [2026-04-13 Mon 16:41]
-:header-args:emacs-lisp+: :tangle (expand-file-name "custom/gptel-tool.el" tangle/emacs-config-dir)
+:header-args:emacs-lisp+: :tangle (expand-file-name "advanced/gptel-tool.el" tangle/emacs-config-dir)
 :END:
 
 #+begin_src emacs-lisp :noweb tangle
@@ -12826,7 +12827,7 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
 
 **** Org Customizations for Specific Needs
 :PROPERTIES:
-:header-args:emacs-lisp+: :tangle (expand-file-name "custom/org.el" tangle/emacs-config-dir)
+:header-args:emacs-lisp+: :tangle (expand-file-name "advanced/org-enhanced.el" tangle/emacs-config-dir)
 :END:
 
 ***** Timer/Clock
@@ -14076,7 +14077,7 @@ Stop the running timer when the current task's to-do state changes to DONE.
 **** Custom Maps
 :PROPERTIES:
 :CREATED:  [2022-10-14 Fri 17:43]
-:header-args:emacs-lisp+: :tangle (expand-file-name "custom/custom-map.el" tangle/emacs-config-dir)
+:header-args:emacs-lisp+: :tangle (expand-file-name "advanced/custom-map.el" tangle/emacs-config-dir)
 :END:
 
 ***** dired subdir repeat map
@@ -14312,7 +14313,7 @@ This is a keymap for commands that echo various items as if they were displayed 
 :PROPERTIES:
 :CREATED:  [2023-11-07 Tue 20:02]
 :header-args:emacs-lisp: :eval no
-:header-args:emacs-lisp+: :tangle (expand-file-name "custom/tempel.el" tangle/emacs-config-dir)
+:header-args:emacs-lisp+: :tangle (expand-file-name "advanced/tempel.el" tangle/emacs-config-dir)
 :END:
 
 #+NAME: elisp-region-text
@@ -14443,7 +14444,7 @@ This is a keymap for commands that echo various items as if they were displayed 
 **** RX definitions
 :PROPERTIES:
 :CREATED:  [2023-12-12 Tue 11:25]
-:header-args:emacs-lisp+: :tangle (expand-file-name "custom/rx.el" tangle/emacs-config-dir)
+:header-args:emacs-lisp+: :tangle (expand-file-name "advanced/rx.el" tangle/emacs-config-dir)
 :END:
 
 My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax table since  working buffer with RX in re-builder is reb-lisp-mode which does not hold same syntax table with target-buffer.
@@ -14467,7 +14468,7 @@ My RX function 'parened' evaluates 'parened-rx' with reb-target-buffer's syntax 
 **** Blogging
 :PROPERTIES:
 :CREATED:  [2023-12-29 Fri 14:36]
-:header-args:emacs-lisp+: :tangle (expand-file-name "custom/blog.el" tangle/emacs-config-dir)
+:header-args:emacs-lisp+: :tangle (expand-file-name "advanced/blog.el" tangle/emacs-config-dir)
 :END:
 
 This subtree holds resources for [[https://p-snow.org/][my blog]].
@@ -14523,7 +14524,7 @@ This subtree holds resources for [[https://p-snow.org/][my blog]].
 **** Journaling
 :PROPERTIES:
 :CREATED:  [2023-11-08 Wed 21:44]
-:header-args:emacs-lisp+: :tangle (expand-file-name "custom/journal.el" tangle/emacs-config-dir)
+:header-args:emacs-lisp+: :tangle (expand-file-name "advanced/journal.el" tangle/emacs-config-dir)
 :END:
 
 ***** journal entry template
