@@ -8531,20 +8531,25 @@ emacs-mcp-latest
    `(("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" ,(getenv "HOME"))))
      ("time" . (:command "uvx" :args ("mcp-server-time")))
      ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
+     ("kazuph-fetch" . (:command "npx" :args ("mcp-fetch-server")))
      ("git" . (:command "uvx" :args ("mcp-server-git")))
      ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
      ("duckduckgo" . (:command "uvx" :args ("duckduckgo-mcp-server")))
-     ("github" . (
-                  :command "npx"
-                  :args ("-y" "@modelcontextprotocol/server-github")
-                  :env (:GITHUB_PERSONAL_ACCESS_TOKEN
-                        ,(my/credential-info "github.com/p-snow" "token"))))
-     ;; ("brave" . (
-     ;;             :command "npx"
-     ;;             :args ("-y" "@brave/brave-search-mcp-server")
-     ;;             :env (:BRAVE_API_KEY
-     ;;                   ,(my/credential-info "api-dashboard.search.brave.com" "apikey"))))
-     ))
+     ("github" . ( :command "npx"
+                   :args ("-y" "@modelcontextprotocol/server-github")
+                   :env (:GITHUB_PERSONAL_ACCESS_TOKEN
+                         ,(my/credential-info "github.com/p-snow" "token"))))
+     ("context7"
+      . (:command "npx" :args ("-y" "@upstash/context7-mcp")))
+     ;; ("playwright"
+     ;;  :command "/etc/profiles/per-user/johnw/bin/mcp-server-playwright"
+     ;;  :args ())
+     ("perplexity"
+      :command "uvx"
+      :args ("--isolated" "--from" "perplexity-mcp" "perplexity-mcp" "--")
+      :env (:PERPLEXITY_API_KEY
+            ,(my/credential-info "perplexity.ai" "apikey")
+            :PERPLEXITY_MODEL "sonar"))))
   :config
   (require 'mcp-hub))
 #+end_src
