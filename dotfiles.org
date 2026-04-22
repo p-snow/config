@@ -8475,6 +8475,11 @@ EWW is a nice place for intensive reading. When there are articles or documents 
               glm-4.7-flash
               qwen2.5-coder
               qwen3-coder))
+  (gptel-make-openai "llama-cpp"
+    :stream t
+    :protocol "http"
+    :host "localhost:8080"
+    :models '(local))
   (gptel-make-openai "OpenRouter"
     :host "openrouter.ai"
     :endpoint "/api/v1/chat/completions"
@@ -21902,6 +21907,34 @@ TimeoutSec=180
 
 [Install]
 WantedBy=basic.target
+#+end_src
+
+** llama.cpp
+:PROPERTIES:
+:CREATED:  [2026-04-19 Sun 12:50]
+:END:
+
+To start llama.cpp server on port 8080 at localhost
+#+begin_example
+systemctl --user daemon-reload
+systemctl --user start --now llama-cpp
+#+end_example
+
+#+begin_src conf :comments no :tangle (expand-file-name "systemd/user/llama-cpp.service" tangle/config-dir)
+[Unit]
+Description=llama.cpp server
+After=network.target
+
+[Service]
+Type=simple
+# Prevent accidental CPU usage by delaying
+ExecStartPre=/bin/sleep 10
+ExecStart=/opt/llama/llama-server -m /mnt/shared/models/gemma-4-E4B-it-Q4_K_M.gguf --host 0.0.0.0 --port 8080 -ngl all
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
 #+end_src
 
 * Service Providers
