@@ -8531,7 +8531,8 @@ emacs-mcp-latest
   :after (my-credential)
   :custom
   (mcp-hub-servers
-   `(("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" ,(getenv "HOME"))))
+   `(("filesystem" . ( :command "npx"
+                       :args ("-y" "@modelcontextprotocol/server-filesystem")))
      ("time" . (:command "uvx" :args ("mcp-server-time")))
      ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
      ("kazuph-fetch" . (:command "npx" :args ("mcp-fetch-server")))
@@ -12571,27 +12572,27 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
   )
 #+end_src
 
-***** read_project_file
+***** read_project_file                       :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2026-03-28 Sat 20:21]
 :END:
 
-#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-(gptel-make-tool
- :name "read_project_file"
- :function (lambda (file)
-             (if-let* ((prj (project-current))
-                       (path (seq-find (apply-partially #'string-suffix-p file)
-                                       (project-files prj))))
-                 (with-current-buffer (find-file-noselect path)
-                   (buffer-substring-no-properties (point-min) (point-max)))
-               (error "error: file %s does not exist." file)))
- :description "Return the contents of the file in the current project, if it exists"
- :args (list '(:name "file"
-                     :type string
-                     :description "The name of the file to be read"))
- :category "emacs")
-#+end_src
+# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+# (gptel-make-tool
+#  :name "read_project_file"
+#  :function (lambda (file)
+#              (if-let* ((prj (project-current))
+#                        (path (seq-find (apply-partially #'string-suffix-p file)
+#                                        (project-files prj))))
+#                  (with-current-buffer (find-file-noselect path)
+#                    (buffer-substring-no-properties (point-min) (point-max)))
+#                (error "error: file %s does not exist." file)))
+#  :description "Return the contents of the file in the current project, if it exists"
+#  :args (list '(:name "file"
+#                      :type string
+#                      :description "The name of the file to be read"))
+#  :category "emacs")
+# #+end_src
 
 ***** read_buffer AI tool
 :PROPERTIES:
@@ -12628,6 +12629,44 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
                    (when (boundp sym)
                      (symbol-value sym)))
                (error (format "Error: %s" (error-message-string err)))))
+ :category "emacs")
+#+end_src
+
+***** project_guideline
+:PROPERTIES:
+:CREATED:  [2026-04-26 Sun 15:01]
+:END:
+
+#+NAME: gptel-tool/project-guideline
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "project-guideline"
+ :description "Return project guideline."
+ :function
+ (lambda ()
+   (if-let* ((path (or (seq-find (apply-partially #'string-match-p
+                                                  (rx (or "CONVENTIONS.md" "AGENTS.md") eos))
+                                 (project-files (project-current)))
+                       "~/.local/share/ghq/gist.github.com/p-snow/c1025ca8ee3f4c7e17777e9a9cd15062/conventional-commits-cheatsheet.org")))
+       (with-current-buffer (find-file-noselect path)
+         (buffer-substring-no-properties (point-min) (point-max)))
+     (error "error: GUIDELINE filedoes not exist." file)))
+ :category "emacs-project")
+
+;; Return the contents of project guideline whose name is either CONVETIONS.md, AGENTS.md or CLAUDE.md
+#+end_src
+
+***** get_major_mode
+:PROPERTIES:
+:CREATED:  [2026-04-26 Sun 12:10]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "major-mode"
+ :description "Return current buffer's major-mode."
+ :function (lambda ()
+             major-mode)
  :category "emacs")
 #+end_src
 
@@ -12719,20 +12758,20 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
  :confirm t)
 #+end_src
 
-***** current_time
+***** current_time                            :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2025-07-12 Sat 15:52]
 :END:
 
-#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-(gptel-make-tool
- :name "current_time"
- :function
- (apply-partially #'format-time-string "%Y-%m-%d %H:%M:%S")
- :description "Return the current time formatted as `yyyy-mm-dd HH:MM:SS`"
- :category "emacs"
- :confirm nil)
-#+end_src
+# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+# (gptel-make-tool
+#  :name "current_time"
+#  :function
+#  (apply-partially #'format-time-string "%Y-%m-%d %H:%M:%S")
+#  :description "Return the current time formatted as `yyyy-mm-dd HH:MM:SS`"
+#  :category "emacs"
+#  :confirm nil)
+# #+end_src
 
 ***** execute_command                        :ARCHIVE:
 :PROPERTIES:
@@ -12895,8 +12934,8 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
 - The language of the response must be user's language which can be obtained by tool use"
     :backend      "Gemini"
     :model        'gemini-3.1-flash-lite-preview
-    ;; :backend      "llama-cpp"
-    ;; :model        'local
+    ;; :backend      "OpenRouter"
+    ;; :model        'deepseek/deepseek-v4-flash
     :tools        '("emacs" "mcp-time" "mcp-sequential-thinking")
     :include-tool-results 'auto)
   <<gptel-preset>>
@@ -13051,7 +13090,7 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'project
   :parents 'default
-  :tools  '(:append ("mcp-git" "mcp-github" "mcp-context7" "mcp-filesystem")))
+  :tools  '(:append ("mcp-git" "mcp-github" "mcp-context7" "emacs-project")))
 #+end_src
 
 ****** Commit-message preset
@@ -13067,13 +13106,34 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
   (format
    "Write a new Git commit message.
 - The commit message is the only output you are expected to respond
-- Follow \"CONVENTIONS.md\" if the current project has such a named file; otherwise, follow the following file.
-  \"~/.local/share/ghq/gist.github.com/p-snow/c1025ca8ee3f4c7e17777e9a9cd15062/conventional-commits-cheatsheet.org\""))
+- Follow project guideline
+- git_diff_staged command must be the only source to check the related diff"))
 
 (lambda-key my/gptel-send-map "m"
             (lambda () "Commit-message"
               (interactive)
               (gptel-with-preset 'commit-message
+                (gptel-send))))
+#+end_src
+
+****** Code-generator preset
+:PROPERTIES:
+:CREATED:  [2026-04-26 Sun 12:02]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
+(gptel-make-preset 'code-generator
+  :parents      'project
+  :description  "Code-generator."
+  :system
+  "You are a professional programmer. Generate lines of code in a language which is inferred based on current major mode from the instruction.
+
+- All your responses must be code itself.")
+
+(lambda-key my/gptel-send-map "c"
+            (lambda () "Code-generator"
+              (interactive)
+              (gptel-with-preset 'code-generator
                 (gptel-send))))
 #+end_src
 
