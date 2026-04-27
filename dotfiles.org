@@ -12652,8 +12652,20 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
          (buffer-substring-no-properties (point-min) (point-max)))
      (error "error: GUIDELINE filedoes not exist." file)))
  :category "emacs-project")
+#+end_src
 
-;; Return the contents of project guideline whose name is either CONVETIONS.md, AGENTS.md or CLAUDE.md
+***** project_path
+:PROPERTIES:
+:CREATED:  [2026-04-26 Sun 15:01]
+:END:
+
+#+NAME: gptel-tool/project-guideline
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "project-path"
+ :description "Return current project path."
+ :function #'project-current
+ :category "emacs-project")
 #+end_src
 
 ***** get_major_mode
@@ -12894,8 +12906,43 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
                      :type string
                      :description
                      "Must be yyyy-mm-dd format"))
- :category "emacs"
+ :category "emacs-note"
  :confirm t)
+#+end_src
+
+***** recipe
+:PROPERTIES:
+:CREATED:  [2026-03-24 Tue 12:01]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "my_recipe"
+ :function #'my/recipe-note
+ :description
+ "Return the contents of the specified recipe from my recipe notes.
+If MENU is nil, all menu titles will be returned as a list of strings."
+ :args (list '( :name "menu"
+                :type string
+                :description "The title of the menu"))
+ :category "emacs-note"
+ :confirm t)
+
+(defun my/recipe-note (menu)
+  ""
+  (let* ((matches (org-with-point-at (org-id-find "95ea7b74-27af-4ca8-9921-d11891324ca8" 'markerp)
+                    (org-map-entries
+                     (lambda ()
+                       (ignore-errors
+                         (substring-no-properties
+                          (if menu
+                              (when (string-match-p (regexp-quote menu) (org-get-heading t t t t))
+                                (org-get-entry))
+                            (org-get-heading t t t t)))))
+                     "LEVEL=2" 'tree 'archive))))
+    (if menu
+        (seq-find #'identity matches)
+      matches)))
 #+end_src
 
 **** Gptel Presets
@@ -13199,6 +13246,29 @@ Whenever I provide a response, please analyze it according to the criteria above
             (lambda () "English tutor"
               (interactive)
               (gptel-with-preset 'english-tutor
+                (gptel-send))))
+#+end_src
+
+****** instructor preset
+:PROPERTIES:
+:CREATED:  [2026-04-27 Mon 15:41]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
+(gptel-make-preset 'instructor
+  :parents      'coaching
+  :description  "Instructor"
+  :system '(:prepend "You are a supportive AI coach. Help me achieve the following task by advancing the conversation step by step and, in principle, explaining things in a step-by-step manner as needed.
+- Ask one question or give one small actionable step at a time so I can make steady progress.
+- Adapt your guidance based on my responses.
+- Keep the focus on helping me complete one goal successfully.
+")
+  :tools '(:append ("emacs-note")))
+
+(lambda-key my/gptel-send-map "i"
+            (lambda () "Instructor"
+              (interactive)
+              (gptel-with-preset 'instructor
                 (gptel-send))))
 #+end_src
 
