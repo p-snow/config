@@ -12572,48 +12572,6 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
   )
 #+end_src
 
-***** read_project_file                       :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2026-03-28 Sat 20:21]
-:END:
-
-# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-# (gptel-make-tool
-#  :name "read_project_file"
-#  :function (lambda (file)
-#              (if-let* ((prj (project-current))
-#                        (path (seq-find (apply-partially #'string-suffix-p file)
-#                                        (project-files prj))))
-#                  (with-current-buffer (find-file-noselect path)
-#                    (buffer-substring-no-properties (point-min) (point-max)))
-#                (error "error: file %s does not exist." file)))
-#  :description "Return the contents of the file in the current project, if it exists"
-#  :args (list '(:name "file"
-#                      :type string
-#                      :description "The name of the file to be read"))
-#  :category "emacs")
-# #+end_src
-
-***** read_buffer AI tool
-:PROPERTIES:
-:CREATED:  [2025-07-09 Wed 15:18]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-(gptel-make-tool
- :name "read_buffer"                    ; javascript-style snake_case name
- :function (lambda (buffer)                  ; the function that will run
-             (unless (buffer-live-p (get-buffer buffer))
-               (error "error: buffer %s is not live." buffer))
-             (with-current-buffer  buffer
-               (buffer-substring-no-properties (point-min) (point-max))))
- :description "return the contents of an emacs buffer"
- :args (list '(:name "buffer"
-                     :type string            ; :type value must be a symbol
-                     :description "the name of the buffer whose contents are to be retrieved"))
- :category "emacs")
-#+end_src
-
 ***** get_user_language
 :PROPERTIES:
 :CREATED:  [2026-04-24 Fri 20:55]
@@ -12697,24 +12655,6 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
  :category "emacs")
 #+end_src
 
-***** alarm_set AI tool                      :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2025-07-09 Wed 15:19]
-:END:
-
-# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-# (gptel-make-tool
-#  :name "alarm_set"
-#  :function #'tmr
-#  :description "Set an alarm timer"
-#  :args (list '(:name "time"
-#                      :type string
-#                      :description
-#                      "A time or a duration for the timer. If this is a time, it must be formatted as hh:mm:ss. If this is a duration, it must be an integer followed by s, m, or h representing seconds, minutes, and hours respectively."))
-#  :category "emacs"
-#  :confirm t)
-# #+end_src
-
 ***** capture_task AI tool
 :PROPERTIES:
 :CREATED:  [2025-07-11 Fri 22:46]
@@ -12769,97 +12709,6 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
  :category "emacs"
  :confirm t)
 #+end_src
-
-***** current_time                            :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2025-07-12 Sat 15:52]
-:END:
-
-# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-# (gptel-make-tool
-#  :name "current_time"
-#  :function
-#  (apply-partially #'format-time-string "%Y-%m-%d %H:%M:%S")
-#  :description "Return the current time formatted as `yyyy-mm-dd HH:MM:SS`"
-#  :category "emacs"
-#  :confirm nil)
-# #+end_src
-
-***** execute_command                        :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2025-07-13 Sun 22:50]
-:END:
-
-# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-# (gptel-make-tool
-#  :name "execute_command"
-#  :function #'detached-shell-command
-#  :description
-#  "Execute given shell command in local machine. Don't care that no output is returned since command execution is complete in an isolated environment."
-#  :args (list '(:name "command"
-#                      :type string
-#                      :description
-#                      "A command string that would be executed in a bash shell."))
-#  :category "emacs"
-#  :confirm t)
-# #+end_src
-
-***** good-night command AI tool             :ARCHIVE:
-:PROPERTIES:
-:CREATED:  [2025-07-16 Wed 23:48]
-:END:
-
-# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-# (gptel-make-tool
-#  :name "goodnight_command"
-#  :function (lambda (wakeup-time)
-#              (with-current-buffer (get-buffer-create "*Command*")
-#                (insert
-#                 (format "sleep 30m; midnight.sh; pwsudo rtcwake -m mem --date '%s'; morning.sh"
-#                         wakeup-time))))
-#  :description
-#  "Start a good-night command. This command may be referred to as おやすみコマンド in Japanese."
-#  :args (list '(:name "wakeup-time"
-#                      :type string
-#                      :description
-#                      "The wake-up time must be specified in the format 'yyyy-mm-dd HH:MM'. It should be set for 6 hours and 20 minutes after the current time unless there are specific requirements. Additionally, it should not designate a past time. For example, if the user specifies 05:20 and the current time is 22:00, it means the wake-up time will be set for 05:20 on the following day."))
-#  :category "emacs"
-#  :confirm t)
-# #+end_src
-
-***** ledger_transaction AI tool             :ARCHIVE:
-:PROPERTIES:
-:ID:       5e05037c-bc1f-4d09-be55-c63dbe39ca44
-:CREATED:  [2026-03-28 Sat 21:00]
-:END:
-
-# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-# (gptel-make-tool
-#  :name "ledger_transaction"
-#  :function (lambda (date payee amount account)
-#              (insert (format "%s %s\n  %s    %s JPY\n  Cash"
-#                              date payee account amount))
-#              t)
-#  :description "Make a new Ledger transaction"
-#  :args (list '(:name "date"
-#                      :type string
-#                      :description
-#                      "Must be yyyy/mm/dd format")
-#              '(:name "payee"
-#                      :type string
-#                      :description
-#                      "Payee")
-#              '(:name "amount"
-#                      :type string
-#                      :description
-#                      "Total amount without currency unit")
-#              '(:name "account"
-#                      :type string
-#                      :description
-#                      "Account type"))
-#  :category "emacs"
-#  :confirm nil)
-# #+end_src
 
 ***** set_tags AI tool
 :PROPERTIES:
@@ -12944,6 +12793,162 @@ If MENU is nil, all menu titles will be returned as a list of strings."
         (seq-find #'identity matches)
       matches)))
 #+end_src
+
+***** obsolete tools                          :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2026-04-27 Mon 18:47]
+:END:
+
+****** alarm_set AI tool                     :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-07-09 Wed 15:19]
+:END:
+
+# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+# (gptel-make-tool
+#  :name "alarm_set"
+#  :function #'tmr
+#  :description "Set an alarm timer"
+#  :args (list '(:name "time"
+#                      :type string
+#                      :description
+#                      "A time or a duration for the timer. If this is a time, it must be formatted as hh:mm:ss. If this is a duration, it must be an integer followed by s, m, or h representing seconds, minutes, and hours respectively."))
+#  :category "emacs"
+#  :confirm t)
+# #+end_src
+
+****** read_project_file                     :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2026-03-28 Sat 20:21]
+:END:
+
+# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+# (gptel-make-tool
+#  :name "read_project_file"
+#  :function (lambda (file)
+#              (if-let* ((prj (project-current))
+#                        (path (seq-find (apply-partially #'string-suffix-p file)
+#                                        (project-files prj))))
+#                  (with-current-buffer (find-file-noselect path)
+#                    (buffer-substring-no-properties (point-min) (point-max)))
+#                (error "error: file %s does not exist." file)))
+#  :description "Return the contents of the file in the current project, if it exists"
+#  :args (list '(:name "file"
+#                      :type string
+#                      :description "The name of the file to be read"))
+#  :category "emacs")
+# #+end_src
+
+****** read_buffer AI tool                   :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-07-09 Wed 15:18]
+:END:
+
+# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+# (gptel-make-tool
+#  :name "read_buffer"                    ; javascript-style snake_case name
+#  :function (lambda (buffer)                  ; the function that will run
+#              (unless (buffer-live-p (get-buffer buffer))
+#                (error "error: buffer %s is not live." buffer))
+#              (with-current-buffer  buffer
+#                (buffer-substring-no-properties (point-min) (point-max))))
+#  :description "return the contents of an emacs buffer"
+#  :args (list '(:name "buffer"
+#                      :type string            ; :type value must be a symbol
+#                      :description "the name of the buffer whose contents are to be retrieved"))
+#  :category "emacs")
+# #+end_src
+
+****** current_time                           :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-07-12 Sat 15:52]
+:END:
+
+# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+# (gptel-make-tool
+#  :name "current_time"
+#  :function
+#  (apply-partially #'format-time-string "%Y-%m-%d %H:%M:%S")
+#  :description "Return the current time formatted as `yyyy-mm-dd HH:MM:SS`"
+#  :category "emacs"
+#  :confirm nil)
+# #+end_src
+
+****** execute_command                        :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-07-13 Sun 22:50]
+:END:
+
+# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+# (gptel-make-tool
+#  :name "execute_command"
+#  :function #'detached-shell-command
+#  :description
+#  "Execute given shell command in local machine. Don't care that no output is returned since command execution is complete in an isolated environment."
+#  :args (list '(:name "command"
+#                      :type string
+#                      :description
+#                      "A command string that would be executed in a bash shell."))
+#  :category "emacs"
+#  :confirm t)
+# #+end_src
+
+****** good-night command AI tool             :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2025-07-16 Wed 23:48]
+:END:
+
+# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+# (gptel-make-tool
+#  :name "goodnight_command"
+#  :function (lambda (wakeup-time)
+#              (with-current-buffer (get-buffer-create "*Command*")
+#                (insert
+#                 (format "sleep 30m; midnight.sh; pwsudo rtcwake -m mem --date '%s'; morning.sh"
+#                         wakeup-time))))
+#  :description
+#  "Start a good-night command. This command may be referred to as おやすみコマンド in Japanese."
+#  :args (list '(:name "wakeup-time"
+#                      :type string
+#                      :description
+#                      "The wake-up time must be specified in the format 'yyyy-mm-dd HH:MM'. It should be set for 6 hours and 20 minutes after the current time unless there are specific requirements. Additionally, it should not designate a past time. For example, if the user specifies 05:20 and the current time is 22:00, it means the wake-up time will be set for 05:20 on the following day."))
+#  :category "emacs"
+#  :confirm t)
+# #+end_src
+
+****** ledger_transaction AI tool             :ARCHIVE:
+:PROPERTIES:
+:ID:       5e05037c-bc1f-4d09-be55-c63dbe39ca44
+:CREATED:  [2026-03-28 Sat 21:00]
+:END:
+
+# #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+# (gptel-make-tool
+#  :name "ledger_transaction"
+#  :function (lambda (date payee amount account)
+#              (insert (format "%s %s\n  %s    %s JPY\n  Cash"
+#                              date payee account amount))
+#              t)
+#  :description "Make a new Ledger transaction"
+#  :args (list '(:name "date"
+#                      :type string
+#                      :description
+#                      "Must be yyyy/mm/dd format")
+#              '(:name "payee"
+#                      :type string
+#                      :description
+#                      "Payee")
+#              '(:name "amount"
+#                      :type string
+#                      :description
+#                      "Total amount without currency unit")
+#              '(:name "account"
+#                      :type string
+#                      :description
+#                      "Account type"))
+#  :category "emacs"
+#  :confirm nil)
+# #+end_src
 
 **** Gptel Presets
 :PROPERTIES:
