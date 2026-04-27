@@ -12996,7 +12996,7 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
   :tools   '(:append ("mcp-kazuph-fetch")))
 #+end_src
 
-****** AI-prompting prompt
+****** AI-prompt prompt
 :PROPERTIES:
 :CREATED:  [2026-04-24 Fri 15:03]
 :END:
@@ -13063,7 +13063,7 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
                 (gptel-send))))
 #+end_src
 
-****** Summerizing perset
+****** Summarization perset
 :PROPERTIES:
 :CREATED:  [2026-04-24 Fri 22:50]
 :END:
@@ -13171,13 +13171,13 @@ When the learner inputs a word or phrase, answer in the following format:
                 (gptel-send))))
 #+end_src
 
-****** Tutor preset
+****** English-tutor preset
 :PROPERTIES:
 :CREATED:  [2026-04-24 Fri 22:27]
 :END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
-(gptel-make-preset 'tutor
+(gptel-make-preset 'english-tutor
   :parents      'coaching
   :description  "English tutor"
   :system '(:prepend "You are an expert English tutor acting as a conversation partner and language coach. Your role is to engage in natural, flowing English conversation with me, while simultaneously providing pedagogical support to improve my proficiency.
@@ -13198,7 +13198,7 @@ Whenever I provide a response, please analyze it according to the criteria above
 (lambda-key my/gptel-send-map "o"
             (lambda () "English tutor"
               (interactive)
-              (gptel-with-preset 'tutor
+              (gptel-with-preset 'english-tutor
                 (gptel-send))))
 #+end_src
 
