@@ -10649,6 +10649,23 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
   (advice-add 'consult-yank-from-kill-ring :around #'advice/vterm-yank-pop))
 #+end_src
 
+***** ghostel
+:PROPERTIES:
+:CREATED:  [2026-04-28 Tue 15:46]
+:END:
+
+#+begin_src scheme :noweb-ref guix-base
+"zig"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package ghostel
+  :ensure t
+  :after my-launch-app
+  :bind (:map my/launch-app-map
+              ("g" . ghostel)))
+#+end_src
+
 **** News Packages
 :PROPERTIES:
 :CREATED:  [2026-04-13 Mon 14:20]
@@ -22384,6 +22401,15 @@ RestartSec=5
 
 [Install]
 WantedBy=default.target
+#+end_src
+
+** OpenCode
+:PROPERTIES:
+:CREATED:  [2026-04-28 Tue 15:39]
+:END:
+
+#+begin_src shell :noweb yes :noweb-ref bashrc
+export PATH=<<home-dir()>>/.opencode/bin:$PATH
 #+end_src
 
 * Service Providers
