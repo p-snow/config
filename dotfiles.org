@@ -8496,7 +8496,8 @@ EWW is a nice place for intensive reading. When there are articles or documents 
               qwen/qwen3.6-flash
               deepseek/deepseek-v4-flash
               moonshotai/kimi-k2.6
-              google/gemini-3.1-flash-lite-preview))
+              google/gemini-3.1-flash-lite-preview
+              google/gemma-4-31b-it:free))
   (mcp-hub-start-all-server
    (lambda ()
      (require 'gptel-integrations)
@@ -13002,11 +13003,12 @@ If MENU is nil, all menu titles will be returned as a list of strings."
     "
 - If the response you are about to provide can be represented in a hierarchical structure, use the Org Mode nested plain-list format with a dash (-) as the leading bullet. That being said, there is no need to force a structure on explanations where a prose description would better facilitate understanding.
 - Only provide a source URL if it is absolutely necessary for the answer, ensuring that the link is not broken.
-- The language of the response must be user's native language which can be obtained by tool use"
-    :backend      "Gemini"
-    :model        'gemini-3.1-flash-lite-preview
-    ;; :backend      "OpenRouter"
-    ;; :model        'deepseek/deepseek-v4-flash
+- The language of the response must be user's native language which can be obtained by tool use
+- Don't use emojis or other ostentatious characters unless necessary"
+    ;; :backend      "Gemini"
+    ;; :model        'gemini-3.1-flash-lite-preview
+    :backend      "OpenRouter"
+    :model        'google/gemini-3.1-flash-lite-preview
     :tools        '("emacs" "mcp-time" "mcp-sequential-thinking")
     :include-tool-results 'auto)
   <<gptel-preset>>
@@ -13225,8 +13227,10 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'wordsmith
-  :parents      'coaching
-  :description  "Teaching English"
+  :parents     'coaching
+  :description "Teaching English"
+  :backend     "llama-cpp"
+  :model       'local
   :system '(:prepend "You are an expert in English learning. Explain English words or phrases clearly for an intermediate English learner.
 
 When the learner inputs a word or phrase, answer in the following format:
