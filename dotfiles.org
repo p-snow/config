@@ -8491,7 +8491,11 @@ EWW is a nice place for intensive reading. When there are articles or documents 
   (mcp-hub-start-all-server
    (lambda ()
      (require 'gptel-integrations)
-     (gptel-mcp-connect))))
+     (gptel-mcp-connect)))
+  (defun my/gptel-alert (start end)
+    (alert "LLM Task done" :style 'fringe :buffer (org-clocking-buffer) :severity 'trivial))
+  (add-to-list 'gptel-post-response-functions
+               #'my/gptel-alert))
 #+end_src
 
 ***** mcp
