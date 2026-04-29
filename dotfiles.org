@@ -13016,6 +13016,8 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 (gptel-make-preset 'search
   :parents      'default
   :description  "Basic search capability."
+  :backend  "OpenRouter"
+  :model    'qwen/qwen3.5-flash-02-23
   :system
   '(:prepend "You are a smart explainer. Your job is to provide a clear, plain-language definition of the given word or phrase for someone with no background knowledge:
 
@@ -13091,8 +13093,10 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'translate
-  :parents      'writing
-  :description  "Translate capability."
+  :parents     'writing
+  :description "Translate capability."
+  :backend     "ChatGPT"
+  :model       'gpt-5-nano
   :system       "You are a professional translator. Please translate the text while considering the following prerequisites.
 - Translate the sentence in Japanese if it is English and vice versa.
 - Print only translated sentences without explanations.")
