@@ -12640,6 +12640,47 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
  :category "emacs-project")
 #+end_src
 
+***** elisp-symbol-help
+:PROPERTIES:
+:CREATED:  [2026-04-29 Wed 18:16]
+:END:
+
+#+NAME: gptel-tool/elisp-symbol-help
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+;; Separate function and variable help tool, as some symbols share both function
+;; and variable names, causing the user to have to confirm which one they want
+;; to view.
+(gptel-make-tool
+ :name "elisp-function-help"
+ :description "Return helpful information about `elisp-function`, including documentation, source code, and other valuable information."
+ :function
+ (lambda (elisp-function)
+   (prog2
+       (helpful-function (intern elisp-function))
+       (buffer-substring-no-properties (point-min) (point-max))
+     (kill-current-buffer)))
+ :args (list '( :name "elisp-function"
+                :type string
+                :description
+                "An Emacs Lisp function name"))
+ :category "emacs-help")
+
+(gptel-make-tool
+ :name "elisp-variable-help"
+ :description "Return helpful information about `elisp-variable`, including documentation, source code, and other valuable information."
+ :function
+ (lambda (elisp-variable)
+   (prog2
+       (helpful-variable (intern elisp-variable))
+       (buffer-substring-no-properties (point-min) (point-max))
+     (kill-current-buffer)))
+ :args (list '( :name "elisp-variable"
+                :type string
+                :description
+                "An Emacs Lisp function name"))
+ :category "emacs-help")
+#+end_src
+
 ***** get_major_mode
 :PROPERTIES:
 :CREATED:  [2026-04-26 Sun 12:10]
@@ -13045,7 +13086,7 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 (gptel-make-preset 'technical-research
   :parents      'search
   :description  "Technical research."
-  :tools        '(:append ("mcp-context7")))
+  :tools        '(:append ("mcp-context7" "emacs-help")))
 
 (lambda-key my/gptel-send-map "q"
             (lambda () "Technical research"
