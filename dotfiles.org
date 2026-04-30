@@ -10299,6 +10299,36 @@ Intended :filter function in menu-itmm clause."
   (plist-put minuet-openai-fim-compatible-options :model "glm-4.7-flash"))
 #+end_src
 
+***** edit-indirect
+:PROPERTIES:
+:CREATED:  [2026-04-30 Thu 19:53]
+:END:
+
+[[https://github.com/Fanael/edit-indirect][edit-indirect]] offers ingenious usage of the indirect buffer. It opens an indirect buffer, whose major mode can be different from its parent's, with a region string; this means we can edit partial text in our desired major mode.
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-edit-indirect"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package edit-indirect
+  :bind ("H-e" . edit-indirect-region)
+  :preface
+  (defun my/edit-indirect-default-guess-mode (parent-buffer beg end)
+    "Select appropriate mode for indirect buffer editing. PARENT-BUFFER is the
+buffer to inherit major mode from. BEG and END are ignored."
+    (let (guess-mode)
+      (save-excursion
+        (with-current-buffer parent-buffer
+          (if (derived-mode-p 'emacs-lisp-mode)
+              (setq guess-mode #'text-mode)
+            (setq guess-mode #'normal-mode))))
+      (funcall guess-mode)))
+  :custom
+  (edit-indirect-guess-mode-function
+   #'my/edit-indirect-default-guess-mode))
+#+end_src
+
 **** Files Packages
 :PROPERTIES:
 :CREATED:  [2026-04-12 Sun 22:47]
