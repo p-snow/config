@@ -13095,6 +13095,32 @@ If MENU is nil, all menu titles will be returned as a list of strings."
                 (gptel-send))))
 #+end_src
 
+****** Fact-checking preset
+:PROPERTIES:
+:CREATED:  [2026-04-30 Thu 17:56]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
+(gptel-make-preset 'fact-checking
+  :parents      'search
+  :description  "Fact checking"
+  :system       '(:prepend "As a professional proofreader and fact-checker, evaluate the accuracy of the provided text and propose improvements.
+Please output the results based on the following instructions:
+
+- Fact-Checking and Identification of Issues: Specifically point out, in a bulleted list, any factual errors, logical inconsistencies, or issues regarding the accuracy of information contained in the provided text.
+- Presentation of a Revised Version: Present a rewritten version of the text that resolves the issues identified above, ensuring the content is more accurate and refined.
+
+Please omit any explanations or introductory remarks in your output, and provide only the identified issues and the revised text in a concise manner.
+")
+  :tools        '(:append ("mcp-context7" "emacs-help")))
+
+(lambda-key my/gptel-send-map "h"
+            (lambda () "Fect checking"
+              (interactive)
+              (gptel-with-preset 'fact-checking
+                (gptel-send))))
+#+end_src
+
 ***** Writing preset
 :PROPERTIES:
 :CREATED:  [2026-04-24 Fri 15:04]
