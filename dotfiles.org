@@ -8225,6 +8225,16 @@ EWW is a nice place for intensive reading. When there are articles or documents 
                  '("!" . my/view-htmlized)
                  t))
   :preface
+  (defun my/remove-tool-blocks (backend)
+    "Remove #+begin_tool special blocks during HTML export.
+
+Each block holds the request and the response of a tool call in `gptel'."
+    (when (org-export-derived-backend-p backend 'html)
+      (org-element-map (org-element-parse-buffer) 'special-block
+        (lambda (block)
+          (when (string= (org-element-property :type block) "tool")
+            (delete-region (org-element-property :begin block)
+                           (org-element-property :end block)))))))
   (defun my/view-htmlized ()
     (interactive)
     (when (require-with-check 'ox)
@@ -8260,7 +8270,9 @@ EWW is a nice place for intensive reading. When there are articles or documents 
           (apply write-proc (list file-path)))
         (browse-url-of-file file-path))))
   :config
-  (bind-keys ("C-!" . my/view-htmlized)))
+  (bind-keys ("C-!" . my/view-htmlized))
+  (add-hook 'org-export-before-parsing-functions
+            #'my/remove-tool-blocks))
 #+end_src
 
 ***** define-word
