@@ -8481,12 +8481,14 @@ EWW is a nice place for intensive reading. When there are articles or documents 
               deepseek/deepseek-v3.2
               anthropic/claude-sonnet-4.6
               z-ai/glm-5.1
-              qwen/qwen3.6-27b
+              qwen/qwen3.6-plus
               qwen/qwen3.6-flash
               qwen/qwen3.5-flash-02-23
+              tencent/hy3-preview
               deepseek/deepseek-v4-flash
               moonshotai/kimi-k2.6
-              google/gemini-3.1-flash-lite-preview
+              xiaomi/mimo-v2.5
+              google/gemini-3.1-flash-lite
               google/gemma-4-31b-it:free))
   (mcp-hub-start-all-server
    (lambda ()
@@ -13092,7 +13094,7 @@ If MENU is nil, all menu titles will be returned as a list of strings."
   :parents      'default
   :description  "Basic search capability."
   :backend  "OpenRouter"
-  :model    'qwen/qwen3.5-flash-02-23
+  :model    'tencent/hy3-preview
   :system
   '(:prepend "You are a smart explainer. Your job is to provide a clear, plain-language definition of the given word or phrase for someone with no background knowledge:
 
@@ -13134,6 +13136,7 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 (gptel-make-preset 'fact-checking
   :parents      'search
   :description  "Fact checking"
+  :model    'moonshotai/kimi-k2.6
   :system       '(:prepend "As a professional proofreader and fact-checker, evaluate the accuracy of the provided text and propose improvements.
 Please output the results based on the following instructions:
 
