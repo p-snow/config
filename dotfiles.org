@@ -9171,11 +9171,13 @@ Major mode for manupulating password store file.
   (with-eval-after-load 'org
     (bind-keys :map org-mode-map
                ("C-c g" . consult-org-heading)))
+  (with-eval-after-load 'xref
+    (setopt xref-show-xrefs-function 'consult-xref))
   (setq consult-ripgrep-args
         `(,(default-value 'consult-ripgrep-args)
-          "--hidden" ;; for dotfiles
-          "--follow" ;; for symlinks
-          "--text"   ;; for *.zip/*.7z files
+          "--hidden"                             ;; for dotfiles
+          "--follow"                             ;; for symlinks
+          "--text"                               ;; for *.zip/*.7z files
           "--pre pre-rg --pre-glob \"*.gpg\""))) ;; for *.gpg files
 #+end_src
 
