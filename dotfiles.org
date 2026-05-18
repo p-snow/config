@@ -10111,12 +10111,13 @@ files to retroactively follow that order."
   (defun my/logos-focus-mode ()
     "Toggle `logos-focus-mode' as setting `logos-buffer-read-only'."
     (interactive)
-    (if logos-focus-mode
-        (logos-focus-mode -1)
-      (setq-local logos-buffer-read-only
-                  (if (derived-mode-p '(Custom-mode))
-                      nil t))
-      (logos-focus-mode 1)))
+    (when (require-with-check 'logos)
+      (if logos-focus-mode
+          (logos-focus-mode -1)
+        (setq-local logos-buffer-read-only
+                    (if (derived-mode-p '(Custom-mode))
+                        nil t))
+        (logos-focus-mode 1))))
   (defun my/logos-command-filter (cmd)
     "Return CMD if condition permit to execute it in logos-focus-mode.
 
