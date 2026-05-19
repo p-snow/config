@@ -3507,8 +3507,8 @@ For [[info:elisp#Native Compilation][native compilation feature]] introduced at 
      (t (hs-hide-all))))
   :bind (:map hs-minor-mode-map
               ("H-i" . hs-toggle-hiding)
-              ("C-c TAB" . hs-hide-level)
-              ("S-TAB" . my/hs-hide-all)))
+              ("H-TAB" . hs-hide-level)
+              ("H-I" . my/hs-hide-all)))
 #+end_src
 
 ****** Python
@@ -5099,8 +5099,6 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
               ("a" . org-agenda))
   :hook
   (org-agenda-mode . (lambda ()
-                       ;; TODO: this can be rewritten with `display-buffer'
-                       (delete-other-windows)
                        (org-agenda-to-appt 'refresh)))
   :custom
   (org-agenda-files
@@ -13432,6 +13430,33 @@ Whenever I provide a response, please analyze it according to the criteria above
               (interactive)
               (gptel-with-preset 'instructor
                 (gptel-send))))
+#+end_src
+
+**** Global Display Buffer Settings
+:PROPERTIES:
+:CREATED:  [2026-05-19 Tue 01:50]
+:END:
+
+#+begin_src emacs-lisp
+(add-to-list 'display-buffer-alist
+             '("\\*Org Agenda\\*"
+               (display-buffer-same-window)))
+
+(add-to-list 'display-buffer-alist
+             '((derived-mode . calendar-mode)
+               (display-buffer-reuse-mode-window display-buffer-below-selected)
+               (mode . (calendar-mode bookmark-edit-annotation-mode ert-results-mode))
+               (inhibit-switch-frame . t)
+               (dedicated . t)
+               (window-height . fit-window-to-buffer)))
+
+(add-to-list 'display-buffer-alist
+             '((derived-mode . reb-mode) ; M-x re-builder
+               (display-buffer-reuse-mode-window display-buffer-below-selected)
+               (inhibit-switch-frame . t)
+               (window-height . 3) ; note this is literal lines, not relative
+               (dedicated . t)
+               (preserve-size . (t . t))))
 #+end_src
 
 **** Org Customizations for Specific Needs
