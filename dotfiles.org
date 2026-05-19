@@ -15409,6 +15409,19 @@ As of 28.1, Emacs won't steal keyboard focus at startup which means we can use e
 (require 'facemenu)
 #+end_src
 
+***** Fix auto-mode-alist
+:PROPERTIES:
+:CREATED:  [2026-05-17 Sun 23:16]
+:END:
+
+As of [2026-05-19 Tue], auto-mode-alist has '(nil . php-ts-mode), which is malignant when set-auto-mode fires. The following code remedies the issue.
+
+#+begin_src emacs-lisp
+(add-hook 'after-init-hook
+          (lambda ()
+            (assoc-delete-all nil auto-mode-alist)))
+#+end_src
+
 **** tailored commands/functions
 :PROPERTIES:
 :CREATED:  [2023-01-20 Fri 10:59]
