@@ -7481,6 +7481,9 @@ Jaword.elはbackward-wordやforward-wordを日本語に対応させる機能を�
   :commands (magit magit-status magit-dispatch)
   :custom
   (magit-log-margin '(t age-abbreviated 12 t 7))
+  (magit-display-buffer-function
+   #'magit-display-buffer-same-window-except-diff-v1)
+  (magit-diff-refine-hunk 'all)
   :config
   (bind-keys :map magit-status-mode-map
              ("/" . magit-file-checkout)
