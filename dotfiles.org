@@ -2274,6 +2274,7 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
 #+NAME: config/emacs-dired
 #+begin_src emacs-lisp
 (use-package dired
+  :ensure nil
   :bind (:map global-map
               ("C-x d" . dired-jump)
               :map dired-mode-map
@@ -2295,6 +2296,8 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
   (dired-copy-dereference t)
   (dired-recursive-copies 'always)
   (dired-recursive-deletes 'top)
+  (dired-create-destination-dirs 'ask)
+  (dired-create-destination-dirs-on-trailing-dirsep t)
   (dired-listing-switches "-ahgG --time-style=long-iso --group-directories-first")
   (dired-dwim-target 'dired-dwim-target-next)
   (dired-hide-details-hide-information-lines t)
