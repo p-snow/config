@@ -8512,7 +8512,6 @@ Each block holds the request and the response of a tool call in `gptel'."
     :models '(minimax/minimax-m2.5
               minimax/minimax-m2.5:free
               minimax/minimax-m2.7
-              deepseek/deepseek-v3.2
               anthropic/claude-sonnet-4.6
               z-ai/glm-5.1
               qwen/qwen3.6-plus
@@ -8520,6 +8519,8 @@ Each block holds the request and the response of a tool call in `gptel'."
               qwen/qwen3.5-flash-02-23
               tencent/hy3-preview
               deepseek/deepseek-v4-flash
+              deepseek/deepseek-v4-flash:free
+              deepseek/deepseek-v4-pro
               moonshotai/kimi-k2.6
               xiaomi/mimo-v2.5
               google/gemini-3.1-flash-lite
@@ -13109,10 +13110,8 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 - Only provide a source URL if it is absolutely necessary for the answer, ensuring that the link is not broken.
 - The language of the response must be user's native language which can be obtained by tool use
 - Don't use emojis or other ostentatious characters unless necessary"
-    ;; :backend      "Gemini"
-    ;; :model        'gemini-3.1-flash-lite-preview
     :backend      "OpenRouter"
-    :model        'google/gemini-3.1-flash-lite-preview
+    :model        'tencent/hy3-preview
     :tools        '("emacs" "mcp-time" "mcp-sequential-thinking")
     :include-tool-results 'auto)
   <<gptel-preset>>
@@ -13130,8 +13129,6 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 (gptel-make-preset 'search
   :parents      'default
   :description  "Basic search capability."
-  :backend  "OpenRouter"
-  :model    'tencent/hy3-preview
   :system
   '(:prepend "You are a smart explainer. Your job is to provide a clear, plain-language definition of the given word or phrase for someone with no background knowledge:
 
@@ -13173,7 +13170,8 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 (gptel-make-preset 'fact-checking
   :parents      'search
   :description  "Fact checking"
-  :model    'moonshotai/kimi-k2.6
+  :backend      "OpenRouter"
+  :model        'moonshotai/kimi-k2.6
   :system       '(:prepend "As a professional proofreader and fact-checker, evaluate the accuracy of the provided text and propose improvements.
 Please output the results based on the following instructions:
 
@@ -13199,6 +13197,8 @@ Please omit any explanations or introductory remarks in your output, and provide
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'writing
   :parents 'default
+  :backend "OpenRouter"
+  :model   'google/gemini-3.1-flash-lite
   :tools   '(:append ("mcp-kazuph-fetch")))
 #+end_src
 
@@ -13236,8 +13236,6 @@ Please omit any explanations or introductory remarks in your output, and provide
 (gptel-make-preset 'translate
   :parents     'writing
   :description "Translate capability."
-  :backend     "ChatGPT"
-  :model       'gpt-5-nano
   :system       "You are a professional translator. Please translate the text while considering the following prerequisites.
 - Translate the sentence in Japanese if it is English and vice versa.
 - Print only translated sentences without explanations.")
@@ -13313,9 +13311,10 @@ Please omit any explanations or introductory remarks in your output, and provide
   :system
   (format
    "Write a new Git commit message.
-- The commit message is the only output you are expected to respond
-- Follow project guideline
-- git_diff_staged command must be the only source to check the related diff"))
+- The commit message is the only output you are expected to respond with.
+- Follow project guidelines.
+- The git_diff_staged command must be the only source to check the relevant diff.
+- Append a descriptive comment if needed."))
 
 (lambda-key my/gptel-send-map "m"
             (lambda () "Commit-message"
@@ -13333,6 +13332,8 @@ Please omit any explanations or introductory remarks in your output, and provide
 (gptel-make-preset 'code-generator
   :parents      'project
   :description  "Code-generator."
+  :backend      "OpenRouter"
+  :model        'deepseek/deepseek-v4-flash
   :system
   "You are a professional programmer. Generate lines of code in a language which is inferred based on current major-mode.
 
@@ -13364,8 +13365,6 @@ Please omit any explanations or introductory remarks in your output, and provide
 (gptel-make-preset 'wordsmith
   :parents     'coaching
   :description "Teaching English"
-  :backend     "llama-cpp"
-  :model       'local
   :system '(:prepend "You are an expert in English learning. Explain English words or phrases clearly for an intermediate English learner.
 
 When the learner inputs a word or phrase, answer in the following format:
