@@ -7857,6 +7857,9 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a 
   :bind (("C-." . embark-act)
          ("M-." . embark-dwim)
          ("<help> B" . embark-bindings)
+         :map minibuffer-local-map
+         ("C-c C-c" . embark-collect)
+         ("C-c C-e" . embark-export)
          :map embark-file-map
          ("b" . browse-url))
   :init
@@ -7864,9 +7867,12 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a 
   :custom
   (embark-mixed-indicator-delay 3)
   :config
-  (require 'embark-consult)
-  (require 'embark-org)
-  (require 'avy-embark-collect)
+  (use-package embark-consult
+    :after consult)
+  (use-package embark-consult
+    :after org)
+  (use-package avy-embark-collect
+    :after avy)
   (push 'embark--allow-edit
         (alist-get 'shell-command-on-region embark-target-injection-hooks)))
 #+end_src
