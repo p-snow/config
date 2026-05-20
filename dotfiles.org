@@ -1785,7 +1785,11 @@ Variables that start with "tangle/" and are used during the tangling process are
 (package-initialize)
 #+end_src
 
-**** load cl-lib
+**** Load libraries
+
+#+begin_src emacs-lisp
+(setq load-prefer-newer t)
+#+end_src
 
 Use 'cl-lib' rather than 'cl' package since it is [[https://www.gnu.org/savannah-checkouts/gnu/emacs/news/NEWS.27.1][officially deprecated]].
 
@@ -1915,6 +1919,37 @@ Following hook statements are likely written in .dir-locals.el at the top level 
 (require 'no-littering)
 #+end_src
 
+**** Performance Tuning
+:PROPERTIES:
+:CREATED:  [2022-09-16 Fri 12:08]
+:END:
+
+#+begin_src emacs-lisp
+(setq auto-window-vscroll nil)
+(setq-default bidi-display-reordering nil)
+(setq bidi-inhibit-bpa t)
+
+;; defer fontification until you stop typing
+(setq redisplay-skip-fontification-on-input t)
+#+end_src
+
+***** Garbage collection
+:PROPERTIES:
+:ID:       ff1cc31b-756f-4442-acef-907ebeb872f6
+:END:
+
+If GC time at Emacs initialization is problematic, checking [[help:gcs-done][gcs-done]] or [[help:gc-elapsed][gc-elapsed]] may help you as well as setting garbage-collection-messages to t. Increasing gc-cons-* variables would minimize Emacs init time, but this also cause each GC time which may noticeable as freeze.
+[[https://emacsconf.org/2023/talks/gc/][
+This presentation]] advise to increase gc-cons-threshold to 20-80Mb if you have Emacs with slow startup, and to increase gc-cons-percentage to 0.2-1.0 if you have slow and frequent GC.
+
+The Emacs package [[help:Package][emacs-gc-stats]] is useful for collecting statistical data on garbage collection (GC) to send to developers in order to inquire about the cause of GC issues.
+
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
+(setq gc-cons-threshold (* 30 gc-cons-threshold)
+      gc-cons-percentage 0.3)
+#+end_src
+
+
 *** init.el
 :PROPERTIES:
 :CREATED:  [2022-12-24 Sat 14:56]
@@ -2009,13 +2044,17 @@ Settings in this section are influenced a great deal by my personal preference. 
 :END:
 
 #+begin_src emacs-lisp
-(put 'upcase-region 'disabled nil)
-(put 'downcase-region 'disabled nil)
-(put 'narrow-to-region 'disabled nil)
-(put 'set-goal-column 'disabled nil)
-(put 'buffer-save-without-query 'disabled nil)
-(put 'scroll-left 'disabled nil)
-(put 'scroll-right 'disabled nil)
+(mapc
+ (lambda (command)
+   (put command 'disabled nil))
+ '( upcase-region downcase-region narrow-to-region
+    set-goal-column buffer-save-without-query
+    scroll-left scroll-right ))
+
+(mapc
+ (lambda (command)
+   (put command 'disabled t))
+ '( overwrite-mode))
 #+end_src
 
 **** Coding System
@@ -2135,20 +2174,6 @@ It tries to proportionate ORIGINAL-SIZE in `my/default-pixel-width' in the displ
   ((dired-mode mu4e-headers-mode elfeed-search-update)
    . (lambda ()
        (buffer-face-set (check-face 'fixed-pitch)))))
-#+end_src
-
-**** Performance Tuning
-:PROPERTIES:
-:CREATED:  [2022-09-16 Fri 12:08]
-:END:
-
-#+begin_src emacs-lisp
-(setq auto-window-vscroll nil)
-(setq-default bidi-display-reordering nil)
-(setq bidi-inhibit-bpa t)
-
-;; defer fontification until you stop typing
-(setq redisplay-skip-fontification-on-input t)
 #+end_src
 
 *** Custom Variables and Additional Settings    :refile:
@@ -2400,7 +2425,7 @@ whether files are going to be in trash box."
 :END:
 
 #+NAME: config/initialization
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
 (setopt initial-scratch-message ""
         inhibit-startup-screen t
         initial-major-mode 'text-mode)
@@ -2408,7 +2433,7 @@ whether files are going to be in trash box."
 
 ***** Frames
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
@@ -2490,7 +2515,7 @@ and executes the save command."
 
 ***** Display
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
 ;; Absolutely ignore beep message
 (setopt visible-bell t)
 (setq ring-bell-function #'ignore)
@@ -3325,22 +3350,6 @@ sMerge can be utilized to address merging issues.
 **** Development
 
 ***** Internal
-****** Storage Allocation
-:PROPERTIES:
-:ID:       ff1cc31b-756f-4442-acef-907ebeb872f6
-:END:
-
-If GC time at Emacs initialization is problematic, checking [[help:gcs-done][gcs-done]] or [[help:gc-elapsed][gc-elapsed]] may help you as well as setting garbage-collection-messages to t. Increasing gc-cons-* variables would minimize Emacs init time, but this also cause each GC time which may noticeable as freeze.
-[[https://emacsconf.org/2023/talks/gc/][
-This presentation]] advise to increase gc-cons-threshold to 20-80Mb if you have Emacs with slow startup, and to increase gc-cons-percentage to 0.2-1.0 if you have slow and frequent GC.
-
-The Emacs package [[help:Package][emacs-gc-stats]] is useful for collecting statistical data on garbage collection (GC) to send to developers in order to inquire about the cause of GC issues.
-
-#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
-(setq gc-cons-threshold (* 30 gc-cons-threshold)
-      gc-cons-percentage 0.3)
-#+end_src
-
 ***** Lisp
 
 #+begin_src emacs-lisp
@@ -3367,17 +3376,32 @@ The Emacs package [[help:Package][emacs-gc-stats]] is useful for collecting stat
 
 ****** Comp
 
-For [[info:elisp#Native Compilation][native compilation feature]] introduced at Emacs 28.1.
+For the [[info:elisp#Native Compilation][native compilation feature]] introduced in Emacs 28.1, these configurations have to reside in early-init.el.
 
-#+begin_src emacs-lisp
-(use-package comp
-  :init
-  ;; enable asynchronous native compilation
-  (setq native-comp-jit-compilation t)
-  :custom
-  (native-comp-async-report-warnings-errors 'silent)
-  (native-comp-async-query-on-exit t)
-  (native-comp-verbose 1))
+[[https://www.jamescherti.com/compiling-emacs/][This post]] explains the legitimacy for compiler/linker options.
+
+#+NAME: machine-arch
+#+begin_src shell
+gcc -march=native -Q --help=target | grep '^\s*-march=' | awk '{print $2}'
+#+end_src
+
+#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
+(setq my/cpu-architecture "<<machine-arch()>>")
+
+(setq native-comp-jit-compilation t
+      native-comp-compiler-options
+      `(;; The most meaningful optimizations:
+        "-O2"
+        ,(format "-mtune=%s" my/cpu-architecture)
+        ,(format "-march=%s" my/cpu-architecture)
+        ;; Reduce .eln size and compilation overhead.
+        "-g0"
+        ;; Good defensive choice for Emacs stability.
+        "-fno-omit-frame-pointer"
+        "-fno-finite-math-only")
+      native-comp-async-report-warnings-errors 'silent
+      native-comp-async-query-on-exit t
+      native-comp-verbose 1)
 #+end_src
 
 ****** Eldoc
@@ -4397,10 +4421,12 @@ Indentation settings for Guix, which are adapted from [[https://codeberg.org/mrh
 :CREATED:  [2023-01-10 Tue 18:48]
 :END:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
 (setopt custom-file
         (locate-user-emacs-file "custom.el"))
+#+end_src
 
+#+begin_src emacs-lisp
 (when (file-readable-p custom-file)
   (load custom-file))
 #+end_src
@@ -4903,16 +4929,16 @@ This configuration offers directories and branches as candidates for git add/rm 
 
 ***** Package
 
+#+begin_src emacs-lisp :tangle (expand-file-name "early-init.el" tangle/user-emacs-directory)
+(setopt package-native-compile t
+        package-install-upgrade-built-in t
+        package-quickstart t)
+#+end_src
+
 #+begin_src emacs-lisp
-(use-package package
-  :custom
-  (package-native-compile t)
-  (package-install-upgrade-built-in t)
-  (package-quickstart t)
-  :config
-  (with-eval-after-load 'my-launch-app
-    (keymap-set my/launch-app-map (kbd "l")
-                #'list-packages)))
+(with-eval-after-load 'my-launch-app
+  (keymap-set my/launch-app-map (kbd "l")
+              #'list-packages))
 #+end_src
 
 ***** Eglot
