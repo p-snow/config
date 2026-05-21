@@ -5069,25 +5069,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   :init
   (setq org-directory "~/org")
   :custom
-  (org-sort-function 'org-sort-function-fallback)
-  :config
-  (let ((map org-mode-map))
-    (keymap-set map "C-j" #'org-return)
-    (keymap-set map "C-M-j" #'org-return-indent)
-    (keymap-set map "M-j" #'org-meta-return)
-    (keymap-set map "C-S-p" #'org-previous-item)
-    (keymap-set map "C-S-n" #'org-next-item)
-    (keymap-set map "C-S-u" #'org-up-element)
-    (keymap-set map "C-S-d" #'org-down-element)
-    (keymap-set map "C-x M-F" #'org-forward-paragraph)
-    (keymap-set map "C-x M-B" #'org-backward-paragraph)
-    (keymap-set map "C-<" #'org-previous-link)
-    (keymap-set map "C->" #'org-next-link)
-    (keymap-set map "C-c @" #'org-mark-element)
-    (keymap-set map "C-c C-SPC" #'org-mark-subtree)
-    (keymap-set map "C-c C-a" nil)
-    (keymap-set map "C-," nil)
-    (keymap-set map "M-h" nil)))
+  (org-sort-function 'org-sort-function-fallback))
 
 (defvar my/org-todo-keyword--urgent "UG"
   "TODO keyword acronym standing for 'UrGent'")
@@ -13492,6 +13474,34 @@ Whenever I provide a response, please analyze it according to the criteria above
 :header-args:emacs-lisp+: :tangle (expand-file-name "advanced/org-enhanced.el" tangle/emacs-config-dir)
 :END:
 
+***** Key bindings for Org mode
+:PROPERTIES:
+:CREATED:  [2026-05-21 Thu 15:41]
+:END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  (bind-keys :map org-mode-map
+             ("C-j"       . org-return)
+             ("C-M-j"     . org-return-indent)
+             ("M-j"       . org-meta-return)
+             ("C-S-n"     . org-next-item)
+             ("C-S-p"     . org-previous-item)
+             ("C-S-u"     . org-up-element)
+             ("C-S-d"     . org-down-element)
+             ("C-S-f"     . org-forward-element)
+             ("C-S-b"     . org-backward-element)
+             ("C-c M-F"   . org-forward-paragraph)
+             ("C-c M-B"   . org-backward-paragraph)
+             ("C->"       . org-next-link)
+             ("C-<"       . org-previous-link)
+             ("C-c @"     . org-mark-element)
+             ("C-c C-SPC" . org-mark-subtree)
+             ("C-c C-a"   . nil) ; org-attach
+             ("C-,"       . nil) ; org-cycle-agenda-files
+             ))
+#+end_src
+
 ***** Timer/Clock
 :PROPERTIES:
 :CREATED:  [2026-02-24 Tue 18:09]
@@ -13928,7 +13938,7 @@ If called interactively, it prompt the user to select the date to find."
     (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil)))))
 #+end_src
 
-***** Cursor Movement
+***** Motion
 :PROPERTIES:
 :CREATED:  [2026-02-24 Tue 18:58]
 :END:
@@ -13953,6 +13963,42 @@ It's handy to jump to the last sibling of the current org entry, especially when
 
 (keymap-global-set "C-c M->"
                    #'my/org-cadet-heading)
+#+end_src
+
+****** org-block-navigation-repeat-map
+:PROPERTIES:
+:CREATED:  [2026-05-21 Thu 15:30]
+:END:
+
+org-next-block binds C-c M-f, so it's natural to press C-c M-f M-f M-f... rather than C-c M-f f f f... to repeat the command.
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org-keys
+  (use-package org
+    :ensure nil
+    :bind (:repeat-map org-block-navigation-repeat-map
+                       ("M-b" . org-previous-block)
+                       ("M-f" . org-next-block))))
+#+end_src
+
+****** my/org-element-navigation-repeat-map
+:PROPERTIES:
+:CREATED:  [2023-03-05 Sun 16:15]
+:END:
+
+#+begin_src emacs-lisp
+(use-package org-keys
+  :ensure nil
+  :bind
+  (:repeat-map my/org-element-navigation-repeat-map
+               ("n" . org-next-item)
+               ("p" . org-previous-item)
+               ("u" . org-up-element)
+               ("d" . org-down-element)
+               ("f" . org-forward-element)
+               ("b" . org-backward-element)
+               ("M-F" . org-forward-paragraph)
+               ("M-B" . org-backward-paragraph)))
 #+end_src
 
 ***** Searching
@@ -14082,31 +14128,6 @@ obtained from the org-link at the current point."
                      "l" #'org-insert-link-global))
 
 (provide 'my-org-global-map)
-#+end_src
-
-***** org move repeat map
-:PROPERTIES:
-:CREATED:  [2023-03-05 Sun 16:15]
-:END:
-
-[[help:my/org-move-repeat-map][my/org-move-repeat-map]] allows to move around org elements and blocks with ease.
-
-#+begin_src emacs-lisp
-(defvar-keymap my/org-move-repeat-map
-  :doc "Keymap to repeat moving commands in `org-mode'.  Used in `repeat-mode'."
-  :repeat t
-  "n" #'org-next-item
-  "p" #'org-previous-item
-  "u" #'org-up-element
-  "d" #'org-down-element
-  "f" #'org-forward-element
-  "b" #'org-backward-element
-  ">" #'org-next-link
-  "<" #'org-previous-link
-  "M-f" #'org-next-block
-  "M-b" #'org-previous-block
-  "M-F" #'org-forward-paragraph
-  "M-B" #'org-backward-paragraph)
 #+end_src
 
 ***** Cycling Org visual appearance (my/org-visual-map)
@@ -14577,12 +14598,14 @@ A "project" link type is designed for local copies of Git or other CVS repositor
    :export #'my/org-dotfile-export-link))
 #+end_src
 
-***** Org speed commands for subtrees and items
+***** Org speed commands for subtrees and items :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2025-04-11 Fri 11:54]
 :END:
 
 Org speed command is a swift way of manipulating subtrees. It would be even more attractive if this feature could be used for items as well, as Sacha Chua proposed in [[https://sachachua.com/blog/2025/03/org-mode-cutting-the-current-list-item-including-nested-lists-with-a-speed-command/][this blog post]].
+
+I decided to use direct keybindings and repeat mode (my/org-element-navigation-repeat-map) for navigation against items rather than speed commands. :: [2026-05-21 Thu 16:10]
 
 #+begin_src emacs-lisp
 (defmacro org-defun-speed-command (op-name subtree-op list-item-op)
