@@ -16912,10 +16912,6 @@ I'd share this babel config between literate configuration and main Emacs sessio
    (command-format-spec :initarg :command-format-spec :initform nil)
    (suppress-output :initarg :suppress-output :initform nil)))
 
-(cl-defmethod transient-init-value ((obj my/tsc-shell-command))
-  (unless (slot-boundp obj :command-format)
-    (oset obj command-format "%a")))
-
 (defvar my/tsc-optional-menu
   ["Optional"
    (my/tsc-kill)
@@ -16955,14 +16951,12 @@ I'd share this babel config between literate configuration and main Emacs sessio
          (command-format-spec (and (slot-boundp obj :command-format-spec)
                                    (oref obj command-format-spec))))
     (format-spec
-     (replace-regexp-in-string
-      "\\\\\%" "\\\\\%\%"               ; avoid replacing "\%" in shell argument
-      (eval (oref obj command-format)))
+     ;; avoid replacing "\%" in shell argument
+     (string-replace "\\%" "\\%%" (oref obj command-format))
      (append
       `((?a . ,(string-join (flatten-list
-                             (seq-reduce (lambda (li char) (delete char li))
-                                         '("M-w" "M-i")
-                                         (transient--get-savable-value)))
+                             ;; transient-args returns reverse menu order
+                             (reverse (transient-args transient-current-command)))
                             " ")))
       (when command-format-spec
         (mapcar (lambda (key-val) (cons (car key-val) (eval (cdr key-val))))
@@ -16971,16 +16965,11 @@ I'd share this babel config between literate configuration and main Emacs sessio
 (defun my/tsc-suffix (key)
   ""
   (seq-find (lambda (obj) (equal (oref obj key) key))
-            (or transient--suffixes transient-current-suffixes)))
+            transient-current-suffixes))
 
 (defun my/tsc-infix-values (keys)
   (mapconcat
-   ;; FIXME: This is quick and dirty code
-   (lambda (obj)
-     (let ((val (car (transient--get-wrapped-value obj))))
-       (if (consp val)
-           (concat (car val) (cdr val))
-         val)))
+   (lambda (obj) (transient-infix-value obj))
    (delq nil (mapcar #'my/tsc-suffix keys))
    " "))
 
@@ -17537,7 +17526,6 @@ I'd share this babel config between literate configuration and main Emacs sessio
     :class my/tsc-file
     :prompt "Output file: "
     :reader my/tsc-output-reader
-    :always-read t
     :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}" nil))))]
   my/tsc-optional-menu
   [(my/tsc-execute
