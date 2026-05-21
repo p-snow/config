@@ -16910,7 +16910,8 @@ I'd share this babel config between literate configuration and main Emacs sessio
 (defclass my/tsc-shell-command (transient-suffix)
   ((command-format :initarg :command-format :initform "%a")
    (command-format-spec :initarg :command-format-spec :initform nil)
-   (suppress-output :initarg :suppress-output :initform nil)))
+   (suppress-output :initarg :suppress-output :initform nil)
+   (before-function :initarg :before-function :initform nil)))
 
 (defvar my/tsc-optional-menu
   ["Optional"
@@ -16942,7 +16943,10 @@ I'd share this babel config between literate configuration and main Emacs sessio
   :class my/tsc-shell-command
   :key "RET" :description "Execute"
   (interactive (list (transient-args transient-current-command)))
-  (let ((my/detached-bury-buffer (oref (transient-suffix-object) suppress-output)))
+  (let ((my/detached-bury-buffer (oref (transient-suffix-object) suppress-output))
+        (before-function (oref (transient-suffix-object) before-function)))
+    (when before-function
+      (funcall before-function))
     (funcall my/tsc-execute-function (my/tsc-build-shell-command))))
 
 (defun my/tsc-build-shell-command ()
@@ -17146,7 +17150,11 @@ I'd share this babel config between literate configuration and main Emacs sessio
   my/tsc-optional-menu
   [(my/tsc-execute
     :suppress-output t
-    :command-format "mpv %a")]
+    :command-format "mpv %a"
+    :before-function (lambda ()
+                       (when (require-with-check 'recentf)
+                         (mapc 'recentf-add-file
+                               (oref (my/tsc-suffix "f") value)))))]
   (interactive `(,(my/tsc-determine-file t)))
   (transient-setup 'my/mpv-command nil nil
                    :scope (append (cdr `(_ :infile-key "f"
