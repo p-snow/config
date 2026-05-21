@@ -12775,6 +12775,163 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
  :category "emacs")
 #+end_src
 
+***** machine-info
+:PROPERTIES:
+:CREATED:  [2026-05-21 Thu 17:21]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "machine-info"
+ :description "Return my machine information."
+ :function #'my/machine-info
+ :category "system")
+
+(defun my/insert-cmd-output (command &optional label)
+  "Run COMMAND via shell and insert it along with its output.
+With optional LABEL string, insert a comment header before it."
+  (let ((output (shell-command-to-string command)))
+    (when label
+      (insert ";; --- " label " ---\n"))
+    (insert "$ " command "\n")
+    (if (string-blank-p output)
+        (insert ";; (no output -- command may not be available)\n")
+      (insert output
+              (if (string-suffix-p "\n" output) "" "\n")))
+    (insert "\n")))
+
+;;;###autoload
+(defun my/machine-info--linux ()
+  "Insert Linux machine information into current buffer."
+  ;; OS
+  (my/insert-cmd-output
+   (concat "cat /etc/os-release 2>/dev/null | grep -E '^(PRETTY_NAME|VERSION_ID|ID)=' "
+           "|| echo '(os-release not available)'")
+   "OS (Linux)")
+  ;; Kernel
+  (my/insert-cmd-output "uname -r" "Kernel")
+  ;; CPU
+  (my/insert-cmd-output
+   "lscpu 2>/dev/null || echo '(lscpu not available)'"
+   "CPU")
+  ;; Memory
+  (my/insert-cmd-output "free -h 2>/dev/null | head -2" "Memory")
+  ;; GPU
+  (my/insert-cmd-output
+   "lspci 2>/dev/null | grep -E 'VGA|3D|Display' | head -5 || echo '(lspci not available)'"
+   "GPU")
+  ;; NVIDIA GPU details (if present)
+  (my/insert-cmd-output
+   "nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>/dev/null || true"
+   "NVIDIA GPU")
+  ;; Display server & desktop
+  (my/insert-cmd-output
+   "echo \"${XDG_SESSION_TYPE:-not set}\"" "Display Server")
+  (my/insert-cmd-output
+   "echo \"${XDG_CURRENT_DESKTOP:-not set}\"" "Desktop")
+  ;; Shell
+  (my/insert-cmd-output "echo \"${SHELL:-not set}\"" "Shell"))
+
+;;;###autoload
+(defun my/machine-info--darwin ()
+  "Insert macOS machine information into current buffer."
+  ;; OS
+  (my/insert-cmd-output "sw_vers" "OS (macOS)")
+  ;; Kernel
+  (my/insert-cmd-output "uname -r" "Kernel")
+  ;; CPU
+  (my/insert-cmd-output "sysctl -n machdep.cpu.brand_string" "CPU")
+  (my/insert-cmd-output "sysctl -n hw.ncpu" "  Logical cores")
+  (my/insert-cmd-output "sysctl -n hw.physicalcpu" "  Physical cores")
+  ;; Memory
+  (my/insert-cmd-output
+   "sysctl -n hw.memsize | awk '{printf \"%.1f GB\\n\", $1/1073741824}'"
+   "Memory")
+  ;; GPU
+  (my/insert-cmd-output
+   "system_profiler SPDisplaysDataType 2>/dev/null | grep -E 'Chipset Model|VRAM \\(Total\\)|Resolution'"
+   "GPU")
+  ;; Shell
+  (my/insert-cmd-output "echo \"${SHELL:-not set}\"" "Shell"))
+
+;;;###autoload
+(defun my/machine-info--windows-nt ()
+  "Insert Windows machine information into current buffer."
+  (let ((pwsh "powershell -NoProfile -Command"))
+    (my/insert-cmd-output
+     (concat pwsh " \"(Get-CimInstance Win32_OperatingSystem).Caption\"")
+     "OS (Windows)")
+    (my/insert-cmd-output
+     (concat pwsh " \"(Get-CimInstance Win32_OperatingSystem).Version\"")
+     "  Version")
+    (my/insert-cmd-output
+     (concat pwsh " \"(Get-CimInstance Win32_OperatingSystem).OSArchitecture\"")
+     "  Architecture")
+    (my/insert-cmd-output
+     (concat pwsh " \"(Get-CimInstance Win32_Processor | "
+             "Select-Object Name, NumberOfCores, NumberOfLogicalProcessors | "
+             "Format-List | Out-String -Width 200)\"")
+     "CPU")
+    (my/insert-cmd-output
+     (concat pwsh " \"[math]::Round((Get-CimInstance Win32_ComputerSystem)"
+             ".TotalPhysicalMemory / 1GB)\"")
+     "Memory (GB)")
+    (my/insert-cmd-output
+     (concat pwsh " \"Get-CimInstance Win32_VideoController | "
+             "Select-Object Name, @{N='VRAM_MB';E={[math]::Round($_.AdapterRAM/1MB)}} | "
+             "Format-List | Out-String -Width 200\"")
+     "GPU")
+    (my/insert-cmd-output
+     (concat pwsh " \"$PSVersionTable.PSVersion\"")
+     "PowerShell")))
+
+;;;###autoload
+(defun my/machine-info ()
+  "Display privacy-safe machine information in a dedicated buffer.
+
+Suitable for copying and pasting to AI assistants (ChatGPT, Claude, etc.).
+Excludes personal information such as hostname, user name, IP/MAC address,
+serial numbers, and full file paths.
+
+Supports GNU/Linux, macOS, and native Windows (via PowerShell).
+
+Output format shows both the shell command used and its result,
+so the AI can interpret the values correctly."
+  (interactive)
+  (let* ((buf (get-buffer-create "*machine-info*"))
+         (inhibit-read-only t))
+    (with-current-buffer buf
+      (erase-buffer)
+      (read-only-mode -1)
+      ;; Header
+      (insert ";; ==========================================\n")
+      (insert ";; Machine Information (Privacy-Safe)\n")
+      (insert ";; Generated: " (format-time-string "%Y-%m-%d %H:%M:%S") "\n")
+      (insert ";; ==========================================\n\n")
+      ;; Emacs version info (safe)
+      (insert ";; --- Emacs ---\n")
+      (insert "$ emacs-version: " emacs-version "\n")
+      (insert "$ system-configuration: " system-configuration "\n")
+      (insert "$ system-type: " (symbol-name system-type) "\n\n")
+      ;; OS-specific section
+      (pcase system-type
+        ('gnu/linux   (my/machine-info--linux))
+        ('darwin      (my/machine-info--darwin))
+        ('windows-nt  (my/machine-info--windows-nt))
+        (t            (insert ";; Unsupported OS: "
+                              (symbol-name system-type) "\n")))
+      ;; Locale (cross-platform)
+      (insert ";; --- Locale ---\n")
+      (my/insert-cmd-output "locale 2>/dev/null || echo '(locale not available)'")
+      ;; Footer
+      (insert ";; ==========================================\n")
+      (insert ";; End\n")
+      (goto-char (point-min))
+      (read-only-mode 1)
+      ;; Return bufeer string
+      (buffer-substring-no-properties (point-min) (point-max)))))
+#+end_src
+
 ***** get_predefined_tags AI tool
 :PROPERTIES:
 :CREATED:  [2025-11-04 Tue 17:03]
@@ -13162,7 +13319,9 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 (gptel-make-preset 'technical-research
   :parents      'search
   :description  "Technical research."
-  :tools        '(:append ("mcp-context7" "emacs-help")))
+  :system
+  '(:append "Your technical advice must account for my specific environment by considering my machine information, which can be obtained using the machine-info tool.")
+  :tools        '(:append ("mcp-context7" "emacs-help" "system")))
 
 (lambda-key my/gptel-send-map "q"
             (lambda () "Technical research"
