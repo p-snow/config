@@ -6897,7 +6897,7 @@ emacs-org-hide-drawers-head
 
 #+begin_src emacs-lisp
 (use-package org-hide-drawers
-  :after (org my/org-visual-cycle)
+  :after (my/org-visual)
   :bind (:map my/org-visual-map
               ("d" . org-hide-drawers-mode))
   :custom
@@ -14296,7 +14296,7 @@ obtained from the org-link at the current point."
 (provide 'my-org-global-map)
 #+end_src
 
-***** Cycling Org visual appearance (my/org-visual-map)
+***** Keymap for Org visual appearance (my/org-visual-map)
 :PROPERTIES:
 :CREATED:  [2023-06-20 Tue 11:31]
 :END:
@@ -14304,21 +14304,25 @@ obtained from the org-link at the current point."
 Wrapping up a bunch of Org commands that toggle/cycle Org-mode's visual appearance.
 
 #+begin_src emacs-lisp
-(defvar-keymap my/org-visual-map
-  :doc "Keymap to repeat toggle/cycling appearance in Org.  Used in `repeat-mode'."
-  :repeat (_ :enter (org-indent-mode)
-             :exit (org-fold-hide-drawer-all))
-  "TAB" #'org-fold-hide-drawer-all
-  "C-M-i" #'org-indent-mode
-  "i" #'org-toggle-inline-images
-  "l" #'org-toggle-link-display)
-
-(with-eval-after-load 'org
-  (keymap-set org-mode-map
-              "C-c v"
-              my/org-visual-map))
-
-(provide 'my/org-visual-cycle)
+(use-package my/org-visual
+  :ensure nil
+  :after org
+  :init
+  (defvar-keymap my/org-visual-map
+    :doc "Keymap for Org visual appearance."
+    :prefix t
+    :repeat (_ :enter (org-indent-mode
+                       org-toggle-inline-images
+                       org-toggle-link-display)
+               :exit (org-fold-hide-drawer-all))
+    "TAB" #'org-fold-hide-drawer-all
+    "C-M-i" #'org-indent-mode
+    "i" #'org-toggle-inline-images
+    "l" #'org-toggle-link-display
+    "b" #'org-fold-hide-block-all)
+  (provide 'my/org-visual)
+  :bind (:map org-mode-map
+              ("C-c v" . my/org-visual-map)))
 #+end_src
 
 ***** show org entries pointing to the current (backlink)
