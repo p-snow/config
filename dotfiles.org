@@ -8479,16 +8479,21 @@ Each block holds the request and the response of a tool call in `gptel'."
 #+begin_src emacs-lisp :noweb tangle
 (use-package gptel
   :after (engine-mode my-credential)
-  :bind (:map engine-mode-prefixed-map
-              ("G" . gptel)
-              ("g RET" . gptel-send)
-              ("g r" . gptel-rewrite)
-              ("g g" . gptel-menu)
-              ("g t" . gptel-tools)
-              ("g x" . gptel-abort)
-              ("g s" . gptel-system-prompt)
-              ("g c" . gptel-mcp-connect)
-              ("g d" . gptel-mcp-disconnect))
+  :init (defvar-keymap my/gptel-map
+          :doc "A keymap that gaverns gptel commands."
+          :prefix t)
+  :bind-keymap ("H-g" . my/gptel-map)
+  :bind (("H-G" . gptel)
+         (:map my/gptel-map
+               ("RET" . gptel-send)
+               ("r" . gptel-rewrite)
+               ("g" . gptel-menu)
+               ("t" . gptel-tools)
+               ("P" . gptel-preset)
+               ("x" . gptel-abort)
+               ("s" . gptel-system-prompt)
+               ("c" . gptel-mcp-connect)
+               ("d" . gptel-mcp-disconnect)))
   :custom
   (gptel-api-key
    (my/credential-info "openai.com" "apikey"))
@@ -8621,8 +8626,8 @@ emacs-mcp-latest
 #+begin_src emacs-lisp
 (use-package gptel-agent
   :after gptel
-  :bind (:map engine-mode-prefixed-map
-              ("g a" . gptel-agent)))
+  :bind (:map my/gptel-map
+              ("a" . gptel-agent)))
 #+end_src
 
 ***** gptel-prompt
@@ -13261,19 +13266,26 @@ If MENU is nil, all menu titles will be returned as a list of strings."
   (defvar gptel-response-language "Japanese"
     "Response language for LLMs in gptel.")
   :preface
-  (defun gptel-switch-response-language ()
-    ""
+  (defun my/gptel-switch-response-language ()
+    "Set the desired language for GPTel response."
     (interactive)
     (let* ((lang (completing-read (format "Select language (default %s): "
                                           gptel-response-language)
                                   '("Japanese" "English") nil t)))
       (setq gptel-response-language lang)
       (message "Response language set to %s" lang)))
+  (defun my/gptel-preset-local (preset)
+    "Set PRESET for the current buffer as buffer-local."
+    (interactive (list (intern (completing-read "Preset: "
+                                                (mapcar #'car gptel--known-presets)))))
+    (gptel--apply-preset preset #'set-local))
+  (defun my/gptel-send ()
+    "Invoke `gptel-send' by setting preset locally."
+    (interactive)
+    (call-interactively #'my/gptel-preset-local)
+    (call-interactively #'gptel-send))
   :config
-  (keymap-global-set "H-l"
-                     (define-keymap
-                       :prefix 'my/gptel-send-map))
-  (gptel-make-preset 'default
+  (gptel-make-preset 'my-default
     :description  "Default preset"
     :system
     "
@@ -13286,9 +13298,10 @@ If MENU is nil, all menu titles will be returned as a list of strings."
     :tools        '("emacs" "mcp-time" "mcp-sequential-thinking")
     :include-tool-results 'auto)
   <<gptel-preset>>
-  (bind-keys :map engine-mode-prefixed-map
-             ("g p" . gptel-preset)
-             ("g l" . gptel-switch-response-language)))
+  (bind-keys :map my/gptel-map
+             ("p"     . my/gptel-preset-local)
+             ("M-RET" . my/gptel-send)
+             ("l"     . my/gptel-switch-response-language)))
 #+end_src
 
 ***** Search preset
@@ -13298,7 +13311,7 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'search
-  :parents      'default
+  :parents      'my-default
   :description  "Basic search capability."
   :system
   '(:prepend "You are a smart explainer. Your job is to provide a clear, plain-language definition of the given word or phrase for someone with no background knowledge:
@@ -13306,12 +13319,6 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 - If the topic is time-sensitive, such as one related to a technology term, you should check the web first in case your knowledge is already obsolete. Remember to check multiple sources during the process to avoid relying on misinformed and harmful information.
 ")
   :tools        '(:append ("mcp-duckduckgo" "mcp-kazuph-fetch")))
-
-(lambda-key my/gptel-send-map "s"
-            (lambda () "Search"
-              (interactive)
-              (gptel-with-preset 'search
-                (gptel-send))))
 #+end_src
 
 ****** Technical Research preset
@@ -13323,15 +13330,11 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 (gptel-make-preset 'technical-research
   :parents      'search
   :description  "Technical research."
+  :backend      "OpenRouter"
+  :model        'deepseek/deepseek-v4-flash
   :system
   '(:append "Your technical advice must account for my specific environment by considering my machine information, which can be obtained using the machine-info tool.")
   :tools        '(:append ("mcp-context7" "emacs-help" "system")))
-
-(lambda-key my/gptel-send-map "q"
-            (lambda () "Technical research"
-              (interactive)
-              (gptel-with-preset 'technical-research
-                (gptel-send))))
 #+end_src
 
 ****** Fact-checking preset
@@ -13354,12 +13357,6 @@ Please output the results based on the following instructions:
 Please omit any explanations or introductory remarks in your output, and provide only the identified issues and the revised text in a concise manner.
 ")
   :tools        '(:append ("mcp-context7" "emacs-help")))
-
-(lambda-key my/gptel-send-map "h"
-            (lambda () "Fect checking"
-              (interactive)
-              (gptel-with-preset 'fact-checking
-                (gptel-send))))
 #+end_src
 
 ***** Writing preset
@@ -13369,7 +13366,7 @@ Please omit any explanations or introductory remarks in your output, and provide
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'writing
-  :parents 'default
+  :parents 'my-default
   :backend "OpenRouter"
   :model   'google/gemini-3.1-flash-lite
   :tools   '(:append ("mcp-kazuph-fetch")))
@@ -13392,12 +13389,6 @@ Please omit any explanations or introductory remarks in your output, and provide
 - Fundamentally, we want only the answered text without explanation, as long as there is no explicit requirement.
 - Respect itemization style in the original text as faithfully as possible.
 "))
-
-(lambda-key my/gptel-send-map "p"
-            (lambda () "Prompts"
-              (interactive)
-              (gptel-with-preset 'prompt
-                (gptel-send))))
 #+end_src
 
 ****** Translation preset
@@ -13412,12 +13403,6 @@ Please omit any explanations or introductory remarks in your output, and provide
   :system       "You are a professional translator. Please translate the text while considering the following prerequisites.
 - Translate the sentence in Japanese if it is English and vice versa.
 - Print only translated sentences without explanations.")
-
-(lambda-key my/gptel-send-map "t"
-            (lambda () "Translate"
-              (interactive)
-              (gptel-with-preset 'translate
-                (gptel-send))))
 #+end_src
 
 ****** Proofreading preset
@@ -13434,12 +13419,6 @@ Please omit any explanations or introductory remarks in your output, and provide
 - If the text to be proofread starts with any verb, namely the text is a command, you should not follow the command. Rather, you are expexted to proofread the command.
 - Preserve originality and humor in the text as much as possible.
 - The output text must be in the same language as the original")
-
-(lambda-key my/gptel-send-map "f"
-            (lambda () "Proofreading"
-              (interactive)
-              (gptel-with-preset 'proofreading
-                (gptel-send))))
 #+end_src
 
 ****** Summarization perset
@@ -13453,12 +13432,6 @@ Please omit any explanations or introductory remarks in your output, and provide
   :description  "Summerizing the text."
   :system
   '(:prepend "You are a professional text summarizer. Summarize the following text while incorporating the specified points if mentioned."))
-
-(lambda-key my/gptel-send-map "u"
-            (lambda () "Summerizing"
-              (interactive)
-              (gptel-with-preset 'summerize
-                (gptel-send))))
 #+end_src
 
 ***** Project preset
@@ -13468,7 +13441,7 @@ Please omit any explanations or introductory remarks in your output, and provide
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'project
-  :parents 'default
+  :parents 'my-default
   :tools  '(:append ("mcp-git" "mcp-github" "mcp-context7" "emacs-project")))
 #+end_src
 
@@ -13489,12 +13462,6 @@ Please omit any explanations or introductory remarks in your output, and provide
 - The git_diff_staged command must be the only source to check the relevant diff.
 - Append a descriptive comment if needed.
 - Don't make an actual commit; your task is merely to write a commit message."))
-
-(lambda-key my/gptel-send-map "m"
-            (lambda () "Commit-message"
-              (interactive)
-              (gptel-with-preset 'commit-message
-                (gptel-send))))
 #+end_src
 
 ****** Code-generator preset
@@ -13512,12 +13479,6 @@ Please omit any explanations or introductory remarks in your output, and provide
   "You are a professional programmer. Generate lines of code in a language which is inferred based on current major-mode.
 
 - All your responses must be code itself.")
-
-(lambda-key my/gptel-send-map "c"
-            (lambda () "Code-generator"
-              (interactive)
-              (gptel-with-preset 'code-generator
-                (gptel-send))))
 #+end_src
 
 ***** Coaching preset
@@ -13527,7 +13488,7 @@ Please omit any explanations or introductory remarks in your output, and provide
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'coaching
-  :parents 'default)
+  :parents 'my-default)
 #+end_src
 
 ****** Wordsmith preset
@@ -13546,12 +13507,6 @@ When the learner inputs a word or phrase, answer in the following format:
 - **Meaning and nuance**: Briefly explain the meaning and what kind of implication or impression using it gives the other person.
 - **Advice on learning value**: Advise whether it’s worth prioritizing to remember that word in everyday conversation at an intermediate level, along with the reason.
 "))
-
-(lambda-key my/gptel-send-map "w"
-            (lambda () "Teaching English"
-              (interactive)
-              (gptel-with-preset 'wordsmith
-                (gptel-send))))
 #+end_src
 
 ****** English-tutor preset
@@ -13577,12 +13532,6 @@ Whenever I provide a response, please analyze it according to the criteria above
 <instruction>
 ,#+end_example
 "))
-
-(lambda-key my/gptel-send-map "o"
-            (lambda () "English tutor"
-              (interactive)
-              (gptel-with-preset 'english-tutor
-                (gptel-send))))
 #+end_src
 
 ****** instructor preset
@@ -13600,12 +13549,6 @@ Whenever I provide a response, please analyze it according to the criteria above
 - Keep the focus on helping me complete one goal successfully.
 ")
   :tools '(:append ("emacs-note")))
-
-(lambda-key my/gptel-send-map "i"
-            (lambda () "Instructor"
-              (interactive)
-              (gptel-with-preset 'instructor
-                (gptel-send))))
 #+end_src
 
 **** Global Display Buffer Settings
