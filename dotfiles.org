@@ -2000,41 +2000,41 @@ Settings in this section are influenced a great deal by my personal preference. 
 **** Key Bindings
 
 #+begin_src emacs-lisp
-(keymap-global-set "M-F" #'forward-to-word)
-(keymap-global-set "M-B" #'backward-to-word)
-(keymap-global-set "C-x M-F" #'forward-paragraph)
-(keymap-global-set "C-x M-B" #'backward-paragraph)
-(keymap-global-set "C-M-S-k" #'kill-paragraph)
-(keymap-global-set "C-c d" #'duplicate-dwim)
-(keymap-global-set "C-c j" #'join-line)
-(keymap-global-set "C-c M-d" #'copy-from-above-command)
-(keymap-global-set "M-z" #'zap-up-to-char)
-(keymap-global-set "C-z" #'repeat)
-(keymap-global-set "C-x M-t" #'transpose-sentences)
-(keymap-global-set "M-T" #'transpose-paragraphs)
-(keymap-global-set "H-u" #'universal-argument)
-
-(keymap-global-set "C-;" #'backward-delete-char)
-(keymap-global-set "C-:" #'backward-kill-word)
-(keymap-global-set "C-M-:" #'backward-kill-sexp)
-
-(keymap-global-set "H-g" #'previous-buffer)
-(keymap-global-set "H-t" #'next-buffer)
-(keymap-global-set "C-c k" #'kill-current-buffer)
-(keymap-global-set "C-x M-r" #'rename-visited-file)
-
-(keymap-substitute global-map
-                   #'upcase-region
-                   #'upcase-dwim)
-(keymap-substitute global-map
-                   #'downcase-region
-                   #'downcase-dwim)
-(keymap-global-set "C-x C-c" #'capitalize-dwim)
-
-;; set up key binds for find-functions such as C-x F for find-function
-(find-function-setup-keys)
-
-(keymap-set special-mode-map "C-j" #'push-button)
+(use-package key-binding
+  :no-require t
+  :bind (("M-F"     . forward-to-word)
+         ("M-B"     . backward-to-word)
+         ("C-x M-F" . forward-paragraph)
+         ("C-x M-B" . backward-paragraph)
+         ("C-M-S-k" . kill-paragraph)
+         ("C-c d"   . duplicate-dwim)
+         ("C-c j"   . join-line)
+         ("C-c M-d" . copy-from-above-command)
+         ("M-z"     . zap-up-to-char)
+         ("C-z"     . repeat)
+         ("C-x M-t" . transpose-sentences)
+         ("M-T"     . transpose-paragraphs)
+         ("H-u"     . universal-argument)
+         ("C-;"     . backward-delete-char)
+         ("C-:"     . backward-kill-word)
+         ("C-M-:"   . backward-kill-sexp)
+         ("H-l"     . previous-buffer)
+         ("H-k"     . next-buffer)
+         ("C-c k"   . kill-current-buffer)
+         ("C-x M-r" . rename-visited-file)
+         :map help-map
+         ("L" . find-library))
+  :init
+  (keymap-substitute global-map
+                     #'upcase-region
+                     #'upcase-dwim)
+  (keymap-substitute global-map
+                     #'downcase-region
+                     #'downcase-dwim)
+  (keymap-global-set "C-x C-c" #'capitalize-dwim)
+  ;; set up key binds for find-functions such as C-x F for find-function
+  (find-function-setup-keys)
+  (keymap-set special-mode-map "C-j" #'push-button))
 #+end_src
 
 **** Unleash or shackle commands
@@ -2909,6 +2909,9 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
 
 #+begin_src emacs-lisp
 (use-package tab-bar
+  :bind
+  (("H-L" . tab-previous)
+   ("H-K" . tab-next))
   :custom
   (tab-bar-show 8)
   (tab-bar-history-mode t)
