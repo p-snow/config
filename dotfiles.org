@@ -648,7 +648,7 @@ A script for activating home configuration
 :CREATED:  [2025-03-04 Tue 21:34]
 :END:
 
-*** konsave
+*** konsave                                     :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2025-03-04 Tue 21:34]
 :END:
@@ -778,6 +778,536 @@ export:
         location: "$HOME/"
         entries:
             - .icons
+#+end_src
+
+*** migrate-plasma-config
+:PROPERTIES:
+:CREATED:  [2026-05-26 Tue 16:45]
+:END:
+
+migrate-plasma-config.sh is an original bash script that offers utility commands for KDE Plasma configuration file portability. It has three commands: copy, export, and import.
+
+#+begin_src bash :comments no :noweb tangle :tangle (expand-file-name "migrate-plasma-config.sh" tangle/local-bin-dir)
+#!/bin/bash
+#=============================================================================
+# migrate-plasma-config.sh
+# Manage KDE Plasma desktop configuration across users and systems.
+#
+# Subcommands:
+#   copy    Copy  Plasma config from one local user to another.
+#   export  Bundle current (or specified) user's Plasma config into a
+#           portable tar.gz archive.
+#   import  Restore Plasma config from a tar.gz archive created by 'export'.
+#
+# Usage:
+#   ./migrate-plasma-config.sh [ -h | --help ]
+#   ./migrate-plasma-config.sh copy    [ -h ] [source_user] <target_user>
+#   ./migrate-plasma-config.sh export  [ -h ] [user]
+#   ./migrate-plasma-config.sh import  [ -h ] <archive.tar.gz> [user]
+#
+# Notes:
+#   - All subcommands operate on the current user by default.
+#   - When a different user is explicitly given, root privileges (sudo) are
+#     required to read/write that user's home directory.
+#   - The 'import' subcommand automatically backs up any existing config files
+#     before overwriting, just like 'copy' does.
+#   - Log out and back in on the target account for changes to take effect.
+#=============================================================================
+
+set -euo pipefail
+
+# ============================================================================
+# Configuration — list of Plasma config files to manage.
+# Format:  filename  |  description (comment line above or beside)
+# ============================================================================
+
+FILES=(
+    # === TIER 1: panel, appearance, window management, shortcuts ===
+
+    plasma-org.kde.plasma.desktop-appletsrc
+    # Panel layout, widgets, launcher icons, desktop arrangement
+
+    kdeglobals
+    # Color scheme, icon theme, fonts, cursor theme, single/double-click
+
+    kwinrc
+    # Window decorations, compositor effects, Alt+Tab style, focus policy
+
+    kwinrulesrc
+    # Per-application window rules (size, position, virtual desktop)
+
+    kwinoutputconfig.json
+    # Multi-monitor layout, primary display, resolution, refresh rate
+
+    kglobalshortcutsrc
+    # Global keyboard shortcuts (system-wide key bindings)
+
+    kaccessrc
+    # Accessibility: sticky keys, slow keys, mouse keys, screen reader
+
+    kscreenrc
+    # Display/monitor arrangement (KScreen module)
+
+    plasmashellrc
+    # Plasma shell behavior (panel auto-hide, theme, interaction hints)
+
+    kscreenlockerrc
+    # Lock screen appearance and auto-lock timeout
+
+    # === TIER 2: input, launcher, power, clipboard ===
+
+    kxkbrc
+    # Keyboard layout (Japanese/US/etc.) and layout-switching shortcut
+
+    krunnerrc
+    # KRunner (Alt+Space launcher) plugin selection and history
+
+    powerdevilrc
+    # Power profiles, suspend/display-off timeouts, lid-close action
+
+    khotkeysrc
+    # Custom shortcut actions (System Settings → Shortcuts → Custom)
+
+    klipperrc
+    # Clipboard manager (Klipper) behavior and history settings
+
+    # === TIER 3: services, launch feedback, file indexer ===
+
+    mimeapps.list
+    # Default application associations (which app opens .pdf, .txt, etc.)
+
+    kglobalshortcutsstaterc
+    # Runtime state for global shortcuts (serial numbers, etc.)
+
+    kglobalaccelrc
+    # Global shortcut allow-list configuration
+
+    klaunchrc
+    # Application launch feedback (bouncing icon, busy cursor)
+
+    baloofilrc
+    # File search indexer (Baloo) — which folders to include/exclude
+
+    systemsettingsrc
+    # System Settings window size, position, and last-viewed module
+
+    kcminputrc
+    # Input device settings: keyboard repeat rate, mouse acceleration
+
+    touchpadrc
+    # Touchpad scroll direction, tap-to-click (X11 session only)
+
+    # === TIER 4: optional / auto-generated ===
+
+    kactivitymanagerdrc
+    # Activity manager state (mostly auto-regenerated; carry over if you
+    #   use multiple Activities heavily)
+)
+
+# ============================================================================
+# Help functions
+# ============================================================================
+
+print_general_help() {
+    cat << 'EOF'
+Usage:
+  ./migrate-plasma-config.sh <subcommand> [options]
+
+Subcommands:
+  copy      Copy Plasma config from one local user to another.
+  export    Bundle Plasma config into a portable tar.gz archive.
+  import    Restore Plasma config from a tar.gz archive.
+
+Use -h after a subcommand for detailed help, e.g.:
+  ./migrate-plasma-config.sh export -h
+EOF
+}
+
+print_copy_help() {
+    cat << 'EOF'
+Usage:
+  ./migrate-plasma-config.sh copy [source_user] <target_user>
+
+Description:
+  Copy KDE Plasma desktop configuration files from a source user to a
+  target user on the same system.  If source_user is omitted, the current
+  user ($USER) is used.  Any existing config files in the target user's
+  ~/.config/ are backed up to a timestamped directory before overwriting.
+
+Examples:
+  # Copy from current user to user "john"
+  ./migrate-plasma-config.sh copy john
+
+  # Copy from user "alice" to user "bob" (requires sudo)
+  sudo ./migrate-plasma-config.sh copy alice bob
+EOF
+}
+
+print_export_help() {
+    cat << 'EOF'
+Usage:
+  ./migrate-plasma-config.sh export [user]
+
+Description:
+  Collect the Plasma desktop config files of the specified user (defaults
+  to the current user) and bundle them into a compressed tar.gz archive.
+  The archive is written to the current working directory with the naming
+  pattern:  yyyymmdd_HHMMSS_<user>_kde.tar.gz
+
+  The resulting archive can be transferred to another machine and restored
+  with the 'import' subcommand.
+
+Examples:
+  # Export current user's config
+  ./migrate-plasma-config.sh export
+
+  # Export another user's config (requires sudo)
+  sudo ./migrate-plasma-config.sh export alice
+EOF
+}
+
+print_import_help() {
+    cat << 'EOF'
+Usage:
+  ./migrate-plasma-config.sh import <archive.tar.gz> [user]
+
+Description:
+  Restore KDE Plasma desktop configuration from a tar.gz archive that was
+  previously created with the 'export' subcommand.  The target user
+  defaults to the current user.  Before any files are overwritten, the
+  existing config files in the target user's ~/.config/ are backed up to
+  a timestamped directory (same behaviour as the 'copy' subcommand).
+
+Examples:
+  # Import into current user
+  ./migrate-plasma-config.sh import 20250101_120000_john_kde.tar.gz
+
+  # Import into another user (requires sudo)
+  sudo ./migrate-plasma-config.sh import 20250101_120000_john_kde.tar.gz alice
+EOF
+}
+
+# ============================================================================
+# Utility functions
+# ============================================================================
+
+# Resolve a username to its home directory.
+# Usage: get_home_dir <username>
+get_home_dir() {
+    local user="$1"
+    local home
+    home=$(eval echo "~$user" 2>/dev/null) || true
+    if [[ -z "$home" || "$home" == "~$user" ]]; then
+        echo "ERROR: Cannot resolve home directory for user '$user'." >&2
+        exit 1
+    fi
+    echo "$home"
+}
+
+# Validate that a user's ~/.config directory exists.
+# Usage: check_config_dir <username>
+check_config_dir() {
+    local user="$1"
+    local conf
+    conf="$(get_home_dir "$user")/.config"
+    if [[ ! -d "$conf" ]]; then
+        echo "ERROR: Config directory not found: $conf" >&2
+        exit 1
+    fi
+    echo "$conf"
+}
+
+# Print the list of managed filenames (skip comment / blank lines).
+# Usage: get_file_list
+get_file_list() {
+    for f in "${FILES[@]}"; do
+        [[ "$f" == \#* ]] && continue
+        [[ -z "$f" ]] && continue
+        echo "$f"
+    done
+}
+
+# Require root when operating on a user different from the current real user.
+# Usage: require_root_if_different_user <target_user>
+require_root_if_different_user() {
+    local target="$1"
+    local real_user="${SUDO_USER:-$USER}"
+    if [[ "$target" != "$real_user" ]]; then
+        if [[ "$(id -u)" -ne 0 ]]; then
+            echo "ERROR: Operating on a different user requires root. Use sudo." >&2
+            exit 1
+        fi
+    fi
+}
+
+# Back up existing config files from a target config directory.
+# Creates a timestamped backup directory and copies only the files that
+# actually exist (and are regular files).
+# Usage: backup_existing_files <target_config_dir>
+# Echoes the backup directory path on stdout.
+backup_existing_files() {
+    local dst_conf="$1"
+    local backup_dir="${dst_conf}/$(date +%Y%m%d_%H%M%S)_backup"
+
+    local need_backup=false
+    while IFS= read -r f; do
+        if [[ -f "$dst_conf/$f" ]]; then
+            need_backup=true
+            break
+        fi
+    done < <(get_file_list)
+
+    if $need_backup; then
+        echo "Backing up existing target files to: $backup_dir"
+        mkdir -p "$backup_dir"
+        while IFS= read -r f; do
+            if [[ -f "$dst_conf/$f" ]]; then
+                cp -a "$dst_conf/$f" "$backup_dir/"
+                echo "  backup: $f"
+            fi
+        done < <(get_file_list)
+        echo ""
+    fi
+    echo "$backup_dir"
+}
+
+# Copy config files from a source config directory to a destination config
+# directory.  Only files listed in FILES are transferred.
+# Usage: copy_config_files <src_config_dir> <dst_config_dir>
+# Prints a summary line:  "COPIED:<n> SKIPPED:<m>"
+copy_config_files() {
+    local src_conf="$1"
+    local dst_conf="$2"
+
+    local copied=0 skipped=0
+    while IFS= read -r f; do
+        if [[ -f "$src_conf/$f" ]]; then
+            cp -a "$src_conf/$f" "$dst_conf/$f"
+            echo "  copied: $f"
+            ((copied++)) || true
+        else
+            echo "  skip (not found): $f"
+            ((skipped++)) || true
+        fi
+    done < <(get_file_list)
+
+    echo "COPIED:$copied SKIPPED:$skipped"
+}
+
+# Fix ownership of config files in a destination directory.
+# Only meaningful when running as root for a different target user.
+# Usage: fix_ownership <dst_config_dir> <owner_user>
+fix_ownership() {
+    local dst_conf="$1"
+    local owner="$2"
+    if [[ "$(id -u)" -eq 0 ]]; then
+        while IFS= read -r f; do
+            if [[ -f "$dst_conf/$f" ]]; then
+                chown "$owner":"$owner" "$dst_conf/$f" 2>/dev/null || true
+            fi
+        done < <(get_file_list)
+    fi
+}
+
+# Check whether a subcommand argument list contains -h or --help.
+# If found, print the appropriate help and exit.
+# Usage: check_subcommand_help <subcommand> "$@"
+check_subcommand_help() {
+    local subcmd="$1"
+    shift
+    for arg in "$@"; do
+        if [[ "$arg" == "-h" || "$arg" == "--help" ]]; then
+            case "$subcmd" in
+                copy)   print_copy_help   ;;
+                export) print_export_help ;;
+                import) print_import_help ;;
+            esac
+            exit 0
+        fi
+    done
+}
+
+# ============================================================================
+# Subcommand: copy
+# ============================================================================
+
+cmd_copy() {
+    check_subcommand_help "copy" "$@"
+
+    local src_user="${1:-$USER}"
+    local dst_user="${2:?Usage: $0 copy [source_user] <target_user>}"
+
+    require_root_if_different_user "$src_user"
+    require_root_if_different_user "$dst_user"
+
+    local src_conf dst_conf
+    src_conf="$(check_config_dir "$src_user")"
+    dst_conf="$(check_config_dir "$dst_user")"
+
+    local backup_dir
+    backup_dir="$(backup_existing_files "$dst_conf")"
+
+    echo "Migrating Plasma config from $src_user → $dst_user"
+    echo ""
+
+    local result
+    result="$(copy_config_files "$src_conf" "$dst_conf")"
+
+    fix_ownership "$dst_conf" "$dst_user"
+
+    local copied skipped
+    copied=$(echo "$result" | grep -oP 'COPIED:\K\d+')
+    skipped=$(echo "$result" | grep -oP 'SKIPPED:\K\d+')
+
+    echo ""
+    echo "Done.  $copied copied,  $skipped skipped (not present on source)."
+    if [[ -d "$backup_dir" && -n "$(ls -A "$backup_dir" 2>/dev/null)" ]]; then
+        echo "Previous target files backed up to: $backup_dir"
+    fi
+    echo ""
+    echo "IMPORTANT: Log out and back in on the target account for changes to take effect."
+}
+
+# ============================================================================
+# Subcommand: export
+# ============================================================================
+
+cmd_export() {
+    check_subcommand_help "export" "$@"
+
+    local user="${1:-$USER}"
+    require_root_if_different_user "$user"
+
+    local src_conf
+    src_conf="$(check_config_dir "$user")"
+
+    local timestamp
+    timestamp="$(date +%Y%m%d_%H%M%S)"
+    local outfile="${timestamp}_${user}_kde.tar.gz"
+
+    # Create a temporary staging directory
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    trap 'rm -rf "$tmpdir"' EXIT
+
+    echo "Collecting Plasma config files from user '$user'..."
+    echo ""
+
+    local copied=0 skipped=0
+    while IFS= read -r f; do
+        if [[ -f "$src_conf/$f" ]]; then
+            cp -a "$src_conf/$f" "$tmpdir/$f"
+            echo "  collected: $f"
+            ((copied++)) || true
+        else
+            echo "  skip (not found): $f"
+            ((skipped++)) || true
+        fi
+    done < <(get_file_list)
+
+    echo ""
+    echo "Creating archive: $outfile"
+    tar -czf "$outfile" -C "$tmpdir" .
+
+    # If running as root via sudo, give ownership of the archive back to the
+    # real user so they can move / copy it without extra steps.
+    if [[ "$(id -u)" -eq 0 && -n "${SUDO_USER:-}" ]]; then
+        chown "$SUDO_USER":"$SUDO_USER" "$outfile" 2>/dev/null || true
+    fi
+
+    echo ""
+    echo "Done.  $copied files collected,  $skipped skipped."
+    echo "Archive saved to: $(realpath "$outfile")"
+}
+
+# ============================================================================
+# Subcommand: import
+# ============================================================================
+
+cmd_import() {
+    check_subcommand_help "import" "$@"
+
+    local tarball="${1:?Usage: $0 import <archive.tar.gz> [user]}"
+    local user="${2:-$USER}"
+
+    if [[ ! -f "$tarball" ]]; then
+        echo "ERROR: Archive not found: $tarball" >&2
+        exit 1
+    fi
+
+    require_root_if_different_user "$user"
+
+    local dst_conf
+    dst_conf="$(check_config_dir "$user")"
+
+    # Back up existing files before overwriting
+    local backup_dir
+    backup_dir="$(backup_existing_files "$dst_conf")"
+
+    # Extract archive to a temporary directory
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    trap 'rm -rf "$tmpdir"' EXIT
+
+    echo "Extracting archive: $tarball"
+    tar -xzf "$tarball" -C "$tmpdir"
+    echo ""
+
+    echo "Restoring Plasma config for user '$user'..."
+    echo ""
+
+    local copied=0 skipped=0
+    while IFS= read -r f; do
+        if [[ -f "$tmpdir/$f" ]]; then
+            cp -a "$tmpdir/$f" "$dst_conf/$f"
+            echo "  restored: $f"
+            ((copied++)) || true
+        else
+            echo "  skip (not in archive): $f"
+            ((skipped++)) || true
+        fi
+    done < <(get_file_list)
+
+    fix_ownership "$dst_conf" "$user"
+
+    echo ""
+    echo "Done.  $copied restored,  $skipped skipped (not present in archive)."
+    if [[ -d "$backup_dir" && -n "$(ls -A "$backup_dir" 2>/dev/null)" ]]; then
+        echo "Previous target files backed up to: $backup_dir"
+    fi
+    echo ""
+    echo "IMPORTANT: Log out and back in on the target account for changes to take effect."
+}
+
+# ============================================================================
+# Main — dispatch subcommand
+# ============================================================================
+
+if [[ $# -eq 0 ]]; then
+    print_general_help
+    exit 0
+fi
+
+# Script-level help
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    print_general_help
+    exit 0
+fi
+
+SUBCMD="$1"
+shift
+
+case "$SUBCMD" in
+    copy)   cmd_copy   "$@" ;;
+    export) cmd_export "$@" ;;
+    import) cmd_import "$@" ;;
+    ,*)
+        echo "ERROR: Unknown subcommand '$SUBCMD'." >&2
+        echo ""
+        print_general_help
+        exit 1
+        ;;
+esac
 #+end_src
 
 ** Nix
