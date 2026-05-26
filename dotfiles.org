@@ -22884,8 +22884,14 @@ fi
 "virt-manager"
 #+end_src
 
+Don't forget to add the target user to the libvirt/kvm group.
+#+begin_example
+sudo adduser $USER libvirt
+sudo adduser $USER kvm
+#+end_example
+
 #+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
-qemu-kvm libvirt-clients libvirt-daemon libvirt-daemon-system virtinst virt-manager virt-top bridge-utils
+virt-manager libvirt-daemon-system libvirt-clients qemu-system-x86 qemu-utils virtinst
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
