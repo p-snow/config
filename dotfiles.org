@@ -5034,7 +5034,11 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
                                         "<<share-dir()>>"))
   (remember-initial-major-mode 'org-mode)
   (remember-notes-initial-major-mode 'org-mode)
-  (remember-text-format-function #'my/remember-text))
+  (remember-text-format-function #'my/remember-text)
+  :config
+  (add-to-list 'display-buffer-alist
+               `(,remember-buffer
+                 (display-buffer-full-frame))))
 #+end_src
 
 ***** Time Stamp
@@ -5656,6 +5660,9 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   (bind-keys :map org-agenda-mode-map
              ("C-j" . org-agenda-switch-to)
              ("M" . org-agenda-month-view))
+  (add-to-list 'display-buffer-alist
+               `(,org-agenda-buffer-name
+                 (display-buffer-same-window)))
   ;; Append newly registered time specific tasks at least in an huur
   (run-at-time "30 minutes" 3600 (apply-partially #'org-agenda-to-appt 'refresh)))
 
@@ -14094,10 +14101,6 @@ Whenever I provide a response, please analyze it according to the criteria above
 :END:
 
 #+begin_src emacs-lisp
-(add-to-list 'display-buffer-alist
-             '("\\*Org Agenda\\*"
-               (display-buffer-same-window)))
-
 (add-to-list 'display-buffer-alist
              '((derived-mode . calendar-mode)
                (display-buffer-reuse-mode-window display-buffer-below-selected)
