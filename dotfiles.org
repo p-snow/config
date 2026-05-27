@@ -648,7 +648,7 @@ A script for activating home configuration
 :CREATED:  [2025-03-04 Tue 21:34]
 :END:
 
-*** konsave
+*** konsave                                     :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2025-03-04 Tue 21:34]
 :END:
@@ -778,6 +778,536 @@ export:
         location: "$HOME/"
         entries:
             - .icons
+#+end_src
+
+*** migrate-plasma-config
+:PROPERTIES:
+:CREATED:  [2026-05-26 Tue 16:45]
+:END:
+
+migrate-plasma-config.sh is an original bash script that offers utility commands for KDE Plasma configuration file portability. It has three commands: copy, export, and import.
+
+#+begin_src bash :comments no :noweb tangle :tangle (expand-file-name "migrate-plasma-config.sh" tangle/local-bin-dir)
+#!/bin/bash
+#=============================================================================
+# migrate-plasma-config.sh
+# Manage KDE Plasma desktop configuration across users and systems.
+#
+# Subcommands:
+#   copy    Copy  Plasma config from one local user to another.
+#   export  Bundle current (or specified) user's Plasma config into a
+#           portable tar.gz archive.
+#   import  Restore Plasma config from a tar.gz archive created by 'export'.
+#
+# Usage:
+#   ./migrate-plasma-config.sh [ -h | --help ]
+#   ./migrate-plasma-config.sh copy    [ -h ] [source_user] <target_user>
+#   ./migrate-plasma-config.sh export  [ -h ] [user]
+#   ./migrate-plasma-config.sh import  [ -h ] <archive.tar.gz> [user]
+#
+# Notes:
+#   - All subcommands operate on the current user by default.
+#   - When a different user is explicitly given, root privileges (sudo) are
+#     required to read/write that user's home directory.
+#   - The 'import' subcommand automatically backs up any existing config files
+#     before overwriting, just like 'copy' does.
+#   - Log out and back in on the target account for changes to take effect.
+#=============================================================================
+
+set -euo pipefail
+
+# ============================================================================
+# Configuration — list of Plasma config files to manage.
+# Format:  filename  |  description (comment line above or beside)
+# ============================================================================
+
+FILES=(
+    # === TIER 1: panel, appearance, window management, shortcuts ===
+
+    plasma-org.kde.plasma.desktop-appletsrc
+    # Panel layout, widgets, launcher icons, desktop arrangement
+
+    kdeglobals
+    # Color scheme, icon theme, fonts, cursor theme, single/double-click
+
+    kwinrc
+    # Window decorations, compositor effects, Alt+Tab style, focus policy
+
+    kwinrulesrc
+    # Per-application window rules (size, position, virtual desktop)
+
+    kwinoutputconfig.json
+    # Multi-monitor layout, primary display, resolution, refresh rate
+
+    kglobalshortcutsrc
+    # Global keyboard shortcuts (system-wide key bindings)
+
+    kaccessrc
+    # Accessibility: sticky keys, slow keys, mouse keys, screen reader
+
+    kscreenrc
+    # Display/monitor arrangement (KScreen module)
+
+    plasmashellrc
+    # Plasma shell behavior (panel auto-hide, theme, interaction hints)
+
+    kscreenlockerrc
+    # Lock screen appearance and auto-lock timeout
+
+    # === TIER 2: input, launcher, power, clipboard ===
+
+    kxkbrc
+    # Keyboard layout (Japanese/US/etc.) and layout-switching shortcut
+
+    krunnerrc
+    # KRunner (Alt+Space launcher) plugin selection and history
+
+    powerdevilrc
+    # Power profiles, suspend/display-off timeouts, lid-close action
+
+    khotkeysrc
+    # Custom shortcut actions (System Settings → Shortcuts → Custom)
+
+    klipperrc
+    # Clipboard manager (Klipper) behavior and history settings
+
+    # === TIER 3: services, launch feedback, file indexer ===
+
+    mimeapps.list
+    # Default application associations (which app opens .pdf, .txt, etc.)
+
+    kglobalshortcutsstaterc
+    # Runtime state for global shortcuts (serial numbers, etc.)
+
+    kglobalaccelrc
+    # Global shortcut allow-list configuration
+
+    klaunchrc
+    # Application launch feedback (bouncing icon, busy cursor)
+
+    baloofilrc
+    # File search indexer (Baloo) — which folders to include/exclude
+
+    systemsettingsrc
+    # System Settings window size, position, and last-viewed module
+
+    kcminputrc
+    # Input device settings: keyboard repeat rate, mouse acceleration
+
+    touchpadrc
+    # Touchpad scroll direction, tap-to-click (X11 session only)
+
+    # === TIER 4: optional / auto-generated ===
+
+    kactivitymanagerdrc
+    # Activity manager state (mostly auto-regenerated; carry over if you
+    #   use multiple Activities heavily)
+)
+
+# ============================================================================
+# Help functions
+# ============================================================================
+
+print_general_help() {
+    cat << 'EOF'
+Usage:
+  ./migrate-plasma-config.sh <subcommand> [options]
+
+Subcommands:
+  copy      Copy Plasma config from one local user to another.
+  export    Bundle Plasma config into a portable tar.gz archive.
+  import    Restore Plasma config from a tar.gz archive.
+
+Use -h after a subcommand for detailed help, e.g.:
+  ./migrate-plasma-config.sh export -h
+EOF
+}
+
+print_copy_help() {
+    cat << 'EOF'
+Usage:
+  ./migrate-plasma-config.sh copy [source_user] <target_user>
+
+Description:
+  Copy KDE Plasma desktop configuration files from a source user to a
+  target user on the same system.  If source_user is omitted, the current
+  user ($USER) is used.  Any existing config files in the target user's
+  ~/.config/ are backed up to a timestamped directory before overwriting.
+
+Examples:
+  # Copy from current user to user "john"
+  ./migrate-plasma-config.sh copy john
+
+  # Copy from user "alice" to user "bob" (requires sudo)
+  sudo ./migrate-plasma-config.sh copy alice bob
+EOF
+}
+
+print_export_help() {
+    cat << 'EOF'
+Usage:
+  ./migrate-plasma-config.sh export [user]
+
+Description:
+  Collect the Plasma desktop config files of the specified user (defaults
+  to the current user) and bundle them into a compressed tar.gz archive.
+  The archive is written to the current working directory with the naming
+  pattern:  yyyymmdd_HHMMSS_<user>_kde.tar.gz
+
+  The resulting archive can be transferred to another machine and restored
+  with the 'import' subcommand.
+
+Examples:
+  # Export current user's config
+  ./migrate-plasma-config.sh export
+
+  # Export another user's config (requires sudo)
+  sudo ./migrate-plasma-config.sh export alice
+EOF
+}
+
+print_import_help() {
+    cat << 'EOF'
+Usage:
+  ./migrate-plasma-config.sh import <archive.tar.gz> [user]
+
+Description:
+  Restore KDE Plasma desktop configuration from a tar.gz archive that was
+  previously created with the 'export' subcommand.  The target user
+  defaults to the current user.  Before any files are overwritten, the
+  existing config files in the target user's ~/.config/ are backed up to
+  a timestamped directory (same behaviour as the 'copy' subcommand).
+
+Examples:
+  # Import into current user
+  ./migrate-plasma-config.sh import 20250101_120000_john_kde.tar.gz
+
+  # Import into another user (requires sudo)
+  sudo ./migrate-plasma-config.sh import 20250101_120000_john_kde.tar.gz alice
+EOF
+}
+
+# ============================================================================
+# Utility functions
+# ============================================================================
+
+# Resolve a username to its home directory.
+# Usage: get_home_dir <username>
+get_home_dir() {
+    local user="$1"
+    local home
+    home=$(eval echo "~$user" 2>/dev/null) || true
+    if [[ -z "$home" || "$home" == "~$user" ]]; then
+        echo "ERROR: Cannot resolve home directory for user '$user'." >&2
+        exit 1
+    fi
+    echo "$home"
+}
+
+# Validate that a user's ~/.config directory exists.
+# Usage: check_config_dir <username>
+check_config_dir() {
+    local user="$1"
+    local conf
+    conf="$(get_home_dir "$user")/.config"
+    if [[ ! -d "$conf" ]]; then
+        echo "ERROR: Config directory not found: $conf" >&2
+        exit 1
+    fi
+    echo "$conf"
+}
+
+# Print the list of managed filenames (skip comment / blank lines).
+# Usage: get_file_list
+get_file_list() {
+    for f in "${FILES[@]}"; do
+        [[ "$f" == \#* ]] && continue
+        [[ -z "$f" ]] && continue
+        echo "$f"
+    done
+}
+
+# Require root when operating on a user different from the current real user.
+# Usage: require_root_if_different_user <target_user>
+require_root_if_different_user() {
+    local target="$1"
+    local real_user="${SUDO_USER:-$USER}"
+    if [[ "$target" != "$real_user" ]]; then
+        if [[ "$(id -u)" -ne 0 ]]; then
+            echo "ERROR: Operating on a different user requires root. Use sudo." >&2
+            exit 1
+        fi
+    fi
+}
+
+# Back up existing config files from a target config directory.
+# Creates a timestamped backup directory and copies only the files that
+# actually exist (and are regular files).
+# Usage: backup_existing_files <target_config_dir>
+# Echoes the backup directory path on stdout.
+backup_existing_files() {
+    local dst_conf="$1"
+    local backup_dir="${dst_conf}/$(date +%Y%m%d_%H%M%S)_backup"
+
+    local need_backup=false
+    while IFS= read -r f; do
+        if [[ -f "$dst_conf/$f" ]]; then
+            need_backup=true
+            break
+        fi
+    done < <(get_file_list)
+
+    if $need_backup; then
+        echo "Backing up existing target files to: $backup_dir"
+        mkdir -p "$backup_dir"
+        while IFS= read -r f; do
+            if [[ -f "$dst_conf/$f" ]]; then
+                cp -a "$dst_conf/$f" "$backup_dir/"
+                echo "  backup: $f"
+            fi
+        done < <(get_file_list)
+        echo ""
+    fi
+    echo "$backup_dir"
+}
+
+# Copy config files from a source config directory to a destination config
+# directory.  Only files listed in FILES are transferred.
+# Usage: copy_config_files <src_config_dir> <dst_config_dir>
+# Prints a summary line:  "COPIED:<n> SKIPPED:<m>"
+copy_config_files() {
+    local src_conf="$1"
+    local dst_conf="$2"
+
+    local copied=0 skipped=0
+    while IFS= read -r f; do
+        if [[ -f "$src_conf/$f" ]]; then
+            cp -a "$src_conf/$f" "$dst_conf/$f"
+            echo "  copied: $f"
+            ((copied++)) || true
+        else
+            echo "  skip (not found): $f"
+            ((skipped++)) || true
+        fi
+    done < <(get_file_list)
+
+    echo "COPIED:$copied SKIPPED:$skipped"
+}
+
+# Fix ownership of config files in a destination directory.
+# Only meaningful when running as root for a different target user.
+# Usage: fix_ownership <dst_config_dir> <owner_user>
+fix_ownership() {
+    local dst_conf="$1"
+    local owner="$2"
+    if [[ "$(id -u)" -eq 0 ]]; then
+        while IFS= read -r f; do
+            if [[ -f "$dst_conf/$f" ]]; then
+                chown "$owner":"$owner" "$dst_conf/$f" 2>/dev/null || true
+            fi
+        done < <(get_file_list)
+    fi
+}
+
+# Check whether a subcommand argument list contains -h or --help.
+# If found, print the appropriate help and exit.
+# Usage: check_subcommand_help <subcommand> "$@"
+check_subcommand_help() {
+    local subcmd="$1"
+    shift
+    for arg in "$@"; do
+        if [[ "$arg" == "-h" || "$arg" == "--help" ]]; then
+            case "$subcmd" in
+                copy)   print_copy_help   ;;
+                export) print_export_help ;;
+                import) print_import_help ;;
+            esac
+            exit 0
+        fi
+    done
+}
+
+# ============================================================================
+# Subcommand: copy
+# ============================================================================
+
+cmd_copy() {
+    check_subcommand_help "copy" "$@"
+
+    local src_user="${1:-$USER}"
+    local dst_user="${2:?Usage: $0 copy [source_user] <target_user>}"
+
+    require_root_if_different_user "$src_user"
+    require_root_if_different_user "$dst_user"
+
+    local src_conf dst_conf
+    src_conf="$(check_config_dir "$src_user")"
+    dst_conf="$(check_config_dir "$dst_user")"
+
+    local backup_dir
+    backup_dir="$(backup_existing_files "$dst_conf")"
+
+    echo "Migrating Plasma config from $src_user → $dst_user"
+    echo ""
+
+    local result
+    result="$(copy_config_files "$src_conf" "$dst_conf")"
+
+    fix_ownership "$dst_conf" "$dst_user"
+
+    local copied skipped
+    copied=$(echo "$result" | grep -oP 'COPIED:\K\d+')
+    skipped=$(echo "$result" | grep -oP 'SKIPPED:\K\d+')
+
+    echo ""
+    echo "Done.  $copied copied,  $skipped skipped (not present on source)."
+    if [[ -d "$backup_dir" && -n "$(ls -A "$backup_dir" 2>/dev/null)" ]]; then
+        echo "Previous target files backed up to: $backup_dir"
+    fi
+    echo ""
+    echo "IMPORTANT: Log out and back in on the target account for changes to take effect."
+}
+
+# ============================================================================
+# Subcommand: export
+# ============================================================================
+
+cmd_export() {
+    check_subcommand_help "export" "$@"
+
+    local user="${1:-$USER}"
+    require_root_if_different_user "$user"
+
+    local src_conf
+    src_conf="$(check_config_dir "$user")"
+
+    local timestamp
+    timestamp="$(date +%Y%m%d_%H%M%S)"
+    local outfile="${timestamp}_${user}_kde.tar.gz"
+
+    # Create a temporary staging directory
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    trap 'rm -rf "$tmpdir"' EXIT
+
+    echo "Collecting Plasma config files from user '$user'..."
+    echo ""
+
+    local copied=0 skipped=0
+    while IFS= read -r f; do
+        if [[ -f "$src_conf/$f" ]]; then
+            cp -a "$src_conf/$f" "$tmpdir/$f"
+            echo "  collected: $f"
+            ((copied++)) || true
+        else
+            echo "  skip (not found): $f"
+            ((skipped++)) || true
+        fi
+    done < <(get_file_list)
+
+    echo ""
+    echo "Creating archive: $outfile"
+    tar -czf "$outfile" -C "$tmpdir" .
+
+    # If running as root via sudo, give ownership of the archive back to the
+    # real user so they can move / copy it without extra steps.
+    if [[ "$(id -u)" -eq 0 && -n "${SUDO_USER:-}" ]]; then
+        chown "$SUDO_USER":"$SUDO_USER" "$outfile" 2>/dev/null || true
+    fi
+
+    echo ""
+    echo "Done.  $copied files collected,  $skipped skipped."
+    echo "Archive saved to: $(realpath "$outfile")"
+}
+
+# ============================================================================
+# Subcommand: import
+# ============================================================================
+
+cmd_import() {
+    check_subcommand_help "import" "$@"
+
+    local tarball="${1:?Usage: $0 import <archive.tar.gz> [user]}"
+    local user="${2:-$USER}"
+
+    if [[ ! -f "$tarball" ]]; then
+        echo "ERROR: Archive not found: $tarball" >&2
+        exit 1
+    fi
+
+    require_root_if_different_user "$user"
+
+    local dst_conf
+    dst_conf="$(check_config_dir "$user")"
+
+    # Back up existing files before overwriting
+    local backup_dir
+    backup_dir="$(backup_existing_files "$dst_conf")"
+
+    # Extract archive to a temporary directory
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    trap 'rm -rf "$tmpdir"' EXIT
+
+    echo "Extracting archive: $tarball"
+    tar -xzf "$tarball" -C "$tmpdir"
+    echo ""
+
+    echo "Restoring Plasma config for user '$user'..."
+    echo ""
+
+    local copied=0 skipped=0
+    while IFS= read -r f; do
+        if [[ -f "$tmpdir/$f" ]]; then
+            cp -a "$tmpdir/$f" "$dst_conf/$f"
+            echo "  restored: $f"
+            ((copied++)) || true
+        else
+            echo "  skip (not in archive): $f"
+            ((skipped++)) || true
+        fi
+    done < <(get_file_list)
+
+    fix_ownership "$dst_conf" "$user"
+
+    echo ""
+    echo "Done.  $copied restored,  $skipped skipped (not present in archive)."
+    if [[ -d "$backup_dir" && -n "$(ls -A "$backup_dir" 2>/dev/null)" ]]; then
+        echo "Previous target files backed up to: $backup_dir"
+    fi
+    echo ""
+    echo "IMPORTANT: Log out and back in on the target account for changes to take effect."
+}
+
+# ============================================================================
+# Main — dispatch subcommand
+# ============================================================================
+
+if [[ $# -eq 0 ]]; then
+    print_general_help
+    exit 0
+fi
+
+# Script-level help
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    print_general_help
+    exit 0
+fi
+
+SUBCMD="$1"
+shift
+
+case "$SUBCMD" in
+    copy)   cmd_copy   "$@" ;;
+    export) cmd_export "$@" ;;
+    import) cmd_import "$@" ;;
+    ,*)
+        echo "ERROR: Unknown subcommand '$SUBCMD'." >&2
+        echo ""
+        print_general_help
+        exit 1
+        ;;
+esac
 #+end_src
 
 ** Nix
@@ -1933,7 +2463,7 @@ Following hook statements are likely written in .dir-locals.el at the top level 
 (setq redisplay-skip-fontification-on-input t)
 #+end_src
 
-***** Garbage collection
+**** Garbage collection
 :PROPERTIES:
 :ID:       ff1cc31b-756f-4442-acef-907ebeb872f6
 :END:
@@ -1948,7 +2478,6 @@ The Emacs package [[help:Package][emacs-gc-stats]] is useful for collecting stat
 (setq gc-cons-threshold (* 30 gc-cons-threshold)
       gc-cons-percentage 0.3)
 #+end_src
-
 
 *** init.el
 :PROPERTIES:
@@ -2001,47 +2530,49 @@ Settings in this section are influenced a great deal by my personal preference. 
 **** Key Bindings
 
 #+begin_src emacs-lisp
-(keymap-global-set "M-F" #'forward-to-word)
-(keymap-global-set "M-B" #'backward-to-word)
-(keymap-global-set "C-x M-F" #'forward-paragraph)
-(keymap-global-set "C-x M-B" #'backward-paragraph)
-(keymap-global-set "C-M-S-k" #'kill-paragraph)
-(keymap-global-set "C-c d" #'duplicate-dwim)
-(keymap-global-set "C-c j" #'join-line)
-(keymap-global-set "C-c M-d" #'copy-from-above-command)
-(keymap-global-set "M-z" #'zap-up-to-char)
-(keymap-global-set "C-z" #'repeat)
-(keymap-global-set "C-x M-t" #'transpose-sentences)
-(keymap-global-set "M-T" #'transpose-paragraphs)
-(keymap-global-set "H-u" #'universal-argument)
-
-(keymap-global-set "C-;" #'backward-delete-char)
-(keymap-global-set "C-:" #'backward-kill-word)
-(keymap-global-set "C-M-:" #'backward-kill-sexp)
-
-(keymap-global-set "H-g" #'previous-buffer)
-(keymap-global-set "H-t" #'next-buffer)
-(keymap-global-set "C-c k" #'kill-current-buffer)
-(keymap-global-set "C-x M-r" #'rename-visited-file)
-
-(keymap-substitute global-map
-                   #'upcase-region
-                   #'upcase-dwim)
-(keymap-substitute global-map
-                   #'downcase-region
-                   #'downcase-dwim)
-(keymap-global-set "C-x C-c" #'capitalize-dwim)
-
-;; set up key binds for find-functions such as C-x F for find-function
-(find-function-setup-keys)
-
-(keymap-set special-mode-map "C-j" #'push-button)
+(use-package key-binding
+  :no-require t
+  :bind (("M-F"     . forward-to-word)
+         ("M-B"     . backward-to-word)
+         ("C-x M-F" . forward-paragraph)
+         ("C-x M-B" . backward-paragraph)
+         ("C-M-S-k" . kill-paragraph)
+         ("C-c d"   . duplicate-dwim)
+         ("C-c j"   . join-line)
+         ("C-c M-d" . copy-from-above-command)
+         ("M-z"     . zap-up-to-char)
+         ("C-z"     . repeat)
+         ("C-x M-t" . transpose-sentences)
+         ("M-T"     . transpose-paragraphs)
+         ("H-u"     . universal-argument)
+         ("C-;"     . backward-delete-char)
+         ("C-:"     . backward-kill-word)
+         ("C-M-:"   . backward-kill-sexp)
+         ("H-l"     . previous-buffer)
+         ("H-k"     . next-buffer)
+         ("C-c k"   . kill-current-buffer)
+         ("C-x M-r" . rename-visited-file)
+         :map help-map
+         ("L" . find-library))
+  :init
+  (keymap-substitute global-map
+                     #'upcase-region
+                     #'upcase-dwim)
+  (keymap-substitute global-map
+                     #'downcase-region
+                     #'downcase-dwim)
+  (keymap-global-set "C-x C-c" #'capitalize-dwim)
+  ;; set up key binds for find-functions such as C-x F for find-function
+  (find-function-setup-keys)
+  (keymap-set special-mode-map "C-j" #'push-button))
 #+end_src
 
-**** Unleash Disabled Commands
+**** Unleash or shackle commands
 :PROPERTIES:
 :CREATED:  [2023-07-01 Sat 13:59]
 :END:
+
+This configuration enables several useful text manipulation and navigation commands that are disabled by default in Emacs, including region case conversion (upcase-region, downcase-region), narrowing functionality (narrow-to-region), goal column setting, and horizontal scrolling. Simultaneously, it disables overwrite-mode (which replaces text instead of inserting it) and suspend-frame (which can accidentally suspend the Emacs session), preventing potential user errors and workflow disruptions.
 
 #+begin_src emacs-lisp
 (mapc
@@ -2054,7 +2585,7 @@ Settings in this section are influenced a great deal by my personal preference. 
 (mapc
  (lambda (command)
    (put command 'disabled t))
- '( overwrite-mode))
+ '(overwrite-mode suspend-frame))
 #+end_src
 
 **** Coding System
@@ -2252,9 +2783,9 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
   :hook (after-init . recentf-mode)
   :custom
   (recentf-exclude '(".gz" ".xz" ".zip" ".gpg"))
-  (recentf-max-saved-items 1000)
-  ;; clean-up when idle time reaches 7 minutes
-  (recentf-auto-cleanup (* 7 60)))
+  (recentf-max-saved-items 10000)
+  ;; clean-up when idle time reaches 3 minutes
+  (recentf-auto-cleanup (* 3 60)))
 #+end_src
 
 ***** Tramp
@@ -2908,6 +3439,9 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
 
 #+begin_src emacs-lisp
 (use-package tab-bar
+  :bind
+  (("H-L" . tab-previous)
+   ("H-K" . tab-next))
   :custom
   (tab-bar-show 8)
   (tab-bar-history-mode t)
@@ -4486,7 +5020,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 :CREATED:  [2025-03-05 Wed 18:23]
 :END:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
 (use-package remember
   :bind (("H-m" . remember)
          ("H-M" . remember-notes))
@@ -4496,6 +5030,9 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
             " (" (string-trim (truncate-string-to-width (remember-buffer-desc) 16)) ")\n\n"
             text))
   :custom
+  (remember-data-file (expand-file-name "emacs/remember-notes"
+                                        "<<share-dir()>>"))
+  (remember-initial-major-mode 'org-mode)
   (remember-notes-initial-major-mode 'org-mode)
   (remember-text-format-function #'my/remember-text))
 #+end_src
@@ -5069,25 +5606,7 @@ Basic settings for built-in Org features. Similar to [[id:587bc395-6321-4f59-97e
   :init
   (setq org-directory "~/org")
   :custom
-  (org-sort-function 'org-sort-function-fallback)
-  :config
-  (let ((map org-mode-map))
-    (keymap-set map "C-j" #'org-return)
-    (keymap-set map "C-M-j" #'org-return-indent)
-    (keymap-set map "M-j" #'org-meta-return)
-    (keymap-set map "C-S-p" #'org-previous-item)
-    (keymap-set map "C-S-n" #'org-next-item)
-    (keymap-set map "C-S-u" #'org-up-element)
-    (keymap-set map "C-S-d" #'org-down-element)
-    (keymap-set map "C-x M-F" #'org-forward-paragraph)
-    (keymap-set map "C-x M-B" #'org-backward-paragraph)
-    (keymap-set map "C-<" #'org-previous-link)
-    (keymap-set map "C->" #'org-next-link)
-    (keymap-set map "C-c @" #'org-mark-element)
-    (keymap-set map "C-c C-SPC" #'org-mark-subtree)
-    (keymap-set map "C-c C-a" nil)
-    (keymap-set map "C-," nil)
-    (keymap-set map "M-h" nil)))
+  (org-sort-function 'org-sort-function-fallback))
 
 (defvar my/org-todo-keyword--urgent "UG"
   "TODO keyword acronym standing for 'UrGent'")
@@ -5429,7 +5948,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
 #+begin_src emacs-lisp
 (setopt org-startup-folded 'fold
         org-startup-truncated t
-        org-startup-with-inline-images t
+        org-startup-with-link-previews t
         org-cycle-hide-drawer-startup t
         org-ellipsis "…")
 
@@ -5531,7 +6050,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
   :custom
   (org-special-ctrl-a/e t)
   (org-src-window-setup 'current-window)
-  (org-edit-src-content-indentation 0)
+  (org-src-content-indentation 0)
   (org-edit-src-turn-on-auto-save nil)
   (org-edit-src-auto-save-idle-delay 30)
   (org-edit-src-persistent-message nil)
@@ -5583,7 +6102,9 @@ If entry at POM has no clock log time stamp, this function returns 0."
 (use-package org-archive
   :defer t
   :custom
-  (org-archive-default-command 'org-toggle-archive-tag))
+  (org-archive-default-command 'org-toggle-archive-tag)
+  (org-archive-save-context-info
+   '(time file olpath category todo itags olid)))
 
 (setopt org-cycle-open-archived-trees t)
 #+end_src
@@ -5620,7 +6141,8 @@ If entry at POM has no clock log time stamp, this function returns 0."
   (setopt org-use-tag-inheritance org-archive-tag
           org-tags-column -59
           org-tags-sort-function #'org-string-collate-greaterp
-          org-complete-tags-always-offer-all-agenda-tags nil))
+          org-complete-tags-always-offer-all-agenda-tags nil
+          org-tags-sort-function #'org-tags-sort-hierarchy))
 #+end_src
 
 ******* Org Properties
@@ -5994,21 +6516,21 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 :PROPERTIES:
 :CREATED:  [2022-10-20 Thu 16:59]
 :END:
-***** Dictionary
+***** Dictionary                              :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2022-10-20 Thu 17:01]
 :END:
 
-#+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
-dictd dict \
-      dict-gcide dict-wn \
-      dict-jargon dict-foldoc dict-vera \
-      dict-freedict-eng-jpn dict-freedict-jpn-eng
-#+end_src
+# #+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
+# dictd dict \
+#       dict-gcide dict-wn \
+#       dict-jargon dict-foldoc dict-vera \
+#       dict-freedict-eng-jpn dict-freedict-jpn-eng
+# #+end_src
 
-#+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
-sudo systemctl start dictd
-#+end_src
+# #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
+# sudo systemctl start dictd
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package dictionary
@@ -6909,7 +7431,7 @@ emacs-org-hide-drawers-head
 
 #+begin_src emacs-lisp
 (use-package org-hide-drawers
-  :after (org my/org-visual-cycle)
+  :after (my/org-visual)
   :bind (:map my/org-visual-map
               ("d" . org-hide-drawers-mode))
   :custom
@@ -7657,7 +8179,6 @@ How to use detached.el
   - invoke/call detached-shell-command
 
 #+begin_src scheme :noweb-ref guix-emacs :tangle no
-"dtach"
 "emacs-detached"
 #+end_src
 
@@ -8491,16 +9012,21 @@ Each block holds the request and the response of a tool call in `gptel'."
 #+begin_src emacs-lisp :noweb tangle
 (use-package gptel
   :after (engine-mode my-credential)
-  :bind (:map engine-mode-prefixed-map
-              ("G" . gptel)
-              ("g RET" . gptel-send)
-              ("g r" . gptel-rewrite)
-              ("g g" . gptel-menu)
-              ("g t" . gptel-tools)
-              ("g x" . gptel-abort)
-              ("g s" . gptel-system-prompt)
-              ("g c" . gptel-mcp-connect)
-              ("g d" . gptel-mcp-disconnect))
+  :init (defvar-keymap my/gptel-map
+          :doc "A keymap that gaverns gptel commands."
+          :prefix t)
+  :bind-keymap ("H-g" . my/gptel-map)
+  :bind (("H-G" . gptel)
+         (:map my/gptel-map
+               ("RET" . gptel-send)
+               ("r" . gptel-rewrite)
+               ("g" . gptel-menu)
+               ("t" . gptel-tools)
+               ("P" . gptel-preset)
+               ("x" . gptel-abort)
+               ("s" . gptel-system-prompt)
+               ("c" . gptel-mcp-connect)
+               ("d" . gptel-mcp-disconnect)))
   :custom
   (gptel-api-key
    (my/credential-info "openai.com" "apikey"))
@@ -8546,6 +9072,7 @@ Each block holds the request and the response of a tool call in `gptel'."
               deepseek/deepseek-v4-flash
               deepseek/deepseek-v4-flash:free
               deepseek/deepseek-v4-pro
+              openrouter/owl-alpha
               moonshotai/kimi-k2.6
               xiaomi/mimo-v2.5
               google/gemini-3.1-flash-lite
@@ -8567,6 +9094,10 @@ Each block holds the request and the response of a tool call in `gptel'."
 :LOGBOOK:
 - Refiled on [2026-04-13 Mon 17:19]
 :END:
+
+#+begin_src scheme :noweb-ref guix-base
+"uv"
+#+end_src
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
 (define emacs-mcp-transform
@@ -8632,8 +9163,8 @@ emacs-mcp-latest
 #+begin_src emacs-lisp
 (use-package gptel-agent
   :after gptel
-  :bind (:map engine-mode-prefixed-map
-              ("g a" . gptel-agent)))
+  :bind (:map my/gptel-map
+              ("a" . gptel-agent)))
 #+end_src
 
 ***** gptel-prompt
@@ -8685,7 +9216,7 @@ emacs-mcp-latest
                '("g" . "src gptel")))
 #+end_src
 
-***** agent-shell
+***** agent-shell                             :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2026-01-19 Mon 22:37]
 :END:
@@ -10198,7 +10729,7 @@ Intended :filter function in menu-itmm clause."
   (logos-hide-mode-line t)
   (logos-hide-buffer-boundaries t)
   (logos-olivetti nil)
-  (logos-hide-fringe t)
+  (logos-hide-fringe nil)
   (logos-outlines-are-pages t)
   :config
   (add-to-list 'logos-outline-regexp-alist
@@ -12790,6 +13321,163 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
  :category "emacs")
 #+end_src
 
+***** machine-info
+:PROPERTIES:
+:CREATED:  [2026-05-21 Thu 17:21]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "machine-info"
+ :description "Return my machine information."
+ :function #'my/machine-info
+ :category "system")
+
+(defun my/insert-cmd-output (command &optional label)
+  "Run COMMAND via shell and insert it along with its output.
+With optional LABEL string, insert a comment header before it."
+  (let ((output (shell-command-to-string command)))
+    (when label
+      (insert ";; --- " label " ---\n"))
+    (insert "$ " command "\n")
+    (if (string-blank-p output)
+        (insert ";; (no output -- command may not be available)\n")
+      (insert output
+              (if (string-suffix-p "\n" output) "" "\n")))
+    (insert "\n")))
+
+;;;###autoload
+(defun my/machine-info--linux ()
+  "Insert Linux machine information into current buffer."
+  ;; OS
+  (my/insert-cmd-output
+   (concat "cat /etc/os-release 2>/dev/null | grep -E '^(PRETTY_NAME|VERSION_ID|ID)=' "
+           "|| echo '(os-release not available)'")
+   "OS (Linux)")
+  ;; Kernel
+  (my/insert-cmd-output "uname -r" "Kernel")
+  ;; CPU
+  (my/insert-cmd-output
+   "lscpu 2>/dev/null || echo '(lscpu not available)'"
+   "CPU")
+  ;; Memory
+  (my/insert-cmd-output "free -h 2>/dev/null | head -2" "Memory")
+  ;; GPU
+  (my/insert-cmd-output
+   "lspci 2>/dev/null | grep -E 'VGA|3D|Display' | head -5 || echo '(lspci not available)'"
+   "GPU")
+  ;; NVIDIA GPU details (if present)
+  (my/insert-cmd-output
+   "nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>/dev/null || true"
+   "NVIDIA GPU")
+  ;; Display server & desktop
+  (my/insert-cmd-output
+   "echo \"${XDG_SESSION_TYPE:-not set}\"" "Display Server")
+  (my/insert-cmd-output
+   "echo \"${XDG_CURRENT_DESKTOP:-not set}\"" "Desktop")
+  ;; Shell
+  (my/insert-cmd-output "echo \"${SHELL:-not set}\"" "Shell"))
+
+;;;###autoload
+(defun my/machine-info--darwin ()
+  "Insert macOS machine information into current buffer."
+  ;; OS
+  (my/insert-cmd-output "sw_vers" "OS (macOS)")
+  ;; Kernel
+  (my/insert-cmd-output "uname -r" "Kernel")
+  ;; CPU
+  (my/insert-cmd-output "sysctl -n machdep.cpu.brand_string" "CPU")
+  (my/insert-cmd-output "sysctl -n hw.ncpu" "  Logical cores")
+  (my/insert-cmd-output "sysctl -n hw.physicalcpu" "  Physical cores")
+  ;; Memory
+  (my/insert-cmd-output
+   "sysctl -n hw.memsize | awk '{printf \"%.1f GB\\n\", $1/1073741824}'"
+   "Memory")
+  ;; GPU
+  (my/insert-cmd-output
+   "system_profiler SPDisplaysDataType 2>/dev/null | grep -E 'Chipset Model|VRAM \\(Total\\)|Resolution'"
+   "GPU")
+  ;; Shell
+  (my/insert-cmd-output "echo \"${SHELL:-not set}\"" "Shell"))
+
+;;;###autoload
+(defun my/machine-info--windows-nt ()
+  "Insert Windows machine information into current buffer."
+  (let ((pwsh "powershell -NoProfile -Command"))
+    (my/insert-cmd-output
+     (concat pwsh " \"(Get-CimInstance Win32_OperatingSystem).Caption\"")
+     "OS (Windows)")
+    (my/insert-cmd-output
+     (concat pwsh " \"(Get-CimInstance Win32_OperatingSystem).Version\"")
+     "  Version")
+    (my/insert-cmd-output
+     (concat pwsh " \"(Get-CimInstance Win32_OperatingSystem).OSArchitecture\"")
+     "  Architecture")
+    (my/insert-cmd-output
+     (concat pwsh " \"(Get-CimInstance Win32_Processor | "
+             "Select-Object Name, NumberOfCores, NumberOfLogicalProcessors | "
+             "Format-List | Out-String -Width 200)\"")
+     "CPU")
+    (my/insert-cmd-output
+     (concat pwsh " \"[math]::Round((Get-CimInstance Win32_ComputerSystem)"
+             ".TotalPhysicalMemory / 1GB)\"")
+     "Memory (GB)")
+    (my/insert-cmd-output
+     (concat pwsh " \"Get-CimInstance Win32_VideoController | "
+             "Select-Object Name, @{N='VRAM_MB';E={[math]::Round($_.AdapterRAM/1MB)}} | "
+             "Format-List | Out-String -Width 200\"")
+     "GPU")
+    (my/insert-cmd-output
+     (concat pwsh " \"$PSVersionTable.PSVersion\"")
+     "PowerShell")))
+
+;;;###autoload
+(defun my/machine-info ()
+  "Display privacy-safe machine information in a dedicated buffer.
+
+Suitable for copying and pasting to AI assistants (ChatGPT, Claude, etc.).
+Excludes personal information such as hostname, user name, IP/MAC address,
+serial numbers, and full file paths.
+
+Supports GNU/Linux, macOS, and native Windows (via PowerShell).
+
+Output format shows both the shell command used and its result,
+so the AI can interpret the values correctly."
+  (interactive)
+  (let* ((buf (get-buffer-create "*machine-info*"))
+         (inhibit-read-only t))
+    (with-current-buffer buf
+      (erase-buffer)
+      (read-only-mode -1)
+      ;; Header
+      (insert ";; ==========================================\n")
+      (insert ";; Machine Information (Privacy-Safe)\n")
+      (insert ";; Generated: " (format-time-string "%Y-%m-%d %H:%M:%S") "\n")
+      (insert ";; ==========================================\n\n")
+      ;; Emacs version info (safe)
+      (insert ";; --- Emacs ---\n")
+      (insert "$ emacs-version: " emacs-version "\n")
+      (insert "$ system-configuration: " system-configuration "\n")
+      (insert "$ system-type: " (symbol-name system-type) "\n\n")
+      ;; OS-specific section
+      (pcase system-type
+        ('gnu/linux   (my/machine-info--linux))
+        ('darwin      (my/machine-info--darwin))
+        ('windows-nt  (my/machine-info--windows-nt))
+        (t            (insert ";; Unsupported OS: "
+                              (symbol-name system-type) "\n")))
+      ;; Locale (cross-platform)
+      (insert ";; --- Locale ---\n")
+      (my/insert-cmd-output "locale 2>/dev/null || echo '(locale not available)'")
+      ;; Footer
+      (insert ";; ==========================================\n")
+      (insert ";; End\n")
+      (goto-char (point-min))
+      (read-only-mode 1)
+      ;; Return bufeer string
+      (buffer-substring-no-properties (point-min) (point-max)))))
+#+end_src
+
 ***** get_predefined_tags AI tool
 :PROPERTIES:
 :CREATED:  [2025-11-04 Tue 17:03]
@@ -13115,19 +13803,26 @@ If MENU is nil, all menu titles will be returned as a list of strings."
   (defvar gptel-response-language "Japanese"
     "Response language for LLMs in gptel.")
   :preface
-  (defun gptel-switch-response-language ()
-    ""
+  (defun my/gptel-switch-response-language ()
+    "Set the desired language for GPTel response."
     (interactive)
     (let* ((lang (completing-read (format "Select language (default %s): "
                                           gptel-response-language)
                                   '("Japanese" "English") nil t)))
       (setq gptel-response-language lang)
       (message "Response language set to %s" lang)))
+  (defun my/gptel-preset-local (preset)
+    "Set PRESET for the current buffer as buffer-local."
+    (interactive (list (intern (completing-read "Preset: "
+                                                (mapcar #'car gptel--known-presets)))))
+    (gptel--apply-preset preset #'set-local))
+  (defun my/gptel-send ()
+    "Invoke `gptel-send' by setting preset locally."
+    (interactive)
+    (call-interactively #'my/gptel-preset-local)
+    (call-interactively #'gptel-send))
   :config
-  (keymap-global-set "H-l"
-                     (define-keymap
-                       :prefix 'my/gptel-send-map))
-  (gptel-make-preset 'default
+  (gptel-make-preset 'my-default
     :description  "Default preset"
     :system
     "
@@ -13140,9 +13835,10 @@ If MENU is nil, all menu titles will be returned as a list of strings."
     :tools        '("emacs" "mcp-time" "mcp-sequential-thinking")
     :include-tool-results 'auto)
   <<gptel-preset>>
-  (bind-keys :map engine-mode-prefixed-map
-             ("g p" . gptel-preset)
-             ("g l" . gptel-switch-response-language)))
+  (bind-keys :map my/gptel-map
+             ("p"     . my/gptel-preset-local)
+             ("M-RET" . my/gptel-send)
+             ("l"     . my/gptel-switch-response-language)))
 #+end_src
 
 ***** Search preset
@@ -13152,7 +13848,7 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'search
-  :parents      'default
+  :parents      'my-default
   :description  "Basic search capability."
   :system
   '(:prepend "You are a smart explainer. Your job is to provide a clear, plain-language definition of the given word or phrase for someone with no background knowledge:
@@ -13160,12 +13856,6 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 - If the topic is time-sensitive, such as one related to a technology term, you should check the web first in case your knowledge is already obsolete. Remember to check multiple sources during the process to avoid relying on misinformed and harmful information.
 ")
   :tools        '(:append ("mcp-duckduckgo" "mcp-kazuph-fetch")))
-
-(lambda-key my/gptel-send-map "s"
-            (lambda () "Search"
-              (interactive)
-              (gptel-with-preset 'search
-                (gptel-send))))
 #+end_src
 
 ****** Technical Research preset
@@ -13177,13 +13867,11 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 (gptel-make-preset 'technical-research
   :parents      'search
   :description  "Technical research."
-  :tools        '(:append ("mcp-context7" "emacs-help")))
-
-(lambda-key my/gptel-send-map "q"
-            (lambda () "Technical research"
-              (interactive)
-              (gptel-with-preset 'technical-research
-                (gptel-send))))
+  :backend      "OpenRouter"
+  :model        'deepseek/deepseek-v4-flash
+  :system
+  '(:append "Your technical advice must account for my specific environment by considering my machine information, which can be obtained using the machine-info tool.")
+  :tools        '(:append ("mcp-context7" "emacs-help" "system")))
 #+end_src
 
 ****** Fact-checking preset
@@ -13206,12 +13894,6 @@ Please output the results based on the following instructions:
 Please omit any explanations or introductory remarks in your output, and provide only the identified issues and the revised text in a concise manner.
 ")
   :tools        '(:append ("mcp-context7" "emacs-help")))
-
-(lambda-key my/gptel-send-map "h"
-            (lambda () "Fect checking"
-              (interactive)
-              (gptel-with-preset 'fact-checking
-                (gptel-send))))
 #+end_src
 
 ***** Writing preset
@@ -13221,7 +13903,7 @@ Please omit any explanations or introductory remarks in your output, and provide
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'writing
-  :parents 'default
+  :parents 'my-default
   :backend "OpenRouter"
   :model   'google/gemini-3.1-flash-lite
   :tools   '(:append ("mcp-kazuph-fetch")))
@@ -13244,12 +13926,6 @@ Please omit any explanations or introductory remarks in your output, and provide
 - Fundamentally, we want only the answered text without explanation, as long as there is no explicit requirement.
 - Respect itemization style in the original text as faithfully as possible.
 "))
-
-(lambda-key my/gptel-send-map "p"
-            (lambda () "Prompts"
-              (interactive)
-              (gptel-with-preset 'prompt
-                (gptel-send))))
 #+end_src
 
 ****** Translation preset
@@ -13264,12 +13940,6 @@ Please omit any explanations or introductory remarks in your output, and provide
   :system       "You are a professional translator. Please translate the text while considering the following prerequisites.
 - Translate the sentence in Japanese if it is English and vice versa.
 - Print only translated sentences without explanations.")
-
-(lambda-key my/gptel-send-map "t"
-            (lambda () "Translate"
-              (interactive)
-              (gptel-with-preset 'translate
-                (gptel-send))))
 #+end_src
 
 ****** Proofreading preset
@@ -13286,12 +13956,6 @@ Please omit any explanations or introductory remarks in your output, and provide
 - If the text to be proofread starts with any verb, namely the text is a command, you should not follow the command. Rather, you are expexted to proofread the command.
 - Preserve originality and humor in the text as much as possible.
 - The output text must be in the same language as the original")
-
-(lambda-key my/gptel-send-map "f"
-            (lambda () "Proofreading"
-              (interactive)
-              (gptel-with-preset 'proofreading
-                (gptel-send))))
 #+end_src
 
 ****** Summarization perset
@@ -13305,12 +13969,6 @@ Please omit any explanations or introductory remarks in your output, and provide
   :description  "Summerizing the text."
   :system
   '(:prepend "You are a professional text summarizer. Summarize the following text while incorporating the specified points if mentioned."))
-
-(lambda-key my/gptel-send-map "u"
-            (lambda () "Summerizing"
-              (interactive)
-              (gptel-with-preset 'summerize
-                (gptel-send))))
 #+end_src
 
 ***** Project preset
@@ -13320,7 +13978,7 @@ Please omit any explanations or introductory remarks in your output, and provide
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'project
-  :parents 'default
+  :parents 'my-default
   :tools  '(:append ("mcp-git" "mcp-github" "mcp-context7" "emacs-project")))
 #+end_src
 
@@ -13339,13 +13997,8 @@ Please omit any explanations or introductory remarks in your output, and provide
 - The commit message is the only output you are expected to respond with.
 - Follow project guidelines.
 - The git_diff_staged command must be the only source to check the relevant diff.
-- Append a descriptive comment if needed."))
-
-(lambda-key my/gptel-send-map "m"
-            (lambda () "Commit-message"
-              (interactive)
-              (gptel-with-preset 'commit-message
-                (gptel-send))))
+- Append a descriptive comment if needed.
+- Don't make an actual commit; your task is merely to write a commit message."))
 #+end_src
 
 ****** Code-generator preset
@@ -13363,12 +14016,6 @@ Please omit any explanations or introductory remarks in your output, and provide
   "You are a professional programmer. Generate lines of code in a language which is inferred based on current major-mode.
 
 - All your responses must be code itself.")
-
-(lambda-key my/gptel-send-map "c"
-            (lambda () "Code-generator"
-              (interactive)
-              (gptel-with-preset 'code-generator
-                (gptel-send))))
 #+end_src
 
 ***** Coaching preset
@@ -13378,7 +14025,7 @@ Please omit any explanations or introductory remarks in your output, and provide
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'coaching
-  :parents 'default)
+  :parents 'my-default)
 #+end_src
 
 ****** Wordsmith preset
@@ -13397,12 +14044,6 @@ When the learner inputs a word or phrase, answer in the following format:
 - **Meaning and nuance**: Briefly explain the meaning and what kind of implication or impression using it gives the other person.
 - **Advice on learning value**: Advise whether it’s worth prioritizing to remember that word in everyday conversation at an intermediate level, along with the reason.
 "))
-
-(lambda-key my/gptel-send-map "w"
-            (lambda () "Teaching English"
-              (interactive)
-              (gptel-with-preset 'wordsmith
-                (gptel-send))))
 #+end_src
 
 ****** English-tutor preset
@@ -13428,12 +14069,6 @@ Whenever I provide a response, please analyze it according to the criteria above
 <instruction>
 ,#+end_example
 "))
-
-(lambda-key my/gptel-send-map "o"
-            (lambda () "English tutor"
-              (interactive)
-              (gptel-with-preset 'english-tutor
-                (gptel-send))))
 #+end_src
 
 ****** instructor preset
@@ -13451,12 +14086,6 @@ Whenever I provide a response, please analyze it according to the criteria above
 - Keep the focus on helping me complete one goal successfully.
 ")
   :tools '(:append ("emacs-note")))
-
-(lambda-key my/gptel-send-map "i"
-            (lambda () "Instructor"
-              (interactive)
-              (gptel-with-preset 'instructor
-                (gptel-send))))
 #+end_src
 
 **** Global Display Buffer Settings
@@ -13490,6 +14119,34 @@ Whenever I provide a response, please analyze it according to the criteria above
 :PROPERTIES:
 :header-args:emacs-lisp+: :tangle (expand-file-name "advanced/org-enhanced.el" tangle/emacs-config-dir)
 :END:
+
+***** Key bindings for Org mode
+:PROPERTIES:
+:CREATED:  [2026-05-21 Thu 15:41]
+:END:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  (bind-keys :map org-mode-map
+             ("C-j"       . org-return)
+             ("C-M-j"     . org-return-indent)
+             ("M-j"       . org-meta-return)
+             ("C-S-n"     . org-next-item)
+             ("C-S-p"     . org-previous-item)
+             ("C-S-u"     . org-up-element)
+             ("C-S-d"     . org-down-element)
+             ("C-S-f"     . org-forward-element)
+             ("C-S-b"     . org-backward-element)
+             ("C-c M-F"   . org-forward-paragraph)
+             ("C-c M-B"   . org-backward-paragraph)
+             ("C->"       . org-next-link)
+             ("C-<"       . org-previous-link)
+             ("C-c @"     . org-mark-element)
+             ("C-c C-SPC" . org-mark-subtree)
+             ("C-c C-a"   . nil) ; org-attach
+             ("C-,"       . nil) ; org-cycle-agenda-files
+             ))
+#+end_src
 
 ***** Timer/Clock
 :PROPERTIES:
@@ -13927,7 +14584,7 @@ If called interactively, it prompt the user to select the date to find."
     (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil)))))
 #+end_src
 
-***** Cursor Movement
+***** Motion
 :PROPERTIES:
 :CREATED:  [2026-02-24 Tue 18:58]
 :END:
@@ -13952,6 +14609,42 @@ It's handy to jump to the last sibling of the current org entry, especially when
 
 (keymap-global-set "C-c M->"
                    #'my/org-cadet-heading)
+#+end_src
+
+****** org-block-navigation-repeat-map
+:PROPERTIES:
+:CREATED:  [2026-05-21 Thu 15:30]
+:END:
+
+org-next-block binds C-c M-f, so it's natural to press C-c M-f M-f M-f... rather than C-c M-f f f f... to repeat the command.
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org-keys
+  (use-package org
+    :ensure nil
+    :bind (:repeat-map org-block-navigation-repeat-map
+                       ("M-b" . org-previous-block)
+                       ("M-f" . org-next-block))))
+#+end_src
+
+****** my/org-element-navigation-repeat-map
+:PROPERTIES:
+:CREATED:  [2023-03-05 Sun 16:15]
+:END:
+
+#+begin_src emacs-lisp
+(use-package org-keys
+  :ensure nil
+  :bind
+  (:repeat-map my/org-element-navigation-repeat-map
+               ("n" . org-next-item)
+               ("p" . org-previous-item)
+               ("u" . org-up-element)
+               ("d" . org-down-element)
+               ("f" . org-forward-element)
+               ("b" . org-backward-element)
+               ("M-F" . org-forward-paragraph)
+               ("M-B" . org-backward-paragraph)))
 #+end_src
 
 ***** Searching
@@ -14083,32 +14776,7 @@ obtained from the org-link at the current point."
 (provide 'my-org-global-map)
 #+end_src
 
-***** org move repeat map
-:PROPERTIES:
-:CREATED:  [2023-03-05 Sun 16:15]
-:END:
-
-[[help:my/org-move-repeat-map][my/org-move-repeat-map]] allows to move around org elements and blocks with ease.
-
-#+begin_src emacs-lisp
-(defvar-keymap my/org-move-repeat-map
-  :doc "Keymap to repeat moving commands in `org-mode'.  Used in `repeat-mode'."
-  :repeat t
-  "n" #'org-next-item
-  "p" #'org-previous-item
-  "u" #'org-up-element
-  "d" #'org-down-element
-  "f" #'org-forward-element
-  "b" #'org-backward-element
-  ">" #'org-next-link
-  "<" #'org-previous-link
-  "M-f" #'org-next-block
-  "M-b" #'org-previous-block
-  "M-F" #'org-forward-paragraph
-  "M-B" #'org-backward-paragraph)
-#+end_src
-
-***** Cycling Org visual appearance (my/org-visual-map)
+***** Keymap for Org visual appearance (my/org-visual-map)
 :PROPERTIES:
 :CREATED:  [2023-06-20 Tue 11:31]
 :END:
@@ -14116,21 +14784,25 @@ obtained from the org-link at the current point."
 Wrapping up a bunch of Org commands that toggle/cycle Org-mode's visual appearance.
 
 #+begin_src emacs-lisp
-(defvar-keymap my/org-visual-map
-  :doc "Keymap to repeat toggle/cycling appearance in Org.  Used in `repeat-mode'."
-  :repeat (_ :enter (org-indent-mode)
-             :exit (org-fold-hide-drawer-all))
-  "TAB" #'org-fold-hide-drawer-all
-  "C-M-i" #'org-indent-mode
-  "i" #'org-toggle-inline-images
-  "l" #'org-toggle-link-display)
-
-(with-eval-after-load 'org
-  (keymap-set org-mode-map
-              "C-c v"
-              my/org-visual-map))
-
-(provide 'my/org-visual-cycle)
+(use-package my/org-visual
+  :ensure nil
+  :after org
+  :init
+  (defvar-keymap my/org-visual-map
+    :doc "Keymap for Org visual appearance."
+    :prefix t
+    :repeat (_ :enter (org-indent-mode
+                       org-toggle-inline-images
+                       org-toggle-link-display)
+               :exit (org-fold-hide-drawer-all))
+    "TAB" #'org-fold-hide-drawer-all
+    "C-M-i" #'org-indent-mode
+    "i" #'org-toggle-inline-images
+    "l" #'org-toggle-link-display
+    "b" #'org-fold-hide-block-all)
+  (provide 'my/org-visual)
+  :bind (:map org-mode-map
+              ("C-c v" . my/org-visual-map)))
 #+end_src
 
 ***** show org entries pointing to the current (backlink)
@@ -14576,12 +15248,14 @@ A "project" link type is designed for local copies of Git or other CVS repositor
    :export #'my/org-dotfile-export-link))
 #+end_src
 
-***** Org speed commands for subtrees and items
+***** Org speed commands for subtrees and items :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2025-04-11 Fri 11:54]
 :END:
 
 Org speed command is a swift way of manipulating subtrees. It would be even more attractive if this feature could be used for items as well, as Sacha Chua proposed in [[https://sachachua.com/blog/2025/03/org-mode-cutting-the-current-list-item-including-nested-lists-with-a-speed-command/][this blog post]].
+
+I decided to use direct keybindings and repeat mode (my/org-element-navigation-repeat-map) for navigation against items rather than speed commands. :: [2026-05-21 Thu 16:10]
 
 #+begin_src emacs-lisp
 (defmacro org-defun-speed-command (op-name subtree-op list-item-op)
@@ -16724,11 +17398,8 @@ I'd share this babel config between literate configuration and main Emacs sessio
 (defclass my/tsc-shell-command (transient-suffix)
   ((command-format :initarg :command-format :initform "%a")
    (command-format-spec :initarg :command-format-spec :initform nil)
-   (suppress-output :initarg :suppress-output :initform nil)))
-
-(cl-defmethod transient-init-value ((obj my/tsc-shell-command))
-  (unless (slot-boundp obj :command-format)
-    (oset obj command-format "%a")))
+   (suppress-output :initarg :suppress-output :initform nil)
+   (before-function :initarg :before-function :initform nil)))
 
 (defvar my/tsc-optional-menu
   ["Optional"
@@ -16760,7 +17431,10 @@ I'd share this babel config between literate configuration and main Emacs sessio
   :class my/tsc-shell-command
   :key "RET" :description "Execute"
   (interactive (list (transient-args transient-current-command)))
-  (let ((my/detached-bury-buffer (oref (transient-suffix-object) suppress-output)))
+  (let ((my/detached-bury-buffer (oref (transient-suffix-object) suppress-output))
+        (before-function (oref (transient-suffix-object) before-function)))
+    (when before-function
+      (funcall before-function))
     (funcall my/tsc-execute-function (my/tsc-build-shell-command))))
 
 (defun my/tsc-build-shell-command ()
@@ -16769,14 +17443,12 @@ I'd share this babel config between literate configuration and main Emacs sessio
          (command-format-spec (and (slot-boundp obj :command-format-spec)
                                    (oref obj command-format-spec))))
     (format-spec
-     (replace-regexp-in-string
-      "\\\\\%" "\\\\\%\%"               ; avoid replacing "\%" in shell argument
-      (eval (oref obj command-format)))
+     ;; avoid replacing "\%" in shell argument
+     (string-replace "\\%" "\\%%" (oref obj command-format))
      (append
       `((?a . ,(string-join (flatten-list
-                             (seq-reduce (lambda (li char) (delete char li))
-                                         '("M-w" "M-i")
-                                         (transient--get-savable-value)))
+                             ;; transient-args returns reverse menu order
+                             (reverse (transient-args transient-current-command)))
                             " ")))
       (when command-format-spec
         (mapcar (lambda (key-val) (cons (car key-val) (eval (cdr key-val))))
@@ -16785,16 +17457,11 @@ I'd share this babel config between literate configuration and main Emacs sessio
 (defun my/tsc-suffix (key)
   ""
   (seq-find (lambda (obj) (equal (oref obj key) key))
-            (or transient--suffixes transient-current-suffixes)))
+            transient-current-suffixes))
 
 (defun my/tsc-infix-values (keys)
   (mapconcat
-   ;; FIXME: This is quick and dirty code
-   (lambda (obj)
-     (let ((val (car (transient--get-wrapped-value obj))))
-       (if (consp val)
-           (concat (car val) (cdr val))
-         val)))
+   (lambda (obj) (transient-infix-value obj))
    (delq nil (mapcar #'my/tsc-suffix keys))
    " "))
 
@@ -16971,7 +17638,11 @@ I'd share this babel config between literate configuration and main Emacs sessio
   my/tsc-optional-menu
   [(my/tsc-execute
     :suppress-output t
-    :command-format "mpv %a")]
+    :command-format "mpv %a"
+    :before-function (lambda ()
+                       (when (require-with-check 'recentf)
+                         (mapc 'recentf-add-file
+                               (oref (my/tsc-suffix "f") value)))))]
   (interactive `(,(my/tsc-determine-file t)))
   (transient-setup 'my/mpv-command nil nil
                    :scope (append (cdr `(_ :infile-key "f"
@@ -17351,7 +18022,6 @@ I'd share this babel config between literate configuration and main Emacs sessio
     :class my/tsc-file
     :prompt "Output file: "
     :reader my/tsc-output-reader
-    :always-read t
     :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}" nil))))]
   my/tsc-optional-menu
   [(my/tsc-execute
@@ -20367,6 +21037,10 @@ nix-env -iA nixpkgs.firefox-wayland
 "plocate"
 #+end_src
 
+#+begin_src shell :noweb yes :noweb-ref make-dir :tangle no
+<<share-dir()>>/plocate
+#+end_src
+
 #+name: locate-db-home
 #+begin_src sh :noweb yes :tangle no :results output
 echo -n '<<share-dir()>>/plocate/home.db'
@@ -22218,8 +22892,14 @@ fi
 "virt-manager"
 #+end_src
 
+Don't forget to add the target user to the libvirt/kvm group.
+#+begin_example
+sudo adduser $USER libvirt
+sudo adduser $USER kvm
+#+end_example
+
 #+begin_src shell :noweb-ref apt-pkg :noweb-sep " \\\n" :tangle no
-qemu-kvm libvirt-clients libvirt-daemon libvirt-daemon-system virtinst virt-manager virt-top bridge-utils
+virt-manager libvirt-daemon-system libvirt-clients qemu-system-x86 qemu-utils virtinst
 #+end_src
 
 #+begin_src conf :noweb yes :noweb-ref systemd-service :tangle no
