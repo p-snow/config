@@ -5020,7 +5020,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 :CREATED:  [2025-03-05 Wed 18:23]
 :END:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
 (use-package remember
   :bind (("H-m" . remember)
          ("H-M" . remember-notes))
@@ -5030,6 +5030,9 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
             " (" (string-trim (truncate-string-to-width (remember-buffer-desc) 16)) ")\n\n"
             text))
   :custom
+  (remember-data-file (expand-file-name "emacs/remember-notes"
+                                        "<<share-dir()>>"))
+  (remember-initial-major-mode 'org-mode)
   (remember-notes-initial-major-mode 'org-mode)
   (remember-text-format-function #'my/remember-text))
 #+end_src
