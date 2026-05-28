@@ -13892,7 +13892,7 @@ If MENU is nil, all menu titles will be returned as a list of strings."
   :parents      'search
   :description  "Fact checking"
   :backend      "OpenRouter"
-  :model        'moonshotai/kimi-k2.6
+  :model        'deepseek/deepseek-v4-flash
   :system       '(:prepend "As a professional proofreader and fact-checker, evaluate the accuracy of the provided text and propose improvements.
 Please output the results based on the following instructions:
 
@@ -13987,6 +13987,8 @@ Please omit any explanations or introductory remarks in your output, and provide
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'project
   :parents 'my-default
+  :backend "OpenRouter"
+  :model   'deepseek/deepseek-v4-flash
   :tools  '(:append ("mcp-git" "mcp-github" "mcp-context7" "emacs-project")))
 #+end_src
 
@@ -14026,24 +14028,14 @@ Please omit any explanations or introductory remarks in your output, and provide
 - All your responses must be code itself.")
 #+end_src
 
-***** Coaching preset
-:PROPERTIES:
-:CREATED:  [2026-04-24 Fri 22:26]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
-(gptel-make-preset 'coaching
-  :parents 'my-default)
-#+end_src
-
-****** Wordsmith preset
+***** Wordsmith preset
 :PROPERTIES:
 :CREATED:  [2026-04-24 Fri 22:27]
 :END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'wordsmith
-  :parents     'coaching
+  :parents     'my-default
   :description "Teaching English"
   :system '(:prepend "You are an expert in English learning. Explain English words or phrases clearly for an intermediate English learner.
 
@@ -14052,6 +14044,16 @@ When the learner inputs a word or phrase, answer in the following format:
 - **Meaning and nuance**: Briefly explain the meaning and what kind of implication or impression using it gives the other person.
 - **Advice on learning value**: Advise whether it’s worth prioritizing to remember that word in everyday conversation at an intermediate level, along with the reason.
 "))
+#+end_src
+
+***** Coaching preset
+:PROPERTIES:
+:CREATED:  [2026-04-24 Fri 22:26]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
+(gptel-make-preset 'coaching
+  :parents 'my-default)
 #+end_src
 
 ****** English-tutor preset
