@@ -13220,7 +13220,118 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
   )
 #+end_src
 
-***** get_user_language
+***** emacs
+:PROPERTIES:
+:CREATED:  [2026-05-28 Thu 13:15]
+:END:
+
+****** get_major_mode
+:PROPERTIES:
+:CREATED:  [2026-04-26 Sun 12:10]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "major-mode"
+ :description "Return current buffer's major-mode."
+ :function (lambda ()
+             major-mode)
+ :category "emacs")
+#+end_src
+
+****** get_predefined_tags AI tool
+:PROPERTIES:
+:CREATED:  [2025-11-04 Tue 17:03]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "get_predefined-tags"
+ :function (lambda ()
+             (with-current-buffer (find-file-noselect "/mnt/shared/doc-pc-k8p/home/org/notes/--my-org-tags__org@@20251021T162933.org")
+               (buffer-substring-no-properties (point-min) (point-max))))
+ :description "return the predefined org tags"
+ :category "emacs")
+#+end_src
+
+****** capture_task AI tool
+:PROPERTIES:
+:CREATED:  [2025-07-11 Fri 22:46]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(with-eval-after-load 'org-capture
+  (defun task-timestamp (date deadline-p)
+    ""
+    (unless (string-blank-p date)
+      (with-temp-buffer
+        (insert (if (eq deadline-p ':json-false)
+                    "SCHEDULED: " "DEADLINE: "))
+        (org-insert-timestamp (date-to-time date))
+        (buffer-substring-no-properties (point-min) (point-max)))))
+  (add-to-list 'org-capture-templates
+               `("#tp" "Task for AI"
+                 entry (id "58e12e3e-da50-4089-9d22-565986637121")
+                 ,(format "* %s %%(symbol-value 'task--title)
+%%(task-timestamp (symbol-value 'task--date) (symbol-value 'task--deadline-p))
+%%(symbol-value 'task--content)"
+                          my/org-todo-keyword--todo))))
+
+(gptel-make-tool
+ :name "capture_task"
+ :function (lambda (title content date deadline-p)
+             (setq task--title title)
+             (setq task--content content)
+             (setq task--date date)
+             (setq task--deadline-p deadline-p)
+             (org-capture nil "#tp"))
+ :description "Register a new task"
+ :args (list '(:name "title"
+                     :type string
+                     :description
+                     "Title of the task
+- Begin with a capitalized verb that clearly indicates the action.
+- Ensure the title is concise and clear, ideally within a single line.
+- Limit the length to a maximum of 70 characters to maintain readability.")
+             '(:name "content"
+                     :type string
+                     :description
+                     "Content of the task, such as description or relevant information")
+             '(:name "date"
+                     :type string
+                     :description
+                     "The execution date for the task must be in the format yyyy-mm-dd or yyyy-mm-dd hh:mm if a time is specified. This must be empty if any date or time is specified in the user's prompt.")
+             '(:name "deadline-p"
+                     :type boolean
+                     :description
+                     "Whether the given date designates a deadline. Non-nil means the task has a due date. Note that a scheduled date, such as an appointment, is not a deadline."))
+ :category "emacs"
+ :confirm t)
+#+end_src
+
+****** set_tags AI tool
+:PROPERTIES:
+:CREATED:  [2025-11-04 Tue 16:40]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "set_tags"
+ :function (lambda (tags)
+             (save-excursion
+               (org-back-to-heading)
+               (org-set-tags tags))
+             t)
+ :description "Set tags for a current Org entry"
+ :args (list '(:name "tags"
+                     :type string
+                     :description
+                     "The tag is surrounded by colon(:) and if multiple tags declared they are look like :tag1:tag2:."))
+ :category "emacs"
+ :confirm nil)
+#+end_src
+
+****** get_user_language
 :PROPERTIES:
 :CREATED:  [2026-04-24 Fri 20:55]
 :END:
@@ -13238,7 +13349,26 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
  :category "emacs")
 #+end_src
 
-***** project_guideline
+***** emacs-project
+:PROPERTIES:
+:CREATED:  [2026-05-28 Thu 13:14]
+:END:
+
+****** project_path
+:PROPERTIES:
+:CREATED:  [2026-04-26 Sun 15:01]
+:END:
+
+#+NAME: gptel-tool/project-guideline
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "project-path"
+ :description "Return current project path."
+ :function #'project-current
+ :category "emacs-project")
+#+end_src
+
+****** project_guideline
 :PROPERTIES:
 :CREATED:  [2026-04-26 Sun 15:01]
 :END:
@@ -13260,21 +13390,45 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
  :category "emacs-project")
 #+end_src
 
-***** project_path
+****** extract org-headings
 :PROPERTIES:
-:CREATED:  [2026-04-26 Sun 15:01]
+:CREATED:  [2026-05-28 Thu 13:19]
 :END:
 
-#+NAME: gptel-tool/project-guideline
 #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
 (gptel-make-tool
- :name "project-path"
- :description "Return current project path."
- :function #'project-current
+ :function #'my/org-extract-headings
+ :name  "org-extract-headings"
+ :description "Extracts all headings from an org-mode buffer."
+ :args (list '( :name "buffer"
+                :type string
+                :description "Org buffer to scan"))
  :category "emacs-project")
+
+(defun my/org-extract-headings (buffer)
+  "Return all headings from BUFFER, checking against blocked absolute paths."
+  (let* ((buf (get-buffer buffer))
+         (file-path (and buf (buffer-file-name buf)
+                         (expand-file-name (buffer-file-name buf)))))
+    (cond
+     ((not buf)
+      (user-error "Buffer '%s' not found" buffer))
+     (t
+      (with-current-buffer buf
+        (org-map-entries (lambda ()
+                           (concat
+                            (buffer-substring-no-properties
+                             (line-beginning-position)
+                             (line-end-position))))
+                         t 'file))))))
 #+end_src
 
-***** elisp-symbol-help
+***** emacs-help
+:PROPERTIES:
+:CREATED:  [2026-05-28 Thu 13:15]
+:END:
+
+****** elisp-symbol-help
 :PROPERTIES:
 :CREATED:  [2026-04-29 Wed 18:16]
 :END:
@@ -13315,21 +13469,12 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
  :category "emacs-help")
 #+end_src
 
-***** get_major_mode
+***** system
 :PROPERTIES:
-:CREATED:  [2026-04-26 Sun 12:10]
+:CREATED:  [2026-05-28 Thu 13:15]
 :END:
 
-#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-(gptel-make-tool
- :name "major-mode"
- :description "Return current buffer's major-mode."
- :function (lambda ()
-             major-mode)
- :category "emacs")
-#+end_src
-
-***** machine-info
+****** machine-info
 :PROPERTIES:
 :CREATED:  [2026-05-21 Thu 17:21]
 :END:
@@ -13486,99 +13631,12 @@ so the AI can interpret the values correctly."
       (buffer-substring-no-properties (point-min) (point-max)))))
 #+end_src
 
-***** get_predefined_tags AI tool
+***** emacs-note
 :PROPERTIES:
-:CREATED:  [2025-11-04 Tue 17:03]
+:CREATED:  [2026-05-28 Thu 13:16]
 :END:
 
-#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-(gptel-make-tool
- :name "get_predefined-tags"
- :function (lambda ()
-             (with-current-buffer (find-file-noselect "/mnt/shared/doc-pc-k8p/home/org/notes/--my-org-tags__org@@20251021T162933.org")
-               (buffer-substring-no-properties (point-min) (point-max))))
- :description "return the predefined org tags"
- :category "emacs")
-#+end_src
-
-***** capture_task AI tool
-:PROPERTIES:
-:CREATED:  [2025-07-11 Fri 22:46]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-(with-eval-after-load 'org-capture
-  (defun task-timestamp (date deadline-p)
-    ""
-    (unless (string-blank-p date)
-      (with-temp-buffer
-        (insert (if (eq deadline-p ':json-false)
-                    "SCHEDULED: " "DEADLINE: "))
-        (org-insert-timestamp (date-to-time date))
-        (buffer-substring-no-properties (point-min) (point-max)))))
-  (add-to-list 'org-capture-templates
-               `("#tp" "Task for AI"
-                 entry (id "58e12e3e-da50-4089-9d22-565986637121")
-                 ,(format "* %s %%(symbol-value 'task--title)
-%%(task-timestamp (symbol-value 'task--date) (symbol-value 'task--deadline-p))
-%%(symbol-value 'task--content)"
-                          my/org-todo-keyword--todo))))
-
-(gptel-make-tool
- :name "capture_task"
- :function (lambda (title content date deadline-p)
-             (setq task--title title)
-             (setq task--content content)
-             (setq task--date date)
-             (setq task--deadline-p deadline-p)
-             (org-capture nil "#tp"))
- :description "Register a new task"
- :args (list '(:name "title"
-                     :type string
-                     :description
-                     "Title of the task
-- Begin with a capitalized verb that clearly indicates the action.
-- Ensure the title is concise and clear, ideally within a single line.
-- Limit the length to a maximum of 70 characters to maintain readability.")
-             '(:name "content"
-                     :type string
-                     :description
-                     "Content of the task, such as description or relevant information")
-             '(:name "date"
-                     :type string
-                     :description
-                     "The execution date for the task must be in the format yyyy-mm-dd or yyyy-mm-dd hh:mm if a time is specified. This must be empty if any date or time is specified in the user's prompt.")
-             '(:name "deadline-p"
-                     :type boolean
-                     :description
-                     "Whether the given date designates a deadline. Non-nil means the task has a due date. Note that a scheduled date, such as an appointment, is not a deadline."))
- :category "emacs"
- :confirm t)
-#+end_src
-
-***** set_tags AI tool
-:PROPERTIES:
-:CREATED:  [2025-11-04 Tue 16:40]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-(gptel-make-tool
- :name "set_tags"
- :function (lambda (tags)
-             (save-excursion
-               (org-back-to-heading)
-               (org-set-tags tags))
-             t)
- :description "Set tags for a current Org entry"
- :args (list '(:name "tags"
-                     :type string
-                     :description
-                     "The tag is surrounded by colon(:) and if multiple tags declared they are look like :tag1:tag2:."))
- :category "emacs"
- :confirm nil)
-#+end_src
-
-***** journal
+****** journal
 :PROPERTIES:
 :CREATED:  [2026-03-24 Tue 12:01]
 :END:
@@ -13605,7 +13663,7 @@ so the AI can interpret the values correctly."
  :confirm t)
 #+end_src
 
-***** recipe
+****** recipe
 :PROPERTIES:
 :CREATED:  [2026-03-24 Tue 12:01]
 :END:
@@ -13987,9 +14045,7 @@ Please omit any explanations or introductory remarks in your output, and provide
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'project
   :parents 'my-default
-  :backend "OpenRouter"
-  :model   'deepseek/deepseek-v4-flash
-  :tools  '(:append ("mcp-git" "mcp-github" "mcp-context7" "emacs-project")))
+  :tools  '(:append ("mcp-git" "mcp-github" "mcp-context7" "emacs-project" "emacs-help")))
 #+end_src
 
 ****** Commit-message preset
