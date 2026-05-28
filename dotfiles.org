@@ -3399,7 +3399,9 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
        (visual-wrap-prefix-mode 1)))
   :custom
   (global-visual-line-mode nil)
-  (visual-wrap-extra-indent 1))
+  (visual-wrap-extra-indent 1)
+  :config
+  (bind-keys ("H-v" . visual-line-mode)))
 #+end_src
 
 ***** Whitespace
@@ -15508,7 +15510,7 @@ Stop the running timer when the current task's to-do state changes to DONE.
 (use-package emacs
   :no-require t
   :bind-keymap
-  ("H-v" . my/cycle-visual-repeat-map)
+  ("H-V" . my/cycle-visual-repeat-map)
   :preface
   (defvar-keymap my/cycle-visual-repeat-map
     :doc "Keymap to repeat toggle/cycling appearance.  Used in `repeat-mode'."
