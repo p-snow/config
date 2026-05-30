@@ -5032,6 +5032,32 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (concat "** " (format-time-string (org-time-stamp-format t t))
             " (" (string-trim (truncate-string-to-width (remember-buffer-desc) 16)) ")\n\n"
             text))
+  (defvar my/tmp-buffer-hook nil
+    "Hook run after creating tmp-buffer.")
+  (defun my/tmp-buffer (title mode)
+    "Create tmp buffer named \"tmp-\" TITLE with major-mode MODE.
+
+Tmp-buffer is actually a source block in `remember-data-file'."
+    (interactive (list
+                  (read-string "Title: ")
+                  (intern (completing-read "Mode: "
+                                           '(fundamental-mode
+                                             text-mode
+                                             org-mode
+                                             emacs-lisp-mode
+                                             python-mode
+                                             c-mode)))))
+    (remember title)
+    (goto-char (point-max))
+    (org-insert-structure-template
+     (concat "src " (string-remove-suffix "-mode" (symbol-name mode))))
+    (remember-finalize)
+    (remember-notes 'switch-to)
+    (goto-char (point-max))
+    (org-previous-block 1)
+    (org-edit-src-code)
+    (rename-buffer (concat "tmp-" title))
+    (run-hooks 'my/tmp-buffer-hook))
   :custom
   (remember-data-file (expand-file-name "emacs/remember-notes"
                                         "<<share-dir()>>"))
@@ -9038,6 +9064,16 @@ Each block holds the request and the response of a tool call in `gptel'."
                ("s" . gptel-system-prompt)
                ("c" . gptel-mcp-connect)
                ("d" . gptel-mcp-disconnect)))
+  :preface
+  (defun my/tmp-gptel (title)
+    "Create an org buffer with `gptel-mode' enabled."
+    (interactive "MTitle: ")
+    (let ((my/tmp-buffer-hook
+           (lambda ()
+             (gptel-mode)
+             (insert (gptel-prompt-prefix-string))
+             (my/gptel-preset-local 'my-default))))
+      (my/tmp-buffer (concat "gptel-" title) 'org-mode)))
   :custom
   (gptel-api-key
    (my/credential-info "openai.com" "apikey"))
