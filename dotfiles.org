@@ -2550,7 +2550,9 @@ Settings in this section are influenced a great deal by my personal preference. 
          ("C-M-:"   . backward-kill-sexp)
          ("H-l"     . previous-buffer)
          ("H-k"     . next-buffer)
-         ("C-c k"   . kill-current-buffer)
+         ("C-x k"   . kill-current-buffer)
+         ("C-x /"   . pwd)
+         ("C-x C-/" . cd)
          ("C-x M-r" . rename-visited-file)
          :map help-map
          ("L" . find-library))
@@ -2934,15 +2936,15 @@ whether files are going to be in trash box."
 
 #+begin_src emacs-lisp
 (use-package find-dired
-  :bind (:prefix "M-s d"
-                 :prefix-map my/find-dired-map
-                 :prefix-docstring "Keymap for FInd Dired"
-                 ("f" . find-dired)
-                 ("F" . find-lisp-find-dired)
-                 ("g" . find-grep-dired)
-                 ("n" . find-name-dired)
-                 ("d" . find-lisp-find-dired-subdirectories)
-                 ("!" . find-dired-with-command))
+  :bind ( :prefix "M-s d"
+          :prefix-map my/find-dired-map
+          :prefix-docstring "Keymap for FInd Dired"
+          ("f" . find-dired)
+          ("F" . find-lisp-find-dired)
+          ("g" . find-grep-dired)
+          ("n" . find-name-dired)
+          ("d" . find-lisp-find-dired-subdirectories)
+          ("!" . find-dired-with-command))
   :custom
   (find-grep-options "-n -H --no-heading -q")
   (find-ls-option '("-print0 | xargs -0 ls -ldN" . "-ldN")))
@@ -4057,7 +4059,7 @@ gcc -march=native -Q --help=target | grep '^\s*-march=' | awk '{print $2}'
 
 #+begin_src emacs-lisp
 (use-package hideshow
-  :hook ((emacs-lisp-mode cc-mode python-ts-mode rust-ts-mode ruby-ts-mode scheme-mode)
+  :hook ((emacs-lisp-mode c-mode c++-mode python-ts-mode rust-ts-mode ruby-ts-mode scheme-mode)
          . hs-minor-mode)
   :preface
   (defun my/hs-hide-all (&optional show)
@@ -4066,10 +4068,11 @@ gcc -march=native -Q --help=target | grep '^\s*-march=' | awk '{print $2}'
     (cond
      ((equal show '(4)) (hs-show-all))
      (t (hs-hide-all))))
-  :bind (:map hs-minor-mode-map
-              ("H-i" . hs-toggle-hiding)
-              ("H-TAB" . hs-hide-level)
-              ("H-I" . my/hs-hide-all)))
+  :bind
+  ("H-@" . hs-prefix-map)
+  :config
+  (bind-keys :map hs-prefix-map
+             ("C-h" . nil)))
 #+end_src
 
 ****** Python
@@ -10713,8 +10716,7 @@ files to retroactively follow that order."
 #+NAME: config/emacs-logos
 #+begin_src emacs-lisp
 (use-package logos
-  :bind (("H-;" . my/logos-focus-mode)
-         ("H-n" . logos-narrow-dwim))
+  :bind ("H-;" . my/logos-focus-mode)
   :hook (((help-mode helpful-mode Info-mode eww-mode nov-mode mu4e-view-mode
                      woman-mode mastodon-mode Custom-mode devdocs-mode)
           . logos-focus-mode)
@@ -11338,7 +11340,12 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
   :ensure t
   :after my-launch-app
   :bind (:map my/launch-app-map
-              ("g" . ghostel)))
+              ("g" . ghostel))
+  :config
+  (lambda-key ghostel-semi-char-mode-map "C-;"
+              (lambda () "Send DEL."
+                (interactive)
+                (ghostel-send-key "backspace"))))
 #+end_src
 
 **** News Packages
@@ -16448,7 +16455,7 @@ Org Mode offers handy commands, namely org-increase-number-at-point and org-decr
   (funcall-interactively #'my/power-number-at-point
                          (abs my/operate-number-fixed-operand)))
 
-(keymap-global-set "C-M-+" #'my/add-number-at-point)
+(keymap-global-set "C-+"   #'my/add-number-at-point)
 (keymap-global-set "H-# +" #'my/add-number-at-point)
 (keymap-global-set "H-# -" #'my/subtract-number-at-point)
 (keymap-global-set "H-# *" #'my/multiply-number-at-point)
