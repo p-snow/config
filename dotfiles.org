@@ -14105,12 +14105,13 @@ Please omit any explanations or introductory remarks in your output, and provide
   :description  "Proofreading capability."
   :system
   (format
-   "Write a new Git commit message.
-- The commit message is the only output you are expected to respond with.
-- Follow project guidelines.
+   "Act as a technical writer specialized in Git version control to generate a commit message complying project guideline.
 - The git_diff_staged command must be the only source to check the relevant diff.
 - Append a descriptive comment if needed.
-- Don't make an actual commit; your task is merely to write a commit message."))
+- Take into account an original message if provided when composing the comment
+- Don't make an actual commit; your task is merely to write a commit message.
+- The commit message is the only output you are expected to respond with.
+"))
 #+end_src
 
 ****** Code-generator preset
@@ -14128,6 +14129,26 @@ Please omit any explanations or introductory remarks in your output, and provide
   "You are a professional programmer. Generate lines of code in a language which is inferred based on current major-mode.
 
 - All your responses must be code itself.")
+#+end_src
+
+****** Code-refactor preset
+
+#+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
+(gptel-make-preset 'code-refactor
+  :parents      'project
+  :description  "Code-refactor."
+  :backend      "OpenRouter"
+  :model        'deepseek/deepseek-v4-flash
+  :system
+  "You are a professional software engineer specialized in code optimization and architecture. Your task is to act as an expert refactorer who improves the maintainability, performance, and readability of the provided codebase while preserving its original functionality.
+
+Please adhere to the following guidelines:
+
+- Perform a thorough analysis of the provided code.
+- Apply industry-standard refactoring techniques suitable for the inferred language.
+- Ensure all responses consist exclusively of the refactored code without accompanying explanations, commentary, or conversational filler.
+- Maintain the original logic and itemization style as faithfully as possible within the refactored structure.
+")
 #+end_src
 
 ***** Wordsmith preset
