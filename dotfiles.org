@@ -5023,6 +5023,7 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 :CREATED:  [2025-03-05 Wed 18:23]
 :END:
 
+#+NAME: config/emacs-remember
 #+begin_src emacs-lisp :noweb tangle
 (use-package remember
   :bind (("H-m" . remember)
@@ -5032,32 +5033,6 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
     (concat "** " (format-time-string (org-time-stamp-format t t))
             " (" (string-trim (truncate-string-to-width (remember-buffer-desc) 16)) ")\n\n"
             text))
-  (defvar my/tmp-buffer-hook nil
-    "Hook run after creating tmp-buffer.")
-  (defun my/tmp-buffer (title mode)
-    "Create tmp buffer named \"tmp-\" TITLE with major-mode MODE.
-
-Tmp-buffer is actually a source block in `remember-data-file'."
-    (interactive (list
-                  (read-string "Title: ")
-                  (intern (completing-read "Mode: "
-                                           '(fundamental-mode
-                                             text-mode
-                                             org-mode
-                                             emacs-lisp-mode
-                                             python-mode
-                                             c-mode)))))
-    (remember title)
-    (goto-char (point-max))
-    (org-insert-structure-template
-     (concat "src " (string-remove-suffix "-mode" (symbol-name mode))))
-    (remember-finalize)
-    (remember-notes 'switch-to)
-    (goto-char (point-max))
-    (org-previous-block 1)
-    (org-edit-src-code)
-    (rename-buffer (concat "tmp-" title))
-    (run-hooks 'my/tmp-buffer-hook))
   :custom
   (remember-data-file (expand-file-name "emacs/remember-notes"
                                         "<<share-dir()>>"))
@@ -9061,18 +9036,20 @@ Each block holds the request and the response of a tool call in `gptel'."
                ("P" . gptel-preset)
                ("x" . gptel-abort)
                ("s" . gptel-system-prompt)
+               ("t" . my/tmp-gptel)
                ("c" . gptel-mcp-connect)
                ("d" . gptel-mcp-disconnect)))
   :preface
   (defun my/tmp-gptel (title)
     "Create an org buffer with `gptel-mode' enabled."
     (interactive "MTitle: ")
-    (let ((my/tmp-buffer-hook
-           (lambda ()
-             (gptel-mode)
-             (insert (gptel-prompt-prefix-string))
-             (my/gptel-preset-local 'my-default))))
-      (my/tmp-buffer (concat "gptel-" title) 'org-mode)))
+    (when (require-with-check 'tmp-buffer)
+      (let ((tmp-buffer-hook
+             (lambda ()
+               (gptel-mode)
+               (insert (gptel-prompt-prefix-string))
+               (my/gptel-preset-local 'my-default))))
+        (tmp-buffer-create (concat "gptel-" title) 'org-mode))))
   :custom
   (gptel-api-key
    (my/credential-info "openai.com" "apikey"))
@@ -10967,9 +10944,39 @@ buffer to inherit major mode from. BEG and END are ignored."
               (setq guess-mode #'text-mode)
             (setq guess-mode #'normal-mode))))
       (funcall guess-mode)))
+  (defun my/edit-indirect-rename-buffer (n)
+    "Rename edit-indirect buffer using first N charactors."
+    (rename-buffer (concat "EI: " (buffer-substring (point-min)
+                                                    (min (point-max) n)))))
   :custom
   (edit-indirect-guess-mode-function
-   #'my/edit-indirect-default-guess-mode))
+   #'my/edit-indirect-default-guess-mode)
+  :config
+  (add-hook 'edit-indirect-after-creation-hook
+            (apply-partially #'my/edit-indirect-rename-buffer 12))
+  (with-eval-after-load 'tmp-buffer
+    (add-hook 'tmp-buffer-find-functions
+              #'edit-indirect-buffer-indirect-p)))
+#+end_src
+
+***** tmp-buffer
+:PROPERTIES:
+:CREATED:  [2026-05-31 Sun 19:36]
+:END:
+
+#+begin_src emacs-lisp
+(use-package tmp-buffer
+  :bind (("H-t" . tmp-buffer-create)
+         ("H-T" . tmp-buffers))
+  :preface
+  (defun my/org-src-edit-buffer-sans-org-parse-p ()
+    "Return non-nil if the current buffer is an `org-src-edit-buffer'
+excluding buffers whose name starts with \"*Org parse*\"."
+    (when-let* ((name (buffer-name)))
+      (and (org-src-edit-buffer-p)
+           (not (string-match-p (regexp-quote "*Org parse*") name)))))
+  :config
+  (setq tmp-buffer-find-functions '(my/org-src-edit-buffer-sans-org-parse-p)))
 #+end_src
 
 **** Files Packages
@@ -15347,6 +15354,23 @@ A "project" link type is designed for local copies of Git or other CVS repositor
    :complete #'my/org-dotfile-complete-link
    :follow #'my/org-dotfile-follow-link
    :export #'my/org-dotfile-export-link))
+#+end_src
+
+***** Rename org-edit-src-code buffer to code block name
+:PROPERTIES:
+:CREATED:  [2026-05-31 Sun 17:47]
+:END:
+
+#+NAME: config/org-rename-src-edit-buffer
+#+begin_src emacs-lisp
+(with-eval-after-load 'org-src
+  (add-hook 'org-src-mode-hook
+            (lambda ()
+              (when (org-src-edit-buffer-p)
+                (let ((name (org-src-do-at-code-block
+                             (plist-get (cadr (org-element-at-point)) :name))))
+                  (when name
+                    (rename-buffer name)))))))
 #+end_src
 
 ***** Org speed commands for subtrees and items :ARCHIVE:
@@ -19727,7 +19751,7 @@ rm -f ${AUDIO_FILE}
 exit 0
 #+end_src
 
-*** would-be packages
+*** Private Packages
 :PROPERTIES:
 :CREATED:  [2023-01-12 Thu 14:14]
 :header-args:emacs-lisp+: :shebang ";; -*- lexical-binding: t -*-"
@@ -21102,6 +21126,101 @@ See https://github.com/jwiegley/emacs-async/issues/145"
 
 (provide 'heart-rate)
 ;;; *heart-rate.el ends here
+#+end_src
+
+**** Package: tmp-buffer
+:PROPERTIES:
+:CREATED:  [2026-05-31 Sun 19:33]
+:END:
+
+#+begin_src emacs-lisp :comments no :tangle (expand-file-name "tmp-buffer.el" tangle/emacs-sitelisp-dir)
+;;; tmp-buffer.el --- summary -*- lexical-binding: t -*-
+
+;; Author: p-snow
+;; Version: version
+;; Package-Requires: dependencies
+;; Homepage: homepage
+;; Keywords: keywords
+
+;; This file is not part of GNU Emacs
+
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; commentary
+
+;;; Code:
+
+(require 'remember)
+(require 'org-src)
+
+
+(defvar tmp-buffer-hook nil
+  "Hook run after creating tmp-buffer.")
+
+(defvar tmp-buffer-modes '(fundamental-mode
+                           text-mode
+                           org-mode
+                           emacs-lisp-mode
+                           python-mode
+                           c-mode
+                           cc-mode)
+  "A list of potentioal major modes enabled in tmp-buffer.")
+
+(defvar tmp-buffer-find-functions '(org-src-edit-buffer-p))
+
+;;;###autoload
+(defun tmp-buffer-create (title mode)
+  "Create tmp buffer named TITLE with major-mode MODE.
+
+Tmp-buffer is actually a source block in `remember-data-file'."
+  (interactive (list
+                (read-string "Title: ")
+                (intern (completing-read "Mode: "
+                                         tmp-buffer-modes))))
+  (remember title)
+  (goto-char (point-max))
+  (insert "\n#+name: " title "\n")
+  (org-insert-structure-template
+   (concat "src " (string-remove-suffix "-mode" (symbol-name mode))))
+  (remember-finalize)
+  ;; Show tmp-buffer
+  (let ((remember-notes-initial-major-mode 'org-mode))
+    (remember-notes 'switch-to)
+    (goto-char (point-max))
+    (org-previous-block 1)
+    (org-edit-src-code)
+    (run-hooks 'tmp-buffer-hook)))
+
+;;;###autoload
+(defun tmp-buffers ()
+  ""
+  (interactive)
+  (when-let* ((bufs (delq nil
+                          (mapcar (lambda (buf)
+                                    (with-current-buffer buf
+                                      (when (run-hook-with-args-until-success
+                                             'tmp-buffer-find-functions)
+                                        buf)))
+                                  (buffer-list)))))
+    (switch-to-buffer
+     (completing-read "Tmp buffers: " (mapcar #'buffer-name
+                                              bufs)))))
+
+(provide 'tmp-buffer)
+;;; tmp-buffer.el ends here
 #+end_src
 
 ** Firefox
