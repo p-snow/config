@@ -5724,6 +5724,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
 :CREATED:  [2023-11-06 Mon 11:05]
 :END:
 
+#+NAME: config/org-agenda-custom-commands
 #+begin_src emacs-lisp
 (with-eval-after-load 'org-agenda
   (setopt org-stuck-projects `(,(concat "+" my/org-project-tag)
@@ -7634,6 +7635,38 @@ emacs-org-hide-drawers-head
 #+begin_src emacs-lisp
 (with-eval-after-load 'org
   (require 'org-clocktable-by-tag))
+#+end_src
+
+***** org-review
+:PROPERTIES:
+:CREATED:  [2026-06-01 Mon 17:20]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-org-review"
+#+end_src
+
+#+NAME: package/emacs-org-review
+#+begin_src emacs-lisp
+(use-package org-review
+  :after org-agenda
+  :custom
+  (org-review-unreviewed t)
+  (org-review-last-timestamp-format 'inactive)
+  (org-review-next-timestamp-format 'inactive)
+  :config
+  (bind-keys :map org-agenda-mode-map
+             ("C-c r" . org-review-insert-last-review)
+             :map org-mode-map
+             ("C-c r" . org-review-insert-last-review))
+  (with-eval-after-load 'org-agenda
+    (add-to-list 'org-agenda-custom-commands
+                 `("R" "Review projects" ;; agenda ""
+                   todo ,my/org-todo-keyword--someday
+                   ((org-agenda-overriding-header "Reviews Scheduled")
+                    (org-agenda-skip-function 'org-review-agenda-skip)
+                    (org-agenda-cmp-user-defined 'org-review-compare)
+                    (org-agenda-sorting-strategy '(user-defined-down)))))))
 #+end_src
 
 **** i18n Packages
@@ -15187,16 +15220,21 @@ Someday tasks are encouraged to review and they prohibited to appear in agenda v
             #'my/org-archive-suspended-task))
 
 (defun my/org-archive-suspended-task ()
-  "Archive this entry to the file for suspended tasks if the TODO state fits the bill."
+  "Archive current entry when TODO state is `someday' or `pending'.
+Otherwise remove the scheduled date and review tag."
   (interactive)
-  (if (member (org-entry-get nil "TODO")
-              `(,my/org-todo-keyword--someday ,my/org-done-keyword--pending))
-      (progn
-        (org-toggle-tag my/org-review-tag 'on)
-        (org-archive-subtree))
-    ;; Remove scheduled date
-    (org-schedule '(4))
-    (org-toggle-tag my/org-review-tag 'off)))
+  (let ((todo-state (org-entry-get nil "TODO"))
+        (org-review-delay "+2w"))
+    (if (member todo-state (list my/org-todo-keyword--someday
+                                 my/org-done-keyword--pending))
+        (progn
+          (org-toggle-tag my/org-review-tag 'on)
+          (when (string= todo-state my/org-todo-keyword--someday)
+            (org-review-insert-last-review))
+          (org-archive-subtree))
+      ;; Remove scheduled date
+      (org-schedule '(4))
+      (org-toggle-tag my/org-review-tag 'off))))
 #+end_src
 
 ***** Showing an Outline Path for the Entry
