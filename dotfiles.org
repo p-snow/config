@@ -15099,27 +15099,29 @@ Someday tasks are encouraged to review and they prohibited to appear in agenda v
 (defun my/org-someday-task-review (resume-p)
   "Start or resume (if RESUME-P is non-nil) a session for reviewing tasks."
   (interactive "P")
-  (progn
-    (org-id-goto "58da20ee-97a9-4463-96b8-6ebb1084b9b7")
-    (let ((org-drill-scope 'tree)
-          (org-drill-question-tag my/org-review-tag)
-          (org-drill-maximum-items-per-session 40)
-          (org-drill-hide-item-headings-p nil)
-          ;; drill session regulations
-          (org-drill-maximum-duration 12)
-          (org-drill-maximum-items-per-session 30)
-          (org-drill-item-count-includes-failed-items-p t)
-          ;; Spaced repetition algorithm
-          (org-drill-spaced-repetition-algorithm 'sm5)
-          (org-drill-sm5-initial-interval 7.0)
-          ;; Random variation of repetition intervals
-          (org-drill-add-random-noise-to-intervals-p t)
-          ;; Adjusting item difficulty globally
-          (org-drill-learn-fraction 0.32)
-          (org-startup-indented nil))
-      (and (require 'cl nil t)
-           (org-drill nil (format "TODO=\"%s\"" my/org-todo-keyword--someday)
-                      resume-p)))))
+  (if (require-with-check 'org-drill)
+      (progn
+        (org-id-goto "58da20ee-97a9-4463-96b8-6ebb1084b9b7")
+        (let ((org-drill-scope 'tree)
+              (org-drill-question-tag my/org-review-tag)
+              (org-drill-maximum-items-per-session 40)
+              (org-drill-hide-item-headings-p nil)
+              ;; drill session regulations
+              (org-drill-maximum-duration 12)
+              (org-drill-maximum-items-per-session 30)
+              (org-drill-item-count-includes-failed-items-p t)
+              ;; Spaced repetition algorithm
+              (org-drill-spaced-repetition-algorithm 'sm5)
+              (org-drill-sm5-initial-interval 7.0)
+              ;; Random variation of repetition intervals
+              (org-drill-add-random-noise-to-intervals-p t)
+              ;; Adjusting item difficulty globally
+              (org-drill-learn-fraction 0.32)
+              (org-startup-indented nil))
+          (and (require 'cl nil t)
+               (org-drill nil (format "TODO=\"%s\"" my/org-todo-keyword--someday)
+                          resume-p))))
+    (message "Failed to load org-drill.")))
 #+end_src
 
 ****** Skipping the display of "someday" tasks in the agenda view.
