@@ -14894,7 +14894,13 @@ It's a time-saving feature: Emacs can discreetly open some fairly large and freq
                      (take 7 (sort
                               (file-expand-wildcards
                                (file-name-concat org-directory "archive/archive_*.org"))
-                              #'string>))))))))
+                              #'string>))))))
+    (run-with-idle-timer
+     30 nil
+     (lambda ()
+       "Open all org agenda files."
+       (mapc #'find-file-noselect
+             (org-agenda-files))))))
 #+end_src
 
 ***** org link at point map
