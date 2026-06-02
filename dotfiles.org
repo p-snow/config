@@ -8390,12 +8390,11 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a 
 "emacs-popper"
 #+end_src
 
-#+NAME: config/popper
+#+NAME: config/emacs-popper
 #+begin_src emacs-lisp
 (use-package popper
-  :bind (("H-p" . popper-cycle)
-         ("H-[" . popper-toggle)
-         ("H-]" . popper-mode))
+  :bind (("H-[" . popper-cycle)
+         ("H-]" . popper-toggle))
   :preface
   (defun my/popper-select-popup-same (buffer &optional alist)
     ""
@@ -11004,19 +11003,21 @@ buffer to inherit major mode from. BEG and END are ignored."
 :CREATED:  [2026-05-31 Sun 19:36]
 :END:
 
+#+NAME: config/emacs-tmp-buffer
 #+begin_src emacs-lisp
 (use-package tmp-buffer
   :bind (("H-t" . tmp-buffer-create)
          ("H-T" . tmp-buffers))
   :preface
-  (defun my/org-src-edit-buffer-sans-org-parse-p ()
+  (defun my/org-src-edit-buffer-sans-org-parse-p (buffer)
     "Return non-nil if the current buffer is an `org-src-edit-buffer'
 excluding buffers whose name starts with \"*Org parse*\"."
-    (when-let* ((name (buffer-name)))
-      (and (org-src-edit-buffer-p)
+    (when-let* ((name (buffer-name buffer)))
+      (and (org-src-edit-buffer-p buffer)
            (not (string-match-p (regexp-quote "*Org parse*") name)))))
   :config
-  (setq tmp-buffer-find-functions '(my/org-src-edit-buffer-sans-org-parse-p)))
+  (add-to-list 'tmp-buffer-find-functions
+               #'my/org-src-edit-buffer-sans-org-parse-p))
 #+end_src
 
 **** Files Packages
@@ -11384,6 +11385,38 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
               (lambda () "Send DEL."
                 (interactive)
                 (ghostel-send-key "backspace"))))
+#+end_src
+
+***** popterm
+:PROPERTIES:
+:CREATED:  [2026-06-01 Mon 23:36]
+:END:
+
+#+NAME: package/emacs-popterm
+#+begin_src emacs-lisp
+(use-package popterm
+  :ensure t
+  :demand t
+  :bind (("H-p" . my/popterm-toggle-named)
+         ("H-P" . popterm-find))
+  :preface
+  (defun my/popterm-toggle-named (backend)
+    "Toggle popterm for a specific BACKEND.
+Interactively prompts for the backend using completion from available options."
+    (interactive
+     (list (let* ((choices (cdr (get 'popterm-backend 'custom-type)))
+                  (backends (mapcar (lambda (item)
+                                      (plist-get (cdr item) :tag))
+                                    choices)))
+             (completing-read "Backend: " backends))))
+    (let ((popterm-backend (intern backend)))
+      (call-interactively #'popterm-toggle-named)))
+  :custom
+  (popterm-display-method 'fullscreen)
+  :config
+  (with-eval-after-load 'tmp-buffer
+    (add-to-list 'tmp-buffer-find-functions
+                 #'popterm--buffer-p)))
 #+end_src
 
 **** News Packages
@@ -21212,6 +21245,7 @@ See https://github.com/jwiegley/emacs-async/issues/145"
 :CREATED:  [2026-05-31 Sun 19:33]
 :END:
 
+#+NAME: package/emacs-tmp-buffer
 #+begin_src emacs-lisp :comments no :tangle (expand-file-name "tmp-buffer.el" tangle/emacs-sitelisp-dir)
 ;;; tmp-buffer.el --- summary -*- lexical-binding: t -*-
 
@@ -21258,7 +21292,7 @@ See https://github.com/jwiegley/emacs-async/issues/145"
                            cc-mode)
   "A list of potentioal major modes enabled in tmp-buffer.")
 
-(defvar tmp-buffer-find-functions '(org-src-edit-buffer-p))
+(defvar tmp-buffer-find-functions nil)
 
 ;;;###autoload
 (defun tmp-buffer-create (title mode)
@@ -21285,18 +21319,18 @@ Tmp-buffer is actually a source block in `remember-data-file'."
 
 ;;;###autoload
 (defun tmp-buffers ()
-  ""
+  "Switch to a temporary buffer selected from matching buffers.
+Buffers are matched by running `tmp-buffer-find-functions' on each
+buffer until one succeeds."
   (interactive)
-  (when-let* ((bufs (delq nil
-                          (mapcar (lambda (buf)
-                                    (with-current-buffer buf
-                                      (when (run-hook-with-args-until-success
-                                             'tmp-buffer-find-functions)
-                                        buf)))
-                                  (buffer-list)))))
-    (switch-to-buffer
-     (completing-read "Tmp buffers: " (mapcar #'buffer-name
-                                              bufs)))))
+  (let ((tmp-bufs (seq-filter (lambda (buf)
+                                (run-hook-with-args-until-success
+                                 'tmp-buffer-find-functions buf))
+                              (buffer-list))))
+    (when tmp-bufs
+      (switch-to-buffer
+       (completing-read "Tmp buffers: "
+                        (mapcar #'buffer-name tmp-bufs))))))
 
 (provide 'tmp-buffer)
 ;;; tmp-buffer.el ends here
