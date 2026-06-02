@@ -23594,6 +23594,23 @@ WantedBy=default.target
 export PATH=<<home-dir()>>/.opencode/bin:$PATH
 #+end_src
 
+Add OpenRouter as a provider in OpenCode
+#+begin_example opencode.jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "openrouter": {
+      "models": {
+        "~tencent/hy3-preview": {}
+      },
+      "options": {
+        "apiKey": "{env:OPENROUTER_API_KEY}"
+      }
+    }
+  }
+}
+#+end_example
+
 * Service Providers
 :PROPERTIES:
 :CREATED:  [2026-03-23 Mon 21:21]
