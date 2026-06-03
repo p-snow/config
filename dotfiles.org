@@ -4057,19 +4057,13 @@ gcc -march=native -Q --help=target | grep '^\s*-march=' | awk '{print $2}'
 
 ****** Hideshow
 
+#+NAME: config/emacs-hideshow
 #+begin_src emacs-lisp
 (use-package hideshow
-  :hook ((emacs-lisp-mode c-mode c++-mode python-ts-mode rust-ts-mode ruby-ts-mode scheme-mode)
+  :hook (( emacs-lisp-mode c-mode c++-mode python-ts-mode rust-ts-mode
+           ruby-ts-mode scheme-mode yaml-ts-mode bash-ts-mode
+           json-ts-mode)
          . hs-minor-mode)
-  :preface
-  (defun my/hs-hide-all (&optional show)
-    "Hide all top-level blocks unless C-u prefix is provided."
-    (interactive "P")
-    (cond
-     ((equal show '(4)) (hs-show-all))
-     (t (hs-hide-all))))
-  :bind
-  ("H-@" . hs-prefix-map)
   :config
   (bind-keys :map hs-prefix-map
              ("C-h" . nil)))
@@ -7669,6 +7663,20 @@ emacs-org-hide-drawers-head
                     (org-agenda-sorting-strategy '(user-defined-down)))))))
 #+end_src
 
+***** outline-indent
+:PROPERTIES:
+:CREATED:  [2026-06-03 Wed 00:46]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-outline-indent"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package outline-indent
+  :hook (gitconfig-mode . outline-indent-minor-mode))
+#+end_src
+
 **** i18n Packages
 :PROPERTIES:
 :CREATED:  [2026-04-12 Sun 21:14]
@@ -8470,6 +8478,30 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a 
     :after avy)
   (push 'embark--allow-edit
         (alist-get 'shell-command-on-region embark-target-injection-hooks)))
+#+end_src
+
+***** kirigami
+:PROPERTIES:
+:CREATED:  [2026-06-03 Wed 17:03]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-kirigami"
+#+end_src
+
+#+NAME: config/emacs-kirigami
+#+begin_src emacs-lisp
+(use-package kirigami
+  :ensure t
+  :bind (("C-c c o" . kirigami-open-fold)
+         ("C-c c O" . kirigami-open-fold-rec)
+         ("C-c c r" . kirigami-open-folds)
+         ("C-c c c" . kirigami-close-fold)
+         ("C-c c m" . kirigami-close-folds)
+         ("C-c c a" . kirigami-toggle-fold)
+         ("H-c" . kirigami-toggle-fold))
+  :config
+  (kirigami-global-mode 1))
 #+end_src
 
 **** Communications Packages
