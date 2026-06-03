@@ -10680,10 +10680,15 @@ files to retroactively follow that order."
 "emacs-expreg"
 #+end_src
 
+#+NAME: config/emacs-expreg
 #+begin_src emacs-lisp
 (use-package expreg
   :bind (("C-,"   . expreg-expand)
-         ("C-M-," . expreg-contract)))
+         ("C-M-," . expreg-contract))
+  :config
+  (setq-default expreg-functions
+                '( expreg--subword expreg--word expreg--list expreg--string expreg--sentence
+                   expreg--treesit expreg--comment expreg--paragraph-defun)))
 #+end_src
 
 ***** vundo
@@ -14051,7 +14056,8 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 - If the response you are about to provide can be represented in a hierarchical structure, use the Org Mode nested plain-list format with a dash (-) as the leading bullet. That being said, there is no need to force a structure on explanations where a prose description would better facilitate understanding.
 - Only provide a source URL if it is absolutely necessary for the answer, ensuring that the link is not broken.
 - The language of the response must be user's native language which can be obtained by tool use
-- Don't use emojis or other ostentatious characters unless necessary"
+- Don't use emojis or other ostentatious characters unless necessary
+- If your response includes source code, the content must be in English, whatever the user's language is"
     :backend      "OpenRouter"
     :model        'tencent/hy3-preview
     :tools        '("emacs" "mcp-time" "mcp-sequential-thinking")
