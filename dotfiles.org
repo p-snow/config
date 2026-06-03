@@ -16043,6 +16043,81 @@ This is a keymap for commands that echo various items as if they were displayed 
 (function "function " (p "name") " {" n> p n "}")
 #+end_src
 
+***** c-mode templates
+:PROPERTIES:
+:CREATED:  [2026-06-03 Wed 18:13]
+:END:
+
+#+header: :shebang "c-mode c-ts-mode"
+#+begin_src emacs-lisp :noweb yes :tangle (expand-file-name "tempel/templates/c.eld" tangle/emacs-etc-dir)
+;; ----- include / pre-processor -----
+(inc "#include <" p ">" q)
+(incc "#include \"" p "\"" q)
+(pragma "#pragma once")
+(define "#define " p " " q)
+(defm "#define " p "(" p ") (" q ")")
+(ifdef "#ifdef " p n> q n "#endif /* " p " */")
+(ifndef "#ifndef " " p" n> q n "#endif /* " p " */")
+(endif "#endif /* " p " */")
+
+;; ----- main -----
+(main "int main(int argc, char *argv[]) {" n> q n "}")
+(mainv "int main(void) {" n> q n "}")
+
+;; ----- function -----
+(fn (p "void") " " p "(" p ") {" n> q n "}")
+(fnr (p "int") " " p "(" p ") {" n> q n "}")
+(sfn "static void " p "(" p ") {" n> q n "}")
+(sfnr "static " p " " p "(" p ") {" n> q n "}")
+
+;; ----- if -----
+(if "if (" p ") {" n> q n "}")
+(el "if (" p ") {" n> p n "} else {" n> q n "}")
+(elif "if (" p ") {" n> p n "} else if (" p ") {" n> q n "}")
+(tern "(" p ") ? " p " : " q)
+
+;; ----- loop -----
+(for "for (" p "; " p "; " p ") {" n> q n "}")
+(while "while (" p ") {" n> q n "}")
+(dowhile "do {" n> q n "} while (" p ");")
+(foo "for (;;) {" n> q n "}")
+
+;; ----- switch / case -----
+(switch "switch (" p ") {" n> "case " p ":" n> p n> "break;" n> q n "}")
+(case "case " p ":" n> q)
+(default "default:" n> q)
+
+;; ----- struct / union / enum -----
+(struct "struct " p " {" n> q n "};" >)
+(tstruct "typedef struct " p " {" n> q n "} " p ";")
+(enum "enum " p " {" n> q n "};" >)
+(tenum "typedef enum " p " {" n> q n "} " p ";")
+(union "union " p " {" n> q n "};" >)
+(tunion "typedef union " p " {" n> q n "} " p ";")
+(tdef "typedef " p " " q ";")
+
+;; ----- memory -----
+(malloc (p "type") " *" p " = malloc(sizeof(" p "));" n> q)
+(mcheck (p "type") " *" p " = malloc(sizeof(" p "));" n> "if (" p " == NULL) {" n> "perror(\"malloc\");" n> "exit(EXIT_FAILURE);" n> "}" n> q)
+(calloc (p "type") " *" p " = calloc(" p ", sizeof(" p "));" n> q)
+(free "free(" p ");" n> q)
+(sizeof "sizeof(" p ")")
+
+;; ----- output / debug -----
+(pr "printf(\"" p "\\n\"" q ");")
+(fpr "fprintf(stderr, \"" p "\\n\"" q ");")
+(perr "perror(\"" p "\");" n> q)
+(assert "assert(" p ");" n> q)
+
+;; ----- variable / keyword -----
+(static "static " q)
+(const "const " q)
+(vol "volatile " q)
+(return "return " q)
+(null "NULL")
+#+end_src
+
+
 ***** mu4e-compose-mode templates
 :PROPERTIES:
 :CREATED:  [2023-12-04 Mon 19:52]
