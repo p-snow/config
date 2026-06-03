@@ -9067,7 +9067,7 @@ Each block holds the request and the response of a tool call in `gptel'."
                ("RET" . gptel-send)
                ("r" . gptel-rewrite)
                ("g" . gptel-menu)
-               ("t" . gptel-tools)
+               ("T" . gptel-tools)
                ("P" . gptel-preset)
                ("x" . gptel-abort)
                ("s" . gptel-system-prompt)
@@ -9121,6 +9121,7 @@ Each block holds the request and the response of a tool call in `gptel'."
     :models '(minimax/minimax-m2.5
               minimax/minimax-m2.5:free
               minimax/minimax-m2.7
+              minimax/minimax-m3
               anthropic/claude-sonnet-4.6
               z-ai/glm-5.1
               qwen/qwen3.6-plus
@@ -9183,7 +9184,6 @@ emacs-mcp-latest
                        :args ("-y" "@modelcontextprotocol/server-filesystem")))
      ("time" . (:command "uvx" :args ("mcp-server-time")))
      ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
-     ("kazuph-fetch" . (:command "npx" :args ("mcp-fetch-server")))
      ("git" . (:command "uvx" :args ("mcp-server-git")))
      ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
      ("duckduckgo" . (:command "uvx" :args ("duckduckgo-mcp-server")))
@@ -14045,7 +14045,11 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 
 - If the topic is time-sensitive, such as one related to a technology term, you should check the web first in case your knowledge is already obsolete. Remember to check multiple sources during the process to avoid relying on misinformed and harmful information.
 ")
-  :tools        '(:append ("mcp-duckduckgo" "mcp-kazuph-fetch")))
+  :tools        '(:append ("mcp-duckduckgo")))
+;; Apply search preset globally after all MCP servers are ready.
+(run-with-timer 10 nil
+                (lambda ()
+                  (gptel-preset 'search)))
 #+end_src
 
 ****** Technical Research preset
@@ -14095,8 +14099,7 @@ Please omit any explanations or introductory remarks in your output, and provide
 (gptel-make-preset 'writing
   :parents 'my-default
   :backend "OpenRouter"
-  :model   'google/gemini-3.1-flash-lite
-  :tools   '(:append ("mcp-kazuph-fetch")))
+  :model   'xiaomi/mimo-v2.5)
 #+end_src
 
 ****** AI-prompt prompt
@@ -16380,7 +16383,7 @@ As of 28.1, Emacs won't steal keyboard focus at startup which means we can use e
 As of [2026-05-19 Tue], auto-mode-alist has '(nil . php-ts-mode), which is malignant when set-auto-mode fires. The following code remedies the issue.
 
 #+begin_src emacs-lisp
-(add-hook 'after-init-hook
+(add-hook 'emacs-startup-hook
           (lambda ()
             (assoc-delete-all nil auto-mode-alist)))
 #+end_src
@@ -16540,6 +16543,7 @@ Org Mode offers handy commands, namely org-increase-number-at-point and org-decr
                          (abs my/operate-number-fixed-operand)))
 
 (keymap-global-set "C-+"   #'my/add-number-at-point)
+(keymap-global-set "C-*"   #'my/multiply-number-at-point)
 (keymap-global-set "H-# +" #'my/add-number-at-point)
 (keymap-global-set "H-# -" #'my/subtract-number-at-point)
 (keymap-global-set "H-# *" #'my/multiply-number-at-point)
