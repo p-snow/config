@@ -2155,6 +2155,8 @@ make && sudo make install
 
 [[https://github.com/jtroo/kanata][Kanata]] is a cross-platform, feature-rich key remapper written in Rust. It's unique because its configuration language looks like Lisp.
 
+0 for the first parameter of tap-hold-press-timeout matters, since this prevents unintended double-space input when successive space key presses occur (the second being a long press).
+
 #+begin_src scheme :tangle no :noweb-ref guix-base
 "kanata"
 #+end_src
@@ -2187,7 +2189,7 @@ Configuration
   _     _    _              0              _         _)
 
 (defalias
-  spc-shift (tap-hold-release-timeout 1000 1000 spc lshift spc)
+  spc-shift (tap-hold-press-timeout 0 1000 spc lshift spc)
   metq (tap-hold 160 160 ' rmeta)
   smin (tap-hold 150 150 min lshift)
   seq (tap-hold 170 170 eql rshift)
