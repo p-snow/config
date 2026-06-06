@@ -9128,6 +9128,7 @@ Each block holds the request and the response of a tool call in `gptel'."
   (gptel-use-tools t)
   (gptel-track-media t)
   (gptel-include-reasoning nil)
+  (gptel-cache t)
   :config
   (require 'mcp)
   (gptel-make-gemini "Gemini"
@@ -9169,6 +9170,7 @@ Each block holds the request and the response of a tool call in `gptel'."
               moonshotai/kimi-k2.6
               xiaomi/mimo-v2.5
               google/gemini-3.1-flash-lite
+              google/gemini-2.5-flash-lite
               google/gemma-4-31b-it:free))
   (mcp-hub-start-all-server
    (lambda ()
@@ -14054,7 +14056,7 @@ If MENU is nil, all menu titles will be returned as a list of strings."
   (gptel-make-preset 'my-default
     :description  "Default preset"
     :system
-    "
+    "Answer as follows:
 - If the response you are about to provide can be represented in a hierarchical structure, use the Org Mode nested plain-list format with a dash (-) as the leading bullet. That being said, there is no need to force a structure on explanations where a prose description would better facilitate understanding.
 - Only provide a source URL if it is absolutely necessary for the answer, ensuring that the link is not broken.
 - The language of the response must be user's native language which can be obtained by tool use
@@ -14139,7 +14141,7 @@ Please omit any explanations or introductory remarks in your output, and provide
 (gptel-make-preset 'writing
   :parents 'my-default
   :backend "OpenRouter"
-  :model   'xiaomi/mimo-v2.5)
+  :model   'google/gemini-3.1-flash-lite)
 #+end_src
 
 ****** AI-prompt prompt
