@@ -5277,7 +5277,6 @@ This configuration offers directories and branches as candidates for git add/rm 
 
 #+begin_src emacs-lisp :noweb yes
 (use-package locate
-  :commands locate
   :custom
   (locate-command "plocate")
   (locate-make-command-line #'my/plocate-make-command-line)
@@ -7590,23 +7589,24 @@ emacs-org-hide-drawers-head
 #+NAME: config/ol-local-file
 #+begin_src emacs-lisp :noweb tangle
 (use-package ol-locate-file
-  ;; :load-path "~/.local/share/ghq/github.com/p-snow/ol-locate-file"
-  :vc (:url "https://github.com/p-snow/ol-locate-file"
-            :rev :newest)
+  :load-path "~/.local/share/ghq/github.com/p-snow/ol-locate-file"
+  ;; :vc (:url "https://github.com/p-snow/ol-locate-file"
+  ;;           :rev :newest)
   :after org
-  :init
-  (setq ol-locate-file-locate-db "<<locate-db-doc()>>")
   :preface
-  (defun embark-org-target-lfile-link ()
+  (defun my/embark-org-target-lfile-link ()
     "Target an org link at point of the form [[lfile:<file-name>][desc]]>."
-    (pcase (org-in-regexp ol-locate-file-link-re)
+    (pcase (org-in-regexp
+            "\\[\\[lfile:\\([^][:]+?\\)\\(?:::\\([^]]*\\)\\)?\\]\\(?:\\[\\([^]]+\\)\\]\\)?\\]")
       (`(,start . ,end)
        (when-let ((file-path (ol-locate-file-locate (match-string 1))))
+         (princ file-path)
          `(file ,file-path ,start . ,end)))))
   :config
-  (put 'ol-locate-file-locate 'org-link-abbrev-safe t)
   (with-eval-after-load 'embark
-    (add-to-list 'embark-target-finders 'embark-org-target-lfile-link)))
+    (add-to-list 'embark-target-finders 'my/embark-org-target-lfile-link))
+  (ol-locate-file-setup)
+  (put 'ol-locate-file-locate 'org-link-abbrev-safe t))
 #+end_src
 
 ***** corg
