@@ -8087,8 +8087,6 @@ Jaword.elはbackward-wordやforward-wordを日本語に対応させる機能を�
   :commands (magit magit-status magit-dispatch)
   :custom
   (magit-log-margin '(t age-abbreviated 12 t 7))
-  (magit-display-buffer-function
-   #'magit-display-buffer-same-window-except-diff-v1)
   (magit-diff-refine-hunk 'all)
   :config
   (bind-keys :map magit-status-mode-map
@@ -13547,7 +13545,7 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
  :function
  (lambda ()
    (if-let* ((path (or (seq-find (apply-partially #'string-match-p
-                                                  (rx (or "CONVENTIONS.md" "AGENTS.md") eos))
+                                                  (rx (or "CONVENTIONS.md") eos))
                                  (project-files (project-current)))
                        "~/.local/share/ghq/gist.github.com/p-snow/c1025ca8ee3f4c7e17777e9a9cd15062/conventional-commits-cheatsheet.org")))
        (with-current-buffer (find-file-noselect path)
@@ -15051,12 +15049,12 @@ Wrapping up a bunch of Org commands that toggle/cycle Org-mode's visual appearan
     :doc "Keymap for Org visual appearance."
     :prefix t
     :repeat (_ :enter (org-indent-mode
-                       org-toggle-inline-images
+                       org-link-preview
                        org-toggle-link-display)
                :exit (org-fold-hide-drawer-all))
     "TAB" #'org-fold-hide-drawer-all
     "C-M-i" #'org-indent-mode
-    "i" #'org-toggle-inline-images
+    "i" #'org-link-preview
     "l" #'org-toggle-link-display
     "b" #'org-fold-hide-block-all)
   (provide 'my/org-visual)
