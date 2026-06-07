@@ -5285,7 +5285,10 @@ This configuration offers directories and branches as candidates for git add/rm 
   (locate-update-path (expand-file-name "~/")))
 
 (defun my/plocate-make-command-line (search-string)
-  (list locate-command "-d" (expand-file-name "<<locate-db-home()>>") "--ignore-case" "--existing" "--regexp" search-string))
+  (list locate-command
+        "-d" (expand-file-name "<<locate-db-doc()>>")
+        "-d" (expand-file-name "<<locate-db-home()>>")
+        "--ignore-case" "--existing" "--regexp" search-string))
 #+end_src
 
 ***** With Editor
@@ -9843,8 +9846,12 @@ Major mode for manupulating password store file.
   (consult-narrow-key "<")
   (consult-widen-key ">")
   (consult-line-start-from-top t)
-  (consult-locate-args (format "plocate -d %s --ignore-case --existing --regexp"
-                               (expand-file-name "<<locate-db-home()>>")))
+  (consult-locate-args (format "plocate %s --ignore-case --existing --regexp"
+                               (mapconcat
+                                (apply-partially #'format "-d %s")
+                                (list (expand-file-name "<<locate-db-home()>>")
+                                      (expand-file-name "<<locate-db-doc()>>"))
+                                " ")))
   (consult-find-args "find . ")
   (consult-fd-args '((if (executable-find "fdfind" 'remote)
                          "fdfind" "fd")
