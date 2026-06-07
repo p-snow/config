@@ -23720,7 +23720,7 @@ WantedBy=basic.target
 To start llama.cpp server on port 8080 at localhost
 #+begin_example
 systemctl --user daemon-reload
-systemctl --user start --now llama-cpp
+systemctl --user restart --now llama-cpp
 #+end_example
 
 #+begin_src conf :comments no :tangle (expand-file-name "systemd/user/llama-cpp.service" tangle/config-dir)
@@ -23732,7 +23732,7 @@ After=network.target
 Type=simple
 # Prevent accidental CPU usage by delaying
 ExecStartPre=/bin/sleep 10
-ExecStart=/opt/llama/llama-server -m /mnt/shared/models/gemma-4-E4B-it-Q4_K_M.gguf --host 0.0.0.0 --port 8080 -ngl all
+ExecStart=/opt/llama/llama-server -m /mnt/shared/models/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf --host 0.0.0.0 --port 8080 -ngl all
 Restart=on-failure
 RestartSec=5
 
