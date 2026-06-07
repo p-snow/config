@@ -11061,7 +11061,8 @@ buffer to inherit major mode from. BEG and END are ignored."
 excluding buffers whose name starts with \"*Org parse*\"."
     (when-let* ((name (buffer-name buffer)))
       (and (org-src-edit-buffer-p buffer)
-           (not (string-match-p (regexp-quote "*Org parse*") name)))))
+           (not (string-match-p (rx (or "*Org parse*"
+                                        "*Org HTML Export LaTeX*")) name)))))
   :config
   (add-to-list 'tmp-buffer-find-functions
                #'my/org-src-edit-buffer-sans-org-parse-p))
@@ -14289,6 +14290,8 @@ Please adhere to the following guidelines:
 (gptel-make-preset 'wordsmith
   :parents     'my-default
   :description "Teaching English"
+  :backend      "llama-cpp"
+  :model        'local
   :system '(:prepend "You are an expert in English learning. Explain English words or phrases clearly for an intermediate English learner.
 
 When the learner inputs a word or phrase, answer in the following format:
