@@ -6055,6 +6055,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
 #+begin_src emacs-lisp
 (use-package org-src
   :after org
+  :bind ("C-c C-'" . org-edit-src-code)
   :hook (org-src-mode . (lambda ()
                           (setq-local auto-save-visited-mode nil)
                           (setq-local buffer-save-without-query t)
@@ -9103,6 +9104,7 @@ Each block holds the request and the response of a tool call in `gptel'."
                ("RET" . gptel-send)
                ("r" . gptel-rewrite)
                ("g" . gptel-menu)
+               ("m" . gptel-mode)
                ("T" . gptel-tools)
                ("P" . gptel-preset)
                ("x" . gptel-abort)
