@@ -5034,7 +5034,8 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
             " (" (string-trim (truncate-string-to-width (remember-buffer-desc) 16)) ")\n\n"
             text))
   :custom
-  (remember-data-file (expand-file-name "emacs/remember-notes"
+  (remember-data-file (expand-file-name (concat "emacs/remember-notes/"
+                                                (format-time-string "%Y-W%V" (encode-time (decode-time))))
                                         "<<share-dir()>>"))
   (remember-initial-major-mode 'org-mode)
   (remember-notes-initial-major-mode 'org-mode)
