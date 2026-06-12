@@ -14076,6 +14076,10 @@ If MENU is nil, all menu titles will be returned as a list of strings."
     :model        'tencent/hy3-preview
     :tools        '("emacs" "mcp-time" "mcp-sequential-thinking")
     :include-tool-results 'auto)
+  ;; Apply search preset globally after all MCP servers are ready.
+  (run-with-timer 5 nil
+                  (lambda ()
+                    (gptel-preset 'my-default)))
   <<gptel-preset>>
   (bind-keys :map my/gptel-map
              ("p"     . my/gptel-preset-local)
@@ -14098,10 +14102,6 @@ If MENU is nil, all menu titles will be returned as a list of strings."
 - If the topic is time-sensitive, such as one related to a technology term, you should check the web first in case your knowledge is already obsolete. Remember to check multiple sources during the process to avoid relying on misinformed and harmful information.
 ")
   :tools        '(:append ("mcp-duckduckgo")))
-;; Apply search preset globally after all MCP servers are ready.
-(run-with-timer 10 nil
-                (lambda ()
-                  (gptel-preset 'search)))
 #+end_src
 
 ****** Technical Research preset
