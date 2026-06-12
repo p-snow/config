@@ -7601,14 +7601,17 @@ emacs-org-hide-drawers-head
     (pcase (org-in-regexp
             "\\[\\[lfile:\\([^][:]+?\\)\\(?:::\\([^]]*\\)\\)?\\]\\(?:\\[\\([^]]+\\)\\]\\)?\\]")
       (`(,start . ,end)
-       (when-let ((file-path (ol-locate-file-locate (match-string 1))))
+       (when-let ((file-path (org-locate-file--resolve (match-string 1))))
          (princ file-path)
          `(file ,file-path ,start . ,end)))))
+  :custom
+  (org-locate-file-follow-auto 'recent)
+  (org-locate-file-store-link-p nil)
+  (org-locate-file-max-results 1000)
   :config
   (with-eval-after-load 'embark
     (add-to-list 'embark-target-finders 'my/embark-org-target-lfile-link))
-  (ol-locate-file-setup)
-  (put 'ol-locate-file-locate 'org-link-abbrev-safe t))
+  (put 'org-locate-file--resolve 'org-link-abbrev-safe t))
 #+end_src
 
 ***** corg
