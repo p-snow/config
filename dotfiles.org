@@ -15894,53 +15894,45 @@ There are no grammatical errors, but if you want to add some clarity, you could 
 This is a keymap for commands that echo various items as if they were displayed in the mode line, a very congested place since the font size is huge.
 
 #+begin_src emacs-lisp
-(keymap-global-set "H-h"
-                   (define-keymap
-                     :prefix 'my/echo-map))
-
-(defmacro my/echo-bind-command-create (name key sexp)
-  "Create a new command my/echo-\"NAME\" which display SEXP and bind it to KEY."
-  `(keymap-set my/echo-map (kbd ,key)
-               (defun ,(intern (concat "my/echo-"
-                                       (cond
-                                        ((stringp name) name)
-                                        ((consp name) (car name))))) ()
-                 ,(format "Print %s in the echo area." (cond
-                                                        ((stringp name) name)
-                                                        ((consp name) (car name))))
-                 (interactive)
-                 (when-let ((echo-value
-                             (if (functionp ,sexp)
-                                 (funcall ,sexp current-prefix-arg)
-                               ,sexp)))
-                   (message "%s: %s"
-                            ,(cond
-                              ((stringp name) (upcase name))
-                              ((consp name) (cdr name)))
-                            echo-value)
-                   (kill-new echo-value)))))
-
-(my/echo-bind-command-create ("section" . "sec") "s"
-                             (which-function))
-
-(my/echo-bind-command-create "title" "t"
-                             (org-get-title))
-
-(my/echo-bind-command-create "file" "f"
-                             (lambda (&optional full-path)
-                               (let ((fname buffer-file-name))
-                                 (if full-path
-                                     fname
-                                   (file-name-nondirectory fname)))))
-
-(my/echo-bind-command-create ("project" . "PRJ") "p"
-                             (lambda (&optional full-path)
-                               (when-let* ((prj (project-current))
-                                           (root (project-root prj))
-                                           (dir (directory-file-name root)))
-                                 (funcall (if full-path #'identity #'file-name-nondirectory) dir))))
-
-(provide 'my/echo)
+(use-package my/echo
+  :ensure nil
+  :bind ( :map help-map
+          :prefix "/"
+          :prefix-map my/echo
+          :prefix-docstring "Keymap to echo function/title/project...."
+          ("f" . my/echo-function)
+          ("t" . my/echo-title)
+          ("p" . my/echo-project))
+  :preface
+  (defmacro my/echo-content (title sexp)
+    "Create a new command my/echo-\"NAME\" which display SEXP."
+    `(when-let* ((echo-value
+                  (if (functionp ,sexp)
+                      (funcall ,sexp current-prefix-arg)
+                    ,sexp)))
+       (message "%s: %s"
+                (and (stringp ,title)
+                     ,title)
+                echo-value)
+       (kill-new echo-value)))
+  (defun my/echo-function ()
+    "Print function in the echo area."
+    (interactive)
+    (my/echo-content "FUN" (which-function)))
+  (defun my/echo-title ()
+    "Print title in the echo area."
+    (interactive)
+    (my/echo-content "TITLE"
+                     (if (derived-mode-p 'org-mode)
+                         (org-get-title)
+                       (buffer-name))))
+  (defun my/echo-project ()
+    "Print project in the echo area."
+    (interactive)
+    (when-let* ((prj (project-current))
+                (root (project-root prj))
+                (dir (directory-file-name root)))
+      (my/echo-content "PROJ" dir))))
 #+end_src
 
 **** TempEL templates
