@@ -6622,8 +6622,8 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   (bind-keys :map eww-mode-map
              ("C" . eww-set-character-encoding)
              ("C-j" . eww-follow-link)
-             ("T" . eww-goto-title-heading)
-             ("L" . my/eww-goto-heading)
+             ("T" . my/eww-goto-title-heading)
+             ("L" . my/eww-goto-headings)
              :map eww-bookmark-mode-map
              ("C-j" . eww-bookmark-browse))
   (with-eval-after-load 'consult
@@ -16794,7 +16794,7 @@ It's confortable to read long material such as web page , epub file or email wit
               eww-follow-link
               eww-back-url
               eww-forward-url
-              eww-goto-title-heading
+              my/eww-goto-title-heading
               eww-reload
               nov-browse-url
               nov-next-document
@@ -17446,80 +17446,96 @@ gnome-epub-thumbnailer
     (funcall orig-fun source-file thumbnail-file)))
 #+end_src
 
-***** Jumping between HTML headings in EWW
+***** Go to HTML headings in EWW
 :PROPERTIES:
 :CREATED:  [2025-06-24 Tue 17:30]
 :END:
 
-#+NAME: config-eww
+#+NAME: custom/goto-eww-heading
 #+begin_src emacs-lisp :noweb tangle
-(defun eww-headings-dom ()
-  "Return heading list as a dom from xml."
-  (let ((source (plist-get eww-data :source))
-        (dom nil))
-    (with-temp-buffer
-      (let ((source-file (make-temp-file "source-"))
-            (coding-system-for-write 'utf-8-unix)
-            (inhibit-message t))
-        (insert source)
-        (write-region (point-min) (point-max) source-file nil)
-        (erase-buffer)
-        (call-process-shell-command
-         (format "guix shell python python-lxml -- bash -c \"cat '%s' | extract_headings\""
-                 source-file)
-         nil t)
-        (delete-file source-file)
-        (libxml-parse-xml-region (point-min) (point-max))))))
+(defun my/eww-headings-dom ()
+  "Return a DOM node whose children are all heading elements (h1-h6)
+from the current EWW page source."
+  (let* ((source (plist-get eww-data :source))
+         (charset (or (plist-get eww-data :charset) 'utf-8))
+         (dom
+          (with-temp-buffer
+            (insert source)
+            (eww--parse-html-region (point-min) (point-max) charset))))
+    (cl-labels ((collect-headings (node)
+                  (when (listp node)
+                    (let ((tag (dom-tag node)))
+                      (if (and tag
+                               (let ((tag-str (symbol-name tag)))
+                                 (and (= (length tag-str) 2)
+                                      (eq (aref tag-str 0) ?h)
+                                      (<= ?1 (aref tag-str 1) ?6))))
+                          (list node)
+                        (cl-mapcan #'collect-headings
+                                   (dom-children node)))))))
+      (list 'headings nil
+            (cl-mapcan #'collect-headings (dom-children dom))))))
 
-(defun eww-goto-title-heading ()
-  "Move to page title in EWW."
+(defun my/eww-goto-title-heading ()
+  "Move to the page title heading in EWW buffer."
   (interactive)
-  (when-let* ((headings-dom (eww-headings-dom))
+  (when-let* ((headings-dom (my/eww-headings-dom))
+              (heading-children (car (dom-children headings-dom)))
+              ((not (null heading-children)))
               (title-text
-               (caddr
-                (cl-first
-                 (seq-sort-by (lambda (heading)
-                                (string-to-number (cdaadr heading)))
-                              #'>
-                              (dom-children headings-dom))))))
-    (when (progn
-            (next-line 1)
-            (re-search-forward (format "^*?[[:blank:]]*%s[[:blank:]]*$" (regexp-quote title-text)) nil t 1))
+               (dom-inner-text
+                (car (seq-sort-by
+                      (lambda (heading)
+                        (let ((tag (symbol-name (dom-tag heading))))
+                          (if (string-match "h\\([1-6]\\)" tag)
+                              (string-to-number (match-string 1 tag))
+                            7)))
+                      #'<
+                      heading-children)))))
+    (forward-line 1)
+    (when (re-search-forward
+           (format "^*?[[:blank:]]*%s[[:blank:]]*$"
+                   (regexp-quote title-text))
+           nil t 1)
       (beginning-of-line)
       (recenter-top-bottom 0))))
 
-(defun my/eww-goto-heading ()
-  "Go to selected heading line."
+(defun my/eww-goto-headings ()
+  "Interactively select and navigate to a heading in the EWW buffer."
   (interactive)
-  (when-let* ((headings-root (eww-headings-dom))
-              (cur-buf (current-buffer))
-              (heading (completing-read
-                        "Heading : "
-                        (mapcar (lambda (heading-node)
-                                  (when-let* ((heading (dom-text heading-node))
-                                              (tag (symbol-name (dom-tag heading-node)))
-                                              (match-pos (string-match "h\\([1-6]\\{1\\}\\)" tag))
-                                              (indent (- (string-to-number (match-string 1 tag)) 1)))
-                                    (format "%s%s"
-                                            (apply 'concat (make-list indent "  "))
-                                            heading)))
-                                (dom-children headings-root))))
-              (match (string-match "\\(?:  \\)*\\(.*\\)" heading))
-              (heading (match-string 1 heading))
-              (match-pos (or (re-search-forward (build-regex heading) nil t 1)
-                             (re-search-backward (build-regex heading) nil t 1))))
-    (with-current-buffer cur-buf
-      (switch-to-buffer cur-buf)
-      (beginning-of-line)
-      (recenter-top-bottom 0))))
-
-(defmacro build-regex (str)
-  "Return a regexp representation for `STR'."
-  `(format "^[[:blank:]SVG Image]*%s[[:blank:]]*$"
-           ,str))
+  (when-let* ((headings-root (my/eww-headings-dom))
+              (buf (current-buffer))
+              (heading-nodes (car (dom-children headings-root)))
+              (choices
+               (mapcar
+                (lambda (node)
+                  (when-let* ((text (string-trim (dom-inner-text node)))
+                              (tag (symbol-name (dom-tag node)))
+                              (_ (string-match "h\\([1-6]\\)" tag))
+                              (indent (1- (string-to-number
+                                           (match-string 1 tag)))))
+                    (format "%s%s"
+                            (make-string (* indent 2) ?\s)
+                            text)))
+                heading-nodes))
+              (selection (completing-read "Heading: " choices))
+              (match (string-match "\\(?:  \\)*\\(.*\\)" selection))
+              (heading-text (match-string 1 selection))
+              (found (or (re-search-forward
+                          (format "^\*? *%s[[:blank:]]*$" (string-trim heading-text))
+                          nil t 1)
+                         (re-search-backward
+                          (format "^\*? *%s[[:blank:]]*$" (string-trim heading-text))
+                          nil t 1))))
+    (switch-to-buffer buf)
+    (beginning-of-line)
+    (recenter-top-bottom 0)))
 #+end_src
 
-****** extract_headings
+****** extract_headings                      :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2026-06-13 Sat 14:53]
+:END:
 
 #+NAME: python/extract_headings
 #+begin_src python :tangle (expand-file-name "extract_headings" tangle/local-bin-dir) :tangle-mode o755
