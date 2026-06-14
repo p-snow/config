@@ -2542,6 +2542,7 @@ Settings in this section are influenced a great deal by my personal preference. 
          ("C-c d"   . duplicate-dwim)
          ("C-c j"   . join-line)
          ("C-c M-d" . copy-from-above-command)
+         ("M-s i"   . isearch-toggle-invisible)
          ("M-z"     . zap-up-to-char)
          ("C-z"     . repeat)
          ("C-x M-t" . transpose-sentences)
@@ -2557,7 +2558,8 @@ Settings in this section are influenced a great deal by my personal preference. 
          ("C-x C-/" . cd)
          ("C-x M-r" . rename-visited-file)
          :map help-map
-         ("L" . find-library))
+         ("L" . find-library)
+         ("M-k" . find-function-on-key))
   :init
   (keymap-substitute global-map
                      #'upcase-region
@@ -9862,7 +9864,6 @@ Major mode for manupulating password store file.
          ("M-s m" . consult-multi-occur)
          ("M-s k" . consult-keep-lines)
          ("M-s u" . consult-focus-lines)
-         ("M-s i" . consult-info)
          ("C-x M-#" . consult-theme)
          :map my/org-global-map
          ("h" . consult-org-agenda)
