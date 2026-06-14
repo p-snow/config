@@ -7065,7 +7065,7 @@ exchange rate against US dollar."
    `((,(regexp-quote "www.lenovo.com/jp/ja/p/laptops/thinkpad")
       (lambda (dom)
         (when-let ((price-node (car (dom-search dom (lambda (node) (string= "productpromotionprice"
-                                                                        (dom-attr node 'name)))))))
+                                                                            (dom-attr node 'name)))))))
           (assoc-default 'content (cadr price-node)))))
      (,(regexp-quote "www.yodobashi.com/product")
       [:js_scl_unitPrice])
@@ -7074,8 +7074,8 @@ exchange rate against US dollar."
         (when-let ((products (dom-search dom (lambda (node) (string-prefix-p "game_area_purchase_game"
                                                                              (dom-attr node 'class))))))
           (seq-some (lambda (prod)
-                      (let ((text (dom-text (or (dom-by-class prod "game_purchase_price")
-                                                (dom-by-class prod "discount_final_price")))))
+                      (let ((text (dom-inner-text (or (dom-by-class prod "game_purchase_price")
+                                                      (dom-by-class prod "discount_final_price")))))
                         (if (length= text 0) nil text)))
                     products))))
      (,(regexp-quote "www.googleapis.com/youtube/v3/channels")
@@ -7107,12 +7107,12 @@ exchange rate against US dollar."
       (lambda (dom)
         (when-let* ((prod-price (car (dom-by-class dom "product-info__price")))
                     (sale-price (car (dom-by-tag prod-price 'sale-price))))
-          (dom-text sale-price))))
+          (dom-inner-text sale-price))))
      (,(rx (seq "www.gmktec.com/" (or "products" "collections")))
       (lambda (dom)
         (when-let* ((price-w (car (dom-by-class dom "product-info__header_price-wrapper")))
                     (price (car (dom-by-class price-w "tw-text-save-color"))))
-          (my/convert-currency 'JPY (dom-text price)))))
+          (my/convert-currency 'JPY (dom-inner-text price)))))
      (,(regexp-quote "api.github.com/repos") .
       ,(apply-partially 'assoc-default 'stargazers_count))
      <<org-web-track-selector>>))
@@ -17483,15 +17483,16 @@ from the current EWW page source."
               (heading-children (car (dom-children headings-dom)))
               ((not (null heading-children)))
               (title-text
-               (dom-inner-text
-                (car (seq-sort-by
-                      (lambda (heading)
-                        (let ((tag (symbol-name (dom-tag heading))))
-                          (if (string-match "h\\([1-6]\\)" tag)
-                              (string-to-number (match-string 1 tag))
-                            7)))
-                      #'<
-                      heading-children)))))
+               (string-trim
+                (dom-inner-text
+                 (car (seq-sort-by
+                       (lambda (heading)
+                         (let ((tag (symbol-name (dom-tag heading))))
+                           (if (string-match "h\\([1-6]\\)" tag)
+                               (string-to-number (match-string 1 tag))
+                             7)))
+                       #'<
+                       heading-children))))))
     (forward-line 1)
     (when (re-search-forward
            (format "^*?[[:blank:]]*%s[[:blank:]]*$"
@@ -20739,17 +20740,17 @@ Provide a function to Build a clock table summing up time by tag.
                          (dom-attr info-node 'date)
                          (apply (lambda (max-temp-node min-temp-node)
                                   (format "%2d/%2d℃"
-                                          (string-to-number (dom-text min-temp-node))
-                                          (string-to-number (dom-text max-temp-node))))
+                                          (string-to-number (dom-inner-text min-temp-node))
+                                          (string-to-number (dom-inner-text max-temp-node))))
                                 (dom-by-tag (dom-child-by-tag info-node 'temperature) 'range))
                          (apply (lambda (node-1 node-2 node-3 node-4)
                                   (format "%2d-%2d-%2d-%2d％"
-                                          (string-to-number (dom-text node-1))
-                                          (string-to-number (dom-text node-2))
-                                          (string-to-number (dom-text node-3))
-                                          (string-to-number (dom-text node-4))))
+                                          (string-to-number (dom-inner-text node-1))
+                                          (string-to-number (dom-inner-text node-2))
+                                          (string-to-number (dom-inner-text node-3))
+                                          (string-to-number (dom-inner-text node-4))))
                                 (dom-by-tag (dom-child-by-tag info-node 'rainfallchance) 'period))
-                         (dom-text (dom-child-by-tag info-node 'weather)))))
+                         (dom-inner-text (dom-child-by-tag info-node 'weather)))))
               (dom-by-tag (dom-by-id data area) 'info))
              (insert "\n"))))))))
 
