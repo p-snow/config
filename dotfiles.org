@@ -2767,6 +2767,19 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
 (setopt save-some-buffers-default-predicate 'save-some-buffers-root)
 #+end_src
 
+***** Auto Insert
+:PROPERTIES:
+:CREATED:  [2026-06-14 Sun 18:58]
+:END:
+
+#+NAME: config/emacs-auto-insert
+#+begin_src emacs-lisp
+(use-package autoinsert
+  :custom
+  (auto-insert-mode t)
+  (auto-insert-query nil))
+#+end_src
+
 ***** Uniquify
 
 [[info:emacs#Uniquify][Uniquify]] shows buffer name easy to distinguish.
@@ -5025,20 +5038,36 @@ File-related tweaks including [[info:emacs#Customize Save][Customizing Saving of
 #+NAME: config/emacs-remember
 #+begin_src emacs-lisp :noweb tangle
 (use-package remember
+  :init
+  (defun my/auto-insert-header-once (header-string)
+    "Insert HEADER-STRING at initial line.
+
+This function is supposed to be called from `auto-insert'."
+    (unless (looking-at (regexp-quote header-string))
+      (insert header-string "\n")))
+  (with-eval-after-load 'autoinsert
+    (add-to-list 'auto-insert-alist
+                 `((,(rx (seq (repeat 4 digit) "-W" (repeat 2 digit) string-end)) .
+                    "Remember note") .
+                    ,(apply-partially #'my/auto-insert-header-once "-*- coding: utf-8-unix; mode: org -*-\n"))))
   :bind (("H-m" . remember)
          ("H-M" . remember-notes))
   :preface
   (defun my/remember-text (text)
-    (concat "** " (format-time-string (org-time-stamp-format t t))
-            " (" (string-trim (truncate-string-to-width (remember-buffer-desc) 16)) ")\n\n"
+    (concat "** "
+            (string-trim (truncate-string-to-width (remember-buffer-desc) 16))
+            "\n:PROPERTIES:"
+            "\n:CREATED:  " (format-time-string (org-time-stamp-format t t))
+            "\n:END:\n\n"
             text))
   :custom
-  (remember-data-file (expand-file-name (concat "emacs/remember-notes/"
-                                                (format-time-string "%Y-W%V" (encode-time (decode-time))))
-                                        "<<share-dir()>>"))
+  (remember-data-directory (file-name-concat "<<share-dir()>>" "emacs/remember-notes"))
+  (remember-data-file (file-name-concat remember-data-directory
+                                        (format-time-string "%Y-W%V" (encode-time (decode-time)))))
   (remember-initial-major-mode 'org-mode)
   (remember-notes-initial-major-mode 'org-mode)
   (remember-text-format-function #'my/remember-text)
+  (remember-notes-bury-on-kill nil)
   :config
   (add-to-list 'display-buffer-alist
                `(,remember-buffer
