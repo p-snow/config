@@ -3472,7 +3472,7 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
   :preface
   (defun my/project-root-path (&optional base-name)
     "Return an absolute path for `project-current' or base name if BASE-NAME is non-nil."
-    (if-let (project (project-current))
+    (if-let* (project (project-current))
         (funcall (if base-name #'file-name-nondirectory #'identity)
                  (directory-file-name (project-root project)))
       (buffer-name)))
@@ -6118,7 +6118,7 @@ If entry at POM has no clock log time stamp, this function returns 0."
      (append my-lang-modes org-src-lang-modes)))
   :config
   (mapc (lambda (temp-cons)
-          (if-let ((place (assoc (car temp-cons) org-structure-template-alist)))
+          (if-let* ((place (assoc (car temp-cons) org-structure-template-alist)))
               (setf (cdr (assoc (car temp-cons) org-structure-template-alist)) (cdr temp-cons))
             (add-to-list 'org-structure-template-alist temp-cons t)))
         '(("sh" . "src shell")
@@ -6862,7 +6862,7 @@ Both inherited and local tags is tested."
   (org-ql-defpred (category-inherited) (&rest categories)
     "Return non-nil if current heading has CATEGORY.
 Ancestors are looked up If current heading has no CATEGORY."
-    :body (when-let ((category (or (org-get-category (point))
+    :body (when-let* ((category (or (org-get-category (point))
                                    (org-entry-get (point) "CATEGORY" t))))
             (cl-typecase categories
               (null t)
@@ -7095,14 +7095,14 @@ exchange rate against US dollar."
   (org-web-track-selectors-alist
    `((,(regexp-quote "www.lenovo.com/jp/ja/p/laptops/thinkpad")
       (lambda (dom)
-        (when-let ((price-node (car (dom-search dom (lambda (node) (string= "productpromotionprice"
+        (when-let* ((price-node (car (dom-search dom (lambda (node) (string= "productpromotionprice"
                                                                             (dom-attr node 'name)))))))
           (assoc-default 'content (cadr price-node)))))
      (,(regexp-quote "www.yodobashi.com/product")
       [:js_scl_unitPrice])
      (,(regexp-quote "store.steampowered.com")
       (lambda (dom)
-        (when-let ((products (dom-search dom (lambda (node) (string-prefix-p "game_area_purchase_game"
+        (when-let* ((products (dom-search dom (lambda (node) (string-prefix-p "game_area_purchase_game"
                                                                              (dom-attr node 'class))))))
           (seq-some (lambda (prod)
                       (let ((text (dom-inner-text (or (dom-by-class prod "game_purchase_price")
@@ -7631,7 +7631,7 @@ emacs-org-hide-drawers-head
     (pcase (org-in-regexp
             "\\[\\[lfile:\\([^][:]+?\\)\\(?:::\\([^]]*\\)\\)?\\]\\(?:\\[\\([^]]+\\)\\]\\)?\\]")
       (`(,start . ,end)
-       (when-let ((file-path (org-locate-file--resolve (match-string 1))))
+       (when-let* ((file-path (org-locate-file--resolve (match-string 1))))
          (princ file-path)
          `(file ,file-path ,start . ,end)))))
   :custom
@@ -10859,7 +10859,7 @@ files to retroactively follow that order."
 
 Intended :filter function in menu-itmm clause."
     (unless (or (and (derived-mode-p 'eww-mode)
-                     (when-let ((eww-form (get-text-property (point) 'eww-form)))
+                     (when-let* ((eww-form (get-text-property (point) 'eww-form)))
                        (string= (plist-get eww-form :type) "text")))
                 ;; point is in text field for search in custom-mode
                 (and (derived-mode-p 'Custom-mode)
@@ -14877,7 +14877,7 @@ If called interactively, it prompt the user to select the date to find."
 (defun my/org-iso-week-at-point ()
   "Display ISO 8601 week number correspoinds to time stamp at point."
   (interactive)
-  (when-let ((ts-bound (org-in-regexp (org-re-timestamp 'all)))
+  (when-let* ((ts-bound (org-in-regexp (org-re-timestamp 'all)))
              (ts (buffer-substring (car ts-bound) (cdr ts-bound))))
     (message "W%s" (format-time-string "%V" (org-read-date nil t ts nil)))))
 #+end_src
@@ -15042,7 +15042,7 @@ obtained from the org-link at the current point."
                         t))
               (type (org-element-property :type context))
               (path (org-element-property :path context))
-              (desc (when-let ((begin (org-element-property :contents-begin context))
+              (desc (when-let* ((begin (org-element-property :contents-begin context))
                                (end (org-element-property :contents-end context)))
                       (buffer-substring begin end))))
     (cond
@@ -15053,7 +15053,7 @@ obtained from the org-link at the current point."
         (save-excursion
           (org-open-at-point)
           (when (eq major-mode 'elfeed-show-mode)
-            (when-let ((url (or (caar (elfeed-entry-enclosures elfeed-show-entry))
+            (when-let* ((url (or (caar (elfeed-entry-enclosures elfeed-show-entry))
                                 (elfeed-entry-link elfeed-show-entry)))
                        (title (elfeed-entry-title elfeed-show-entry)))
               (funcall function (list url title)))
@@ -15426,7 +15426,7 @@ Otherwise remove the scheduled date and review tag."
   "Show a list of tasks belonging to the current project."
   (interactive)
   (when (require 'org-ql nil t)
-    (when-let ((id (org-id-get)))
+    (when-let* ((id (org-id-get)))
       (org-ql-search
         (append (file-expand-wildcards (file-name-concat org-directory "archive" "archive_*.org"))
                 (org-agenda-files))
@@ -15455,7 +15455,7 @@ A "project" link type is designed for local copies of Git or other CVS repositor
   "Return ghq root directory."
   (let ((ghq-root "<<ghq-root()>>"))
     (expand-file-name
-     (if-let ((symlink (file-symlink-p ghq-root)))
+     (if-let* ((symlink (file-symlink-p ghq-root)))
          (file-name-concat (file-name-directory ghq-root)
                            (file-symlink-p ghq-root))
        ghq-root))))
@@ -17006,7 +17006,7 @@ If optional argument `FILENAME' is given use this as a filename."
   "Return a duration value for media located at URL."
   (interactive (list (or (thing-at-point-url-at-point)
                          (read-string "URL: "))))
-  (when-let ((duration (cond
+  (when-let* ((duration (cond
                         ((string-match "https?://www.youtube.com.+" url)
                          (car (split-string (shell-command-to-string
                                              (format "yt-dlp --get-duration %s" url)))))
@@ -17954,7 +17954,7 @@ I'd share this babel config between literate configuration and main Emacs sessio
 (defmacro my/tsc-build-init-value (scope-keyword infix-value)
   "Build init function from SCOPE-KEYWORD and INFIX-VALUE for transient-infix."
   `(lambda (obj)
-     (when-let ((input-value (plist-get (oref transient--prefix scope) ,scope-keyword)))
+     (when-let* ((input-value (plist-get (oref transient--prefix scope) ,scope-keyword)))
        (oset obj value ,infix-value))))
 
 ;;; Classes
@@ -17977,7 +17977,7 @@ I'd share this babel config between literate configuration and main Emacs sessio
 
 (cl-defmethod transient-format-value ((obj my/tsc-file))
   (let ((argument (oref obj argument)))
-    (if-let ((value (oref obj value)))
+    (if-let* ((value (oref obj value)))
         (cl-labels ((rel (f) (if (oref obj absolute)
                                  f (file-relative-name f default-directory))))
           (pcase-exhaustive (oref obj multi-value)
@@ -18718,7 +18718,7 @@ I'd share this babel config between literate configuration and main Emacs sessio
 
 (cl-defmethod transient-infix-value ((obj my/yt-dlp-output))
   ""
-  (when-let ((value (oref obj value)))
+  (when-let* ((value (oref obj value)))
     (cons (oref obj argument)
           (shell-quote-argument
            (my/file-name-legitimate
@@ -19638,7 +19638,7 @@ if SYSTEM is non-nii open FILE using preferable application in system."
         (seq-some (lambda (suffix)
                     (string-suffix-p suffix my/view-file--open-file t))
                   '(".m3u" ".mts" ".m2ts")))
-    (when-let ((mpv-proc (start-process-shell-command
+    (when-let* ((mpv-proc (start-process-shell-command
                           "mpv" nil
                           (format "nohup mpv --force-window %s >/dev/null 2>&1" (shell-quote-argument my/view-file--open-file)))))
       (set-process-sentinel
@@ -19956,7 +19956,7 @@ As of now, English and Japanese are supported for speech. Spoken language is
   (interactive (list (if (region-active-p)
                          (buffer-substring (region-beginning) (region-end))
                        (buffer-string))))
-  (when-let ((fest (require 'festival nil t))
+  (when-let* ((fest (require 'festival nil t))
              (my/say-lang 'en))
     (if (string-match-p
          (format "\\`[%s]+\\'" "[:ascii:]’“”–") string)
@@ -20373,7 +20373,7 @@ Display information and add it to kill ring if called interactively."
 
 (defun org-english-backlink-query ()
   ""
-  (if-let ((id (org-id-get)))
+  (if-let* ((id (org-id-get)))
       `(or (link :target ,id)
            (property "ID" ,id))
     nil))
@@ -20455,7 +20455,7 @@ Display information and add it to kill ring if called interactively."
       (string-to-number (or (and local-str
                                  (parse-level local-str))
                             ;; CAVEAT: getting level from web costs a lot
-                            ;; (when-let ((remote-str (my/english-pronunciation word)))
+                            ;; (when-let* ((remote-str (my/english-pronunciation word)))
                             ;;   (parse-level remote-str))
                             "99")))))
 
@@ -20891,7 +20891,7 @@ Provide a function to Build a clock table summing up time by tag.
                 (oref obj priority)))))
 
 (cl-defmethod transient-format-value ((obj dispatch-dwim-stack-suffix))
-  (if-let ((comm (assoc (oref obj key)
+  (if-let* ((comm (assoc (oref obj key)
                         dispatch-dwim--precedings-followings)))
       (propertize (cadr comm)
                   'face 'transient-argument)
@@ -21123,7 +21123,7 @@ Provide a function to Build a clock table summing up time by tag.
 
 (defun org-nudge-eldoc-documentation (callback)
   "Return description of all backlinks."
-  (when-let ((head-marker (org-nudge--entry-marker)))
+  (when-let* ((head-marker (org-nudge--entry-marker)))
     (if (or (not (markerp org-nudge--last-marker))
             (not (equal (marker-position org-nudge--last-marker)
                         (marker-position head-marker))))
@@ -21138,7 +21138,7 @@ Provide a function to Build a clock table summing up time by tag.
           (async-start
            `(lambda ()
               (require 'org-ql)
-              (when-let ((proc-files ,(async-inject-variables "^org-nudge-files$"))
+              (when-let* ((proc-files ,(async-inject-variables "^org-nudge-files$"))
                          (proc-query ,(async-inject-variables "^org-nudge--proc-query$"))
                          ;; emacs/async #145: "#" cannot be sent over processes
                          (proc-point ,(async-inject-variables "^org-nudge--proc-point$"))
@@ -21149,7 +21149,7 @@ Provide a function to Build a clock table summing up time by tag.
                         :action 'element-with-markers))))
            `(lambda (result)
               (unless (async-message-p result)
-                (when-let ((buffer-name (caar result))
+                (when-let* ((buffer-name (caar result))
                            (point (cdar result))
                            (elements (cdr result)))
                   (with-current-buffer buffer-name
@@ -21191,7 +21191,7 @@ See https://github.com/jwiegley/emacs-async/issues/145"
 
 (defun org-nudge-id-backlink-query ()
   ""
-  (if-let ((id (org-id-get)))
+  (if-let* ((id (org-id-get)))
       `(link :target ,id)
     nil))
 
@@ -21389,7 +21389,7 @@ See https://github.com/jwiegley/emacs-async/issues/145"
 
 (defun heart-rate-notify-callback (interface changed invalidated)
   ""
-  (when-let ((value (caar (assoc-default "Value" changed))))
+  (when-let* ((value (caar (assoc-default "Value" changed))))
     (setq heart-rate-mode-line-string
           `(:propertize ,(concat (number-to-string (nth 1 value)) " ") nil))
     (force-mode-line-update t)))
