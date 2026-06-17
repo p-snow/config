@@ -17507,29 +17507,38 @@ from the current EWW page source."
             (cl-mapcan #'collect-headings (dom-children dom))))))
 
 (defun my/eww-goto-title-heading ()
-  "Move to the page title heading in EWW buffer."
+  "Move to the page title heading in EWW buffer.
+Tries headings in order from smallest level (h1) to largest (h6),
+jumping to the first one found in the buffer."
   (interactive)
   (when-let* ((headings-dom (my/eww-headings-dom))
               (heading-children (car (dom-children headings-dom)))
               ((not (null heading-children)))
-              (title-text
-               (string-trim
-                (dom-inner-text
-                 (car (seq-sort-by
-                       (lambda (heading)
-                         (let ((tag (symbol-name (dom-tag heading))))
-                           (if (string-match "h\\([1-6]\\)" tag)
-                               (string-to-number (match-string 1 tag))
-                             7)))
-                       #'<
-                       heading-children))))))
+              (sorted-headings
+               (seq-sort-by
+                (lambda (heading)
+                  (let ((tag (symbol-name (dom-tag heading))))
+                    (if (string-match "h\\([1-6]\\)" tag)
+                        (string-to-number (match-string 1 tag))
+                      7)))
+                #'<
+                heading-children))
+              (title-texts
+               (mapcar (lambda (heading)
+                         (string-trim (dom-inner-text heading)))
+                       sorted-headings)))
     (forward-line 1)
-    (when (re-search-forward
-           (format "^*?[[:blank:]]*%s[[:blank:]]*$"
-                   (regexp-quote title-text))
-           nil t 1)
-      (beginning-of-line)
-      (recenter-top-bottom 0))))
+    (let ((start-pos (point)))
+      (catch 'found
+        (dolist (title-text title-texts)
+          (goto-char start-pos)
+          (when (re-search-forward
+                 (format "^*?[[:blank:]]*%s[[:blank:]]*$"
+                         (regexp-quote title-text))
+                 nil t 1)
+            (beginning-of-line)
+            (recenter-top-bottom 0)
+            (throw 'found t)))))))
 
 (defun my/eww-goto-headings ()
   "Interactively select and navigate to a heading in the EWW buffer."
