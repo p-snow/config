@@ -5309,6 +5309,8 @@ This configuration offers directories and branches as candidates for git add/rm 
 #+begin_src emacs-lisp :noweb yes
 (use-package locate
   :custom
+  ;; (locate-command "/usr/bin/locate")
+  ;; (locate-make-command-line #'locate-default-make-command-line)
   (locate-command "plocate")
   (locate-make-command-line #'my/plocate-make-command-line)
   (locate-fcodes-file (expand-file-name "<<locate-db-home()>>"))
@@ -6359,6 +6361,7 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
   (org-id-locations-file
    (expand-file-name (file-name-concat org-directory "id-locations.el")))
   (org-id-link-to-org-use-id 'create-if-interactive)
+  (org-id-link-consider-parent-id t)
   (org-id-extra-files (file-expand-wildcards
                        (file-name-concat org-directory "**/*.org"))))
 #+end_src
