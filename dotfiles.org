@@ -8534,6 +8534,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a 
 (use-package embark
   :bind (("C-." . embark-act)
          ("<help> B" . embark-bindings)
+         ("H-." . my/embark-on-last-message)
          :map minibuffer-local-map
          ("C-c C-c" . embark-collect)
          ("C-c C-e" . embark-export)
@@ -8541,6 +8542,14 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a 
          ("b" . browse-url))
   :init
   (setq prefix-help-command #'embark-prefix-help-command)
+  :preface
+  ;; Borrowed from @oantolin (https://github.com/oantolin/emacs-config)
+  (defun my/embark-on-last-message (arg)
+    "Act on the last message displayed in the echo area."
+    (interactive "P")
+    (with-current-buffer "*Messages*"
+      (goto-char (1- (point-max)))
+      (embark-act arg)))
   :custom
   (embark-mixed-indicator-delay 3)
   :config
