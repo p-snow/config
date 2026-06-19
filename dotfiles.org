@@ -2538,7 +2538,8 @@ Settings in this section are influenced a great deal by my personal preference. 
          ("M-B"     . backward-to-word)
          ("C-x M-F" . forward-paragraph)
          ("C-x M-B" . backward-paragraph)
-         ("C-M-S-k" . kill-paragraph)
+         ("C-M-K"   . kill-paragraph)
+         ("M-K"     . kill-whole-line)
          ("C-c d"   . duplicate-dwim)
          ("C-c j"   . join-line)
          ("C-c M-d" . copy-from-above-command)
@@ -2877,6 +2878,7 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
   (dired-dwim-target 'dired-dwim-target-next)
   (dired-hide-details-hide-information-lines t)
   (dired-hide-details-hide-symlink-targets nil)
+  (dired-hide-details-hide-absolute-location t)
   (dired-compress-file-default-suffix ".zst")
   (dired-compress-directory-default-suffix ".7z")
   (dired-isearch-filenames t)
@@ -3185,6 +3187,7 @@ You can now switch windows with your shift key by pressing S-<left>, S-<right>, 
         completion-cycle-threshold 1
         completions-sort 'historical
         completions-detailed t
+        minibuffer-visible-completions t
         ;; Do not allow the cursor in the minibuffer prompt
         minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
@@ -3550,6 +3553,7 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 (use-package ibuffer
   :custom
   (ibuffer-show-empty-filter-groups nil)
+  (ibuffer-human-readable-size t)
   (ibuffer-formats '((mark modified read-only locked " " (name 14 14 :left :elide) " "
                            (mode 8 8 :left :elide) " " filename-and-process)
                      (mark " " (name 8 -1) " " filename)))
@@ -3625,7 +3629,8 @@ The =save-interprogram-paste-before-kill= variable controls whether clipboard te
 (setopt yank-pop-change-selection t
         delete-active-region 'kill
         kill-do-not-save-duplicates t
-        kill-whole-line nil
+        kill-whole-line t
+        kill-region-dwim 'unix-word
         save-interprogram-paste-before-kill (expt 2 16))
 #+end_src
 
@@ -3903,13 +3908,27 @@ sMerge can be utilized to address merging issues.
   (vc-follow-symlinks t))
 #+end_src
 
+****** Treesit
+:PROPERTIES:
+:CREATED:  [2026-06-19 Fri 14:18]
+:END:
+
+#+NAME: config/emacs-treesit
+#+begin_src emacs-lisp
+(use-package treesit
+  :custom
+  (treesit-enabled-modes t) ; enable all ts-modes
+  (treesit-auto-install-grammar 'ask))
+#+end_src
+
 **** Development
 
 ***** Internal
 ***** Lisp
 
 #+begin_src emacs-lisp
-(setopt delete-pair-blink-delay 0)
+(setopt delete-pair-blink-delay 0
+        delete-pair-push-mark t)
 (keymap-global-set "C-M-z" #'delete-pair)
 #+end_src
 
@@ -3960,6 +3979,17 @@ gcc -march=native -Q --help=target | grep '^\s*-march=' | awk '{print $2}'
       native-comp-verbose 1)
 #+end_src
 
+******* Comp Run
+:PROPERTIES:
+:CREATED:  [2026-06-19 Fri 15:34]
+:END:
+
+#+begin_src emacs-lisp
+(use-package comp-run
+  :custom
+  (native-comp-async-on-battery-power t))
+#+end_src
+
 ****** Eldoc
 
 #+begin_src emacs-lisp
@@ -3967,8 +3997,9 @@ gcc -march=native -Q --help=target | grep '^\s*-march=' | awk '{print $2}'
   :custom
   (eldoc-documentation-strategy 'eldoc-documentation-default)
   (eldoc-echo-area-prefer-doc-buffer nil)
-  (eldoc-idle-delay 1.5)
+  (eldoc-idle-delay 0.7)
   (eldoc-print-after-edit nil)
+  (eldoc-help-at-pt nil)
   :config
   (eldoc-add-command-completions "paredit-"))
 #+end_src
@@ -4959,6 +4990,7 @@ Indentation settings for Guix, which are adapted from [[https://codeberg.org/mrh
   (describe-bindings-outline t)
   (help-window-select 'always)
   (help-window-keep-selected t)
+  (view-lossage-auto-refresh t)
   :config
   (bind-keys :map help-map
              ("C-?" . help-for-help)
@@ -10431,7 +10463,7 @@ Thanks to [[https://andreyorst.gitlab.io/posts/2021-09-30-why-is-paredit-is-so-u
   (setq combobulate-key-prefix "C-c o"))
 #+end_src
 
-***** treesit-auto
+***** treesit-auto                            :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2024-03-13 Wed 16:07]
 :END:
@@ -10440,7 +10472,13 @@ Thanks to [[https://andreyorst.gitlab.io/posts/2021-09-30-why-is-paredit-is-so-u
 - Refiled on [2026-04-12 Sun 21:04]
 :END:
 
+Emacs 31 ships with [[help:treesit-enabled-modes][treesit-enabled-modes]], which means treesit-auto peacefully retires. Thanks anyway.
+
 With treesit-auto, major-mode conversion for Tree-sitter code like the example below is not required.
+
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-treesit-auto"
+# #+end_src
 
 #+begin_src emacs-lisp :tangle no
 (dolist (mapping
@@ -10455,10 +10493,6 @@ With treesit-auto, major-mode conversion for Tree-sitter code like the example b
            (json-mode . json-ts-mode)
            (js-json-mode . json-ts-mode)))
   (add-to-list 'major-mode-remap-alist mapping))
-#+end_src
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-treesit-auto"
 #+end_src
 
 #+begin_src emacs-lisp
@@ -10894,7 +10928,7 @@ Intended :filter function in menu-itmm clause."
           ("<" . (lambda () (interactive) (scroll-right 1))))))
 #+end_src
 
-***** Whole Line Or Region
+***** Whole Line Or Region                    :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-06-11 Sun 18:36]
 :END:
@@ -10902,10 +10936,12 @@ Intended :filter function in menu-itmm clause."
 - Refiled on [2026-04-13 Mon 10:02]
 :END:
 
+I have weaned off `whole-line-or-region`; I use `M-x kill-whole-line` and `kill-line` with `kill-whole-line` set to `t` instead.
+
 #+NAME: install/whole-line-or-region
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-whole-line-or-region"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-whole-line-or-region"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package whole-line-or-region
