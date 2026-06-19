@@ -17507,7 +17507,12 @@ from the current EWW page source."
                         (cl-mapcan #'collect-headings
                                    (dom-children node)))))))
       (list 'headings nil
-            (cl-mapcan #'collect-headings (dom-children dom))))))
+            (seq-filter
+             (lambda (heading)
+               (let ((text (dom-inner-text heading)))
+                 (and (stringp text)
+                      (not (string-blank-p text)))))
+             (cl-mapcan #'collect-headings (dom-children dom)))))))
 
 (defun my/eww-goto-title-heading ()
   "Move to the page title heading in EWW buffer.
