@@ -8550,6 +8550,15 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a 
     (with-current-buffer "*Messages*"
       (goto-char (1- (point-max)))
       (embark-act arg)))
+  (defun my/embark-target-buffer-object ()
+    "Return the buffer-embark target for the buffer object.
+
+This function is supposed to be used for `embark-target-finders`."
+    (when (require 'org-macs nil 'noerror)
+      (save-match-data
+        (pcase (org-in-regexp (rx "#<buffer " (group (1+ (not (any ">")))) ">"))
+          (`(,start . ,end)
+           (list 'buffer (match-string-no-properties 1) start end))))))
   :custom
   (embark-mixed-indicator-delay 3)
   :config
@@ -8559,6 +8568,8 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a 
     :after org)
   (use-package avy-embark-collect
     :after avy)
+  (add-to-list 'embark-target-finders
+               #'my/embark-target-buffer-object)
   (push 'embark--allow-edit
         (alist-get 'shell-command-on-region embark-target-injection-hooks)))
 #+end_src
@@ -9259,7 +9270,9 @@ Each block holds the request and the response of a tool call in `gptel'."
      (require 'gptel-integrations)
      (gptel-mcp-connect)))
   (defun my/gptel-alert (start end)
-    (alert "LLM Task done" :style 'fringe :buffer (org-clocking-buffer) :severity 'trivial))
+    (alert "LLM Task done" :style 'fringe :severity 'trivial)
+    (message "The LLM task has been done in:")
+    (prin1 (current-buffer)))
   (add-to-list 'gptel-post-response-functions
                #'my/gptel-alert))
 #+end_src
