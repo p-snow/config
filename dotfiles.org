@@ -10790,10 +10790,15 @@ files to retroactively follow that order."
 (use-package expreg
   :bind (("C-,"   . expreg-expand)
          ("C-M-," . expreg-contract))
-  :config
-  (setq-default expreg-functions
-                '( expreg--subword expreg--word expreg--list expreg--string expreg--sentence
-                   expreg--treesit expreg--comment expreg--paragraph-defun)))
+  :hook (text-mode . my/expreg-functions-set)
+  :preface
+  (defun my/expreg-functions-set ()
+    "Add `expreg--sentence' to `expreg-functions' in text modes."
+    (when (and (derived-mode-p 'text-mode)
+               (require-with-check 'expreg))
+      (setq-local expreg-functions
+                  (append (default-value 'expreg-functions)
+                          (list 'expreg--sentence))))))
 #+end_src
 
 ***** vundo
