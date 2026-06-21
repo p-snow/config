@@ -8535,6 +8535,7 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a 
 "emacs-embark"
 #+end_src
 
+#+NAME: config/emacs-embark
 #+begin_src emacs-lisp
 (use-package embark
   :bind (("C-." . embark-act)
@@ -8559,11 +8560,11 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a 
     "Return the buffer-embark target for the buffer object.
 
 This function is supposed to be used for `embark-target-finders`."
-    (when (require 'org-macs nil 'noerror)
+    (when (require-with-check 'org-macs)
       (save-match-data
-        (pcase (org-in-regexp (rx "#<buffer " (group (1+ (not (any ">")))) ">"))
+        (pcase (org-in-regexp (rx "#<buffer " (group-n 1 (1+ (not (any ">")))) ">"))
           (`(,start . ,end)
-           (list 'buffer (match-string-no-properties 1) start end))))))
+           (princ `(buffer ,(match-string-no-properties 1) ,start . ,end)))))))
   :custom
   (embark-mixed-indicator-delay 3)
   :config
