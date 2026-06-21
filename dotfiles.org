@@ -2552,6 +2552,8 @@ Settings in this section are influenced a great deal by my personal preference. 
          ("C-;"     . backward-delete-char)
          ("C-:"     . backward-kill-word)
          ("C-M-:"   . backward-kill-sexp)
+         ("C-M-g"   . delete-pair)
+         ("C-M-'"   . raise-sexp)
          ("H-l"     . previous-buffer)
          ("H-k"     . next-buffer)
          ("C-x k"   . kill-current-buffer)
@@ -3929,7 +3931,6 @@ sMerge can be utilized to address merging issues.
 #+begin_src emacs-lisp
 (setopt delete-pair-blink-delay 0
         delete-pair-push-mark t)
-(keymap-global-set "C-M-z" #'delete-pair)
 #+end_src
 
 ****** Shortdoc
@@ -10344,7 +10345,7 @@ Handy commands
 - =(=: Insert =()= pair
 - =C-(= / =C-)=: Backward/forward slurp s-expressions
 - =C-M-(= / =C-M-)=: Backward/forward barf s-expressions
-- =C-M-g=: =paredit-splice-sexp= (strip surrounding parentheses)
+- =C-M-G=: =paredit-splice-sexp= (strip surrounding parentheses)
 - =M-d=: =paredit-forward-kill-word=
 - =M-D=: =paredit-splice-sexp-killing-forward=
 - =C-M-;=: =paredit-backward-kill-word=
@@ -10364,7 +10365,7 @@ Handy commands
   :bind (:map paredit-mode-map
               ("<backspace>" . paredit-backward-delete)
               ;; give way M-s to search-map
-              ("C-M-g" .  paredit-splice-sexp)
+              ("C-M-S-g" .  paredit-splice-sexp)
               ("M-s" . nil)
               ;; give way M-? to xref-find-references
               ("C-M-?" . paredit-convolute-sexp)
