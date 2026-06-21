@@ -5353,7 +5353,7 @@ This configuration offers directories and branches as candidates for git add/rm 
   (list locate-command
         "-d" (expand-file-name "<<locate-db-doc()>>")
         "-d" (expand-file-name "<<locate-db-home()>>")
-        "--ignore-case" "--existing" "--regexp" search-string))
+        "--ignore-case" "--existing" search-string))
 #+end_src
 
 ***** With Editor
@@ -7654,12 +7654,12 @@ emacs-org-hide-drawers-head
 - Refiled on [2026-04-12 Sun 20:56]
 :END:
 
-#+NAME: config/ol-local-file
+#+NAME: config/ol-locate-file
 #+begin_src emacs-lisp :noweb tangle
 (use-package ol-locate-file
-  :load-path "~/.local/share/ghq/github.com/p-snow/ol-locate-file"
-  ;; :vc (:url "https://github.com/p-snow/ol-locate-file"
-  ;;           :rev :newest)
+  ;; :load-path "~/.local/share/ghq/github.com/p-snow/ol-locate-file"
+  :vc (:url "https://github.com/p-snow/ol-locate-file"
+            :rev :newest)
   :after org
   :preface
   (defun my/embark-org-target-lfile-link ()
@@ -7668,16 +7668,20 @@ emacs-org-hide-drawers-head
             "\\[\\[lfile:\\([^][:]+?\\)\\(?:::\\([^]]*\\)\\)?\\]\\(?:\\[\\([^]]+\\)\\]\\)?\\]")
       (`(,start . ,end)
        (when-let* ((file-path (org-locate-file--resolve (match-string 1))))
-         (princ file-path)
          `(file ,file-path ,start . ,end)))))
   :custom
-  (org-locate-file-follow-auto 'recent)
-  (org-locate-file-store-link-p nil)
+  (org-locate-file-link-type "lfile")
+  (org-locate-file-store-link-p t)
   (org-locate-file-max-results 1000)
+  (org-locate-file-resolve-method '((follow ask) (export recent)))
+  ;; (org-locate-file-locate-args
+  ;;  (lambda (pattern)
+  ;;    `("find" ,(getenv "HOME") "-path" ,(format "*%s*" pattern))
+  ;;    ;; `("fd" "--hidden" "--absolute-path" "--full-path" "--fixed-strings" ,pattern ,(getenv "HOME"))
+  ;;    ))
   :config
   (with-eval-after-load 'embark
-    (add-to-list 'embark-target-finders 'my/embark-org-target-lfile-link))
-  (put 'org-locate-file--resolve 'org-link-abbrev-safe t))
+    (add-to-list 'embark-target-finders 'my/embark-org-target-lfile-link)))
 #+end_src
 
 ***** corg
@@ -21649,8 +21653,6 @@ export LOCATE_PATH=<<locate-db-home()>>
 #+name: bin/updatedb-home
 #+begin_src bash :noweb tangle :tangle (expand-file-name "updatedb-home" tangle/local-bin-dir)
 $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U <<home-dir()>> --prune-bind-mounts 0 \
-                                             -e <<htmlize-dir()>> \
-                                             -e <<trash-dir()>> \
                                              -o <<locate-db-home()>>
 
 $GUIX_EXTRA_PROFILES/base/base/sbin/updatedb -l 0 -U /mnt/shared/doc-$(hostname)/ --prune-bind-mounts 0 \
