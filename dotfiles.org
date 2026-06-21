@@ -8481,34 +8481,65 @@ emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a 
 #+NAME: config/emacs-popper
 #+begin_src emacs-lisp
 (use-package popper
-  :bind (("H-[" . popper-cycle)
-         ("H-]" . popper-toggle))
+  :bind (("C-H-l" . popper-cycle)
+         ("C-H-k" . popper-cycle-backwards))
+  :init
+  (defvar-local my/popper-tag nil)
+  (defvar my/popper-known-tags nil)
   :preface
   (defun my/popper-select-popup-same (buffer &optional alist)
     ""
     (let ((window (display-buffer-same-window buffer alist)))
       (select-window window)))
+  (defun my/popper-set-tag (tag &optional unset)
+    "Set or unset the popper tag for the current buffer.
+
+When UNSET is non-nil or called with a prefix argument, clear the tag.
+Otherwise, set the tag to TAG and add it to the list of known tags."
+    (interactive
+     (list (unless current-prefix-arg
+             (completing-read "TAG: " my/popper-known-tags))
+           current-prefix-arg))
+    (if unset
+        (setq-local my/popper-tag nil)
+      (when tag
+        (setq-local my/popper-tag tag)
+        (add-to-list 'my/popper-known-tags tag))))
   (defun my/popper-group ()
     ""
-    (or (and (derived-mode-p 'org-mode)
-             (boundp 'gptel-mode)
-             gptel-mode
-             "gptel-org")
+    (or (and my/popper-tag
+             (format "TAG: %s" my/popper-tag))
+        (and (and (featurep 'tmp-buffer)
+                  (member (current-buffer)
+                          (tmp-buffers)))
+             "tmp buffer")
+        (and (string-match-p
+              (rx (or (regexp "\\*detached-list\\*")
+                      (regexp "\\*Detached Shell Command\\**")
+                      (regexp "\\*detached-session-output\\*")))
+              (buffer-name))
+             "detached buffer")
         (and (derived-mode-p 'eww-mode)
-             "EWW")
-        (popper-group-by-directory)))
+             "eww buffer")
+        (popper-group-by-directory)
+        (popper-group-by-project)))
   :custom
+  (popper-mode t)
+  (popper-echo-mode t)
+  (popper-mode-line "")
   (popper-reference-buffers
    '(eww-mode
-     org-mode
-     scheme-mode
-     emacs-lisp-mode
+     help-mode
      dired-mode
-     eshell-mode))
+     (lambda (buf)
+       (when (featurep 'tmp-buffer)
+         (run-hook-with-args-until-success
+          'tmp-buffer-find-functions buf)))
+     "\\*detached-list\\*"
+     ("\\*Detached Shell Command\\**" . hide)
+     ("\\*detached-session-output\\*" . hide)))
   (popper-group-function 'my/popper-group)
-  (popper-display-function 'my/popper-select-popup-same)
-  :config
-  (popper-mode 1))
+  (popper-display-function 'my/popper-select-popup-same))
 #+end_src
 
 ***** casual
@@ -11165,7 +11196,7 @@ buffer to inherit major mode from. BEG and END are ignored."
 #+begin_src emacs-lisp
 (use-package tmp-buffer
   :bind (("H-t" . tmp-buffer-create)
-         ("H-T" . tmp-buffers))
+         ("H-T" . tmp-buffer-switch))
   :preface
   (defun my/org-src-edit-buffer-sans-org-parse-p (buffer)
     "Return non-nil if the current buffer is an `org-src-edit-buffer'
@@ -21585,19 +21616,26 @@ Tmp-buffer is actually a source block in `remember-data-file'."
     (run-hooks 'tmp-buffer-hook)))
 
 ;;;###autoload
-(defun tmp-buffers ()
+(defun tmp-buffer-switch ()
   "Switch to a temporary buffer selected from matching buffers.
 Buffers are matched by running `tmp-buffer-find-functions' on each
 buffer until one succeeds."
   (interactive)
-  (let ((tmp-bufs (seq-filter (lambda (buf)
-                                (run-hook-with-args-until-success
-                                 'tmp-buffer-find-functions buf))
-                              (buffer-list))))
+  (let ((tmp-bufs (tmp-buffers)))
     (when tmp-bufs
       (switch-to-buffer
        (completing-read "Tmp buffers: "
                         (mapcar #'buffer-name tmp-bufs))))))
+
+(defun tmp-buffers ()
+  "Return a list of temporary buffers.
+
+A buffer is considered temporary when any function in
+`tmp-buffer-find-functions' returns non-nil for it."
+  (seq-filter (lambda (buf)
+                (run-hook-with-args-until-success
+                 'tmp-buffer-find-functions buf))
+              (buffer-list)))
 
 (provide 'tmp-buffer)
 ;;; tmp-buffer.el ends here
