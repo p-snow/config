@@ -11129,12 +11129,15 @@ I have weaned off `whole-line-or-region`; I use `M-x kill-whole-line` and `kill-
   (defun my/edit-indirect-default-guess-mode (parent-buffer beg end)
     "Select appropriate mode for indirect buffer editing. PARENT-BUFFER is the
 buffer to inherit major mode from. BEG and END are ignored."
-    (let (guess-mode)
-      (save-excursion
-        (with-current-buffer parent-buffer
-          (if (derived-mode-p 'emacs-lisp-mode)
-              (setq guess-mode #'text-mode)
-            (setq guess-mode #'normal-mode))))
+    (let ((guess-mode
+           (save-excursion
+             (with-current-buffer parent-buffer
+               (if (derived-mode-p 'emacs-lisp-mode)
+                   (if (string-prefix-p "("
+                                        (buffer-substring-no-properties beg end))
+                       #'emacs-lisp-mode
+                     #'text-mode)
+                 #'normal-mode)))))
       (funcall guess-mode)))
   (defun my/edit-indirect-rename-buffer (n)
     "Rename edit-indirect buffer using first N charactors."
