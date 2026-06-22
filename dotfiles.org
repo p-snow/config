@@ -13553,98 +13553,6 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
  :category "emacs")
 #+end_src
 
-****** get_predefined_tags AI tool
-:PROPERTIES:
-:CREATED:  [2025-11-04 Tue 17:03]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-(gptel-make-tool
- :name "get_predefined-tags"
- :function (lambda ()
-             (with-current-buffer (find-file-noselect "/mnt/shared/doc-pc-k8p/home/org/notes/--my-org-tags__org@@20251021T162933.org")
-               (buffer-substring-no-properties (point-min) (point-max))))
- :description "return the predefined org tags"
- :category "emacs")
-#+end_src
-
-****** capture_task AI tool
-:PROPERTIES:
-:CREATED:  [2025-07-11 Fri 22:46]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-(with-eval-after-load 'org-capture
-  (defun task-timestamp (date deadline-p)
-    ""
-    (unless (string-blank-p date)
-      (with-temp-buffer
-        (insert (if (eq deadline-p ':json-false)
-                    "SCHEDULED: " "DEADLINE: "))
-        (org-insert-timestamp (date-to-time date))
-        (buffer-substring-no-properties (point-min) (point-max)))))
-  (add-to-list 'org-capture-templates
-               `("#tp" "Task for AI"
-                 entry (id "58e12e3e-da50-4089-9d22-565986637121")
-                 ,(format "* %s %%(symbol-value 'task--title)
-%%(task-timestamp (symbol-value 'task--date) (symbol-value 'task--deadline-p))
-%%(symbol-value 'task--content)"
-                          my/org-todo-keyword--todo))))
-
-(gptel-make-tool
- :name "capture_task"
- :function (lambda (title content date deadline-p)
-             (setq task--title title)
-             (setq task--content content)
-             (setq task--date date)
-             (setq task--deadline-p deadline-p)
-             (org-capture nil "#tp"))
- :description "Register a new task"
- :args (list '(:name "title"
-                     :type string
-                     :description
-                     "Title of the task
-- Begin with a capitalized verb that clearly indicates the action.
-- Ensure the title is concise and clear, ideally within a single line.
-- Limit the length to a maximum of 70 characters to maintain readability.")
-             '(:name "content"
-                     :type string
-                     :description
-                     "Content of the task, such as description or relevant information")
-             '(:name "date"
-                     :type string
-                     :description
-                     "The execution date for the task must be in the format yyyy-mm-dd or yyyy-mm-dd hh:mm if a time is specified. This must be empty if any date or time is specified in the user's prompt.")
-             '(:name "deadline-p"
-                     :type boolean
-                     :description
-                     "Whether the given date designates a deadline. Non-nil means the task has a due date. Note that a scheduled date, such as an appointment, is not a deadline."))
- :category "emacs"
- :confirm t)
-#+end_src
-
-****** set_tags AI tool
-:PROPERTIES:
-:CREATED:  [2025-11-04 Tue 16:40]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-(gptel-make-tool
- :name "set_tags"
- :function (lambda (tags)
-             (save-excursion
-               (org-back-to-heading)
-               (org-set-tags tags))
-             t)
- :description "Set tags for a current Org entry"
- :args (list '(:name "tags"
-                     :type string
-                     :description
-                     "The tag is surrounded by colon(:) and if multiple tags declared they are look like :tag1:tag2:."))
- :category "emacs"
- :confirm nil)
-#+end_src
-
 ****** get_user_language
 :PROPERTIES:
 :CREATED:  [2026-04-24 Fri 20:55]
@@ -13704,40 +13612,7 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
  :category "emacs-project")
 #+end_src
 
-****** extract org-headings
-:PROPERTIES:
-:CREATED:  [2026-05-28 Thu 13:19]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-(gptel-make-tool
- :function #'my/org-extract-headings
- :name  "org-extract-headings"
- :description "Extracts all headings from an org-mode buffer."
- :args (list '( :name "buffer"
-                :type string
-                :description "Org buffer to scan"))
- :category "emacs-project")
-
-(defun my/org-extract-headings (buffer)
-  "Return all headings from BUFFER, checking against blocked absolute paths."
-  (let* ((buf (get-buffer buffer))
-         (file-path (and buf (buffer-file-name buf)
-                         (expand-file-name (buffer-file-name buf)))))
-    (cond
-     ((not buf)
-      (user-error "Buffer '%s' not found" buffer))
-     (t
-      (with-current-buffer buf
-        (org-map-entries (lambda ()
-                           (concat
-                            (buffer-substring-no-properties
-                             (line-beginning-position)
-                             (line-end-position))))
-                         t 'file))))))
-#+end_src
-
-***** emacs-help
+***** emacs-info
 :PROPERTIES:
 :CREATED:  [2026-05-28 Thu 13:15]
 :END:
@@ -13765,7 +13640,7 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
                 :type string
                 :description
                 "An Emacs Lisp function name"))
- :category "emacs-help")
+ :category "emacs-info")
 
 (gptel-make-tool
  :name "elisp-variable-help"
@@ -13780,7 +13655,310 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
                 :type string
                 :description
                 "An Emacs Lisp function name"))
- :category "emacs-help")
+ :category "emacs-info")
+#+end_src
+
+****** manual
+:PROPERTIES:
+:CREATED:  [2026-06-22 Mon 15:27]
+:END:
+
+#+NAME: gptel-tool/manual
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :function (lambda ()
+             (json-serialize (vconcat (info--filter-manual-names
+                                       (info--manual-names nil)))))
+ :name "manual_names"
+ :include t
+ :category "emacs-info"
+ :args nil
+ :description "Return a list of available manual names.
+Call this tool in order to determine if a particular manual is
+available.  This can also help determine which packages are available on
+the user's Emacs.  This tool is a good starting point for general
+questions about Emacs, Elisp, and common built-in packages.
+
+Manuals are usually named the same as the symbol of the package prefix
+that they document.  The Common Lisp manual is called \"cl\".  The Emacs
+Lisp manual is called \"elisp\".
+
+You will usually follow this call with a subsequent call to
+`manual_nodes' in order to see the sections in the manual, which are
+somewhat like a summary.  This call is extremely cheap and should be
+used liberally.")
+
+(gptel-make-tool
+ :function (lambda (name)
+             (json-serialize
+              (vconcat (mapcar #'car (Info-build-node-completions name)))))
+ :name "manual_nodes"
+ :include t
+ :category "emacs-info"
+ :args '(( :name "manual"
+           :type string
+           :description "The name of the manual.
+Examples include \"cl\", \"elisp\", or \"transient\"."))
+ :description "Retrieve a listing of topic nodes within MANUAL.
+Return value is a list of all nodes in MANUAL.  The list of topic nodes
+provides a good summary of MANUAL.
+
+MANUAL is one of the results returned from `manual_names'.  If you are
+sure a manual exists, you may skip first calling `manual_names'.  When
+you believe MANUAL exists, this tool is very useful to find places to
+broaden your search.
+
+You will usually follow this call with a subsequent call to
+`manual_node_contents' to view the actual full contents of a node in the
+manual.  This call is extremely cheap and should be used liberally.
+
+In the Elisp manual, you can find more answers about code and
+implementations that a programmer can used to deeply customize.  The
+Emacs manual contains descriptions about built-in features and behavior
+that can be used to understand the context for what is being programmed
+in the Elisp manual.")
+
+(gptel-make-tool
+ :function #'gptel-agent--introspect-manual-node-contents
+ :name "manual_node_contents"
+ :include t
+ :category "emacs-info"
+ :args '(( :name "manual_name"
+           :type string
+           :description "The name of MANUAL.
+Examples manuals include \"cl\", \"elisp\", or \"transient\".")
+         ( :name "node"
+           :type string
+           :description "The name of the NODE in a MANUAL.
+Example nodes from the elisp manual include \"Records\" or \"Sequences
+Arrays \ Vectors\"."))
+ :description "Retrieve the contents of NODE in MANUAL.
+The return value is the full contents of NODE in MANUAL.  Contents
+include high-level grouping of related functions and variables.  Hidden
+behavior is described.  This tool is awesome!  You should try to call it
+all the time.
+
+Pay attention to the entries in the Menu.  You can do recursive look-ups
+of more specific manual sections.  Example menu:
+
+,* Menu:
+
+,* Good Node::
+,* A Node::
+
+You can recursively look up \"Good Node\" and other relevant menu nodes
+in this same MANUAL.  Sometimes there are links, such as, \"*Note
+Narrowing::.\".  \"Narrowing\" is a node in this example.  Use this tool
+recursively.
+
+If both Elisp and Emacs manuals are available, open both but prefer Elisp manual
+style language anc content.")
+
+(defun gptel-agent--introspect-manual-node-contents (manual node)
+  "Return contents of NODE in Info MANUAL."
+  (condition-case err
+      (progn
+        (save-window-excursion
+          (Info-goto-node (format "(%s)%s" manual node))
+          (buffer-substring-no-properties (point-min) (point-max))))
+    (user-error
+     (error (error-message-string err)))))
+#+end_src
+
+***** emacs-note
+:PROPERTIES:
+:CREATED:  [2026-05-28 Thu 13:16]
+:END:
+
+****** journal
+:PROPERTIES:
+:CREATED:  [2026-03-24 Tue 12:01]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "journal"
+ :function
+ (lambda (date)
+   (let ((current-buffer (current-buffer))
+         subtree)
+     (my/org-archive-find--iso-datetree date)
+     (org-copy-subtree)
+     (setq subtree (pop kill-ring))
+     (switch-to-buffer current-buffer)
+     subtree))
+ :description
+ "Return my personal journal for the given date in org-mode format."
+ :args (list '(:name "date"
+                     :type string
+                     :description
+                     "Must be yyyy-mm-dd format"))
+ :category "emacs-note"
+ :confirm t)
+#+end_src
+
+****** recipe
+:PROPERTIES:
+:CREATED:  [2026-03-24 Tue 12:01]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "my_recipe"
+ :function #'my/recipe-note
+ :description
+ "Return the contents of the specified recipe from my recipe notes.
+If MENU is nil, all menu titles will be returned as a list of strings."
+ :args (list '( :name "menu"
+                :type string
+                :description "The title of the menu"))
+ :category "emacs-note"
+ :confirm t)
+
+(defun my/recipe-note (menu)
+  ""
+  (let* ((matches (org-with-point-at (org-id-find "95ea7b74-27af-4ca8-9921-d11891324ca8" 'markerp)
+                    (org-map-entries
+                     (lambda ()
+                       (ignore-errors
+                         (substring-no-properties
+                          (if menu
+                              (when (string-match-p (regexp-quote menu) (org-get-heading t t t t))
+                                (org-get-entry))
+                            (org-get-heading t t t t)))))
+                     "LEVEL=2" 'tree 'archive))))
+    (if menu
+        (seq-find #'identity matches)
+      matches)))
+#+end_src
+
+***** emacs-org
+:PROPERTIES:
+:CREATED:  [2026-06-22 Mon 15:11]
+:END:
+****** get_predefined_tags AI tool
+:PROPERTIES:
+:CREATED:  [2025-11-04 Tue 17:03]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "get_predefined-tags"
+ :function (lambda ()
+             (with-current-buffer (find-file-noselect "/mnt/shared/doc-pc-k8p/home/org/notes/--my-org-tags__org@@20251021T162933.org")
+               (buffer-substring-no-properties (point-min) (point-max))))
+ :description "return the predefined org tags"
+ :category "emacs-org")
+#+end_src
+
+****** capture_task AI tool
+:PROPERTIES:
+:CREATED:  [2025-07-11 Fri 22:46]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(with-eval-after-load 'org-capture
+  (defun task-timestamp (date deadline-p)
+    ""
+    (unless (string-blank-p date)
+      (with-temp-buffer
+        (insert (if (eq deadline-p ':json-false)
+                    "SCHEDULED: " "DEADLINE: "))
+        (org-insert-timestamp (date-to-time date))
+        (buffer-substring-no-properties (point-min) (point-max)))))
+  (add-to-list 'org-capture-templates
+               `("#tp" "Task for AI"
+                 entry (id "58e12e3e-da50-4089-9d22-565986637121")
+                 ,(format "* %s %%(symbol-value 'task--title)
+%%(task-timestamp (symbol-value 'task--date) (symbol-value 'task--deadline-p))
+%%(symbol-value 'task--content)"
+                          my/org-todo-keyword--todo))))
+
+(gptel-make-tool
+ :name "capture_task"
+ :function (lambda (title content date deadline-p)
+             (setq task--title title)
+             (setq task--content content)
+             (setq task--date date)
+             (setq task--deadline-p deadline-p)
+             (org-capture nil "#tp"))
+ :description "Register a new task"
+ :args (list '(:name "title"
+                     :type string
+                     :description
+                     "Title of the task
+- Begin with a capitalized verb that clearly indicates the action.
+- Ensure the title is concise and clear, ideally within a single line.
+- Limit the length to a maximum of 70 characters to maintain readability.")
+             '(:name "content"
+                     :type string
+                     :description
+                     "Content of the task, such as description or relevant information")
+             '(:name "date"
+                     :type string
+                     :description
+                     "The execution date for the task must be in the format yyyy-mm-dd or yyyy-mm-dd hh:mm if a time is specified. This must be empty if any date or time is specified in the user's prompt.")
+             '(:name "deadline-p"
+                     :type boolean
+                     :description
+                     "Whether the given date designates a deadline. Non-nil means the task has a due date. Note that a scheduled date, such as an appointment, is not a deadline."))
+ :category "emacs-org"
+ :confirm t)
+#+end_src
+
+****** set_tags AI tool
+:PROPERTIES:
+:CREATED:  [2025-11-04 Tue 16:40]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "set_tags"
+ :function (lambda (tags)
+             (save-excursion
+               (org-back-to-heading)
+               (org-set-tags tags))
+             t)
+ :description "Set tags for a current Org entry"
+ :args (list '(:name "tags"
+                     :type string
+                     :description
+                     "The tag is surrounded by colon(:) and if multiple tags declared they are look like :tag1:tag2:."))
+ :category "emacs-org"
+ :confirm nil)
+#+end_src
+
+****** extract org-headings
+:PROPERTIES:
+:CREATED:  [2026-05-28 Thu 13:19]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :function #'my/org-extract-headings
+ :name  "org-extract-headings"
+ :description "Extracts all headings from an org-mode buffer."
+ :args (list '( :name "buffer"
+                :type string
+                :description "Org buffer to scan"))
+ :category "emacs-org")
+
+(defun my/org-extract-headings (buffer)
+  "Return all headings from BUFFER, checking against blocked absolute paths."
+  (let* ((buf (get-buffer buffer))
+         (file-path (and buf (buffer-file-name buf)
+                         (expand-file-name (buffer-file-name buf)))))
+    (cond
+     ((not buf)
+      (user-error "Buffer '%s' not found" buffer))
+     (t
+      (with-current-buffer buf
+        (org-map-entries (lambda ()
+                           (concat
+                            (buffer-substring-no-properties
+                             (line-beginning-position)
+                             (line-end-position))))
+                         t 'file))))))
 #+end_src
 
 ***** system
@@ -13943,73 +14121,6 @@ so the AI can interpret the values correctly."
       (read-only-mode 1)
       ;; Return bufeer string
       (buffer-substring-no-properties (point-min) (point-max)))))
-#+end_src
-
-***** emacs-note
-:PROPERTIES:
-:CREATED:  [2026-05-28 Thu 13:16]
-:END:
-
-****** journal
-:PROPERTIES:
-:CREATED:  [2026-03-24 Tue 12:01]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-(gptel-make-tool
- :name "journal"
- :function
- (lambda (date)
-   (let ((current-buffer (current-buffer))
-         subtree)
-     (my/org-archive-find--iso-datetree date)
-     (org-copy-subtree)
-     (setq subtree (pop kill-ring))
-     (switch-to-buffer current-buffer)
-     subtree))
- :description
- "Return my personal journal for the given date in org-mode format."
- :args (list '(:name "date"
-                     :type string
-                     :description
-                     "Must be yyyy-mm-dd format"))
- :category "emacs-note"
- :confirm t)
-#+end_src
-
-****** recipe
-:PROPERTIES:
-:CREATED:  [2026-03-24 Tue 12:01]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
-(gptel-make-tool
- :name "my_recipe"
- :function #'my/recipe-note
- :description
- "Return the contents of the specified recipe from my recipe notes.
-If MENU is nil, all menu titles will be returned as a list of strings."
- :args (list '( :name "menu"
-                :type string
-                :description "The title of the menu"))
- :category "emacs-note"
- :confirm t)
-
-(defun my/recipe-note (menu)
-  ""
-  (let* ((matches (org-with-point-at (org-id-find "95ea7b74-27af-4ca8-9921-d11891324ca8" 'markerp)
-                    (org-map-entries
-                     (lambda ()
-                       (ignore-errors
-                         (substring-no-properties
-                          (if menu
-                              (when (string-match-p (regexp-quote menu) (org-get-heading t t t t))
-                                (org-get-entry))
-                            (org-get-heading t t t t)))))
-                     "LEVEL=2" 'tree 'archive))))
-    (if menu
-        (seq-find #'identity matches)
-      matches)))
 #+end_src
 
 ***** obsolete tools                          :ARCHIVE:
@@ -14257,7 +14368,7 @@ If MENU is nil, all menu titles will be returned as a list of strings."
   :model        'deepseek/deepseek-v4-flash
   :system
   '(:append "Your technical advice must account for my specific environment by considering my machine information, which can be obtained using the machine-info tool.")
-  :tools        '(:append ("mcp-context7" "emacs-help" "system")))
+  :tools        '(:append ("mcp-context7" "emacs-info" "system")))
 #+end_src
 
 ****** Fact-checking preset
@@ -14279,7 +14390,7 @@ Please output the results based on the following instructions:
 
 Please omit any explanations or introductory remarks in your output, and provide only the identified issues and the revised text in a concise manner.
 ")
-  :tools        '(:append ("mcp-context7" "emacs-help")))
+  :tools        '(:append ("mcp-context7" "emacs-info")))
 #+end_src
 
 ***** Writing preset
@@ -14364,7 +14475,7 @@ Please omit any explanations or introductory remarks in your output, and provide
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'project
   :parents 'my-default
-  :tools  '(:append ("mcp-git" "mcp-github" "mcp-context7" "emacs-project" "emacs-help")))
+  :tools  '(:append ("mcp-git" "mcp-github" "mcp-context7" "emacs-project" "emacs-info")))
 #+end_src
 
 ****** Commit-message preset
@@ -14497,7 +14608,6 @@ Whenever I provide a response, please analyze it according to the criteria above
 ")
   :tools '(:append ("emacs-note")))
 #+end_src
-
 **** Global Display Buffer Settings
 :PROPERTIES:
 :CREATED:  [2026-05-19 Tue 01:50]
