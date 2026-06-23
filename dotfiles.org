@@ -10862,7 +10862,7 @@ files to retroactively follow that order."
                  (display-buffer-use-least-recent-window))))
 #+end_src
 
-***** drag-stuff
+***** drag-stuff                              :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2025-01-29 Wed 00:00]
 :END:
@@ -10870,9 +10870,9 @@ files to retroactively follow that order."
 - Refiled on [2026-04-12 Sun 22:46]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-drag-stuff"
-#+end_src
+# #+begin_src scheme :tangle no :noweb-ref guix-emacs
+# "emacs-drag-stuff"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package drag-stuff
@@ -11208,6 +11208,21 @@ excluding buffers whose name starts with \"*Org parse*\"."
   :config
   (add-to-list 'tmp-buffer-find-functions
                #'my/org-src-edit-buffer-sans-org-parse-p))
+#+end_src
+
+***** move-text
+:PROPERTIES:
+:CREATED:  [2026-06-23 Tue 12:03]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-move-text"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package move-text
+  :bind (("C-H-u" . move-text-up)
+         ("C-H-d" . move-text-down)))
 #+end_src
 
 **** Files Packages
