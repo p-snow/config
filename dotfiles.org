@@ -18045,6 +18045,7 @@ I'd share this babel config between literate configuration and main Emacs sessio
 :PROPERTIES:
 :CREATED:  [2024-01-15 Mon 20:15]
 :ID:       cd86fe03-b295-4cde-8b7c-68d5705b843a
+:header-args+: :tangle (expand-file-name "advanced/transient-shell-command.el" tangle/emacs-config-dir)
 :END:
 
 #+name: my/tsc
@@ -18056,36 +18057,31 @@ I'd share this babel config between literate configuration and main Emacs sessio
 (defvar my/tsc-execute-function 'detached-shell-command)
 
 (defclass my/tsc-shell-command (transient-suffix)
-  ((command-format :initarg :command-format :initform "%a")
-   (command-format-spec :initarg :command-format-spec :initform nil)
-   (suppress-output :initarg :suppress-output :initform nil)
-   (before-function :initarg :before-function :initform nil)))
+  ((command-format :initarg :command-format :initform "%a"
+                   :documentation "Format string for the shell command.")
+   (command-format-spec :initarg :command-format-spec :initform nil
+                        :documentation "Alist of additional format specifiers.")
+   (suppress-output :initarg :suppress-output :initform nil
+                    :documentation "Non-nil to hide output (bury buffer).")
+   (before-function :initarg :before-function :initform nil
+                    :documentation "Function called before executing the command."))
+  "Transient suffix class for executing a formatted shell command.")
 
 (defvar my/tsc-optional-menu
   ["Optional"
-   (my/tsc-kill)
    (my/tsc-insert)])
 
-(transient-define-suffix my/tsc-kill ()
-  ""
-  :key "M-w" :description "Copy the command to kill-ring"
-  :transient t
-  (interactive)
-  (let ((command (my/tsc-build-shell-command)))
-    (kill-new command)
-    (message "Copied: %s" command)))
-
 (transient-define-suffix my/tsc-insert ()
-  ""
+  "Insert the built shell command into the `my/tsc-shell-command-buffer'."
   :key "M-i" :description "Insert the command"
   :transient t
   (interactive)
   (let ((command (my/tsc-build-shell-command)))
-    (and (length> command 0)
-         (with-current-buffer (get-buffer-create my/tsc-shell-command-buffer)
-           (switch-to-buffer (current-buffer))
-           (sh-mode)
-           (insert command ";\n")))))
+    (when (> (length command) 0)
+      (with-current-buffer (get-buffer-create my/tsc-shell-command-buffer)
+        (switch-to-buffer (current-buffer))
+        (sh-mode)
+        (insert command ";\n")))))
 
 (transient-define-suffix my/tsc-execute (args)
   :class my/tsc-shell-command
@@ -18098,7 +18094,10 @@ I'd share this babel config between literate configuration and main Emacs sessio
     (funcall my/tsc-execute-function (my/tsc-build-shell-command))))
 
 (defun my/tsc-build-shell-command ()
-  ""
+  "Build the shell command from transient arguments.
++Uses the command-format of the RET suffix, substituting %a with
++the combined arguments and any additional specifiers defined in
++command-format-spec."
   (let* ((obj (my/tsc-suffix "RET"))
          (command-format-spec (and (slot-boundp obj :command-format-spec)
                                    (oref obj command-format-spec))))
@@ -18139,7 +18138,9 @@ I'd share this babel config between literate configuration and main Emacs sessio
         (if ,multi `(,user-input) user-input)))))
 
 (defmacro my/tsc-determine-url ()
-  "Determine the URL for dispatch-dwim commands, respecting the conditions."
+  "Determine a URL from context.
+Respects `org-mode' links, `eww-mode' URL at point, and plain URL at point.
+Returns a string."
   '(let ((url-alike (cond
                      ((thing-at-point-url-at-point))
                      ((derived-mode-p 'org-mode)
@@ -18183,7 +18184,10 @@ I'd share this babel config between literate configuration and main Emacs sessio
       ""))
 
 (defun my/tsc-output-reader (&optional prompt initial-input history)
-  ""
+  "Read an output file name.
+If an infile is set (via scope's :infile-key), offer a default
+expansion using `file-name-sans-extension' on the infile's basename.
+Otherwise prompt with PROMPT."
   (let* ((infile-key-obj (my/tsc-suffix (plist-get (oref transient--prefix scope) :infile-key)))
          (infile (or (when infile-key-obj
                        (oref infile-key-obj value))
@@ -18199,7 +18203,9 @@ I'd share this babel config between literate configuration and main Emacs sessio
        (read-string (or prompt "Output file: "))))))
 
 (defmacro my/tsc-build-init-value (scope-keyword infix-value)
-  "Build init function from SCOPE-KEYWORD and INFIX-VALUE for transient-infix."
+  "Build an init-value lambda for transient infixes.
++SCOPE-KEYWORD is a plist key in the prefix scope.
++INFIX-VALUE is the expression to set as the object's value."
   `(lambda (obj)
      (when-let* ((input-value (plist-get (oref transient--prefix scope) ,scope-keyword)))
        (oset obj value ,infix-value))))
@@ -18207,11 +18213,13 @@ I'd share this babel config between literate configuration and main Emacs sessio
 ;;; Classes
 
 (defclass my/tsc-file (transient-option)
-  ((absolute  :initarg :absolute :initform nil))
-  "")
+  ((absolute :initarg :absolute :initform nil))
+  "Transient option for file arguments.
++By default, converts to relative path; set :absolute to non-nil
++to keep the full absolute path.")
 
 (cl-defmethod transient-infix-value ((obj my/tsc-file))
-  ""
+  "Return the file value formatted as a command-line argument."
   (and-let* ((value (oref obj value)))
     (let ((arg (oref obj argument)))
       (cl-labels ((rel (f) (if (oref obj absolute)
@@ -18246,15 +18254,19 @@ I'd share this babel config between literate configuration and main Emacs sessio
                         value " "))))
       (propertize argument 'face 'transient-inactive-argument))))
 
-(defclass my/tsc-literal-option (transient-option) ())
+(defclass my/tsc-literal-option (transient-option) ()
+  "Transient option for literal (single-quoted) values.
++Each value is wrapped in single quotes when forming the argument.")
 
 (cl-defmethod transient-infix-value ((obj my/tsc-literal-option))
-  ""
+  "Return the value wrapped in single quotes as a command-line argument."
   (and-let* ((value (oref obj value)))
     (let ((arg (oref obj argument)))
       (pcase-exhaustive (oref obj multi-value)
         ('nil          (concat arg (format "'%s'" value)))
-        ((or 't 'rest) (cons arg (mapcar (lambda (v) (concat arg (format "'%s'" v))) value)))
+        ('t            (cons arg (mapconcat (lambda (v) (format "'%s'" v))
+                                            value " ")))
+        ('rest         (mapcar (lambda (v) (concat arg (format "'%s'" v))) value))
         ('repeat       (mapcar (lambda (v) (concat arg (format "'%s'" v))) value))))))
 
 ;;; Misc
@@ -18270,6 +18282,7 @@ I'd share this babel config between literate configuration and main Emacs sessio
 :CREATED:  [2024-01-15 Mon 20:17]
 :END:
 
+#+NAME: tsc/mpv
 #+begin_src emacs-lisp
 (transient-define-prefix my/mpv-command (file &rest args)
   ""
@@ -19033,6 +19046,7 @@ I'd share this babel config between literate configuration and main Emacs sessio
 :CREATED:  [2024-02-02 Fri 11:13]
 :END:
 
+#+NAME: tsc/du
 #+begin_src emacs-lisp
 (transient-define-prefix my/du-command (file)
   "du command."
