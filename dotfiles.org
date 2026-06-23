@@ -13766,6 +13766,36 @@ style language anc content.")
      (error (error-message-string err)))))
 #+end_src
 
+****** emacs-news
+:PROPERTIES:
+:CREATED:  [2026-06-23 Tue 22:56]
+:END:
+
+#+NAME: gptel-tool/emacs-news
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "emacs-news"
+ :description "Return the news for the specific version of Emacs. The news
+ mainly consists of newly introduced or deprecated variables, functions, and
+ libraries. The news also includes changes to data structures, building options,
+ and user interaction."
+ :function
+ (lambda (emacs-version)
+   (unwind-protect
+       (progn
+         (view-emacs-news emacs-version)
+         (buffer-substring-no-properties (point-min) (point-max)))
+     (quit-window)))
+ :args (list '( :name "emacs-version"
+                :type string
+                :description
+                "Emacs version for which the news target. Note that the version number is
+composed of a major and minor number, delimited by a dot (point), but
+some exceptions exist. The minor number must start with 1, so Emacs 30.0
+does not exist."))
+ :category "emacs-info")
+#+end_src
+
 ***** emacs-note
 :PROPERTIES:
 :CREATED:  [2026-05-28 Thu 13:16]
