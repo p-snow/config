@@ -8322,7 +8322,6 @@ How to use detached.el
 (use-package detached
   :init
   (detached-init)
-  (defvar my/detached-bury-buffer nil)
   :bind
   (([remap async-shell-command] . detached-shell-command)
    ([remap compile] . detached-compile)
@@ -8343,16 +8342,7 @@ How to use detached.el
   (with-eval-after-load 'embark
     (keymap-set embark-region-map "&" #'detached-shell-command))
   (add-to-list 'display-buffer-alist
-               `((lambda (buffer-or-name arg)
-                   (when (and (string-match-p
-                               (regexp-opt (list detached--shell-command-buffer))
-                               (cond
-                                ((stringp buffer-or-name) buffer-or-name)
-                                ((bufferp buffer-or-name) (buffer-name buffer-or-name))))
-                              my/detached-bury-buffer)
-                     (setq my/detached-bury-buffer nil)
-                     t))
-                 (display-buffer-reuse-window)
+               `((display-buffer-reuse-window)
                  (body-function
                   . (lambda (window) (interactive)
                       (bury-buffer))))))
@@ -11837,15 +11827,11 @@ Interactively prompts for the backend using completion from available options."
                   (elfeed-entry-link entry))))
     (let ((dispatch-dwim--default-method
            (lambda (comm) (princ
-                       (string-trim
-                        (shell-command-to-string comm))))))
-      (let ((my/tsc-execute-function
-             (lambda (command)
-               ;; Quirk: The message does not echo in the minibuffer.
-               (princ (format "Duration: %s"
-                              (string-trim (shell-command-to-string command)))))))
-        (my/yt-dlp-command url :duration t)
-        (my/tsc-execute-macro)))))
+                           (string-trim
+                            (shell-command-to-string comm))))))
+      (my/yt-dlp-command url :duration t)
+      (call-interactively (kmacro "! ! !"))
+      (my/tsc-execute-macro))))
 #+end_src
 
 **** Mail Packages
@@ -18054,22 +18040,41 @@ I'd share this babel config between literate configuration and main Emacs sessio
 (require 'detached)
 
 (defvar my/tsc-shell-command-buffer "*Shell Command*")
-(defvar my/tsc-execute-function 'detached-shell-command)
 
 (defclass my/tsc-shell-command (transient-suffix)
   ((command-format :initarg :command-format :initform "%a"
                    :documentation "Format string for the shell command.")
    (command-format-spec :initarg :command-format-spec :initform nil
                         :documentation "Alist of additional format specifiers.")
-   (suppress-output :initarg :suppress-output :initform nil
-                    :documentation "Non-nil to hide output (bury buffer).")
    (before-function :initarg :before-function :initform nil
                     :documentation "Function called before executing the command."))
   "Transient suffix class for executing a formatted shell command.")
 
 (defvar my/tsc-optional-menu
-  ["Optional"
-   (my/tsc-insert)])
+  ["Misc"
+   (my/tsc-insert)
+   (my/tsc-execution-method)])
+
+(defvar my/tsc-execution-method-alist
+  '(("detached" . detached-shell-command) ("async" . async-shell-command)
+    ("shell" . shell-command)
+    ("string" . (lambda (comm)
+                  (princ (string-trim (shell-command-to-string comm)))))
+    ("eshell" . eshell-command) ))
+
+(transient-define-infix my/tsc-execution-method ()
+  "Which function responsible for executing command."
+  :key "!"
+  :description "Execution method"
+  :class transient-switches
+  :argument-format "%s"
+  :allow-empty nil
+  :always-read t
+  :init-value
+  (lambda (obj)
+    (oset obj value (caar my/tsc-execution-method-alist)))
+  :choices (mapcar 'car my/tsc-execution-method-alist)
+  :argument-regexp (regexp-opt (mapcar 'car my/tsc-execution-method-alist)))
 
 (transient-define-suffix my/tsc-insert ()
   "Insert the built shell command into the `my/tsc-shell-command-buffer'."
@@ -18087,11 +18092,13 @@ I'd share this babel config between literate configuration and main Emacs sessio
   :class my/tsc-shell-command
   :key "RET" :description "Execute"
   (interactive (list (transient-args transient-current-command)))
-  (let ((my/detached-bury-buffer (oref (transient-suffix-object) suppress-output))
-        (before-function (oref (transient-suffix-object) before-function)))
+  (let ((before-function (oref (transient-suffix-object) before-function))
+        (exec-method-obj (my/tsc-suffix "!")))
     (when before-function
       (funcall before-function))
-    (funcall my/tsc-execute-function (my/tsc-build-shell-command))))
+    (funcall (assoc-default (oref exec-method-obj value)
+                            my/tsc-execution-method-alist)
+             (my/tsc-build-shell-command))))
 
 (defun my/tsc-build-shell-command ()
   "Build the shell command from transient arguments.
@@ -18107,7 +18114,8 @@ I'd share this babel config between literate configuration and main Emacs sessio
      (append
       `((?a . ,(string-join (flatten-list
                              ;; transient-args returns reverse menu order
-                             (reverse (transient-args transient-current-command)))
+                             (remove (my/tsc-infix-values '("!"))
+                                     (reverse (transient-args transient-current-command))))
                             " ")))
       (when command-format-spec
         (mapcar (lambda (key-val) (cons (car key-val) (eval (cdr key-val))))
@@ -18273,7 +18281,6 @@ Otherwise prompt with PROMPT."
 
 (defalias 'my/tsc-execute-macro (kmacro "RET"))
 (defalias 'my/tsc-cancel-macro (kmacro "C-g"))
-(defalias 'my/tsc-kill-macro (kmacro "M-w"))
 (defalias 'my/tsc-insert-macro (kmacro "M-i"))
 #+end_src
 
@@ -18310,7 +18317,6 @@ Otherwise prompt with PROMPT."
     :init-value ,(my/tsc-build-init-value :infile-orig (ensure-list input-value)))]
   my/tsc-optional-menu
   [(my/tsc-execute
-    :suppress-output t
     :command-format "mpv %a"
     :before-function (lambda ()
                        (when (require-with-check 'recentf)
@@ -18965,11 +18971,9 @@ Otherwise prompt with PROMPT."
     :init-value ,(my/tsc-build-init-value :url input-value))]
   my/tsc-optional-menu
   [(my/tsc-execute
-    :suppress-output t
     :command-format
     "yt-dlp --embed-chapters --live-from-start %a")]
   (interactive `(,(my/tsc-determine-url)))
-  (setq my/detached-bury-buffer t)
   (transient-setup 'my/yt-dlp-command nil nil
                    :scope (append (cdr `(_ :url ,url))
                                   args)))
@@ -19025,16 +19029,19 @@ Otherwise prompt with PROMPT."
    ("f" "files" ""
     :class my/tsc-file :multi-value rest
     :init-value ,(my/tsc-build-init-value :infile-orig (ensure-list input-value)))]
-  my/tsc-optional-menu
+  ["Misc"
+   (my/tsc-insert)
+   (my/tsc-execution-method
+    :init-value
+    ;; WORK AROUND: Use shell-command since detached fails to process command line with nested quotes
+    (lambda (obj)
+      (oset obj value "async")))]
   [(my/tsc-execute
     :description "Set picture"
-    :suppress-output t
     :command-format "kid3-cli -c 'set picture:\"%p\" \"\"' %f"
     :command-format-spec ((?p . (my/tsc-infix-values '("p")))
                           (?f . (my/tsc-infix-values '("f")))))]
   (interactive `(,(my/tsc-determine-file t)))
-  ;; WORK AROUND: Use shell-command since detached fails to process command line with nested quotes
-  (setq-local my/tsc-execute-function 'shell-command)
   (transient-setup 'my/kid3-command nil nil
                    :scope (append (cdr `(_ :infile-key "p"
                                            :infile-orig ,file))
@@ -19063,7 +19070,11 @@ Otherwise prompt with PROMPT."
     :multi-value t
     :init-value
     ,(my/tsc-build-init-value :infile-orig input-value))]
-  my/tsc-optional-menu
+  ["Misc"
+   (my/tsc-insert)
+   (my/tsc-execution-method
+    :init-value
+    (lambda (obj) (oset obj value "async")))]
   [(my/tsc-execute
     :command-format
     "ionice -c2 -n7 nice -n19 du %a")]
@@ -19091,7 +19102,11 @@ Otherwise prompt with PROMPT."
     :multi-value t
     :init-value
     ,(my/tsc-build-init-value :infile-orig input-value))]
-  my/tsc-optional-menu
+  ["Misc"
+   (my/tsc-insert)
+   (my/tsc-execution-method
+    :init-value
+    (lambda (obj) (oset obj value "async")))]
   [(my/tsc-execute
     :command-format "wc %a")]
   (interactive `(,(my/tsc-determine-file t)))
