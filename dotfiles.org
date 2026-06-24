@@ -19349,7 +19349,7 @@ This customization allows brouwse-url, org-file-open and dired-open to open file
                     epub)))
     (my/open-file-as-html
      exp-epub
-     (format "guix shell python python-lxml -- bash -c \"%1$s '%2$s' 2>/dev/null | pandoc --from=epub --to=html --extract-media='%3$s' - | strip_ruby > '%4$s'\""
+     (format "%1$s '%2$s' 2>/dev/null | pandoc --from=epub --to=html --extract-media='%3$s' - > '%4$s'"
              cap-command
              exp-epub
              dirname-html
@@ -26748,7 +26748,10 @@ end
 
 FileTypeCLI.start(ARGV)
 #+end_src
-** strip ruby
+** strip ruby                                    :ARCHIVE:
+:PROPERTIES:
+:CREATED:  [2026-06-24 Wed 13:03]
+:END:
 
 A program strips all ruby tags in a HTML stream. All HTML contents are expected to be from STDIN and go out as STDOUT. This procedure is mainly for html files converted from pdf and epub files.
 Stripping rules are:
