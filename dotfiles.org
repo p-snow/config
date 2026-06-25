@@ -7582,7 +7582,9 @@ emacs-org-hide-drawers-head
   (bind-keys :map engine-mode-prefixed-map
              ("j" . (lambda (word)
                       "Copy Japanese translation as well as the pronunciation to `kill-ring'."
-                      (interactive (list (determine-search-word)))
+                      (interactive (list (if (use-region-p)
+                                             (buffer-substring-no-properties (region-beginning) (region-end))
+                                           (word-at-point))))
                       (kill-new (message "%s %s"
                                          (my/english-japanese-translate word t)
                                          (my/english-pronunciation word t))))))
@@ -9093,7 +9095,9 @@ Each block holds the request and the response of a tool call in `gptel'."
   (defvar my/define-word-minibuffer-history nil)
   (defun my/define-word (word)
     "Invoke `define-word' with dedicated minibuffer history."
-    (interactive (list (determine-search-word "Word to define: " 'my/define-word-minibuffer-history)))
+    (interactive (list (if (use-region-p)
+                           (buffer-substring-no-properties (region-beginning) (region-end))
+                         (word-at-point))))
     (define-word word define-word-default-service))
   :custom
   (define-word-displayfn-alist
@@ -16767,17 +16771,6 @@ The job is executed in the background if BACKGROUND-P is non-nil."
     (when background-p "&"))))
 #+end_src
 
-***** determine search word macro
-
-#+begin_src emacs-lisp
-(defmacro determine-search-word (&optional prompt history)
-  "Return word at point unless region is active using PROMPT and HISTORY."
-  `(downcase
-    (if (use-region-p)
-        (buffer-substring-no-properties (region-beginning) (region-end))
-      (read-string ,(or prompt "Search word: ") (downcase (or (word-at-point t) "")) "" ,history))))
-#+end_src
-
 **** patches and workarounds
 :PROPERTIES:
 :CREATED:  [2023-01-28 Sat 15:56]
@@ -20442,7 +20435,9 @@ My workflow for acquiring English words is:
   "Capture an english WORD as a `org-mode' entry suitable for org-drill.
 
 Capture URL or file currently visiting as well as a sentence at point."
-  (interactive (list (determine-search-word "Word to capture: ")))
+  (interactive (list (if (use-region-p)
+                         (buffer-substring-no-properties (region-beginning) (region-end))
+                       (word-at-point))))
   (setq org-english-word (downcase word))
   (setq org-english-sentence
         (replace-regexp-in-string word
