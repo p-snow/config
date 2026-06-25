@@ -5919,7 +5919,10 @@ If entry at POM has no clock log time stamp, this function returns 0."
                                        (not (or (todo ,my/org-todo-keyword--next
                                                       ,my/org-todo-keyword--in-action)
                                                 (done))))
-                                 ((org-ql-block-header "This week's common event"))))
+                                 ((org-ql-block-header "This week's common event")))
+            (org-ql-search-block '(and (done)
+                                       (closed :from -6 :to 0))
+                                 ((org-ql-block-header "Completed tasks"))))
            ((org-agenda-sorting-strategy
              '(todo-state-up priority-down deadline-up))))
           ("t" "All tasks"
