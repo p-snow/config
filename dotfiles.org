@@ -2481,6 +2481,18 @@ The Emacs package [[help:Package][emacs-gc-stats]] is useful for collecting stat
       gc-cons-percentage 0.3)
 #+end_src
 
+**** Load user elisp
+:PROPERTIES:
+:CREATED:  [2026-06-23 Tue 23:37]
+:END:
+
+#+begin_src emacs-lisp
+(if (>= emacs-major-version 31)
+    (setopt user-lisp-directory (file-name-concat user-emacs-directory "site-lisp/"))
+  (add-to-list 'load-path (directory-file-name
+                           (expand-file-name "site-lisp/" user-emacs-directory))))
+#+end_src
+
 *** init.el
 :PROPERTIES:
 :CREATED:  [2022-12-24 Sat 14:56]
@@ -2490,16 +2502,13 @@ init.el is suposed to be dedicated to invoking the remaining Lisp files.
 
 #+name: config/emacs-init
 #+begin_src emacs-lisp :tangle (expand-file-name "init.el" tangle/user-emacs-directory)
-(push (file-name-concat user-emacs-directory "lisp") load-path)
-(push (file-name-concat user-emacs-directory "site-lisp") load-path)
-
-(mapc #'load-file
-      (flatten-list
-       (mapcar (lambda (dir)
-                 (directory-files dir t "\\.el$"))
-               (append (list (file-name-concat user-emacs-directory "lisp"))
-                       (file-expand-wildcards
-                        (file-name-concat user-emacs-directory "lisp" "*/"))))))
+(let ((lisp-dir (file-name-concat user-emacs-directory "lisp")))
+  (dolist (file (sort (directory-files-recursively lisp-dir "\\.el\\'")
+                      #'string-lessp))
+    (condition-case err
+        (load file nil t)
+      (error
+       (display-warning 'init (format "Failed to load %s: %s" file err))))))
 #+end_src
 
 *** Basic Preferences
@@ -2669,31 +2678,34 @@ Caveat: [[https://en.wikipedia.org/wiki/Leber%27s_hereditary_optic_neuropathy][I
 
 #+NAME: config/emacs-face
 #+begin_src emacs-lisp
-(defvar my/default-pixel-width 2560 "Default display width in pixel.")
-(defmacro my/normalized-font-size (original-size)
-  "This macro culculates normalized font size for display resolution at runtime.
+(use-package faces
+  :no-require t
+  :preface
+  (defvar my/default-pixel-width 2560 "Default display width in pixel.")
+  (defmacro my/normalized-font-size (original-size)
+    "This macro culculates normalized font size for display resolution at runtime.
 It tries to proportionate ORIGINAL-SIZE in `my/default-pixel-width' in the display at runtime."
-  `(truncate (* ,original-size (/ (float (x-display-pixel-width))
-                                  ,my/default-pixel-width))))
+    `(truncate (* ,original-size (/ (float (x-display-pixel-width))
+                                    ,my/default-pixel-width))))
+  :config
+  (set-face-attribute 'default
+                      nil
+                      :font "fontset-default"
+                      :height (my/normalized-font-size 620))
+  (set-face-attribute 'fixed-pitch
+                      nil
+                      :font "fontset-mincho")
+  (set-face-attribute 'fixed-pitch-serif
+                      nil
+                      :font "fontset-code")
+  (set-face-attribute 'variable-pitch
+                      nil
+                      :font "fontset-exmincho")
+  (set-face-attribute 'variable-pitch-text
+                      nil
+                      :font "fontset-exgothic"))
 
-(set-face-attribute 'default
-                    nil
-                    :font "fontset-default"
-                    :height (my/normalized-font-size 620))
-(set-face-attribute 'fixed-pitch
-                    nil
-                    :font "fontset-mincho")
-(set-face-attribute 'fixed-pitch-serif
-                    nil
-                    :font "fontset-code")
-(set-face-attribute 'variable-pitch
-                    nil
-                    :font "fontset-exmincho")
-(set-face-attribute 'variable-pitch-text
-                    nil
-                    :font "fontset-exgothic")
-
-(use-package face
+(use-package face-remap
   :no-require t
   :hook
   ((eww-mode mastodon-mode nov-mode mu4e-view-mode elfeed-show-mode)
@@ -7775,16 +7787,14 @@ emacs-org-hide-drawers-head
 
 #+NAME: config/emacs-ddskk
 #+begin_src emacs-lisp :noweb tangle
-(defvar skk-user-jisyo-dir (expand-file-name "skk" "<<share-dir()>>"))
-
 (use-package skk
-  :defer t
+  :after faces
+  :bind (("C-x C-j" . skk-mode)
+         ;; Avoid inadvertent skk-auto-fill-mode (default: C-x j) switch-on.
+         ("C-x j" . skk-mode))
   :init
-  (setopt default-input-method "japanese-skk")
-  (defface skk-candidate `((t . (:font "fontset-default"
-                                       :height ,(my/normalized-font-size 860))))
-    "Default face for ddskk candidates."
-    :group 'skk-dcomp)
+  (defvar skk-user-jisyo-dir (expand-file-name "skk" "<<share-dir()>>"))
+  :preface
   (setq skk-get-jisyo-directory "<<skk-jisyo-path()>>")
   :custom
   (skk-user-directory (no-littering-expand-etc-file-name "ddskk"))
@@ -7827,21 +7837,6 @@ emacs-org-hide-drawers-head
   (skk-show-candidates-nth-henkan-char 3)
   (skk-henkan-show-candidates-keys
    '(?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?0))
-  ;; set face for candidates list
-  (skk-treat-candidate-appearance-function
-   (lambda (candidate listing-p)
-     (cond
-      ((string-match ";" candidate)
-       (put-text-property 0 (match-beginning 0)
-                          'face 'skk-candidate
-                          candidate)
-       (put-text-property (match-beginning 0)
-                          (length candidate) 'face 'shadow candidate))
-      (t
-       (put-text-property 0 (length candidate)
-                          'face 'skk-candidate
-                          candidate)))
-     candidate))
   ;; bind C-q for hankaku-kana input mode
   (skk-use-jisx0201-input-method t)
   ;; dynamic conversion
@@ -7874,8 +7869,25 @@ emacs-org-hide-drawers-head
   (skk-study-file (expand-file-name "study" skk-user-jisyo-dir))
   (skk-study-backup-file (expand-file-name "study.bak" skk-user-jisyo-dir))
   :config
-  ;; ward off activating skk-auto-fill-mode inadvertently
-  (bind-keys ("C-x j" . skk-mode)))
+  (defface skk-candidate `((t . ( :font "fontset-default"
+                                  :height ,(my/normalized-font-size 860))))
+    "Default face for ddskk candidates."
+    :group 'skk-dcomp)
+  ;; set face for candidates list
+  (setopt skk-treat-candidate-appearance-function
+          (lambda (candidate listing-p)
+            (cond
+             ((string-match ";" candidate)
+              (put-text-property 0 (match-beginning 0)
+                                 'face 'skk-candidate
+                                 candidate)
+              (put-text-property (match-beginning 0)
+                                 (length candidate) 'face 'shadow candidate))
+             (t
+              (put-text-property 0 (length candidate)
+                                 'face 'skk-candidate
+                                 candidate)))
+            candidate)))
 #+end_src
 
 - ddskk init file
