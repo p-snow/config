@@ -609,7 +609,7 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
                     home-environment-variables-service-type
                     `(("EMAIL" . "<<email>>")
                       ("VIEWER" . "less")
-                      ("EDITOR" . "emacsclient -s server-<<hash-string(seed="server", len=6)>> -c -a emacs")
+                      ("EDITOR" . "emacsclient -c -a emacs")
                       ("LC_TIME" . "en_US.UTF-8")))
     (service home-bash-service-type
              (home-bash-configuration
@@ -5178,9 +5178,8 @@ This function is supposed to be called from `auto-insert'."
 #+begin_src emacs-lisp :noweb tangle
 (use-package server
   :hook (after-init . (lambda () (unless (server-running-p)
-                               (server-start))))
+                                   (server-start))))
   :custom
-  (server-name "server-<<hash-string(seed="server", len=6)>>")
   (server-client-instructions t))
 #+end_src
 
@@ -8459,7 +8458,7 @@ if [ "$STATUS" != "active" ]; then
     pwsudo systemctl restart "$SERVICE"
 fi
 
-emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval '(tinee)' -a ''
+emacsclient --eval '(tinee)' -a ''
 #+end_src
 
 #+begin_src emacs-lisp
@@ -14376,6 +14375,7 @@ so the AI can interpret the values correctly."
     (call-interactively #'my/gptel-preset-local)
     (call-interactively #'gptel-send))
   :config
+  (require 'gptel-agent)
   (gptel-make-preset 'my-default
     :description  "Default preset"
     :system
@@ -14430,8 +14430,12 @@ so the AI can interpret the values correctly."
   :backend      "OpenRouter"
   :model        'deepseek/deepseek-v4-flash
   :system
-  '(:append "Your technical advice must account for my specific environment by considering my machine information, which can be obtained using the machine-info tool.")
-  :tools        '(:append ("mcp-context7" "emacs-info" "system")))
+  `(:append ,(concat "\nYour technical advice must account for my specific environment by considering my machine information, which can be obtained using the machine-info tool.\n"
+                     (progn
+                       (gptel-agent--update-skills)
+                       (gptel-agent--skills-system-message gptel-agent--skills))))
+  :tools '(:append ("mcp-context7" "emacs-info" "system"
+                    "Bash" "Skill")))
 #+end_src
 
 ****** Fact-checking preset
@@ -16826,7 +16830,7 @@ As of [2026-05-19 Tue], auto-mode-alist has '(nil . php-ts-mode), which is malig
 elfeed-update will run at morning everyday
 
 #+begin_src sh :eval no :noweb yes :tangle no :noweb-ref morning-batch
-emacsclient -s server-<<hash-string(seed="server", len=6)>> --eval "(my/elfeed-update)"
+emacsclient --eval "(my/elfeed-update)"
 #+end_src
 
 #+begin_src emacs-lisp
@@ -24989,8 +24993,7 @@ Using the Emacs server capability, the following actions can be executed from a 
 command=$1
 opt=$(wl-paste)
 
-emacsclient -s server-<<hash-string(seed="server", len=6)>> \
-            --eval "(my/emacs-batch \"${command}\" \"${opt}\")"
+emacsclient --eval "(my/emacs-batch \"${command}\" \"${opt}\")"
 #+end_src
 
 #+NAME: elisp/emacs-batch
