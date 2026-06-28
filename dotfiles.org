@@ -11510,6 +11510,25 @@ excluding buffers whose name starts with \"*Org parse*\"."
 "emacs-package-lint"
 #+end_src
 
+***** emcp
+:PROPERTIES:
+:CREATED:  [2026-06-26 Fri 16:52]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-emcp"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package emcp
+  :custom
+  (emcp-http-host "127.0.0.1")
+  (emcp-http-port 38913)
+  (setq emcp-default-profile 'inspect)
+  :config
+  (emcp-start 'inspect))
+#+end_src
+
 **** Terminals Packages
 :PROPERTIES:
 :CREATED:  [2026-04-13 Mon 10:57]
@@ -24159,10 +24178,18 @@ Add OpenRouter as a provider in OpenCode
 #+begin_example opencode.jsonc
 {
   "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "emcp": {
+      "type": "remote",
+      "url": "http://127.0.0.1:38913/mcp",
+      "enabled": true
+    }
+  },
   "provider": {
     "openrouter": {
       "models": {
-        "~tencent/hy3-preview": {}
+        "~tencent/hy3-preview": {},
+        "~deepseek/deepseek-v4-flash": {}
       },
       "options": {
         "apiKey": "{env:OPENROUTER_API_KEY}"
