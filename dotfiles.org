@@ -15721,7 +15721,7 @@ Otherwise remove the scheduled date and review tag."
 
 #+begin_src emacs-lisp
 (defun my/project-insert-link ()
-  "Insert a org-link pointing to the project entry which locates upper position."
+  "Insert a org-link pointing to the project entry."
   (interactive)
   (when (org-get-todo-state)
     (save-excursion
@@ -15737,16 +15737,6 @@ Otherwise remove the scheduled date and review tag."
       (org-add-log-setup 'project link-str
                          nil 'state (format-time-string (org-time-stamp-format t t)))
       (run-hooks 'post-command-hook))))
-
-(defun my/project-list-tasks ()
-  "Show a list of tasks belonging to the current project."
-  (interactive)
-  (when (require 'org-ql nil t)
-    (when-let* ((id (org-id-get)))
-      (org-ql-search
-        (append (file-expand-wildcards (file-name-concat org-directory "archive" "archive_*.org"))
-                (org-agenda-files))
-        `(link :target ,(format "id:%s" id))))))
 
 (with-eval-after-load 'org-refile
   (add-hook 'org-after-refile-insert-hook
@@ -21556,8 +21546,9 @@ See https://github.com/jwiegley/emacs-async/issues/145"
 
 (defun org-nudge-id-backlink-query ()
   ""
-  (if-let* ((id (org-id-get)))
-      `(link :target ,id)
+  (if-let ((id (org-id-get)))
+      `(or (link :target ,id)
+           (property "ARCHIVE_OLID" id))
     nil))
 
 (defun org-nudge-count (elements)
