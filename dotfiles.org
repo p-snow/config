@@ -7730,6 +7730,7 @@ emacs-org-hide-drawers-head
 ***** org-review
 :PROPERTIES:
 :CREATED:  [2026-06-01 Mon 17:20]
+:ID:       d874bac3-0cc1-45f9-8e4a-6d58cd4ff569
 :END:
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
@@ -15572,10 +15573,12 @@ the `kill-ring' instead."
   }
   #+end_src
 
-****** Reviewing Someday Tasks
+****** Reviewing Someday Tasks               :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2022-12-12 Mon 09:18]
 :END:
+
+The review system for "someday" tasks has been delegated to [[id:d874bac3-0cc1-45f9-8e4a-6d58cd4ff569][org-review]].
 
 Someday tasks are encouraged to review and they prohibited to appear in agenda views.
 
@@ -15587,7 +15590,6 @@ Someday tasks are encouraged to review and they prohibited to appear in agenda v
       (progn
         (org-id-goto "58da20ee-97a9-4463-96b8-6ebb1084b9b7")
         (let ((org-drill-scope 'tree)
-              (org-drill-question-tag my/org-review-tag)
               (org-drill-maximum-items-per-session 40)
               (org-drill-hide-item-headings-p nil)
               ;; drill session regulations
@@ -15608,26 +15610,20 @@ Someday tasks are encouraged to review and they prohibited to appear in agenda v
     (message "Failed to load org-drill.")))
 #+end_src
 
-****** Skipping the display of "someday" tasks in the agenda view.
+****** Skip to show "someday" tasks in the agenda view
 :PROPERTIES:
 :CREATED:  [2023-11-04 Sat 12:17]
 :END:
 
 #+begin_src emacs-lisp
-(defvar my/org-review-tag "review"
-  "Tag name set for tasks which is encourged to review.")
-
 (defun my/org-agenda-skip-someday-task ()
-  "Skip entries which hold schedule time and review tag in agenda view."
-  (let ((tags (org-get-tags)))
-    (if (and (member my/org-review-tag (org-get-tags))
-             (org-get-scheduled-time (point)))
-        (progn (outline-next-heading) (point))
-      nil)))
-
-;; (with-eval-after-load 'org-agenda
-;;   (setopt org-agenda-skip-function-global
-;;           'my/org-agenda-skip-someday-task))
+  "Skip tasks with 'someday' or 'pending' TODO state in Org agenda."
+  (when-let* ((state-raw (org-get-todo-state))
+              (state (substring-no-properties state-raw)))
+    (when (member state (list my/org-todo-keyword--someday
+                              my/org-done-keyword--pending))
+      (outline-next-heading)
+      (point))))
 #+end_src
 
 ****** Showing SOMEDAY/GIVEUP Tasks
@@ -15674,13 +15670,11 @@ Otherwise remove the scheduled date and review tag."
     (if (member todo-state (list my/org-todo-keyword--someday
                                  my/org-done-keyword--pending))
         (progn
-          (org-toggle-tag my/org-review-tag 'on)
           (when (string= todo-state my/org-todo-keyword--someday)
             (org-review-insert-last-review))
           (org-archive-subtree))
       ;; Remove scheduled date
-      (org-schedule '(4))
-      (org-toggle-tag my/org-review-tag 'off))))
+      (org-schedule '(4)))))
 #+end_src
 
 ***** Showing an Outline Path for the Entry
