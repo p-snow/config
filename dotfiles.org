@@ -2616,6 +2616,7 @@ This configuration enables several useful text manipulation and navigation comma
 #+begin_src emacs-lisp
 ;; language and locale
 (set-language-environment "Japanese")
+(setopt default-input-method "japanese-skk")
 (setq system-time-locale "C")
 
 ;; coding system
@@ -7790,9 +7791,7 @@ emacs-org-hide-drawers-head
 #+begin_src emacs-lisp :noweb tangle
 (use-package skk
   :after faces
-  :bind (("C-x C-j" . skk-mode)
-         ;; Avoid inadvertent skk-auto-fill-mode (default: C-x j) switch-on.
-         ("C-x j" . skk-mode))
+  :commands (skk-mode)
   :init
   (defvar skk-user-jisyo-dir (expand-file-name "skk" "<<share-dir()>>"))
   :preface
@@ -7870,6 +7869,8 @@ emacs-org-hide-drawers-head
   (skk-study-file (expand-file-name "study" skk-user-jisyo-dir))
   (skk-study-backup-file (expand-file-name "study.bak" skk-user-jisyo-dir))
   :config
+  (unbind-key "C-x C-j")
+  (unbind-key "C-x j")
   (defface skk-candidate `((t . ( :font "fontset-default"
                                   :height ,(my/normalized-font-size 860))))
     "Default face for ddskk candidates."
