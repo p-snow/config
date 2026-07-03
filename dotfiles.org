@@ -9440,7 +9440,10 @@ emacs-mcp-latest
       :args ("--isolated" "--from" "perplexity-mcp" "perplexity-mcp" "--")
       :env (:PERPLEXITY_API_KEY
             ,(my/credential-info "perplexity.ai" "apikey")
-            :PERPLEXITY_MODEL "sonar"))))
+            :PERPLEXITY_MODEL "sonar"))
+     ("openrouter" .
+      (:url "https://mcp.openrouter.ai/mcp"
+            :token ,(getenv "OPENROUTER_API_KEY")))))
   :config
   (require 'mcp-hub))
 #+end_src
@@ -14561,6 +14564,28 @@ Please output the results based on the following instructions:
 Please omit any explanations or introductory remarks in your output, and provide only the identified issues and the revised text in a concise manner.
 ")
   :tools        '(:append ("mcp-context7" "emacs-info")))
+#+end_src
+
+***** Model selection preset
+:PROPERTIES:
+:CREATED:  [2026-07-03 Fri 21:28]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
+(gptel-make-preset 'model-selection
+  :parents      'my-default
+  :description  "LLM Model selection."
+  :backend      "OpenRouter"
+  :model        'deepseek/deepseek-v4-flash
+  :system
+  '(:prepend "Please tell me the best OpenRouter LLM models for the given task. Your task is not to answer the question itself.
+
+- Please list 3 recommended models for both cost and performance aspects, respectively. Briefly add the reason for selection.
+- Even when selecting a model based on performance, please avoid models that are excessively over-specified.
+- Response time is not a particular concern.
+- Avoid acquiring information necessary for the task as much as possible, and focus only on model selection.
+- Prioritize speed over precision for model selection. Do not spend too many tokens on the selection process itself, and infer easily from the information obtained.")
+  :tools '(:append ("mcp-openrouter")))
 #+end_src
 
 ***** Writing preset
