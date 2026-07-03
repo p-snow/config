@@ -3935,6 +3935,43 @@ sMerge can be utilized to address merging issues.
   (treesit-auto-install-grammar 'ask))
 #+end_src
 
+****** Flymake
+:PROPERTIES:
+:CREATED:  [2026-07-02 Thu 10:00]
+:END:
+
+#+NAME: config/emacs-flymake
+#+begin_src emacs-lisp
+(use-package flymake
+  :hook ((prog-mode ledger-mode) . flymake-mode)
+  :bind (("H-!" . flymake-mode)
+         :map flymake-mode-map
+         ("M-n" . flymake-goto-next-error)
+         ("M-p" . flymake-goto-prev-error)
+         ("C-c ! l" . flymake-show-buffer-diagnostics)
+         ("C-c ! L" . flymake-show-project-diagnostics)
+         ("C-c ! s" . flymake-start)
+         ("C-c ! v" . flymake-switch-to-log-buffer)
+         ("C-c ! r" . flymake-running-backends)
+         ("C-c ! d" . flymake-disabled-backends))
+  :custom
+  (flymake-show-diagnostics-at-end-of-line 'short)
+  (flymake-wrap-around t)
+  (flymake-diagnostic-format-alist
+   '((:help-echo . (origin code oneliner))
+     (:eol . (oneliner))
+     (:eldoc . (origin code message))
+     (:eldoc-echo . (origin code oneliner))
+     (t . (origin code message))))
+  :config
+  (add-to-list 'display-buffer-alist
+               '((derived-mode . flymake-diagnostics-buffer-mode)
+                 (display-buffer-same-window
+                  display-buffer-reuse-window
+                  display-buffer-pop-up-window)
+                 (window-height . 5))))
+#+end_src
+
 **** Development
 
 ***** Internal
@@ -9613,6 +9650,13 @@ Major mode for manupulating password store file.
 "emacs-flycheck-ledger"
 #+end_src
 
+#+begin_src emacs-lisp
+(use-package flycheck-ledger
+  :after flycheck
+  :custom
+  (flycheck-ledger-executable "/gnu/store/9jg6m2gwcl7sj2ka7m3ncc7klb1vh7cw-ledger-3.4.1/bin/ledger"))
+#+end_src
+
 ***** gnuplot
 :PROPERTIES:
 :CREATED:  [2024-03-11 Mon 16:55]
@@ -10507,6 +10551,7 @@ Thanks to [[https://andreyorst.gitlab.io/posts/2021-09-30-why-is-paredit-is-so-u
   :diminish
   :hook (prog-mode . flycheck-mode-on-safe)
   :custom
+  (flycheck-keymap-prefix (kbd "C-c C-!"))
   (flycheck-check-syntax-automatically
    '(save new-line idle-change))
   (flycheck-display-errors-delay 10.0)
@@ -10616,6 +10661,31 @@ With treesit-auto, major-mode conversion for Tree-sitter code like the example b
   (plantuml-exec-mode 'jar)
   :config
   (my/add-dash-docsets-hook 'plantuml-mode-hook '("PlantUML")))
+#+end_src
+
+***** flymake-flycheck
+:PROPERTIES:
+:CREATED:  [2026-07-02 Thu 11:12]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-flymake-flycheck"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package flymake-flycheck
+  :after flymake
+  :hook
+  (flymake-mode
+   . (lambda ()
+       (when flymake-mode
+         ;; Exclude flymake-flycheck:emacs-lisp in elisp tangle code since
+         ;; that's not a complete .el file
+         (if (and (not (buffer-file-name))
+                  (derived-mode-p 'emacs-lisp-mode))
+             (setq-local flymake-diagnostic-functions
+                         '(elisp-flymake-checkdoc))
+           (flymake-flycheck-auto))))))
 #+end_src
 
 **** Lisp Packages
@@ -11496,8 +11566,10 @@ excluding buffers whose name starts with \"*Org parse*\"."
 #+end_src
 
 #+begin_src emacs-lisp
-(eval-after-load 'flycheck
-  '(flycheck-package-setup))
+(use-package flycheck-package
+  :after flycheck
+  :config
+  (flycheck-package-setup))
 #+end_src
 
 ***** package lint
