@@ -9400,7 +9400,7 @@ Each block holds the request and the response of a tool call in `gptel'."
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
 (define emacs-mcp-transform
   ((options->transformation
-    (list '(with-commit . "emacs-mcp=2d172809cbdb2a40d86b28ad73bd65547cefe0e1")))
+    (list '(with-git-url . "emacs-mcp=https://github.com/p-snow/mcp.el")))
    emacs-mcp))
 (define emacs-mcp-latest
   (package/inherit
@@ -9443,7 +9443,8 @@ emacs-mcp-latest
             :PERPLEXITY_MODEL "sonar"))
      ("openrouter" .
       (:url "https://mcp.openrouter.ai/mcp"
-            :token ,(getenv "OPENROUTER_API_KEY")))))
+            :token ,(getenv "OPENROUTER_API_KEY")))
+     ("emcp" . (:url ,(emcp-server-url (emcp-start emcp-default-profile))))))
   :config
   (require 'mcp-hub))
 #+end_src
@@ -11599,9 +11600,9 @@ excluding buffers whose name starts with \"*Org parse*\"."
   :custom
   (emcp-http-host "127.0.0.1")
   (emcp-http-port 38913)
-  (setq emcp-default-profile 'inspect)
+  (emcp-default-profile 'develop)
   :config
-  (emcp-start 'inspect))
+  (emcp-start 'develop))
 #+end_src
 
 **** Terminals Packages
