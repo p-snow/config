@@ -7693,10 +7693,11 @@ emacs-org-hide-drawers-head
   :commands (org-tag-tree-load-buffer-tags
              org-tag-tree-load-global-tags)
   :custom
-  (org-tag-tree-global-tag-files '("~/org/notes/--my-org-tags__org@@20251021T162933.org"))
   (org-tag-tree-global-tag-persistent t)
   :config
-  (org-tag-tree-load-global-tags))
+  (when (require-with-check 'denote)
+    (setq org-tag-tree-global-tag-files `(,(denote-get-path-by-id "20251021T162933")))
+    (org-tag-tree-load-global-tags)))
 #+end_src
 
 ***** ol-locate-file
@@ -10833,27 +10834,12 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
 
 #+begin_src emacs-lisp
 (use-package denote
-  :bind (("C-c n n" . denote)
-         ("C-c n o" . denote-open-or-create)
-         :map dired-mode-map
-         ("M-o" . my/denote-rename-all-to-reorder-components))
+  :bind (("H-n n" . denote)
+         ("H-n o" . denote-open-or-create))
   :hook
   (dired-mode . denote-dired-mode-in-directories)
   :custom
   (denote-directory (expand-file-name "~/org/notes"))
-  (denote-file-name-components-order
-   '(signature title keywords))
-  :preface
-  (defun my/denote-rename-all-to-reorder-components ()
-    "Call `denote-dired-rename-files' without any prompts.
-In other words, preserve the value of each Denote file name component.
-
-Use this command if you wish to modify the user option
-`denote-file-name-components-order' and then want your existing Denote
-files to retroactively follow that order."
-    (interactive)
-    (let ((denote-prompts nil))
-      (call-interactively 'denote-dired-rename-files)))
   :config
   (with-eval-after-load 'org-capture
     (setq denote-org-capture-specifiers "%l\n%i\n%?")
@@ -10880,18 +10866,32 @@ files to retroactively follow that order."
 - Refiled on [2026-04-13 Mon 10:02]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-denote-menu"
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
+(define emacs-denote-menu-transform
+  ((options->transformation
+    (list '(with-git-url . "emacs-denote-menu=https://github.com/p-snow/denote-menu")))
+   emacs-denote-menu))
+(define emacs-denote-menu-patched
+  (package/inherit
+      emacs-denote-menu-transform
+    (name "emacs-denote-menu-patched")))
+#+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-package
+emacs-denote-menu-patched
 #+end_src
 
 #+NAME: config/emacs-denote-menu
 #+begin_src emacs-lisp
 (use-package denote-menu
   :after denote
+  :bind ("H-n l" . denote-menu-list-notes)
   :custom
   (denote-menu-date-column-width 12)
   (denote-menu-title-column-width 32)
-  (denote-menu-show-file-type nil))
+  (denote-menu-show-file-type nil)
+  (denote-menu-show-file-signature t)
+  (denote-menu-signature-column-width 4))
 #+end_src
 
 ***** consult-denote
