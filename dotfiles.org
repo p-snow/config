@@ -5145,7 +5145,7 @@ This function is supposed to be called from `auto-insert'."
             "\n:END:\n\n"
             text))
   :custom
-  (remember-data-directory (file-name-concat "<<share-dir()>>" "emacs/remember-notes"))
+  (remember-data-directory (no-littering-expand-var-file-name "remember"))
   (remember-data-file (file-name-concat remember-data-directory
                                         (format-time-string "%Y-W%V" (encode-time (decode-time)))))
   (remember-initial-major-mode 'org-mode)
