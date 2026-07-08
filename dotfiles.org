@@ -13676,41 +13676,58 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
   )
 #+end_src
 
-***** emacs
+***** basics
 :PROPERTIES:
 :CREATED:  [2026-05-28 Thu 13:15]
 :END:
 
-****** get_major_mode
+****** user_charactoristic
 :PROPERTIES:
-:CREATED:  [2026-04-26 Sun 12:10]
+:CREATED:  [2026-07-07 Tue 19:02]
 :END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
 (gptel-make-tool
- :name "major-mode"
- :description "Return current buffer's major-mode."
+ :name "user-characteristic"
+ :description "Describe my characteristics. Call this tool only if the response may benefit from my way of thinking, behavior, and traits."
  :function (lambda ()
-             major-mode)
- :category "emacs")
+             "I am Japanese.")
+ :category "basics")
 #+end_src
 
-****** get_user_language
+****** coding_requirements
 :PROPERTIES:
-:CREATED:  [2026-04-24 Fri 20:55]
+:CREATED:  [2026-07-08 Wed 17:25]
 :END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
 (gptel-make-tool
- :name "user-language"
- :description "Return user's language."
+ :name "coding-requirements"
+ :description "Provide requirements for your code. Whenever your answer contains any programming code, you should use this tool."
  :function (lambda ()
-             (condition-case err
-                 (let ((sym 'gptel-response-language))
-                   (when (boundp sym)
-                     (symbol-value sym)))
-               (error (format "Error: %s" (error-message-string err)))))
- :category "emacs")
+             "Programming code in your answer must follow these:
+- Must not contain non-ASCII characters, even in a comment, regardless of the user's language.")
+ :category "basics")
+#+end_src
+
+****** response_requirements
+:PROPERTIES:
+:CREATED:  [2026-07-08 Wed 19:26]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "response-requirements"
+ :description "Provide requirements for your response messages. You should call this tool once before your initial response."
+ :function (lambda ()
+             (concat (format
+                      "Your response text must follow these:
+- Your answer must be written in %s, which is user's native language, unless specified in the request
+- Don't use emojis or other ostentatious characters unless necessary"
+                      gptel-response-language)
+                     (when (derived-mode-p 'org-mode)
+                       "\n- If the response you are about to provide can be represented in a hierarchical structure, use the Org Mode nested plain-list format with a dash (-) as the leading bullet.")))
+ :category "basics")
 #+end_src
 
 ***** emacs-project
@@ -13759,6 +13776,20 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
 :CREATED:  [2026-05-28 Thu 13:15]
 :END:
 
+****** emacs-major-mode
+:PROPERTIES:
+:CREATED:  [2026-04-26 Sun 12:10]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(gptel-make-tool
+ :name "emacs-major-mode"
+ :description "Return the major mode for the current Emacs buffer. You must adjust your answer based on this major mode, since the user requested it to you in the buffer."
+ :function (lambda ()
+             major-mode)
+ :category "emacs-info")
+#+end_src
+
 ****** elisp-symbol-help
 :PROPERTIES:
 :CREATED:  [2026-04-29 Wed 18:16]
@@ -13786,7 +13817,7 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
 
 (gptel-make-tool
  :name "elisp-variable-help"
- :description "Return helpful information about `elisp-variable`, including documentation, source code, and other valuable information."
+ :description "Return helpful information about `elisp-variable`, including its value, documentation, source code, and other valuable information."
  :function
  (lambda (elisp-variable)
    (prog2
@@ -13797,7 +13828,8 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
                 :type string
                 :description
                 "An Emacs Lisp function name"))
- :category "emacs-info")
+ :category "emacs-info"
+ :confirm t)
 #+end_src
 
 ****** manual
@@ -14488,17 +14520,9 @@ so the AI can interpret the values correctly."
   (require 'gptel-agent)
   (gptel-make-preset 'my-default
     :description  "Default preset"
-    :system
-    "Answer as follows:
-- If the response you are about to provide can be represented in a hierarchical structure, use the Org Mode nested plain-list format with a dash (-) as the leading bullet. That being said, there is no need to force a structure on explanations where a prose description would better facilitate understanding.
-- Only provide a source URL if it is absolutely necessary for the answer, ensuring that the link is not broken.
-- The language of the response must be user's native language which can be obtained by tool use
-- Don't use emojis or other ostentatious characters unless necessary
-- If your response consists of any programming code, it should not contain non-ASCII characters, even in a comment.
-- If your response includes source code, the content must be in English, whatever the user's language is"
     :backend      "OpenRouter"
     :model        'tencent/hy3-preview
-    :tools        '("emacs" "mcp-time" "mcp-sequential-thinking")
+    :tools        '("basics" "mcp-time" "mcp-sequential-thinking")
     :include-tool-results 'auto)
   ;; Apply my-default preset globally after all MCP servers are ready.
   (run-with-timer 1 nil
@@ -14521,10 +14545,9 @@ so the AI can interpret the values correctly."
   :parents      'my-default
   :description  "Basic search capability."
   :system
-  '(:prepend "You are a smart explainer. Your job is to provide a clear, plain-language definition of the given word or phrase for someone with no background knowledge:
+  "You are a smart explainer. Your job is to provide a clear, plain-language definition of the given word or phrase for someone with no background knowledge:
 
-- If the topic is time-sensitive, such as one related to a technology term, you should check the web first in case your knowledge is already obsolete. Remember to check multiple sources during the process to avoid relying on misinformed and harmful information.
-")
+- If the topic is time-sensitive, such as one related to a technology term, you should check the web first in case your knowledge is already obsolete. Remember to check multiple sources during the process to avoid relying on misinformed and harmful information."
   :tools        '(:append ("mcp-duckduckgo")))
 #+end_src
 
@@ -14565,30 +14588,29 @@ Please output the results based on the following instructions:
 - Fact-Checking and Identification of Issues: Specifically point out, in a bulleted list, any factual errors, logical inconsistencies, or issues regarding the accuracy of information contained in the provided text.
 - Presentation of a Revised Version: Present a rewritten version of the text that resolves the issues identified above, ensuring the content is more accurate and refined.
 
-Please omit any explanations or introductory remarks in your output, and provide only the identified issues and the revised text in a concise manner.
-")
+Please omit any explanations or introductory remarks in your output, and provide only the identified issues and the revised text in a concise manner.")
   :tools        '(:append ("mcp-context7" "emacs-info")))
 #+end_src
 
-***** Model selection preset
+***** Model advisor preset
 :PROPERTIES:
 :CREATED:  [2026-07-03 Fri 21:28]
 :END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
-(gptel-make-preset 'model-selection
+(gptel-make-preset 'model-advisor
   :parents      'my-default
-  :description  "LLM Model selection."
+  :description  "LLM Model advisor."
   :backend      "OpenRouter"
   :model        'deepseek/deepseek-v4-flash
   :system
-  '(:prepend "Please tell me the best OpenRouter LLM models for the given task. Your task is not to answer the question itself.
+  "Please tell me the best OpenRouter LLM models for the given task. Your task is not to answer the question itself.
 
 - Please list 3 recommended models for both cost and performance aspects, respectively. Briefly add the reason for selection.
 - Even when selecting a model based on performance, please avoid models that are excessively over-specified.
 - Response time is not a particular concern.
 - Avoid acquiring information necessary for the task as much as possible, and focus only on model selection.
-- Prioritize speed over precision for model selection. Do not spend too many tokens on the selection process itself, and infer easily from the information obtained.")
+- Prioritize speed over precision for model selection. Do not spend too many tokens on the selection process itself, and infer easily from the information obtained."
   :tools '(:append ("mcp-openrouter")))
 #+end_src
 
@@ -14632,8 +14654,8 @@ Please omit any explanations or introductory remarks in your output, and provide
 (gptel-make-preset 'translate
   :parents     'writing
   :description "Translate capability."
-  :system       "You are a professional translator. Please translate the text while considering the following prerequisites.
-- Translate the sentence in Japanese if it is English and vice versa.
+  :system       "You are a professional translator. Please translate the text while considering the following prerequisites:
+- Translate the sentence in the user's native language which can be referred to by the response-requirements tool.
 - Print only translated sentences without explanations.")
 #+end_src
 
@@ -14709,9 +14731,9 @@ Please omit any explanations or introductory remarks in your output, and provide
   :backend      "OpenRouter"
   :model        'deepseek/deepseek-v4-flash
   :system
-  "You are a professional programmer. Generate lines of code in a language which is inferred based on current major-mode.
+  "You are a professional programmer. Generate lines of code in a programming language as following coding-requirements tool.
 
-- All your responses must be code itself.")
+The language can be inferred by calling emacs-major-mode. Your response code should not be encompassed by a code block signature.")
 #+end_src
 
 ****** Code-refactor preset
@@ -14741,19 +14763,20 @@ Please adhere to the following guidelines:
 :CREATED:  [2026-04-24 Fri 22:27]
 :END:
 
+#+NAME: gptel-preset/wordsmith
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'wordsmith
   :parents     'my-default
   :description "Teaching English"
   :backend      "llama-cpp"
   :model        'local
-  :system '(:prepend "You are an expert in English learning. Explain English words or phrases clearly for an intermediate English learner.
+  :system "You are an expert in English learning. Explain English words or phrases clearly for an intermediate English learner.
 
 When the learner inputs a word or phrase, answer in the following format:
 
-- **Meaning and nuance**: Briefly explain the meaning and what kind of implication or impression using it gives the other person.
-- **Advice on learning value**: Advise whether it’s worth prioritizing to remember that word in everyday conversation at an intermediate level, along with the reason.
-"))
+- Meaning and nuance: Briefly explain the meaning and what kind of implication or impression using it gives the other person.
+- Advice on learning value: Advise whether it’s worth prioritizing to remember that word in everyday conversation at an intermediate level, along with the reason.
+- Call response-requirements before sending your initial answer, and follow the requirements.")
 #+end_src
 
 ***** Coaching preset
@@ -14775,7 +14798,7 @@ When the learner inputs a word or phrase, answer in the following format:
 (gptel-make-preset 'english-tutor
   :parents      'coaching
   :description  "English tutor"
-  :system '(:prepend "You are an expert English tutor acting as a conversation partner and language coach. Your role is to engage in natural, flowing English conversation with me, while simultaneously providing pedagogical support to improve my proficiency.
+  :system "You are an expert English tutor acting as a conversation partner and language coach. Your role is to engage in natural, flowing English conversation with me, while simultaneously providing pedagogical support to improve my proficiency.
 
 Please adhere to the following instructions:
 
@@ -14787,8 +14810,7 @@ Please adhere to the following instructions:
 Whenever I provide a response, please analyze it according to the criteria above. Main conversation is in English while pedagogical instruction must be in my native language surrounded special marker like below.
 ,#+begin_example
 <instruction>
-,#+end_example
-"))
+,#+end_example")
 #+end_src
 
 ****** instructor preset
@@ -14800,11 +14822,10 @@ Whenever I provide a response, please analyze it according to the criteria above
 (gptel-make-preset 'instructor
   :parents      'coaching
   :description  "Instructor"
-  :system '(:prepend "You are a supportive AI coach. Help me achieve the following task by advancing the conversation step by step and, in principle, explaining things in a step-by-step manner as needed.
+  :system "You are a supportive AI coach. Help me achieve the following task by advancing the conversation step by step and, in principle, explaining things in a step-by-step manner as needed.
 - Ask one question or give one small actionable step at a time so I can make steady progress.
 - Adapt your guidance based on my responses.
-- Keep the focus on helping me complete one goal successfully.
-")
+- Keep the focus on helping me complete one goal successfully."
   :tools '(:append ("emacs-note")))
 #+end_src
 **** Global Display Buffer Settings
