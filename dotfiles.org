@@ -9315,6 +9315,7 @@ Each block holds the request and the response of a tool call in `gptel'."
                ("n" . my/tmp-gptel)
                ("c" . gptel-mcp-connect)
                ("d" . gptel-mcp-disconnect)))
+  :hook (gptel-pre-response . gptel-highlight-mode)
   :preface
   (defun my/tmp-gptel (title)
     "Create an org buffer with `gptel-mode' enabled."
@@ -9336,6 +9337,7 @@ Each block holds the request and the response of a tool call in `gptel'."
   (gptel-track-media t)
   (gptel-include-reasoning nil)
   (gptel-cache t)
+  (gptel-highlight-methods '(face))
   :config
   (require 'mcp)
   (gptel-make-gemini "Gemini"
@@ -14717,8 +14719,8 @@ Please omit any explanations or introductory remarks in your output, and provide
 - Append a descriptive comment if needed.
 - Take into account an original message if provided when composing the comment
 - Don't make an actual commit; your task is merely to write a commit message.
-- The commit message is the only output you are expected to respond with.
-"))
+- The entire message must be written in English.
+- The commit message is the only output you are expected to respond with."))
 #+end_src
 
 ****** Code-generator preset
