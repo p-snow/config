@@ -5664,14 +5664,13 @@ alias <<print-aliases(lang="plain")>>
 Charles Choi explained how to reference a capability for the command history in his blog post.
 [[http://yummymelon.com/devnull/getting-eshell-nth-history-to-work.html][nfdn: Getting Eshell nth History to Work]]
 
+#+NAME: config/emacs-eshell
 #+begin_src emacs-lisp
 (use-package eshell
   :after my-launch-app
   :commands (eshell)
   :bind (:map my/launch-app-map
               ("e" . eshell))
-  :hook
-  (eshell-kill . eshell-command-alert)
   :custom
   (eshell-prompt-function
    #'(lambda ()
@@ -5691,16 +5690,22 @@ Charles Choi explained how to reference a capability for the command history in 
     (when (require 'em-hist nil t)
       (bind-keys :map eshell-hist-mode-map
                  ("C-M-n" . consult-history))))
-  (add-to-list 'eshell-expand-input-functions #'eshell-expand-history-references))
-
-(defun eshell-command-alert (process status)
-  "Send `alert' with severity based on STATUS when PROCESS finished."
-  (let* ((cmd (process-command process))
-         (buffer (process-buffer process))
-         (msg (format "%s: %s" (mapconcat 'identity cmd " ")  status)))
-    (if (string-prefix-p "finished" status)
-        (alert msg :buffer buffer :severity  'normal)
-      (alert msg :buffer buffer :severity 'urgent))))
+  (add-to-list 'eshell-expand-input-functions #'eshell-expand-history-references)
+  (with-eval-after-load 'alert
+    (defun my/eshell-command-alert (process status)
+      "Send `alert' with severity based on STATUS when PROCESS finished."
+      (let* ((cmd (process-command process))
+             (buffer (process-buffer process))
+             (msg (format "%s: %s %s" (mapconcat 'identity cmd " ")
+                          (string-trim status) (prin1-to-string buffer))))
+        (alert msg
+               :buffer buffer
+               :severity (if (string-prefix-p "finished" status)
+                             'normal 'urgent))))
+    (alert-add-rule :status '(buried idle)
+                    :mode eshell-mode
+                    :style  'fringe)
+    (add-hook 'eshell-kill-hook #'my/eshell-command-alert)))
 #+end_src
 
 **** Text
@@ -8647,6 +8652,7 @@ Otherwise, set the tag to TAG and add it to the list of known tags."
   :bind (("C-." . embark-act)
          ("<help> B" . embark-bindings)
          ("H-." . my/embark-on-last-message)
+         ("H-/" . my/embark-on-last-alert-log)
          :map minibuffer-local-map
          ("C-c C-c" . embark-collect)
          ("C-c C-e" . embark-export)
@@ -8656,12 +8662,19 @@ Otherwise, set the tag to TAG and add it to the list of known tags."
   (setq prefix-help-command #'embark-prefix-help-command)
   :preface
   ;; Borrowed from @oantolin (https://github.com/oantolin/emacs-config)
-  (defun my/embark-on-last-message (arg)
-    "Act on the last message displayed in the echo area."
-    (interactive "P")
-    (with-current-buffer "*Messages*"
+  (defun my/embark-on-last-string (buffer-or-name &optional arg)
+    "Act on the last string in BUFFER-OR-NAME."
+    (interactive (list (completing-read "Buffer: " (buffer-list))
+                       current-prefix-arg))
+    (with-current-buffer buffer-or-name
       (goto-char (1- (point-max)))
       (embark-act arg)))
+  (defun my/embark-on-last-alert-log ()
+    (interactive)
+    (my/embark-on-last-string log4e--log-buffer-alert))
+  (defun my/embark-on-last-message ()
+    (interactive)
+    (my/embark-on-last-string "*Messages*"))
   (defun my/embark-target-buffer-object ()
     "Return the buffer-embark target for the buffer object.
 
@@ -8670,7 +8683,7 @@ This function is supposed to be used for `embark-target-finders`."
       (save-match-data
         (pcase (org-in-regexp (rx "#<buffer " (group-n 1 (1+ (not (any ">")))) ">"))
           (`(,start . ,end)
-           (princ `(buffer ,(match-string-no-properties 1) ,start . ,end)))))))
+           `(buffer ,(match-string-no-properties 1) ,start . ,end))))))
   :custom
   (embark-mixed-indicator-delay 3)
   :config
@@ -9284,9 +9297,6 @@ Each block holds the request and the response of a tool call in `gptel'."
 :CREATED:  [2023-03-28 Tue 13:53]
 :CUSTOM_ID: emacs-gptel
 :END:
-:LOGBOOK:
-- Refiled on [2026-04-13 Mon 16:54]
-:END:
 
 [[https://github.com/karthink/gptel][gptel]] is decent AI frontend in Emacs as of [2025-01-08 Wed]. It supports a large number of services (LLM models) and offers elaborate usage options.
 
@@ -9383,12 +9393,16 @@ Each block holds the request and the response of a tool call in `gptel'."
    (lambda ()
      (require 'gptel-integrations)
      (gptel-mcp-connect)))
-  (defun my/gptel-alert (start end)
-    (alert "LLM Task done" :style 'fringe :severity 'trivial)
-    (message "The LLM task has been done in:")
-    (prin1 (current-buffer)))
-  (add-to-list 'gptel-post-response-functions
-               #'my/gptel-alert))
+  (with-eval-after-load 'alert
+    (defvar my/gptel-alert-message "AI job finished")
+    (defun my/gptel-alert (start end)
+      (alert (format "AI job finished: %s" (prin1-to-string (current-buffer)))
+             :category "gptel"))
+    (alert-add-rule :status '(buried idle)
+                    :category "gptel"
+                    :style  'fringe)
+    (add-to-list 'gptel-post-response-functions
+                 #'my/gptel-alert)))
 #+end_src
 
 ***** mcp
@@ -10714,19 +10728,13 @@ With treesit-auto, major-mode conversion for Tree-sitter code like the example b
 "emacs-alert"
 #+end_src
 
+#+NAME: config/emacs-alert
 #+begin_src emacs-lisp
 (use-package alert
-  :config
-  (set-face-background 'alert-saved-fringe-face nil)
-  (alert-add-rule :status '(buried)
-                  :mode   'mu4e-alert
-                  :style  'fringe)
-  (alert-add-rule :status '(buried)
-                  :mode   'dired-mode
-                  :style  'fringe)
-  (alert-add-rule :status '(buried)
-                  :mode   'org-mode
-                  :style  'libnotify))
+  :custom
+  (alert-persist-idle-time (* 5 60))
+  (alert-reveal-idle-time 10)
+  (alert-log-messages t))
 #+end_src
 
 ***** sly                                     :ARCHIVE:
@@ -11717,6 +11725,7 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
 "zig@0.15.2"
 #+end_src
 
+#+NAME: config/emacs-ghostel
 #+begin_src emacs-lisp
 (use-package ghostel
   :ensure t
@@ -11727,7 +11736,20 @@ If command prefix ARG is simgle `C-u', spawn a vterm buffer forcibly regardless 
   (lambda-key ghostel-semi-char-mode-map "C-;"
               (lambda () "Send DEL."
                 (interactive)
-                (ghostel-send-key "backspace"))))
+                (ghostel-send-key "backspace")))
+  (with-eval-after-load 'alert
+    (defun my/ghostel-alert (buffer status)
+      "Send `alert' with severity based on STATUS when PROCESS finished."
+      (alert (format "command finished in ghostelmode %s"
+                     (prin1-to-string buffer))
+             :buffer buffer
+             :severity (if (= status 0)
+                           'normal 'urgent)))
+    (alert-add-rule :status '(buried idle)
+                    :mode   'ghostel-mode
+                    :style  'fringe)
+    (add-hook 'ghostel-command-finish-functions
+              #'my/ghostel-alert)))
 #+end_src
 
 ***** popterm
