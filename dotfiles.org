@@ -24721,46 +24721,240 @@ OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
    "audacity"))
 #+end_src
 
-** Sync Git Repos Automatically
+** Update Git Repos Automatically (ghq-update)
 :PROPERTIES:
 :CREATED:  [2022-09-26 Mon 16:43]
 :END:
 
-#+begin_src conf :noweb yes :noweb-ref cronjob-user
-30 23 */3 * * /usr/bin/bash -ci "ghq-sync >> $LOG_DIR/ghq-sync.log 2>&1"
+#+begin_src sh :eval no :tangle no :noweb tangle :noweb-ref midnight-batch
+ghq-update | awk '/====/{f=1} f' | append-org-heading <<log-dir()>>/summary.org ghq-update
 #+end_src
 
-#+name: ghq-sync
-#+begin_src bash :tangle (expand-file-name "ghq-sync" tangle/local-bin-dir)
-function git-one-go {
-  local _branch=$(git symbolic-ref -q HEAD | sed 's/refs\/heads\///')
-  local _remote=$(git config --get branch.$_branch.pushRemote)
-  local _commit_msg="auto-commit by $(whoami) on $(uname -n) at $(date +"%H:%M %b %d")"
+#+name: bash/ghq-update
+#+begin_src bash :tangle (expand-file-name "ghq-update" tangle/local-bin-dir)
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [OPTIONS] [FILTER]
 
-  echo -e "\nStarting git syncing at $(pwd)"
+Update all repositories managed by ghq via 'git pull'.
+If FILTER is given, only repositories whose absolute path contains
+FILTER as a substring are processed.
+Use '--' before FILTER if it starts with a hyphen.
 
-  git add -u
-  if [ -n "$(git status --porcelain)" ]; then
-    git commit --allow-empty -m "${_commit_msg}"
+Options:
+  -h, --help  Show this help message and exit
+EOF
+}
+
+main() {
+  # Parse options (supports '--' to separate options from FILTER)
+  local filter=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h|--help) usage; exit 0 ;;
+      --) shift; break ;;
+      -*) echo "Error: unknown option: $1" >&2; usage >&2; exit 1 ;;
+      ,*) break ;;
+    esac
+  done
+  filter="${1:-}"
+  if [[ $# -gt 1 ]]; then
+    echo "Error: too many arguments (expected at most one FILTER)" >&2
+    usage >&2
+    exit 1
   fi
 
-  if [ -n "$(git log origin/main..HEAD)" ]; then
-    git push $_remote $_branch
-    if [ $? != 0 ]; then
-      echo "ghq-sync: git push returned non-zero. Likely a connection failure." >&2
+  # Pre-flight: required tools must exist
+  command -v ghq >/dev/null 2>&1 || { echo "Error: 'ghq' not found in PATH" >&2; exit 1; }
+  command -v git >/dev/null 2>&1 || { echo "Error: 'git' not found in PATH" >&2; exit 1; }
+
+  # List repositories and drop any empty lines
+  local ghq_out
+  ghq_out=$(ghq list --full-path) || {
+    echo "Error: failed to list ghq repositories" >&2
+    exit 1
+  }
+  local -a repos=()
+  if [[ -n "$ghq_out" ]]; then
+    local -a raw=()
+    mapfile -t raw <<<"$ghq_out"
+    for r in "${raw[@]}"; do
+      [[ -n "$r" ]] && repos+=("$r")
+    done
+  fi
+
+  if [[ ${#repos[@]} -eq 0 ]]; then
+    echo "Error: no ghq repositories found" >&2
+    exit 1
+  fi
+
+  # Apply substring filter if provided
+  if [[ -n "$filter" ]]; then
+    local -a matched=()
+    for repo in "${repos[@]}"; do
+      [[ "$repo" == *"$filter"* ]] && matched+=("$repo")
+    done
+    if [[ ${#matched[@]} -eq 0 ]]; then
+      echo "Error: no repositories match filter: $filter" >&2
       exit 1
     fi
-  else
-    echo "No unpushed commits found. Nothing to push."
+    repos=("${matched[@]}")
+  fi
+
+  local -a pulled_repos=()
+  local -a tagged_repos=()
+  local -a dirty_repos=()
+  local -a no_upstream_repos=()
+  local -a error_repos=()
+  local -A new_tags_of=()
+
+  for repo in "${repos[@]}"; do
+    echo "==> $repo"
+
+    # Guard: skip repositories that are not valid git checkouts so a
+    # missing/broken path does not abort the whole run.
+    if [[ ! -e "$repo/.git" ]]; then
+      echo "Error: not a git repository: $repo" >&2
+      error_repos+=("$repo")
+      continue
+    fi
+
+    local before_head after_head
+    local -a before_tags after_tags new_tags
+    local before_tags_out after_tags_out
+
+    before_head=$(git -C "$repo" rev-parse HEAD 2>/dev/null || true)
+
+    before_tags=()
+    if ! before_tags_out=$(git -C "$repo" tag --list 2>/dev/null); then
+      echo "Warning: failed to list tags for $repo" >&2
+    elif [[ -n "$before_tags_out" ]]; then
+      mapfile -t before_tags <<<"$before_tags_out"
+    fi
+
+    if ! git -C "$repo" rev-parse --abbrev-ref "@{upstream}" &>/dev/null; then
+      echo "  no upstream branch configured, skipping pull"
+      no_upstream_repos+=("$repo")
+    elif ! git -C "$repo" pull --prune --ff-only 2>&1; then
+      # --ff-only refuses to merge, so a diverged history fails fast
+      # instead of creating an unintended merge commit.
+      if [[ -n $(git -C "$repo" status --porcelain --untracked-files=no 2>/dev/null) ]]; then
+        echo "  pull failed due to uncommitted changes" >&2
+        dirty_repos+=("$repo")
+      else
+        echo "Error: failed to pull $repo" >&2
+        error_repos+=("$repo")
+      fi
+    fi
+
+    after_head=$(git -C "$repo" rev-parse HEAD 2>/dev/null || true)
+
+    after_tags=()
+    if ! after_tags_out=$(git -C "$repo" tag --list 2>/dev/null); then
+      echo "Warning: failed to list tags for $repo" >&2
+    elif [[ -n "$after_tags_out" ]]; then
+      mapfile -t after_tags <<<"$after_tags_out"
+    fi
+
+    # Locale-safe detection of newly added tags (no comm/sort needed)
+    local -A seen=()
+    local t
+    for t in "${before_tags[@]}"; do
+      seen["$t"]=1
+    done
+    new_tags=()
+    for t in "${after_tags[@]}"; do
+      [[ -z ${seen[$t]+x} ]] && new_tags+=("$t")
+    done
+
+    if [[ "$before_head" != "$after_head" ]]; then
+      pulled_repos+=("$repo")
+    fi
+    if [[ ${#new_tags[@]} -gt 0 ]]; then
+      tagged_repos+=("$repo")
+      new_tags_of["$repo"]="${new_tags[*]}"
+      printf '    new tag(s): %s\n' "${new_tags[*]}"
+    fi
+
+    echo "  running git gc ..."
+    git -C "$repo" gc --auto 2>&1 | sed 's/^/    /' || true
+  done
+
+  echo ""
+  echo "========================================"
+  echo "  Summary"
+  echo "========================================"
+
+  if [[ ${#pulled_repos[@]} -gt 0 ]]; then
+    echo ""
+    echo "Pulled new commits:"
+    for repo in "${pulled_repos[@]}"; do
+      echo "  - $repo"
+    done
+  fi
+
+  if [[ ${#tagged_repos[@]} -gt 0 ]]; then
+    echo ""
+    echo "New tags:"
+    for repo in "${tagged_repos[@]}"; do
+      echo "  - $repo (${new_tags_of[$repo]})"
+    done
+  fi
+
+  if [[ ${#dirty_repos[@]} -gt 0 ]]; then
+    echo ""
+    echo "Skipped (uncommitted changes):"
+    for repo in "${dirty_repos[@]}"; do
+      echo "  - $repo"
+    done
+  fi
+
+  if [[ ${#no_upstream_repos[@]} -gt 0 ]]; then
+    echo ""
+    echo "No upstream branch:"
+    for repo in "${no_upstream_repos[@]}"; do
+      echo "  - $repo"
+    done
+  fi
+
+  if [[ ${#error_repos[@]} -gt 0 ]]; then
+    echo ""
+    echo "Errors:"
+    for repo in "${error_repos[@]}"; do
+      echo "  - $repo"
+    done
+    echo ""
+    exit 1
   fi
 }
 
-for repo in $(ghq list --full-path); do
-  cd $repo && git pull
-done
+main "$@"
+#+end_src
 
-# cd $(ghq list --full-path p-snow/env) && git-one-go
-# cd $(ghq list --full-path -e p-snow/org) && git-one-go
+*** append-org-heading
+:PROPERTIES:
+:CREATED:  [2026-07-11 Sat 21:06]
+:END:
+
+This is my original version of [[https://github.com/novoid/appendorgheading][appendorgheading]]
+
+Usage
+#+begin_src sh :eval no
+some_command 2>&1 | append-org-heading
+some_command 2>&1 | append-org-heading ~/org/errors.org "example_script error"
+#+end_src
+
+#+NAME: shell/append-org-heading
+#+begin_src shell :tangle (expand-file-name "append-org-heading" tangle/local-bin-dir)
+TARGET="${1:-$HOME/org/errors.org}"
+TITLE="${2:-captured output}"
+DATE="$(date '+%Y-%m-%d_%H-%M')"
+TS="$(LC_TIME=C date '+%Y-%m-%d %a %H:%M')"
+{
+  printf '\n** %s %s\n:PROPERTIES:\n:CREATED: <%s>\n:END:\n\n#+BEGIN_EXAMPLE\n' "$DATE" "$TITLE" "$TS"
+  awk '{ if (substr($0,1,1)=="*" || substr(tolower($0),1,8)=="#+begin_" || substr(tolower($0),1,6)=="#+end_") print ","$0; else print }'
+  printf '#+END_EXAMPLE\n'
+} >> "$TARGET"
 #+end_src
 
 *** git-sync                                  :ARCHIVE:
