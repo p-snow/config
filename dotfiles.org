@@ -7624,24 +7624,24 @@ emacs-org-hide-drawers-head
 
 #+begin_src emacs-lisp
 (use-package org-english
-  :after (org my-org-global-map)
+  :after (org my-org-global-map engine-mode)
   :commands org-english-mode
-  :bind (:map my/org-global-map
-              ("e e" . my/org-english-capture)
-              ("e d" . my/org-english-drill)
-              ("e r" . my/org-english-drill-resume)
-              ("e l" . my/org-english-create-link)
-              ("E" . my/cloze-deletion-replace))
+  :bind ((:map my/org-global-map
+               ("e e" . my/org-english-capture)
+               ("e d" . my/org-english-drill)
+               ("e r" . my/org-english-drill-resume)
+               ("e l" . my/org-english-create-link)
+               ("E" . my/cloze-deletion-replace))
+         (:map engine-mode-prefixed-map
+               ("j" . (lambda (word)
+                        "Copy Japanese translation as well as the pronunciation to `kill-ring'."
+                        (interactive (list (if (use-region-p)
+                                               (buffer-substring-no-properties (region-beginning) (region-end))
+                                             (read-string "Word: "))))
+                        (kill-new (message "%s %s"
+                                           (my/english-japanese-translate word t)
+                                           (my/english-pronunciation word t)))))))
   :config
-  (bind-keys :map engine-mode-prefixed-map
-             ("j" . (lambda (word)
-                      "Copy Japanese translation as well as the pronunciation to `kill-ring'."
-                      (interactive (list (if (use-region-p)
-                                             (buffer-substring-no-properties (region-beginning) (region-end))
-                                           (word-at-point))))
-                      (kill-new (message "%s %s"
-                                         (my/english-japanese-translate word t)
-                                         (my/english-pronunciation word t))))))
   (when (require-with-check 'denote)
     (setq my/org-english-file (denote-get-path-by-id "20230605T170959"))))
 #+end_src
@@ -9164,7 +9164,7 @@ Each block holds the request and the response of a tool call in `gptel'."
     "Invoke `define-word' with dedicated minibuffer history."
     (interactive (list (if (use-region-p)
                            (buffer-substring-no-properties (region-beginning) (region-end))
-                         (word-at-point))))
+                         (read-string "Word: "))))
     (define-word word define-word-default-service))
   :custom
   (define-word-displayfn-alist
@@ -20698,6 +20698,7 @@ to existing english word entry."
    (org-element-property :org-marker (car my/org-english-match-entry)))
   (org-end-of-subtree))
 
+;;;###autoload
 (defun my/org-english-insert-english-translation ()
   "Insert English translation into org capture entry."
   (let* ((url (format "http://wordnik.com/words/%s" (downcase org-english-word)))
@@ -20709,6 +20710,7 @@ to existing english word entry."
 
 (advice-add #'my/org-english-insert-english-translation :around #'my/define-word--fix-31)
 
+;;;###autoload
 (defun my/english-japanese-translate (word &optional sync)
   "Search Japanese translation for WORD and add it to kill ring.
 
