@@ -8430,7 +8430,22 @@ for detached list, shell command, and session output buffers."
                        . hide)
                       ("\*detached-session-output\*.*" . hide))))
     (add-to-list 'my/popper-group-functions
-                 'my/popper-group-detached)))
+                 'my/popper-group-detached))
+  (with-eval-after-load 'alert
+    (alert-add-rule :status '(buried idle visible selected)
+                    :category "detached-shell-command"
+                    :style  'fringe)
+    (setq detached-shell-command-session-action
+          (plist-put detached-shell-command-session-action
+                     :callback
+                     (lambda (session)
+                       (let ((command (detached-session-command session))
+                             (status (detached-session-status session)))
+                         ;; Unfortunately the shell-command buffer could not be acquired.
+                         (alert (format "Finished: %s" command)
+                                :category "detached-shell-command"
+                                :severity (if (eq status 'success)
+                                              'low 'urgent))))))))
 
 (defun my/org-link--open-shell-detached (path _)
   "Open a \"shell\" type.
