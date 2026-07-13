@@ -7637,7 +7637,7 @@ emacs-org-hide-drawers-head
                         "Copy Japanese translation as well as the pronunciation to `kill-ring'."
                         (interactive (list (if (use-region-p)
                                                (buffer-substring-no-properties (region-beginning) (region-end))
-                                             (read-string "Word: "))))
+                                             (read-string "Word: " (word-at-point)))))
                         (kill-new (message "%s %s"
                                            (my/english-japanese-translate word t)
                                            (my/english-pronunciation word t)))))))
@@ -9168,6 +9168,7 @@ Each block holds the request and the response of a tool call in `gptel'."
 "emacs-define-word"
 #+end_src
 
+#+NAME: config/emacs-define-word
 #+begin_src emacs-lisp
 (use-package define-word
   :defer t
@@ -9179,7 +9180,7 @@ Each block holds the request and the response of a tool call in `gptel'."
     "Invoke `define-word' with dedicated minibuffer history."
     (interactive (list (if (use-region-p)
                            (buffer-substring-no-properties (region-beginning) (region-end))
-                         (read-string "Word: "))))
+                         (read-string "Word: " (word-at-point)))))
     (define-word word define-word-default-service))
   :custom
   (define-word-displayfn-alist
@@ -20622,7 +20623,7 @@ My workflow for acquiring English words is:
 Capture URL or file currently visiting as well as a sentence at point."
   (interactive (list (if (use-region-p)
                          (buffer-substring-no-properties (region-beginning) (region-end))
-                       (word-at-point))))
+                       (read-string "Word: " (word-at-point)))))
   (setq org-english-word (downcase word))
   (setq org-english-sentence
         (replace-regexp-in-string word
