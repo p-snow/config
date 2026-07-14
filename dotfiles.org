@@ -14,12 +14,13 @@
 echo -n $HOME
 #+end_src
 
-*** config directory
+*** user config directory
 
 #+name: conf-dir
 #+begin_src shell :eval no-export
 echo '~/.config'
 #+end_src
+
 *** document directory
 :PROPERTIES:
 :CREATED:  [2025-01-31 Fri 14:43]
@@ -24745,7 +24746,9 @@ OUTPUTFORMAT='${ARTISTFILE}/${ALBUMFILE}/${TRACKNUM}.${TRACKFILE}'
 :END:
 
 #+begin_src sh :eval no :tangle no :noweb tangle :noweb-ref midnight-batch
-ghq-update | awk '/====/{f=1} f' | append-org-heading <<log-dir()>>/summary.org ghq-update
+ghq-update 2>&1 | tee >(ts -s '%.T' >> <<log-dir()>>/ghq-update.log) \
+  | awk '/====/{f=1} f' \
+  | append-org-heading <<log-dir()>>/log-summary.org ghq-update
 #+end_src
 
 #+name: bash/ghq-update
@@ -24825,6 +24828,15 @@ main() {
   local -a no_upstream_repos=()
   local -a error_repos=()
   local -A new_tags_of=()
+
+  local run_start run_end
+  run_start=$(date '+%Y-%m-%d %H:%M:%S %Z')
+  echo ""
+  echo "########################################"
+  echo "# RUN START: $run_start"
+  echo "########################################"
+
+  trap 'run_end=$(date "+%Y-%m-%d %H:%M:%S %Z"); echo ""; echo "########################################"; echo "# RUN END:   $run_end"; echo "########################################"' EXIT
 
   for repo in "${repos[@]}"; do
     echo "==> $repo"
