@@ -77,7 +77,7 @@ d <<trash-dir(full-path=1)>>/files - - - 1w
 
 #+name: log-dir
 #+begin_src shell :eval no-export
-echo -n '~/.local/state/log'
+echo -n "$XDG_STATE_HOME/logs"
 #+end_src
 
 #+begin_src shell :noweb yes :noweb-ref make-dir
@@ -24355,6 +24355,29 @@ Add OpenRouter as a provider in OpenCode
   }
 }
 #+end_example
+
+** logrotate
+:PROPERTIES:
+:CREATED:  [2026-07-14 Tue 08:08]
+:END:
+
+#+begin_src sh :eval no :tangle no :noweb tangle :noweb-ref midnight-batch
+logrotate -s $XDG_STATE_HOME/logrotate/status $XDG_CONFIG_HOME/logrotate/logfiles.conf
+#+end_src
+
+#+NAME: config/logrotate
+#+begin_src conf :noweb tangle :comments no :tangle (expand-file-name "logrotate/logfiles.conf" tangle/config-dir)
+<<log-dir()>>/*.log {
+    monthly
+    maxsize 500K
+    rotate 14
+    compress
+    missingok
+    notifempty
+    copytruncate
+    create 0644 <<login-name()>> <<login-name()>>
+}
+#+end_src
 
 * Service Providers
 :PROPERTIES:
