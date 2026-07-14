@@ -24989,6 +24989,20 @@ main() {
 main "$@"
 #+end_src
 
+#+begin_src emacs-lisp :noweb tangle :noweb-ref elisp-code
+(with-eval-after-load 'alert
+  (alert-add-rule :status '(buried idle visible selected)
+                  :category "log-summary"
+                  :style  'fringe)
+  (file-notify-add-watch
+   "<<log-dir()>>/log-summary.org"
+   '(change)
+   (lambda (event)
+     (alert (princ (format "log-summary.org has changed %s"
+                           (nth 2 event)))
+            :category "log-summary"))))
+#+end_src
+
 *** append-org-heading
 :PROPERTIES:
 :CREATED:  [2026-07-11 Sat 21:06]
