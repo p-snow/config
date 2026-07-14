@@ -3910,8 +3910,13 @@ sMerge can be utilized to address merging issues.
   :delight
   (log-view-mode " LV")
   :mode ("\\.log$" . log-view-mode)
-  :hook ((log-view-mode . my/prog-mode-hook-function )
-         (log-view-mode . auto-revert-tail-mode)))
+  :hook ((log-view-mode
+          . (lambda ()
+              (auto-revert-tail-mode 1)
+              (when (require-with-check 'logos)
+                (my/logos-focus-mode))
+              ;; Inhibit canceling scroll-left/right effect
+              (setq-local auto-hscroll-mode nil)))))
 #+end_src
 
 
