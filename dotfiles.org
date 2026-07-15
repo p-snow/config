@@ -14619,7 +14619,7 @@ so the AI can interpret the values correctly."
                        (gptel-agent--update-skills)
                        (gptel-agent--skills-system-message gptel-agent--skills))))
   :tools '(:append ("mcp-context7" "emacs-info" "system"
-                    "Bash" "Skill")))
+                    "Read" "Grep" "Bash" "Eval" "Skill")))
 #+end_src
 
 ****** Fact-checking preset
@@ -22331,8 +22331,6 @@ build/
 	synccontent = false
 [annex.security]
 	allowed-ip-addresses = all
-[safe]
-	directory = /mnt/ns01/doc
 #+end_src
 
 *** sync annex repos
@@ -22346,7 +22344,7 @@ build/
 15 */2 * * * /usr/bin/bash -ci "sync-doc 2>&1 | tee -a $LOG_DIR/sync-doc.log"
 #+end_src
 
-#+name: script/sync-doc
+#+name: sh/sync-doc
 #+begin_src bash :noweb tangle :tangle (expand-file-name "sync-doc" tangle/local-bin-dir)
 function sync_doc {
   if cd $1; then
