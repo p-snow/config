@@ -611,7 +611,8 @@ export XDG_DATA_DIRS=${GUIX_EXTRA_PROFILES}/creative/creative/share:${XDG_DATA_D
                     `(("EMAIL" . "<<email>>")
                       ("VIEWER" . "less")
                       ("EDITOR" . "emacsclient -c -a emacs")
-                      ("LC_TIME" . "en_US.UTF-8")))
+                      ("LC_ALL" . "en_US.UTF-8")
+                      ("LC_TIME" . "ja_JP.UTF-8")))
     (service home-bash-service-type
              (home-bash-configuration
                (guix-defaults? #t)
@@ -10869,7 +10870,8 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
 #+begin_src emacs-lisp
 (use-package denote
   :bind (("H-n n" . denote)
-         ("H-n o" . denote-open-or-create))
+         ("H-n o" . denote-open-or-create)
+         ("H-n l" . denote-org-link-to-heading))
   :hook
   (dired-mode . denote-dired-mode-in-directories)
   :custom
