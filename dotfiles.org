@@ -22316,6 +22316,9 @@ build/
 # #+end_src
 
 ** git-annex
+:PROPERTIES:
+:ID:       07010395-6954-44a5-97f9-51c767afc90d
+:END:
 
 [[https://git-annex.branchable.com/git-annex/][git-annex]] aims to manage large files based on git system. It is alse designed to manage copies of binary in distributed repositories. [[https://git-annex.branchable.com/walkthrough/][walkthrough]] offers handy instruction.
 
@@ -22330,7 +22333,7 @@ build/
 #+begin_src gitconfig :noweb-ref git-config
 [annex]
 	youtube-dl-command = yt-dlp
-	synccontent = false
+        largefiles = mimeencoding=binary and not (include=*.gpg)
 [annex.security]
 	allowed-ip-addresses = all
 #+end_src
@@ -22341,31 +22344,90 @@ build/
 :ID:       e9524731-4acc-4f4c-bc61-0226990a654a
 :END:
 
+This script synchronizes my annex repositories. Before executing sync-doc, follow these steps:
+- Define git.annex largefiles:
+  [[id:07010395-6954-44a5-97f9-51c767afc90d][git-annex]]
+- Set the git-annex preferred content policy for each repository:
+  : git annex group here backup
+  : git annex wanted here standard
+
 #+name: cronjob/sync-doc
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-15 */2 * * * /usr/bin/bash -ci "sync-doc 2>&1 | tee -a $LOG_DIR/sync-doc.log"
+15 */2 * * * /usr/bin/bash -ci "sync-doc 2>&1 | tee -a <<log-dir()>>/sync-doc.log | awk '/===/{f=1} /RUN END:/{f=0} f' | append-org-heading <<log-dir()>>/log-summary.org sync-doc"
 #+end_src
 
 #+name: sh/sync-doc
 #+begin_src bash :noweb tangle :tangle (expand-file-name "sync-doc" tangle/local-bin-dir)
-function sync_doc {
-  if cd $1; then
-    if [ $2 -ne 0 ]; then
-      (git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync && git annex get)
-    else
-      (git rev-parse --is-inside-work-tree 2>/dev/null && git annex sync)
+LOG="$(mktemp)" || exit 1
+FILE_SET="$(mktemp)" || exit 1
+DEL_SET="$(mktemp)" || exit 1
+
+RUN_START="$(date '+%Y-%m-%d %H:%M:%S %Z')"
+echo "########################################"
+echo "# RUN START: $RUN_START"
+echo "########################################"
+
+finish () {
+    local run_end
+    run_end="$(date '+%Y-%m-%d %H:%M:%S %Z')"
+    echo
+    echo "########################################"
+    echo "# RUN END:   $run_end"
+    echo "########################################"
+    # collect file paths across all repos for deduplicated output
+    rm -f "$LOG" "$FILE_SET" "$DEL_SET"
+}
+trap finish EXIT
+
+sync_one () {
+    local dir="$1"
+    [ -d "$dir" ] || { echo "skip (not mounted): $dir"; return 0; }
+    cd "$dir" 2>/dev/null || { echo "skip (not mounted): $dir"; return 0; }
+    git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { cd - >/dev/null || return 0; return 0; }
+
+    local before after new del
+    before="$(git ls-files -c | sort)"
+    git annex assist || echo "assist failed: $dir"
+    after="$(git ls-files -c | sort)"
+    new="$(comm -13 <(echo "$before") <(echo "$after"))"
+    del="$(comm -23 <(echo "$before") <(echo "$after"))"
+
+    if [ -n "$new" ]; then
+        printf '%s\n' "$new" | while IFS= read -r f; do
+            printf '%s: %s\n' "$dir" "$f" >> "$LOG"
+            printf '%s\n' "$f" >> "$FILE_SET"
+        done
     fi
-  fi
+
+    if [ -n "$del" ]; then
+        printf '%s\n' "$del" | while IFS= read -r f; do
+            printf '%s: %s\n' "$dir" "$f" >> "$LOG"
+            printf '%s\n' "$f" >> "$DEL_SET"
+        done
+    fi
+
+    cd - >/dev/null || return 0
 }
 
-sync_doc /mnt/shared/doc-$(hostname)/ 0
-sync_doc /mnt/vt-ex/doc/ 1
-sync_doc /mnt/vt-h/doc/ 1
-sync_doc /mnt/vt-j/doc/ 1
-if [ "$#" -eq 0 ]; then
-  sync_doc /mnt/shared/doc-$(hostname)/ 0
-else
-  sync_doc /mnt/shared/doc-$(hostname)/ "$1"
+HUB="/mnt/shared/doc-$(hostname)/"
+sync_one "$HUB"
+sync_one "/mnt/vt-ex/doc/"
+sync_one "/mnt/vt-h/doc/"
+sync_one "/mnt/vt-j/doc/"
+sync_one "$HUB"
+
+# only print header and summary when something was newly added
+if [ -s "$FILE_SET" ]; then
+    echo
+    echo "=== Newly added files this run ==="
+    sort -u "$FILE_SET"
+fi
+
+# only print header and summary when something was newly removed
+if [ -s "$DEL_SET" ]; then
+    echo
+    echo "=== Newly removed files this run ==="
+    sort -u "$DEL_SET"
 fi
 #+end_src
 
@@ -25022,11 +25084,16 @@ TARGET="${1:-$HOME/org/errors.org}"
 TITLE="${2:-captured output}"
 DATE="$(date '+%Y-%m-%d_%H-%M')"
 TS="$(LC_TIME=C date '+%Y-%m-%d %a %H:%M')"
-{
-  printf '\n** %s %s\n:PROPERTIES:\n:CREATED: <%s>\n:END:\n\n#+BEGIN_EXAMPLE\n' "$DATE" "$TITLE" "$TS"
-  awk '{ if (substr($0,1,1)=="*" || substr(tolower($0),1,8)=="#+begin_" || substr(tolower($0),1,6)=="#+end_") print ","$0; else print }'
-  printf '#+END_EXAMPLE\n'
-} >> "$TARGET"
+
+INPUT="$(cat)"
+
+if printf '%s' "$INPUT" | grep -q '[^[:space:]]'; then
+  {
+    printf '\n** %s %s\n:PROPERTIES:\n:CREATED: <%s>\n:END:\n\n#+BEGIN_EXAMPLE\n' "$DATE" "$TITLE" "$TS"
+    printf '%s\n' "$INPUT" | awk '{ if (substr($0,1,1)=="*" || substr(tolower($0),1,8)=="#+begin_" || substr(tolower($0),1,6)=="#+end_") print ","$0; else print }'
+    printf '#+END_EXAMPLE\n'
+  } >> "$TARGET"
+fi
 #+end_src
 
 *** git-sync                                  :ARCHIVE:
