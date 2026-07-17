@@ -7095,13 +7095,11 @@ Ancestors are looked up If current heading has no CATEGORY."
 - Refiled on [2026-04-12 Sun 20:55]
 :END:
 
-[[help:my/org-web-track-update-all-and-notify][org-web-track-update-all-and-notify]] seems not to suit midnight-hook.
-
 #+begin_src scheme :tangle no :noweb-ref guix-emacs
 "emacs-org-web-track"
 #+end_src
 
-#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "org-web-track-config.el" tangle/emacs-config-dir)
+#+begin_src emacs-lisp :noweb tangle
 (use-package org-web-track
   ;; :ensure t
   ;; :load-path "~/.local/share/ghq/github.com/p-snow/org-web-track"
@@ -7132,25 +7130,6 @@ Ancestors are looked up If current heading has no CATEGORY."
           :super-groups '((:tag "book") (:tag "food")
                           (:tag "tool") (:tag "supply"))
           :buffer (current-buffer)))))
-  (defun my/org-web-track-update-all-and-notify ()
-    "Update all web tracking items in `org-web-track-files'
- and send an email if any of them has changed its value."
-    (let* ((mail-msg (mapconcat
-                      (lambda (chg)
-                        (org-with-point-at chg
-                          (let ((org-trust-scanner-tags t))
-                            (format "%s\n\t%s\n"
-                                    (substring-no-properties
-                                     (org-get-heading t t t t))
-                                    (org-web-track-current-changes nil "%p => %c" " | ")))))
-                      (org-web-track-update-files))))
-      (unless (string-blank-p mail-msg)
-        (setq message-kill-buffer-on-exit t)
-        ;; you need to set SMTP info to smtpmail-xxx variables
-        (message-mail user-mail-address "Web Tracking Notification")
-        (message-goto-body)
-        (insert mail-msg)
-        (message-send-and-exit))))
   (defvar my/usd-exchange-rates nil)
   (defun my/usd-exchange-rate (currency)
     "Return the exchange rate between CURRENCY and the US dollar.
@@ -7487,41 +7466,33 @@ if __name__ == "__main__":
     main()
 #+end_src
 
-****** batch tracking
+****** morning tracking
 :PROPERTIES:
 :CREATED:  [2023-10-30 Mon 21:05]
 :END:
 
-#+begin_src shell :eval no :tangle no :noweb-ref morning-batch
-export DISPLAY=:0 && \
-  emacs -Q --batch \
-        -l $XDG_CONFIG_HOME/emacs/early-init.el \
-        -l $XDG_CONFIG_HOME/emacs/lisp/org-web-track-config.el \
-        -l $XDG_CONFIG_HOME/emacs/batch/org-web-track-mail.el \
-        -f my/org-web-track-mail
+#+begin_src shell :eval no :noweb tangle :tangle no :noweb-ref morning-batch
+emacsclient --eval '(my/org-web-track-update-all-summarize)'
 #+end_src
 
-#+begin_src emacs-lisp :noweb tangle :tangle (expand-file-name "batch/org-web-track-mail.el" tangle/user-emacs-directory)
-(define-keymap :prefix 'my/org-global-map)
-(provide 'my-org-global-map)
-
-(setopt message-send-mail-function 'smtpmail-send-it
-        smtpmail-smtp-server "<<smtp-host>>"
-        smtpmail-smtp-service 465
-        smtpmail-smtp-user user-mail-address
-        smtpmail-stream-type 'ssl
-        smtpmail-mail-address user-mail-address
-        message-send-mail-function 'smtpmail-send-it
-        network-security-level 'low
-        make-backup-files nil)
-
-(defun my/org-web-track-mail ()
-  "Update `org-web-track' items along with sending email and immediate exit."
-  (setq org-log-into-drawer t)
-  (ignore-errors
-    (my/org-web-track-update-all-and-notify))
-  (org-save-all-org-buffers)
-  (save-buffers-kill-emacs t))
+#+begin_src emacs-lisp :noweb tangle
+(defun my/org-web-track-update-all-summarize ()
+  "Summarize Org Web Track changes and append them to the summary log."
+  (when (require-with-check 'org-web-track)
+    (let* ((mail-msg (mapconcat
+                      (lambda (chg)
+                        (org-with-point-at chg
+                          (let ((org-trust-scanner-tags t))
+                            (format "%s\n\t%s\n"
+                                    (substring-no-properties
+                                     (org-get-heading t t t t))
+                                    (org-web-track-current-changes nil "%p => %c" " | ")))))
+                      (org-web-track-update-files))))
+      (unless (string-blank-p mail-msg)
+        (with-temp-buffer
+          (insert mail-msg)
+          (shell-command-on-region (point-min) (point-max)
+                                   "append-org-heading <<log-dir()>>/log-summary.org org-web-track"))))))
 #+end_src
 
 ***** org-expose-emphasis-markers
@@ -24626,6 +24597,8 @@ Send2Trash
 
 #+NAME: morning-batch
 #+begin_src bash :noweb tangle :tangle (expand-file-name "morning.sh" tangle/local-bin-dir)
+# Wait until the network is established
+sleep 5
 <<morning-batch>>
 #+end_src
 
