@@ -7433,7 +7433,6 @@ from selenium.webdriver.support.ui import Select
 import sys
 import time
 import re
-import requests
 
 def main():
     url = sys.argv[1]
@@ -7454,7 +7453,8 @@ def main():
     rendered_content = driver.page_source
 
     # Make sure the content which is about to be printed is in text/html format
-    if requests.head(url).headers["Content-Type"].startswith("text/html"):
+    content_type = driver.execute_script("return document.contentType") or ""
+    if content_type.startswith("text/html"):
         print(rendered_content)
 
     driver.quit()
