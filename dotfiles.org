@@ -3556,7 +3556,14 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 
 #+begin_src emacs-lisp
 (use-package completion-preview
-  :hook (prog-mode . completion-preview-mode))
+  :hook (prog-mode . completion-preview-mode)
+  :custom
+  (completion-preview-minimum-symbol-length 3)
+  (completion-preview-idle-delay 0.5)
+  :config
+  (bind-keys :map completion-preview-active-mode-map
+             ("M-n" . completion-preview-next-candidate)
+             ("M-p" . completion-preview-prev-candidate)))
 #+end_src
 
 ***** Ibuffer
@@ -20596,6 +20603,7 @@ My workflow for acquiring English words is:
 (defvar my/org-english-match-entry nil
   "An org entry which matches search word.")
 
+;;;###autoload
 (defun my/org-english-capture (word)
   "Capture an english WORD as a `org-mode' entry suitable for org-drill.
 
