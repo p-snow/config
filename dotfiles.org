@@ -9383,6 +9383,7 @@ Each block holds the request and the response of a tool call in `gptel'."
               qwen/qwen3.5-flash-02-23
               tencent/hy3-preview
               tencent/hy3:free
+              tencent/hy3
               deepseek/deepseek-v4-flash
               deepseek/deepseek-v4-pro
               openrouter/owl-alpha
@@ -24410,7 +24411,7 @@ logrotate -s $XDG_STATE_HOME/logrotate/status $XDG_CONFIG_HOME/logrotate/logfile
 #+begin_src conf :noweb tangle :comments no :tangle (expand-file-name "logrotate/logfiles.conf" tangle/config-dir)
 <<log-dir()>>/*.log {
     monthly
-    maxsize 500K
+    maxsize 5M
     rotate 14
     compress
     missingok
