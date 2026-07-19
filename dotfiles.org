@@ -11633,11 +11633,11 @@ excluding buffers whose name starts with \"*Org parse*\"."
   :custom
   (emcp-http-host "127.0.0.1")
   (emcp-http-port 38913)
-  ;; (emcp-default-profile 'full-control)
-  (emcp-default-profile 'develop)
+  ;; (emcp-default-profile 'develop)
+  (emcp-default-profile 'full-control)
   :config
-  ;; (emcp-start 'full-control)
-  (emcp-start 'develop))
+  ;; (emcp-start 'develop)
+  (emcp-start 'full-control))
 #+end_src
 
 **** Terminals Packages
@@ -13730,17 +13730,23 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
 :CREATED:  [2026-05-28 Thu 13:15]
 :END:
 
-****** user_charactoristic
+****** response_requirements
 :PROPERTIES:
-:CREATED:  [2026-07-07 Tue 19:02]
+:CREATED:  [2026-07-08 Wed 19:26]
 :END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
 (gptel-make-tool
- :name "user-characteristic"
- :description "Describe my characteristics. Call this tool only if the response may benefit from my way of thinking, behavior, and traits."
+ :name "response-requirements"
+ :description "Provide requirements for your response messages. You should call this tool once before your initial response."
  :function (lambda ()
-             "I am Japanese.")
+             (concat (format
+                      "Your response text must follow these:
+- Your answer must be written in %s, which is user's native language, unless specified in the request
+- Don't use emojis or other ostentatious characters unless necessary"
+                      gptel-response-language)
+                     (when (derived-mode-p 'org-mode)
+                       "\n- If the response you are about to provide can be represented in a hierarchical structure, use the Org Mode nested plain-list format with a dash (-) as the leading bullet.")))
  :category "basics")
 #+end_src
 
@@ -13759,23 +13765,17 @@ In order to work in KDE Wayland, you need to install wtype and kdotool, which ca
  :category "basics")
 #+end_src
 
-****** response_requirements
+****** user_charactoristic
 :PROPERTIES:
-:CREATED:  [2026-07-08 Wed 19:26]
+:CREATED:  [2026-07-07 Tue 19:02]
 :END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
 (gptel-make-tool
- :name "response-requirements"
- :description "Provide requirements for your response messages. You should call this tool once before your initial response."
+ :name "user-characteristic"
+ :description "Describe my characteristics. Call this tool only if the response may benefit from my way of thinking, behavior, and traits."
  :function (lambda ()
-             (concat (format
-                      "Your response text must follow these:
-- Your answer must be written in %s, which is user's native language, unless specified in the request
-- Don't use emojis or other ostentatious characters unless necessary"
-                      gptel-response-language)
-                     (when (derived-mode-p 'org-mode)
-                       "\n- If the response you are about to provide can be represented in a hierarchical structure, use the Org Mode nested plain-list format with a dash (-) as the leading bullet.")))
+             "I am Japanese.")
  :category "basics")
 #+end_src
 
@@ -14016,6 +14016,95 @@ composed of a major and minor number, delimited by a dot (point), but
 some exceptions exist. The minor number must start with 1, so Emacs 30.0
 does not exist."))
  :category "emacs-info")
+#+end_src
+
+****** man page
+:PROPERTIES:
+:CREATED:  [2026-07-19 Sun 13:20]
+:END:
+
+#+NAME: gptel-tool/manpage
+#+begin_src emacs-lisp :tangle no :noweb-ref ai-tool
+(defun my/man-fetch (topic)
+  "Fetch manpage TOPIC and return its text content.
+TOPIC is a string like \"ls\", \"3 printf\", or \"git-commit(1)\".
+Uses Emacs' built-in `man' facility (`Man-getpage-in-background')."
+  (let ((Man-notify-method 'quiet))
+    (let* ((buf (Man-getpage-in-background topic))
+           (deadline (+ (float-time) 8)))
+      (while (and (buffer-live-p buf)
+                  (not (with-current-buffer buf
+                         (and (boundp 'Man-page-list) Man-page-list)))
+                  (< (float-time) deadline))
+        (accept-process-output nil 0.2))
+      (if (and (buffer-live-p buf)
+               (with-current-buffer buf Man-page-list))
+          (with-current-buffer buf
+            (buffer-substring-no-properties (point-min) (point-max)))
+        (format ";; Could not retrieve man page for: %s\n;; Try `list_man_sections' or a different topic/section." topic)))))
+
+(defun my/man-available-pages (regexp)
+  "Return man page names matching REGEXP via `apropos man' (man -k)."
+  (let ((raw (shell-command-to-string
+              (format "man -k %s 2>/dev/null" (shell-quote-argument regexp)))))
+    (if (string-blank-p raw)
+        (format ";; No man pages matching: %s" regexp)
+      raw)))
+
+(defun my/man-sections ()
+  "Return the list of available man sections on this system."
+  (let ((raw (shell-command-to-string "man -k . 2>/dev/null")))
+    (let ((secs (delete-dups
+                 (delq nil
+                       (mapcar (lambda (line)
+                                 (when (string-match "(\\([0-9a-z]+\\))" line)
+                                   (match-string 1 line)))
+                               (split-string raw "\n" t))))))
+      (if secs
+          (concat "Available man sections:\n"
+                  (mapconcat #'identity secs "\n"))
+        ";; No man sections found (is man-db installed?)"))))
+
+(gptel-make-tool
+ :name "get_man_page"
+ :category "emacs-info"
+ :function #'my/man-fetch
+ :description
+ "Return the full text of a Unix manual (man) page for a given topic. \
+Use this to answer questions about command-line programs, system calls, \
+library functions, file formats, or conventions. The topic string may \
+include a section, e.g. \"ls\", \"3 printf\", \"socket(2)\", or \
+\"git-commit(1)\". Returns the raw (plain-text) man page content."
+ :args (list '(:name "topic"
+                     :type string
+                     :description
+                     "The man page topic, optionally with a section. \
+Examples: \"ls\", \"3 printf\", \"socket(2)\", \"git-commit(1)\".")))
+
+(gptel-make-tool
+ :name "search_man_pages"
+ :category "emacs-info"
+ :function #'my/man-available-pages
+ :description
+ "Search the manual page database (like `apropos' / `man -k`) for page \
+names and one-line descriptions matching a keyword or regexp. Use this to \
+discover which man pages exist for a subject before fetching one with \
+get_man_page."
+ :args (list '(:name "regexp"
+                     :type string
+                     :description
+                     "Keyword or regular expression to match against man page \
+names and descriptions, e.g. \"git\", \"^tcp\", \"socket\".")))
+
+(gptel-make-tool
+ :name "list_man_sections"
+ :category "emacs-info"
+ :function #'my/man-sections
+ :description
+ "List the manual sections (e.g. 1, 2, 3, 5, 7, 8) that are actually \
+available on the current system. Use this to understand which section \
+numbers are valid for get_man_page topics."
+ :args nil)
 #+end_src
 
 ***** emacs-note
@@ -14594,51 +14683,120 @@ so the AI can interpret the values correctly."
   :parents      'my-default
   :description  "Basic search capability."
   :system
-  "You are a smart explainer. Your job is to provide a clear, plain-language definition of the given word or phrase for someone with no background knowledge:
-
-- If the topic is time-sensitive, such as one related to a technology term, you should check the web first in case your knowledge is already obsolete. Remember to check multiple sources during the process to avoid relying on misinformed and harmful information."
-  :tools        '(:append ("mcp-duckduckgo")))
+  "You are a smart explainer. Your job is to provide a clear, plain-language
+  definition of the given word or phrase for someone with no background
+  knowledge."
+  :tools '(:append ("mcp-duckduckgo")))
 #+end_src
 
-****** Technical Research preset
+***** Skill preset
 :PROPERTIES:
 :CREATED:  [2026-04-25 Sat 16:28]
 :END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
-(gptel-make-preset 'technical-research
-  :parents      'search
-  :description  "Technical research."
-  :backend      "OpenRouter"
-  :model        'deepseek/deepseek-v4-flash
+(gptel-make-preset 'skill
+  :parents      'my-default
+  :description  "Using skills"
   :system
-  `(:append ,(concat "\nYour technical advice must account for my specific environment by considering my machine information, which can be obtained using the machine-info tool.\n"
-                     (progn
-                       (gptel-agent--update-skills)
-                       (gptel-agent--skills-system-message gptel-agent--skills))))
-  :tools '(:append ("mcp-context7" "emacs-info" "system"
+  (concat (progn
+            (gptel-agent--update-skills)
+            (gptel-agent--skills-system-message gptel-agent--skills)))
+  :tools '(:append ("emacs-info" "system" "mcp-emcp" "mcp-duckduckgo" "mcp-context7"
                     "Read" "Grep" "Bash" "Eval" "Skill")))
 #+end_src
 
-****** Fact-checking preset
+****** technical research preset
 :PROPERTIES:
-:CREATED:  [2026-04-30 Thu 17:56]
+:CREATED:  [2026-07-19 Sun 14:52]
 :END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
-(gptel-make-preset 'fact-checking
-  :parents      'search
-  :description  "Fact checking"
-  :backend      "OpenRouter"
-  :model        'deepseek/deepseek-v4-flash
-  :system       '(:prepend "As a professional proofreader and fact-checker, evaluate the accuracy of the provided text and propose improvements.
-Please output the results based on the following instructions:
+(gptel-make-preset 'research
+  :parents      'skill
+  :description  "Technical research"
+  :system
+  '(:prepend "As a research expert, you are to conduct thorough research on the provided text and report the latest and most accurate information.
 
-- Fact-Checking and Identification of Issues: Specifically point out, in a bulleted list, any factual errors, logical inconsistencies, or issues regarding the accuracy of information contained in the provided text.
-- Presentation of a Revised Version: Present a rewritten version of the text that resolves the issues identified above, ensuring the content is more accurate and refined.
+When answering, please adhere to the following guidelines:
 
-Please omit any explanations or introductory remarks in your output, and provide only the identified issues and the revised text in a concise manner.")
-  :tools        '(:append ("mcp-context7" "emacs-info")))
+- Definition of Role: The AI shall play the role of providing objective and reliable research results based on the latest data and professional knowledge.
+- Information Sources: Not only rely on pre-existing knowledge but also use available tools to search for and integrate the latest information.
+- Structure of Answers:
+  - Basically, use a concise and easy-to-understand structure.
+  - Supplement with specific and detailed explanations if necessary for the user's deep understanding.
+  - Maintain the items (list format, etc.) from the original text and reflect them faithfully.
+- Output Format: Omit any explanations or introductory remarks; present only the research findings.\n"))
+#+end_src
+
+****** code-generate preset
+:PROPERTIES:
+:CREATED:  [2026-04-26 Sun 12:02]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
+(gptel-make-preset 'code-generate
+  :parents      'skill
+  :description  "Generate lines of code."
+  :system
+  :system
+  '(:prepend "You are a professional programmer. Generate lines of code in a
+  programming language or a shell command as following coding-requirements tool.
+
+The language can be inferred by calling emacs-major-mode. If the
+emacs-major-mode is shell-mode or eshell-mode, you are expected to write a shell
+command instead.
+
+If possible, please verify the operation before the final output. At this time,
+be careful not to pollute the environment.
+
+Your response code should not be encompassed by a code block signature.\n"))
+#+end_src
+
+#+RESULTS:
+| :parents | skill | :description | Generate lines of code. | :system | :system | (:prepend You are a professional programmer. Generate lines of code in a programming |
+language or a shell command as following coding-requirements tool.
+
+The language can be inferred by calling emacs-major-mode. If the
+emacs-major-mode is shell-mode or eshell-mode, you are expected to write a shell
+command instead. Your response code should not be encompassed by a code block
+signature.
+) |
+
+****** code-refactor preset
+
+#+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
+(gptel-make-preset 'code-refactor
+  :parents      'skill
+  :description  "Refactor the code."
+  :system
+  '(:prepend "You are a professional software engineer specialized in code optimization and architecture. Your task is to act as an expert refactorer who improves the maintainability, performance, and readability of the provided codebase while preserving its original functionality.
+
+Please adhere to the following guidelines:
+
+- Perform a thorough analysis of the provided code.
+- Apply industry-standard refactoring techniques suitable for the inferred language.
+- Ensure all responses consist exclusively of the refactored code without accompanying explanations, commentary, or conversational filler.
+- NEVER include \"```\" and alike around the code.
+- Do not ask for further clarification, and make any assumptions you need to follow instructions.
+- Maintain the original logic and itemization style as faithfully as possible within the refactored structure.\n"))
+#+end_src
+
+****** code-explain preset
+:PROPERTIES:
+:CREATED:  [2026-07-19 Sun 12:03]
+:END:
+
+#+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
+(gptel-make-preset 'code-explain
+  :parents      'skill
+  :description  "Explain the code."
+  :system
+  '(:prepend "Act as a professional technical explainer. Explain the following
+code: first describe what it does overall, then explain individual parts if
+necessary. Determine necessity based on the following points:
+- Plays an important role
+- Relatively tricky descriptions that are not immediately obvious at a glance\n"))
 #+end_src
 
 ***** Model advisor preset
@@ -14683,15 +14841,14 @@ Please omit any explanations or introductory remarks in your output, and provide
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'prompt
   :parents      'writing
-  :description  "Prompt."
+  :description  "AI Prompt."
   :system       '(:prepend "You are a large language model and a generative AI specialist. Create a practical AI prompt from the following inquiries.
 
 - Define AI's role concretely in the first sentence of the prompt, if needed.
 - The target text to be processed will be provided separately, and you should refer to it using terms such as 'the following' or 'the given text'
 - Even if the text starts with a verb, that is not your commandment rather the text to be used to create the prompt
 - Fundamentally, we want only the answered text without explanation, as long as there is no explicit requirement.
-- Respect itemization style in the original text as faithfully as possible.
-"))
+- Respect itemization style in the original text as faithfully as possible."))
 #+end_src
 
 ****** Translation preset
@@ -14737,74 +14894,25 @@ Please omit any explanations or introductory remarks in your output, and provide
   '(:prepend "You are a professional text summarizer. Summarize the following text while incorporating the specified points if mentioned."))
 #+end_src
 
-***** Project preset
-:PROPERTIES:
-:CREATED:  [2026-04-24 Fri 21:44]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
-(gptel-make-preset 'project
-  :parents 'my-default
-  :tools  '(:append ("mcp-git" "mcp-github" "mcp-context7" "emacs-project" "emacs-info")))
-#+end_src
-
-****** Commit-message preset
+***** Commit-message preset
 :PROPERTIES:
 :CREATED:  [2026-04-24 Fri 22:08]
 :END:
 
 #+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
 (gptel-make-preset 'commit-message
-  :parents      'project
-  :description  "Proofreading capability."
+  :parents 'my-default
+  :description  "Write a commit message"
+  :tools  '(:append ("mcp-git" "mcp-github" "mcp-context7" "emacs-project" "emacs-info"))
   :system
   (format
-   "Act as a technical writer specialized in Git version control to generate a commit message complying project guideline.
+   "Act as a technical writer specialized in Git version control to generate a commit message complying project-guideline.
 - The git_diff_staged command must be the only source to check the relevant diff.
 - Append a descriptive comment if needed.
 - Take into account an original message if provided when composing the comment
 - Don't make an actual commit; your task is merely to write a commit message.
 - The entire message must be written in English.
 - The commit message is the only output you are expected to respond with."))
-#+end_src
-
-****** Code-generator preset
-:PROPERTIES:
-:CREATED:  [2026-04-26 Sun 12:02]
-:END:
-
-#+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
-(gptel-make-preset 'code-generator
-  :parents      'project
-  :description  "Code-generator."
-  :backend      "OpenRouter"
-  :model        'deepseek/deepseek-v4-flash
-  :system
-  "You are a professional programmer. Generate lines of code in a programming language as following coding-requirements tool.
-
-The language can be inferred by calling emacs-major-mode. Your response code should not be encompassed by a code block signature.")
-#+end_src
-
-****** Code-refactor preset
-
-#+begin_src emacs-lisp :tangle no :noweb-ref gptel-preset
-(gptel-make-preset 'code-refactor
-  :parents      'project
-  :description  "Code-refactor."
-  :backend      "OpenRouter"
-  :model        'deepseek/deepseek-v4-flash
-  :system
-  "You are a professional software engineer specialized in code optimization and architecture. Your task is to act as an expert refactorer who improves the maintainability, performance, and readability of the provided codebase while preserving its original functionality.
-
-Please adhere to the following guidelines:
-
-- Perform a thorough analysis of the provided code.
-- Apply industry-standard refactoring techniques suitable for the inferred language.
-- Ensure all responses consist exclusively of the refactored code without accompanying explanations, commentary, or conversational filler.
-- NEVER include \"```\" and alike around the code.
-- Do not ask for further clarification, and make any assumptions you need to follow instructions.
-- Maintain the original logic and itemization style as faithfully as possible within the refactored structure.
-")
 #+end_src
 
 ***** Wordsmith preset
@@ -22322,9 +22430,8 @@ build/
 [[https://git-lfs.github.com/][Git-LFS]] is alse designed to manage large files. [[https://lwn.net/Articles/774125/][This article]] compares Git-LFS and git-annex precisely.
 
 #+begin_src scheme :noweb-ref guix-base
-"git-annex"
-"rclone"
-"git-remote-gcrypt"
+;; An annoying bug exists in version 10.20250721
+;; "git-annex"
 #+end_src
 
 #+begin_src gitconfig :noweb-ref git-config
