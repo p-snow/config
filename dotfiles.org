@@ -5092,7 +5092,24 @@ Indentation settings for Guix, which are adapted from [[https://codeberg.org/mrh
 
 #+begin_src emacs-lisp
 (use-package woman
-  :commands (woman))
+  :commands (woman)
+  :config
+  (with-eval-after-load 'savehist
+    ;; Restoring woman-topic-history might cause an annoying warning.
+    (add-to-list 'savehist-ignored-variables
+                 'woman-topic-history)))
+#+end_src
+
+***** Man
+:PROPERTIES:
+:CREATED:  [2026-07-19 Sun 13:52]
+:END:
+
+#+begin_src emacs-lisp
+(use-package man
+  :commands (man)
+  :custom
+  (Man-notify-method 'pushy))
 #+end_src
 
 **** Data
