@@ -24950,6 +24950,20 @@ ghq-update 2>&1 | tee >(ts -s '%.T' >> <<log-dir()>>/ghq-update.log) \
 
 #+name: bash/ghq-update
 #+begin_src bash :tangle (expand-file-name "ghq-update" tangle/local-bin-dir)
+# Helper: run git pull --prune --ff-only and classify failures
+__pull_with_ff() {
+  local repo=$1
+  shift
+  if ! git -C "$repo" pull "$@" --prune --ff-only 2>&1; then
+    if [[ -n $(git -C "$repo" status --porcelain --untracked-files=no 2>/dev/null) ]]; then
+      echo "  pull failed due to uncommitted changes" >&2
+      return 2
+    fi
+    echo "Error: failed to pull $repo" >&2
+    return 1
+  fi
+}
+
 usage() {
   cat <<EOF
 Usage: $(basename "$0") [OPTIONS] [FILTER]
@@ -25060,18 +25074,22 @@ main() {
     fi
 
     if ! git -C "$repo" rev-parse --abbrev-ref "@{upstream}" &>/dev/null; then
-      echo "  no upstream branch configured, skipping pull"
-      no_upstream_repos+=("$repo")
-    elif ! git -C "$repo" pull --prune --ff-only 2>&1; then
-      # --ff-only refuses to merge, so a diverged history fails fast
-      # instead of creating an unintended merge commit.
-      if [[ -n $(git -C "$repo" status --porcelain --untracked-files=no 2>/dev/null) ]]; then
-        echo "  pull failed due to uncommitted changes" >&2
-        dirty_repos+=("$repo")
+      local _branch
+      _branch=$(git -C "$repo" rev-parse --abbrev-ref HEAD)
+      if git -C "$repo" rev-parse --verify "refs/remotes/origin/$_branch" &>/dev/null; then
+        __pull_with_ff "$repo" origin "$_branch" || {
+          ret=$?
+          [[ $ret -eq 2 ]] && dirty_repos+=("$repo") || error_repos+=("$repo")
+        }
       else
-        echo "Error: failed to pull $repo" >&2
-        error_repos+=("$repo")
+        echo "  no upstream branch configured, skipping pull"
+        no_upstream_repos+=("$repo")
       fi
+    else
+      __pull_with_ff "$repo" || {
+        ret=$?
+        [[ $ret -eq 2 ]] && dirty_repos+=("$repo") || error_repos+=("$repo")
+      }
     fi
 
     after_head=$(git -C "$repo" rev-parse HEAD 2>/dev/null || true)
