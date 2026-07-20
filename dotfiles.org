@@ -64,10 +64,10 @@ echo -n '~/.local/share/video'
          "~/.local/share/Trash")
 #+end_src
 
-delete file which lives longer than 1 week in trash directory.
+Delete files which live longer than 1 week in the trash directory. "bmc" denotes btime/mtime/ctime, which means to exclude atime, which is updated by a file explorer or something of the sort.
 
 #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-d <<trash-dir(full-path=1)>>/files - - - 1w
+D <<trash-dir(full-path=1)>>/files - - - bmc:1w -
 #+end_src
 
 *** log file directory
@@ -1516,6 +1516,7 @@ systemd-tmpfiles --user --clean
 systemctl --user enable systemd-tmpfiles-clean.timer
 #+end_src
 
+#+NAME: config/tmpfiles
 #+begin_src conf :comments no :noweb tangle :tangle (expand-file-name "user-tmpfiles.d/cleanup.conf" tangle/config-dir)
 d /home/<<login-name()>>/tmp - - - 5d
 d /home/<<login-name()>>/Downloads - - - 4w
