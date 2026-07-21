@@ -3555,8 +3555,15 @@ The power of keyboard macro is more than repeating editing commands. [[https://m
 :CREATED:  [2025-06-24 Tue 19:46]
 :END:
 
+#+NAME: config/emacs-completion-preview
 #+begin_src emacs-lisp
 (use-package completion-preview
+  :bind
+  ( :map completion-preview-active-mode-map
+    ("M-n" . completion-preview-next-candidate)
+    ("M-p" . completion-preview-prev-candidate)
+    ("M-RET" . completion-preview-insert)
+    ("<tab>" . completion-preview-complete))
   :hook (prog-mode . completion-preview-mode)
   :custom
   (completion-preview-minimum-symbol-length 3)
@@ -10196,61 +10203,48 @@ Major mode for manupulating password store file.
 #+NAME: config/emacs-cape
 #+begin_src emacs-lisp
 (use-package cape
-  :bind (:map ctl-x-map
-              :prefix "C-M-i"
-              :prefix-map my/cape-map
-              :prefix-docstring "Keymap for cape commands."
-              ("C-M-i" . completion-at-point)
-              ("d" . cape-dabbrev)
-              ("h" . cape-history)
-              ("f" . cape-file)
-              ("k" . cape-keyword)
-              ("a" . cape-abbrev)
-              ("l" . cape-line)
-              ("w" . cape-dict)
-              ("\\" . cape-tex)
-              ("_" . cape-tex)
-              ("^" . cape-tex)
-              ("&" . cape-sgml)
-              ("r" . cape-rfc1345)
-              ("8" . cape-emoji))
+  :preface
+  (defun my/cape-super-set-local (capfs &optional individual-capfs)
+    "Set `completion-at-point-functions' to current value plus CAPFS.
+Treat CAPFS and the default value as a super CAPF.  Then append the
+INDIVIDUAL-CAPFS to the list."
+    (let* ((all-for-super (append completion-at-point-functions capfs))
+           (all-minus-global (delq t all-for-super))
+           (cape-super (apply #'cape-capf-super all-minus-global)))
+      (setq-local completion-at-point-functions (append (list cape-super) individual-capfs (list t)))))
   :hook
   (text-mode
-   . (lambda ()
-       (dolist (comp-fun '(cape-dict
-                           cape-file
-                           cape-dabbrev))
-         (add-hook 'completion-at-point-functions comp-fun
-                   99 t))))
+   . (lambda () (my/cape-super-set-local '(cape-dict cape-dabbrev) '(cape-file))))
   (org-mode
-   . (lambda ()
-       (dolist (comp-fun '(cape-elisp-block))
-         (add-hook 'completion-at-point-functions comp-fun
-                   99 t))))
+   . (lambda () (my/cape-super-set-local '(cape-dict cape-dabbrev cape-elisp-block) '(cape-file))))
   (prog-mode
-   . (lambda ()
-       (dolist (comp-fun '(cape-keyword
-                           cape-file
-                           cape-dabbrev))
-         (add-hook 'completion-at-point-functions comp-fun
-                   99 t))))
+   . (lambda () (my/cape-super-set-local '(cape-keyword cape-dabbrev) '(cape-file))))
   (emacs-lisp-mode
-   . (lambda ()
-       (dolist (comp-fun '(cape-elisp-symbol))
-         (add-hook 'completion-at-point-functions comp-fun
-                   99 t))))
+   . (lambda () (my/cape-super-set-local '(cape-keyword cape-elisp-symbol cape-dabbrev) '(cape-file))))
   ((shell-mode eshell-mode)
-   . (lambda ()
-       (dolist (comp-fun '(cape-history))
-         (add-hook 'completion-at-point-functions comp-fun
-                   99 t))))
+   . (lambda () (my/cape-super-set-local '(cape-history cape-dabbrev) '(cape-file))))
   ((minibuffer-mode)
-   . (lambda ()
-       (dolist (comp-fun '(cape-dict
-                           cape-file
-                           cape-dabbrev))
-         (add-hook 'completion-at-point-functions comp-fun
-                   99 t)))))
+   . (lambda () (my/cape-super-set-local '(cape-dict cape-dabbrev) '(cape-file))))
+  :config
+  (setq completion-at-point-functions '(cape-dabbrev cape-file))
+  (bind-keys :map ctl-x-map
+             :prefix "C-M-i"
+             :prefix-map my/cape-map
+             :prefix-docstring "Keymap for cape commands."
+             ("C-M-i" . completion-at-point)
+             ("d" . cape-dabbrev)
+             ("h" . cape-history)
+             ("f" . cape-file)
+             ("k" . cape-keyword)
+             ("a" . cape-abbrev)
+             ("l" . cape-line)
+             ("w" . cape-dict)
+             ("\\" . cape-tex)
+             ("_" . cape-tex)
+             ("^" . cape-tex)
+             ("&" . cape-sgml)
+             ("r" . cape-rfc1345)
+             ("8" . cape-emoji)))
 #+end_src
 
 **** Help Packages
