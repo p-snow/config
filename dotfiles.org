@@ -3306,7 +3306,9 @@ Icomplete is nice, but Vertico takes a more supple approach, so I would use Vert
             (line-number-mode mode-line-position-line-format)
             (column-number-mode mode-line-position-column-format)))
           mode-line-front-space
-          global-mode-string))
+          global-mode-string
+          mode-line-format-right-align
+          (project-mode-line project-mode-line-format)))
 #+end_src
 
 ****** Display Time
@@ -3905,6 +3907,7 @@ sMerge can be utilized to address merging issues.
 (use-package project
   :custom
   (project-kill-buffers-display-buffer-list t)
+  (project-mode-line t)
   :config
   (add-to-list 'project-switch-commands
                '(project-dired "Dired root"))
