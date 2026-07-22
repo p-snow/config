@@ -237,16 +237,16 @@ start-systemd-services
 :END:
 
 - Back-up Cinnamon Desktop Configuration
-  #+begin_src shell :eval no :noweb yes :tangle no :noweb-ref midnight-batch
-  if [ $DESKTOP_SESSION == 'cinnamon' ]; then
-    dconf dump /org/cinnamon/ > <<home-dir()>>/.local/state/cinnamon/desktop.conf
-  fi
-  #+end_src
+  # #+begin_src shell :eval no :noweb yes :tangle no :noweb-ref midnight-batch
+  # if [ $DESKTOP_SESSION == 'cinnamon' ]; then
+  #   dconf dump /org/cinnamon/ > <<home-dir()>>/.local/state/cinnamon/desktop.conf
+  # fi
+  # #+end_src
 
 - Commands/Applications that need to use LinuxMint comfortably
-  #+begin_src scheme :tangle no
-  "xclip"
-  #+end_src
+  # #+begin_src scheme :tangle no
+  # "xclip"
+  # #+end_src
 
 ** GNU Guix
 
@@ -5716,7 +5716,8 @@ Charles Choi explained how to reference a capability for the command history in 
   :after my-launch-app
   :commands (eshell)
   :bind (:map my/launch-app-map
-              ("e" . eshell))
+              ("e" . eshell)
+              ("E" . eshell-command))
   :custom
   (eshell-prompt-function
    #'(lambda ()
