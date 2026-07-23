@@ -66,8 +66,16 @@ echo -n '~/.local/share/video'
 
 Delete files which live longer than 1 week in the trash directory. "bmc" denotes btime/mtime/ctime, which means to exclude atime, which is updated by a file explorer or something of the sort.
 
-#+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
-D <<trash-dir(full-path=1)>>/files - - - bmc:1w -
+# #+begin_src conf :noweb yes :noweb-ref tmpfiles-cleanup :tangle no
+# d <<trash-dir(full-path=1)>>/files - - - 1w
+# #+end_src
+
+#+begin_src scheme :noweb-ref guix-base
+"trash-cli"
+#+end_src
+
+#+begin_src sh :eval no :tangle no :noweb-ref midnight-batch
+trash-empty -f 7
 #+end_src
 
 *** log file directory
