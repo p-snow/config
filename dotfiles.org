@@ -18456,7 +18456,7 @@ I'd share this babel config between literate configuration and main Emacs sessio
       (with-current-buffer (get-buffer-create my/tsc-shell-command-buffer)
         (switch-to-buffer (current-buffer))
         (sh-mode)
-        (insert command ";\n")))))
+        (insert command ";")))))
 
 (transient-define-suffix my/tsc-execute (args)
   :class my/tsc-shell-command
@@ -18664,7 +18664,10 @@ Otherwise prompt with PROMPT."
 (transient-define-prefix my/mpv-command (file &rest args)
   ""
   :man-page "mpv"
-  :value '("--volume=100")
+  ["Inputs"
+   ("f" "files" ""
+    :class my/tsc-file :multi-value rest
+    :init-value ,(my/tsc-build-init-value :infile-orig (ensure-list input-value)))]
   ["Options"
    ("-R" "noresume" "--no-resume-playback"
     :init-value
@@ -18681,13 +18684,9 @@ Otherwise prompt with PROMPT."
     :choices ("--pause" "--no-pause"))
    ("-v" "volume" "--volume=" :prompt "Volume: ")
    ("t" "thumbnail" "--vid=2")]
-  ["Inputs"
-   ("f" "files" "-- "
-    :class my/tsc-file :multi-value rest
-    :init-value ,(my/tsc-build-init-value :infile-orig (ensure-list input-value)))]
   my/tsc-optional-menu
   [(my/tsc-execute
-    :command-format "mpv %a"
+    :command-format "mpv --{ %a --}"
     :before-function (lambda ()
                        (when (require-with-check 'recentf)
                          (mapc 'recentf-add-file
@@ -18698,36 +18697,43 @@ Otherwise prompt with PROMPT."
                                            :infile-orig ,file))
                                   args)))
 
+(defun my/org-extract-links (string func)
+  "Extract org links in STRING and invoke FUNC on them."
+  (org-element-map
+      (org-element-parse-secondary-string
+       string (org-element-restriction 'paragraph))
+      'link
+    (apply-partially func)))
+
 (with-eval-after-load 'embark
-  (mapc (lambda (map)
-          (lambda-key map "P"
-                      (lambda (file)
-                        "play media FILE"
-                        (my/mpv-command file t))))
-        (list embark-file-map embark-url-map))
   (with-eval-after-load 'org
-    (defun my/flink-path (flink)
-      (let* ((exp-link (org-link-expand-abbrev flink)))
-        (string-trim-right
-         (string-trim-left exp-link "file:")
-         "::.+$")))
+    (mapc (lambda (map)
+            (lambda-key map "O"
+                        (lambda (string)
+                          "Open links in STRING."
+                          (my/org-extract-links
+                           string
+                           (lambda (link)
+                             (org-link-open link))))))
+          (list embark-org-item-map embark-org-plain-list-map embark-region-map))
     (mapc (lambda (map)
             (lambda-key map "P"
-                        (lambda (link)
-                          "play media file written in org LINK"
-                          (my/mpv-command (my/flink-path link) t))))
-          (list embark-org-link-map))
-    (mapc
-     (lambda (map)
-       (lambda-key map "P"
-                   (lambda (list)
-                     "play media in LIST"
-                     (my/mpv-command (mapcar (lambda (item)
-                                               (when (string-match org-link-any-re (car item))
-                                                 (my/flink-path (match-string-no-properties 2 (car item)))))
-                                             (cdr (org-list-to-lisp list)))
-                                     t))))
-     (list embark-org-plain-list-map))))
+                        (lambda (string)
+                          "Play media files appeared in STRING."
+                          (my/org-extract-links
+                           string
+                           (lambda (media-file)
+                             (ignore-errors
+                               (org-link-open media-file)
+                               (my/tsc-insert-macro)
+                               (sleep-for 0.1)  ; time adjustment
+                               (my/tsc-cancel-macro))))
+                          (with-current-buffer my/tsc-shell-command-buffer
+                            (goto-char (point-min))
+                            (replace-regexp ";mpv " " ")
+                            (my/detached-shell-command-region (point-min) (point-max))
+                            (kill-buffer)))))
+          (list embark-org-plain-list-map embark-region-map))))
 #+end_src
 
 ***** ffmpeg-libopus command
