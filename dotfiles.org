@@ -5891,6 +5891,18 @@ If entry at POM has no clock log time stamp, this function returns 0."
 
 #+NAME: config/org-agenda-custom-commands
 #+begin_src emacs-lisp
+(defun my/org-ql-block-by-category (query)
+  "Insert agenda items matching QUERY, grouped by category.
+
+QUERY is an `org-ql' query form.  This function binds
+`org-super-agenda-groups' to auto-group by category and
+delegates to `org-ql-search-block'.
+
+Intended for use in `org-agenda-custom-commands' as a block
+function, or interactively."
+  (let ((org-super-agenda-groups '((:auto-category))))
+    (org-ql-search-block query)))
+
 (with-eval-after-load 'org-agenda
   (setopt org-stuck-projects `(,(concat "+" my/org-project-tag)
                                (,my/org-todo-keyword--todo ,my/org-todo-keyword--next ,my/org-todo-keyword--in-action)
@@ -6036,6 +6048,14 @@ If entry at POM has no clock log time stamp, this function returns 0."
             (org-ql-search-block `(and (todo ,my/org-todo-keyword--todo)
                                        (not (habit)))
                                  ((org-ql-block-header "Remaining task")))))
+          ("T" "All tasks by category"
+           ((my/org-ql-block-by-category
+             `(and (todo ,my/org-todo-keyword--urgent
+                         ,my/org-todo-keyword--in-action
+                         ,my/org-todo-keyword--next
+                         ,my/org-todo-keyword--todo)
+                   (not (habit)))
+             ((org-ql-block-header "All tasks by category")))))
           ("d" "Done tasks"
            ((org-ql-search-block `(and (or (done)
                                            (and (todo ,my/org-todo-keyword--someday)
@@ -6964,6 +6984,9 @@ emacs-org-drill-latest
     "\\(?::LAST_REPEAT: *\\[\\([^]]+\\)]\\)"
     "Matches the LAST_REPEAT property together with a time stamp.")
   :config
+  (use-package org-super-agenda
+    :custom
+    (org-super-agenda-mode t))
   (require 'org-ql-search)
   (org-ql-defpred last-repeat (&key from to _on)
     "Return non-nil if current entry was repeated in given period.
@@ -7002,7 +7025,7 @@ Both inherited and local tags is tested."
     "Return non-nil if current heading has CATEGORY.
 Ancestors are looked up If current heading has no CATEGORY."
     :body (when-let* ((category (or (org-get-category (point))
-                                   (org-entry-get (point) "CATEGORY" t))))
+                                    (org-entry-get (point) "CATEGORY" t))))
             (cl-typecase categories
               (null t)
               (otherwise (member category categories)))))
