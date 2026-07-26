@@ -19755,10 +19755,12 @@ QUERY must comply to RFC 822 format, which holds attribute/value pairs."
            . browse-url-emacs)
           ("\\.html\\'"
            . (lambda (url &optional same-window)
-               (cond
-                ((file-exists-p url) (eww-open-file url))
-                ((string-match-p url-handler-regexp url)
-                 (browse-web url)))))
+               (if (eq (browse-url--browser-kind browse-url-browser-function url)
+                       'external)
+                   ;; Open in Firefox/Librewolf when via an external browser
+                   (funcall browse-url-browser-function url)
+                 (cond ((file-exists-p url) (eww-open-file url))
+                       ((string-match-p url-handler-regexp url) (browse-web url))))))
           ("\\.pdf\\(\\.gpg\\)?\\'" . (lambda (url &optional same-window)
                                         (my/open-pdf-as-html url)))
           ("\\.epub\\'" . (lambda (url &optional same-window)
