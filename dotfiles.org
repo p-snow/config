@@ -6617,11 +6617,14 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
 
 ******** Org Export HTML
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb tangle
 (use-package ox-html
   :commands (org-html-export-as-html
              org-html-export-to-html)
   :custom
+  (org-html-head
+   "<link rel=\"stylesheet\" type=\"text/css\" href=\"file://<<home-dir()>>/org/include/my-global-theme.css\" />")
+  (org-html-head-include-default-style nil)
   (org-html-preamble t)
   (org-html-postamble 'auto)
   (org-html-with-latex t)
