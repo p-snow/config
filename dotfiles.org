@@ -22512,7 +22512,7 @@ This script synchronizes my annex repositories. Before executing sync-doc, follo
 
 #+name: cronjob/sync-doc
 #+begin_src conf :noweb yes :noweb-ref cronjob-user
-15 */2 * * * /usr/bin/bash -ci "sync-doc 2>&1 | tee -a <<log-dir()>>/sync-doc.log | awk '/===/{f=1} /RUN END:/{f=0} f' | append-org-heading <<log-dir()>>/log-summary.org sync-doc"
+0 */2 * * * /usr/bin/bash -ci "sync-doc 2>&1 | tee -a <<log-dir()>>/sync-doc.log | awk '/===/{f=1} /RUN END:/{f=0} f' | append-org-heading <<log-dir()>>/log-summary.org sync-doc"
 #+end_src
 
 #+name: sh/sync-doc
@@ -22573,7 +22573,10 @@ sync_one "$HUB"
 sync_one "/mnt/vt-ex/doc/"
 sync_one "/mnt/vt-h/doc/"
 sync_one "/mnt/vt-j/doc/"
-sync_one "$HUB"
+git -C "$HUB" annex sync
+git -C "/mnt/vt-ex/doc/" annex sync
+git -C "/mnt/vt-h/doc/" annex sync
+git -C "/mnt/vt-j/doc/" annex sync
 
 # only print header and summary when something was newly added
 if [ -s "$FILE_SET" ]; then
