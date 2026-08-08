@@ -448,7 +448,6 @@ done
 (specifications->manifest
  '("coreutils"
    "diffutils"
-   "parallel"
    "gawk"
    "sed"
    "tar"
@@ -513,6 +512,7 @@ done
    ;; "global"
    ;; "neofetch"
    ;; "pfetch"
+   ;; "parallel"
    <<guix-base>>))
 #+end_src
 
@@ -529,15 +529,17 @@ done
  (append
   (specifications->packages '(<<guix-app>>
                               "gparted"
-                              "gcompris-qt"
                               "gnome-disk-utility"
-                              "kdeconnect"
                               "pandoc"
                               "weasyprint"
                               "shotwell"
                               "kid3"
                               "vlc"
-                              "syncthing"))
+                              "syncthing"
+                              ;; The following are veterans.
+                              ;; "gcompris-qt"
+                              ;; "kdeconnect"
+                              ))
   ;; (list \<\<guix-app-package\>\>) will be here
   ))
 #+end_src
