@@ -10275,7 +10275,7 @@ INDIVIDUAL-CAPFS to the list."
   ((minibuffer-mode)
    . (lambda () (my/cape-super-set-local '(cape-dict cape-dabbrev) '(cape-file))))
   :config
-  (setq completion-at-point-functions '(cape-dabbrev cape-file))
+  (setq completion-at-point-functions '(cape-abbrev cape-dabbrev cape-file))
   (bind-keys :map ctl-x-map
              :prefix "C-M-i"
              :prefix-map my/cape-map
@@ -10422,6 +10422,7 @@ helpful-mode displays more sources compared to help-mode, including callers, deb
                       completion-at-point-functions)))
   :custom
   (tempel-path (list (no-littering-expand-etc-file-name "tempel/templates/*.eld")))
+  (global-tempel-abbrev-mode t)
   :config
   (bind-keys :map tempel-map
              ("TAB" . tempel-next)
