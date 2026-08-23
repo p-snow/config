@@ -2186,7 +2186,7 @@ Configuration
   tab   q    w    e    r    t    y    u    i    o    p    [    ]    \
   caps  a    s    d    f    g    h    j    k    l    ;    '    ret
   lsft  z    x    c    v    b    n    m    ,    .    /    rsft
-  lctl  lmet lalt           spc            ralt      rctl)
+  lctl  lmet lalt           spc            ralt menu rctl)
 
 (deflayer base
   @cma  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
@@ -2194,23 +2194,45 @@ Configuration
   @num  q    w    e    r    t    y    u    i    o    p    [     ]    \
   lctl  a    s    d    f    g    h    j    k    l    ;    @metq ret
   @smin z    x    c    v    b    n    m    ,    .    /    @seq
-  esc   lmet lalt       @spc-shift         ralt      @cma)
+  @ecms lmet lalt       @spc-shift         ralt menu @cma)
 
-(deflayer numpad
+(deflayer numkeys
   _     _    _    _    _    _    _    _    _    _    _    _     _
-  _     _    _    _    _    _    _    _    _    _    _    _     _    _
+  _     _    _    _    _    _    _    _    _    _    _    _     _    caps
   _     _    _    _    _    _    _    7    8    9    _    _     _    _
   _     _    _    _    _    _    _    4    5    6    -    _     _
   _     _    _    _    _    _    _    1    2    3    .    _
-  _     _    _              0              _         _)
+  _     _    _              0              _    _    _)
+
+(deflayer mouse
+  _     _    _    _    _    _    _    _    _    _    _    _     _
+  _     _    _    _    _    _    _    _    _    _    _    _     _    _
+  _     _    _    _    _    _    _    mmid @msu mrgt _    _     _    _
+  _     _    _    _    _    _    mbck @msl @msd @msr mfwd _     _
+  _     _    _    _    _    _    _    @mwu _    @mwd    _    _
+  _     _    _          @mlck              _    _    _)
+
 
 (defalias
   spc-shift (tap-hold-press-timeout 0 2000 spc lshift spc)
   metq (tap-hold 160 160 ' rmeta)
   smin (tap-hold 150 150 min lshift)
-  seq (tap-hold 170 170 eql rshift)
-  num (tap-hold 170 170 tab (layer-while-held numpad))
-  cma (tap-hold 150 150 grv (multi lctl lalt lmeta)))
+  seq  (tap-hold 170 170 eql rshift)
+  num  (tap-hold 170 170 tab (layer-while-held numkeys))
+  ecms (tap-hold 170 170 esc (layer-while-held mouse))
+  ms1  (tap-hold 170 170 1 (layer-while-held mouse))
+  cma  (tap-hold 150 150 grv (multi lctl lalt lmeta))
+
+  msu (movemouse-accel-up    5 2000 1 20)
+  msl (movemouse-accel-left  5 2000 1 20)
+  msd (movemouse-accel-down  5 2000 1 20)
+  msr (movemouse-accel-right 5 2000 1 20)
+
+  mwu (mwheel-up   20 30)
+  mwd (mwheel-down 20 30)
+
+  mlck (tap-hold 200 300 mltp mlft)
+)
 #+end_src
 
 The following systemd unit file does not work with user privileges. To solve the issue, the kanata systemd service must run with root privileges by locating the unit file under /usr/local/lib/systemd/system or a similar directory and summoning the following voila incantation:
