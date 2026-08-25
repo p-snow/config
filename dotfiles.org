@@ -3692,6 +3692,9 @@ The =save-interprogram-paste-before-kill= variable controls whether clipboard te
         kill-whole-line t
         kill-region-dwim 'unix-word
         save-interprogram-paste-before-kill (expt 2 16))
+
+;; Prevent displaying a string with face in the original mode
+(add-to-list 'yank-excluded-properties 'face)
 #+end_src
 
 ***** Undo
