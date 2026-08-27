@@ -20798,7 +20798,7 @@ If region is active, send the string in the region instead."
 (provide 'text-mail)
 #+end_src
 
-**** learning english words/phrases
+**** Package: org-english
 :PROPERTIES:
 :ID:       2bd0c5d2-faed-43d9-b054-3e1ad9b51a76
 :END:
@@ -20928,7 +20928,7 @@ to existing english word entry."
 ;;;###autoload
 (defun my/org-english-insert-english-translation ()
   "Insert English translation into org capture entry."
-  (let* ((url (format "http://wordnik.com/words/%s" (downcase org-english-word)))
+  (let* ((url (format "https://wordnik.com/words/%s" (downcase org-english-word)))
          (buffer (url-retrieve-synchronously url t t))
          (vertico-sort-function nil))
     (with-temp-buffer
