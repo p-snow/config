@@ -5082,6 +5082,19 @@ Indentation settings for Guix, which are adapted from [[https://codeberg.org/mrh
   (js-indent-level 2))
 #+end_src
 
+****** Markdown Ts
+:PROPERTIES:
+:CREATED:  [2026-08-27 Thu 16:06]
+:END:
+
+#+begin_src emacs-lisp
+(use-package markdown-ts-mode
+  :ensure nil
+  :mode ("\\.md\\'" "\\.mdx\\'" "\\.markdown\\'")
+  :config
+  (require 'markdown-ts-mode-x))
+#+end_src
+
 ****** Sql
 
 #+begin_src emacs-lisp
@@ -11284,7 +11297,7 @@ I have weaned off `whole-line-or-region`; I use `M-x kill-whole-line` and `kill-
              ("M-n" . jinx-next)
              ("M-p" . jinx-previous)))
 #+end_src
-***** markdown-mode
+***** markdown-mode                           :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-06-02 Fri 18:02]
 :END:
@@ -11292,11 +11305,7 @@ I have weaned off `whole-line-or-region`; I use `M-x kill-whole-line` and `kill-
 - Refiled on [2026-04-13 Mon 14:54]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"markdown"
-"tree-sitter-markdown"
-"emacs-markdown-mode"
-#+end_src
+Emacs 31.1 now comes with markdown-ts-mode.
 
 #+begin_src emacs-lisp
 (use-package markdown-mode
@@ -24726,6 +24735,7 @@ I use the Guix Emacs profile, since someone set its /lib/tree-sitter path to tre
 "tree-sitter-rust"
 "tree-sitter-elisp"
 "tree-sitter-json"
+"tree-sitter-markdown"
 "tree-sitter-html"
 "tree-sitter-css"
 "tree-sitter-make"
