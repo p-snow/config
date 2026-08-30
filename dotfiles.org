@@ -2952,19 +2952,6 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
   (advice-add #'dired-do-flagged-delete :around #'my/advice-dired-control-deletion)
   (put 'dired-find-alternate-file 'disabled nil))
 
-(use-package dired-x
-  :after dired
-  :config
-  (lambda-key dired-mode-map "."
-              (lambda ()
-                "Toggle hiding dotfiles whose name starts with '.'"
-                (interactive)
-                (let ((dired-omit-files (rx (seq string-start
-                                                 (or "." ".."
-                                                     (seq "." (+? graph)))
-                                                 string-end))))
-                  (call-interactively #'dired-omit-mode)))))
-
 (use-package dired-aux
   :after dired
   :custom
@@ -3019,6 +3006,19 @@ whether files are going to be in trash box."
   :custom
   (find-grep-options "-n -H --no-heading -q")
   (find-ls-option '("-print0 | xargs -0 ls -ldN" . "-ldN")))
+#+end_src
+
+****** Dired X
+:PROPERTIES:
+:CREATED:  [2026-08-30 Sun 09:36]
+:END:
+
+I take advantage of `.` in Dired as a command argument, whereas `..` is just a punk, so I hide `..` using `dired-omit-mode`.
+
+#+begin_src emacs-lisp
+(setopt dired-omit-files "\\`[.][.]\\'")
+
+(add-hook 'dired-mode-hook #'dired-omit-mode)
 #+end_src
 
 **** Environment
