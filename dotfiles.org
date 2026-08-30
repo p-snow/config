@@ -2920,7 +2920,7 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
   :custom
   (dired-kill-when-opening-new-dired-buffer t)
   (dired-do-revert-buffer t)
-  (dired-auto-revert-buffer t)
+  (dired-auto-revert-buffer 'dired-directory-changed-p)
   (dired-copy-dereference t)
   (dired-recursive-copies 'always)
   (dired-recursive-deletes 'top)
@@ -2931,14 +2931,17 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
   (dired-hide-details-hide-information-lines t)
   (dired-hide-details-hide-symlink-targets nil)
   (dired-hide-details-hide-absolute-location t)
+  (dired-free-space 'first)
   (dired-compress-file-default-suffix ".zst")
   (dired-compress-directory-default-suffix ".7z")
   (dired-isearch-filenames t)
   (dired-open-use-nohup t)
   (dired-open-query-before-exit nil)
   (completion-ignored-extensions nil)
-  (dired-movement-style 'bounded)
+  (dired-movement-style 'bounded-files)
   (dired-filename-display-length nil)
+  (dired-clean-confirm-killing-deleted-buffers nil)
+  (dired-mouse-drag-files t)
   :config
   (with-eval-after-load 'open-file
     (setq dired-guess-shell-alist-user
