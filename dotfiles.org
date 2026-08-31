@@ -8171,7 +8171,7 @@ migemo allows me to search incrementally Japanese words using roma-ji expression
   :custom
   ;; Replace migemo dictionary with AZIK variant
   (migemo-directory
-   "~/.guix-extra-profiles/emacs/emacs/share/migemo/utf-8"))
+   "<<guix/ex-prof()>>/emacs/emacs/share/cmigemo/utf-8"))
 #+end_src
 
 ****** ivy-migemo                          :ARCHIVE:ignore:
@@ -23478,26 +23478,21 @@ XRandR is a command line utility for changing display options without restarting
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
 (use-modules (guix-jp packages migemo))
 
-(define migemo-dict-transform
+(define cmigemo-dict-transform
   ((options->transformation
-    '((with-branch . "migemo-dict=guix-viable")
-      (with-git-url . "migemo-dict=https://github.com/p-snow/cmigemo-azik")))
-   migemo-dict))
+    '((with-branch . "cmigemo-dict=azik-dict")
+      (with-git-url . "cmigemo-dict=https://github.com/p-snow/cmigemo")))
+   cmigemo-dict))
 
-(define migemo-dict-azik
+(define cmigemo-dict-azik
   (package/inherit
-   migemo-dict-transform
-   (name "migemo-dict-azik")
-   (version "1.3e")))
+      cmigemo-dict-transform
+    (name "cmigemo-dict-azik")
+    (version "1.5.2")))
 #+end_src
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-package
-migemo-dict-azik
-#+end_src
-
-#+name: migemo-dict-path
-#+begin_src shell :noweb yes :tangle no
-echo -n '<<guix/ex-prof()>>/emacs/emacs/share/migemo/'
+cmigemo-dict-azik
 #+end_src
 
 *** C/Migemo in apt                           :ARCHIVE:
