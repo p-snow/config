@@ -4238,7 +4238,8 @@ gcc -march=native -Q --help=target | grep '^\s*-march=' | awk '{print $2}'
          . hs-minor-mode)
   :custom
   (hs-display-lines-hidden t)
-  (hs-cycle-filter t)
+  ;; Delegate folding features to `kirigami` package
+  (hs-cycle-filter nil)
   :config
   (bind-keys :map hs-prefix-map
              ("C-h" . nil)))
@@ -8836,14 +8837,11 @@ This function is supposed to be used for `embark-target-finders`."
 #+NAME: config/emacs-kirigami
 #+begin_src emacs-lisp
 (use-package kirigami
-  :ensure t
-  :bind (("C-c c o" . kirigami-open-fold)
-         ("C-c c O" . kirigami-open-fold-rec)
-         ("C-c c r" . kirigami-open-folds)
-         ("C-c c c" . kirigami-close-fold)
-         ("C-c c m" . kirigami-close-folds)
-         ("C-c c a" . kirigami-toggle-fold)
-         ("H-c" . kirigami-toggle-fold))
+  :bind (("H-i" . kirigami-toggle-fold)
+         ("H-S-TAB" . kirigami-open-folds)
+         ("H-TAB" . kirigami-close-folds)
+         ("H-I o" . kirigami-open-fold)
+         ("H-I c" . kirigami-close-fold))
   :config
   (kirigami-global-mode 1))
 #+end_src
