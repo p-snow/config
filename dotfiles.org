@@ -2578,6 +2578,7 @@ Settings in this section are influenced a great deal by my personal preference. 
 
 **** Key Bindings
 
+#+NAME: config/emacs-keybindings
 #+begin_src emacs-lisp
 (use-package key-binding
   :no-require t
@@ -2611,13 +2612,23 @@ Settings in this section are influenced a great deal by my personal preference. 
          ("L" . find-library)
          ("M-k" . find-function-on-key))
   :init
-  (keymap-substitute global-map
-                     #'upcase-region
-                     #'upcase-dwim)
-  (keymap-substitute global-map
-                     #'downcase-region
-                     #'downcase-dwim)
-  (keymap-global-set "C-x C-c" #'capitalize-dwim)
+  (unbind-key "C-x C-u")
+  (unbind-key "C-x C-l")
+  (bind-keys ("C-x M-u" . upcase-dwim)
+             ("C-x M-l" . downcase-dwim)
+             ("C-x M-c" . capitalize-dwim))
+  (lambda-key global-map "C-x M-f"
+              (lambda (arg) "fullwidth-dwim"
+                (interactive "*p")
+                (if (use-region-p)
+                    (fullwidth-region (region-beginning) (region-end))
+                  (fullwidth-word arg))))
+  (lambda-key global-map "C-x M-h"
+              (lambda (arg) "halfwidth-dwim"
+                (interactive "*p")
+                (if (use-region-p)
+                    (halfwidth-region (region-beginning) (region-end))
+                  (halfwidth-word arg))))
   ;; set up key binds for find-functions such as C-x F for find-function
   (find-function-setup-keys)
   (keymap-set special-mode-map "C-j" #'push-button))
