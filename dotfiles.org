@@ -3485,8 +3485,8 @@ subword-mode enables to recognize 'RSS' and 'Feed' are separate words in 'RSSFee
 #+begin_src emacs-lisp
 (use-package visual-wrap
   :hook
-  ((feed-show-mode eww-after-render help-mode helpful-mode Info-mode woman-mode
-                   mu4e-view-mode nov-mode devdocs-mode)
+  (( feed-show-mode help-mode helpful-mode Info-mode woman-mode mu4e-view-mode
+     nov-mode devdocs-mode)
    . (lambda ()
        (visual-line-mode 1)
        (visual-wrap-prefix-mode 1)))
@@ -6866,6 +6866,8 @@ org-babel-tangle-default-file-mode does not seems to be in effect. I set org-bab
           shr-image-animate t
           shr-use-colors nil
           shr-max-image-proportion 0.4
+          ;; EWW enables visual-line-mode and visual-wrap-prefix-mode
+          ;; automatically when shr-fill-text is nil
           shr-fill-text nil
           ;; never use cookies
           shr-cookie-policy nil))
