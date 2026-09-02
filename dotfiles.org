@@ -2300,7 +2300,7 @@ no-littering-var-directory
 
 #+NAME: emacs-etc-dir
 #+begin_src emacs-lisp :tangle no
-no-littering-etc-directory
+(expand-file-name "etc" user-emacs-directory)
 #+end_src
 
 *** early-init.el
@@ -2470,23 +2470,6 @@ Following hook statements are likely written in .dir-locals.el at the top level 
 (add-to-list 'safe-local-eval-forms
              '(remove-hook 'find-file-hook
                            (lambda () (setq-local buffer-save-without-query t))))
-#+end_src
-
-**** no-littering
-:PROPERTIES:
-:CREATED:  [2024-02-04 Sun 16:29]
-:END:
-
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-no-littering"
-#+end_src
-
-#+NAME: config/emacs-no-littering
-#+begin_src emacs-lisp :noweb tangle
-(setq no-littering-var-directory
-      (abbreviate-file-name (file-name-concat user-emacs-directory "var")))
-
-(require 'no-littering)
 #+end_src
 
 **** Performance Tuning
@@ -2826,7 +2809,9 @@ Entries in this section represnets [[info:emacs#Customization Groups][Customizat
         auto-save-interval 200
         auto-save-timeout 25
         auto-save-file-name-transforms
-        `((".*" ,(no-littering-expand-var-file-name "auto-save/files") t))
+        `((".*"
+           ,(expand-file-name "var/auto-save/files" user-emacs-directory)
+           t))
         delete-auto-save-files t
         kill-buffer-delete-auto-save-files t
         auto-save-no-message t)
@@ -2905,9 +2890,7 @@ I no longer use backup functionality. Even if I reinstate it, backing up by copy
 
 #+begin_src emacs-lisp
 (setopt make-backup-files nil
-        backup-by-copying t
-        backup-directory-alist
-        `(("." . ,(no-littering-expand-var-file-name "backup"))))
+        backup-by-copying t)
 #+end_src
 
 ***** Dired
@@ -3093,9 +3076,6 @@ I whimsically want—or want not—to restore my previous Emacs session. To do s
 
 #+begin_src emacs-lisp
 (use-package desktop
-  :init
-  (setq desktop-dirname
-        (no-littering-expand-var-file-name "desktop"))
   :bind (("<f12>" . desktop-read)
          ("C-M-<delete>" . my/restart-emacs-desktop-save))
   :preface
@@ -3438,15 +3418,7 @@ Mouse needs to be unobtrusive in my Emacs experience.
 
 #+begin_src emacs-lisp
 (use-package tutorial
-  :commands help-with-tutorial
-  :preface
-  (defun my/tutorial--saved-dir ()
-    (locate-user-emacs-file
-     (no-littering-expand-var-file-name "tutorial/")
-     (expand-file-name "tutorial/" user-emacs-directory)))
-  :config
-  (advice-add #'tutorial--saved-dir :override
-              #'my/tutorial--saved-dir))
+  :commands help-with-tutorial)
 #+end_src
 
 **** Convenience
@@ -5273,7 +5245,6 @@ This function is supposed to be called from `auto-insert'."
             "\n:END:\n\n"
             text))
   :custom
-  (remember-data-directory (no-littering-expand-var-file-name "remember"))
   (remember-data-file (file-name-concat remember-data-directory
                                         (format-time-string "%Y-W%V" (encode-time (decode-time)))))
   (remember-initial-major-mode 'org-mode)
@@ -8868,6 +8839,23 @@ This function is supposed to be used for `embark-target-finders`."
   (kirigami-global-mode 1))
 #+end_src
 
+***** no-littering
+:PROPERTIES:
+:CREATED:  [2024-02-04 Sun 16:29]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-no-littering"
+#+end_src
+
+#+NAME: config/emacs-no-littering
+#+begin_src emacs-lisp :noweb tangle
+(use-package no-littering
+  :init
+  (setq no-littering-var-directory
+        (abbreviate-file-name (file-name-concat user-emacs-directory "var"))))
+#+end_src
+
 **** Communications Packages
 :PROPERTIES:
 :CREATED:  [2026-04-12 Sun 16:50]
@@ -9211,7 +9199,7 @@ Default to the symbol at point."
 #+header: :var full-path=0
 #+begin_src emacs-lisp :noweb yes :eval no-export :tangle no
 (funcall (if (= full-path 0) #'identity #'expand-file-name)
-         (file-name-concat no-littering-var-directory "htmlize"))
+         (expand-file-name "var/htmlize" user-emacs-directory))
 #+end_src
 
 #+begin_src shell :noweb yes :noweb-ref make-dir :tangle no
@@ -11990,8 +11978,6 @@ Interactively prompts for the backend using completion from available options."
   :after elfeed
   :custom
   (elfeed-score-score-format '("%d " 3 :right))
-  (elfeed-score-rule-stats-file
-   (no-littering-expand-var-file-name "elfeed/score/stats.el"))
   :config
   (elfeed-score-enable)
   (setq elfeed-search-sort-function #'my/elfeed-score-sort-descending)
