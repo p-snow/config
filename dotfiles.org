@@ -2602,21 +2602,21 @@ Settings in this section are influenced a great deal by my personal preference. 
   :init
   (unbind-key "C-x C-u")
   (unbind-key "C-x C-l")
+  (defun my/fullwidth-dwim(arg)
+    (interactive "*p")
+    (if (use-region-p)
+        (fullwidth-region (region-beginning) (region-end))
+      (fullwidth-word arg)))
+  (defun my/halfwidth-dwim (arg)
+    (interactive "*p")
+    (if (use-region-p)
+        (halfwidth-region (region-beginning) (region-end))
+      (halfwidth-word arg)))
   (bind-keys ("C-x M-u" . upcase-dwim)
              ("C-x M-l" . downcase-dwim)
-             ("C-x M-c" . capitalize-dwim))
-  (lambda-key global-map "C-x M-f"
-              (lambda (arg) "fullwidth-dwim"
-                (interactive "*p")
-                (if (use-region-p)
-                    (fullwidth-region (region-beginning) (region-end))
-                  (fullwidth-word arg))))
-  (lambda-key global-map "C-x M-h"
-              (lambda (arg) "halfwidth-dwim"
-                (interactive "*p")
-                (if (use-region-p)
-                    (halfwidth-region (region-beginning) (region-end))
-                  (halfwidth-word arg))))
+             ("C-x M-c" . capitalize-dwim)
+             ("C-x M-f" . my/fullwidth-dwim)
+             ("C-x M-h" . my/halfwidth-dwim))
   ;; set up key binds for find-functions such as C-x F for find-function
   (find-function-setup-keys)
   (keymap-set special-mode-map "C-j" #'push-button))
