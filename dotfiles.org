@@ -4415,6 +4415,8 @@ return value."
           (insert (format "\n%S\n" return-value))
           (string-insert-rectangle (+ (mark) 1) (- (point) 1) ";; => "))
       (user-error "No expression at point")))
+  :custom
+  (elisp-fontify-semantically t)
   :config
   (keymap-substitute global-map
                      #'eval-last-sexp
