@@ -2540,9 +2540,14 @@ init.el is suposed to be dedicated to invoking the remaining Lisp files.
 
 #+name: config/emacs-init
 #+begin_src emacs-lisp :tangle (expand-file-name "init.el" tangle/user-emacs-directory)
-(let ((lisp-dir (file-name-concat user-emacs-directory "lisp")))
-  (dolist (file (sort (directory-files-recursively lisp-dir "\\.el\\'")
-                      #'string-lessp))
+(let ((lisp-dir (file-name-concat user-emacs-directory "lisp"))
+      (emacs-mode (getenv "EMACS_MODE")))
+  (dolist (file (sort
+                 (cond
+                  ((equal emacs-mode "minimal")
+                   (directory-files lisp-dir 'full (regexp-opt '("preferences.el" "custom-groups.el"))))
+                  (t (directory-files-recursively lisp-dir "\\.el\\'")))
+                 #'string-lessp))
     (condition-case err
         (load file nil t)
       (error
