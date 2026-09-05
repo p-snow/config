@@ -10247,8 +10247,16 @@ Currently, the `emacs-avy-migemo` Guix package is unusable due to a conflict bet
                  args)))
   :config
   (with-eval-after-load 'org
+    (defun my/consult-org-task ()
+      "List all actionable tasks in `consult'."
+      (interactive)
+      (unless org-agenda-files
+        (user-error "No agenda files"))
+      (consult-org-heading "{ac_.+}" 'agenda))
     (bind-keys :map org-mode-map
-               ("C-c g" . consult-org-heading)))
+               ("C-c g" . consult-org-heading)
+               :map my/org-global-map
+               ("t" . my/consult-org-task)))
   (with-eval-after-load 'xref
     (setopt xref-show-xrefs-function 'consult-xref))
   (setq consult-ripgrep-args
