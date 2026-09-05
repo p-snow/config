@@ -18610,8 +18610,16 @@ I'd share this babel config between literate configuration and main Emacs sessio
             transient-current-suffixes))
 
 (defun my/tsc-infix-values (keys)
+  "Return the concatenated values of all infixes whose keys are included in KEYS."
   (mapconcat
-   (lambda (obj) (transient-infix-value obj))
+   (lambda (obj)
+     (let ((val (transient-infix-value obj)))
+       (pcase val
+         ((and (pred consp) multi-value)
+          (cdr multi-value))
+         ((and (pred consp) normal-value)
+          normal-value)
+         (t val))))
    (delq nil (mapcar #'my/tsc-suffix keys))
    " "))
 
