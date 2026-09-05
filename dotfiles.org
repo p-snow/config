@@ -18799,7 +18799,11 @@ Otherwise prompt with PROMPT."
    ("t" "thumbnail" "--vid=2")]
   my/tsc-optional-menu
   [(my/tsc-execute
-    :command-format "mpv --{ %a --}"
+    ;; options surrounded by --{  --} are set locally
+    ;; -R option does not work locally
+    :command-format "mpv %R --{ %O --}"
+    :command-format-spec ((?R . (my/tsc-infix-values '("-R")))
+                          (?O . (my/tsc-infix-values '("f" "-s" "-e" "-ps" "p" "-v" "t"))))
     :before-function (lambda ()
                        (when (require-with-check 'recentf)
                          (mapc 'recentf-add-file
