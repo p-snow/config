@@ -9520,6 +9520,7 @@ Each block holds the request and the response of a tool call in `gptel'."
               minimax/minimax-m3
               anthropic/claude-sonnet-5
               z-ai/glm-5.2
+              z-ai/glm-5.3-flash
               qwen/qwen3.7-plus
               qwen/qwen3.7-flash
               tencent/hy3
@@ -9586,10 +9587,8 @@ emacs-mcp-latest
   (mcp-hub-servers
    `(("filesystem" . ( :command "npx"
                        :args ("-y" "@modelcontextprotocol/server-filesystem")))
-     ("time" . (:command "uvx" :args ("mcp-server-time")))
      ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
      ("git" . (:command "uvx" :args ("mcp-server-git")))
-     ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
      ("duckduckgo" . (:command "uvx" :args ("duckduckgo-mcp-server")))
      ("github" . ( :command "npx"
                    :args ("-y" "@modelcontextprotocol/server-github")
@@ -9597,15 +9596,6 @@ emacs-mcp-latest
                          ,(my/credential-info "github.com/p-snow" "token"))))
      ("context7"
       . (:command "npx" :args ("-y" "@upstash/context7-mcp")))
-     ;; ("playwright"
-     ;;  :command "/etc/profiles/per-user/johnw/bin/mcp-server-playwright"
-     ;;  :args ())
-     ("perplexity"
-      :command "uvx"
-      :args ("--isolated" "--from" "perplexity-mcp" "perplexity-mcp" "--")
-      :env (:PERPLEXITY_API_KEY
-            ,(my/credential-info "perplexity.ai" "apikey")
-            :PERPLEXITY_MODEL "sonar"))
      ("openrouter" .
       (:url "https://mcp.openrouter.ai/mcp"
             :token ,(getenv "OPENROUTER_API_KEY")))
@@ -14801,8 +14791,8 @@ so the AI can interpret the values correctly."
   (gptel-make-preset 'my-default
     :description  "Default preset"
     :backend      "OpenRouter"
-    :model        'tencent/hy3-preview
-    :tools        '("basics" "mcp-time" "mcp-sequential-thinking")
+    :model        'OpenRouter:deepseek/deepseek-v4-flash-0731
+    :tools        '("basics")
     :include-tool-results 'auto)
   ;; Apply my-default preset globally after all MCP servers are ready.
   (run-with-timer 1 nil
@@ -14974,7 +14964,7 @@ necessary. Determine necessity based on the following points:
 (gptel-make-preset 'writing
   :parents 'my-default
   :backend "OpenRouter"
-  :model   'google/gemini-3.1-flash-lite)
+  :model   'OpenRouter:openai/gpt-5.6-luna)
 #+end_src
 
 ****** AI-prompt prompt
