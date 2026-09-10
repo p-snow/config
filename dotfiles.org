@@ -6975,26 +6975,21 @@ This is a list of all external packages I adopt. The installation and settings f
 [[https://gitlab.com/phillord/org-drill][org-drill]] helps me to learn english words and phrases. [[https://youtu.be/SGzdFtN_NqE][This video]] introduces how I use org-drill.
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
-(define emacs-org-drill-transform
+(define emacs-org-drill
   ((options->transformation
-    (list '(with-commit . "emacs-org-drill=bf8fe812d44a3ce3e84361fb39b8ef28ca10fd0c")))
+    '((with-git-url . "emacs-org-drill=https://gitlab.com/p-snow/org-drill")
+      (with-commit . "emacs-org-drill=eacb6d0c018839d8207ee80e02b46b314278ac3f")))
    emacs-org-drill))
-
-(define emacs-org-drill-latest
-  (package/inherit
-      emacs-org-drill-transform
-    (name "emacs-org-drill-latest")
-    (version "2.7.0")))
 #+end_src
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-package
-emacs-org-drill-latest
+emacs-org-drill
 #+end_src
 
 #+NAME: config/emacs-org-drill
 #+begin_src emacs-lisp :noweb tangle
 (use-package org-drill
-  :load-path "~/.local/share/ghq/gitlab.com/p-snow/org-drill"
+  ;; :load-path "~/.local/share/ghq/gitlab.com/p-snow/org-drill"
   :after org
   :bind (:map org-mode-map
               ("C-c D" . org-drill-tree))
@@ -7654,26 +7649,18 @@ emacsclient --eval '(my/org-web-track-update-all-summarize)'
 
 org-hide-drawers is yet another [[id:2aa4d500-a244-41d2-8435-b8a9f24e2b7f][org-tidy]]. It offers hiding functionality for org drawers more quickly and reliably.
 
-# #+begin_src scheme :tangle no :noweb-ref guix-emacs
-# "emacs-org-hide-drawers"
-# #+end_src
-
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
 (use-modules (p-snow packages emacs-xyz))
 
-(define emacs-org-hide-drawers-transform
+(define emacs-org-hide-drawers
   ((options->transformation
-    (list '(with-branch . "emacs-org-hide-drawers=devel")
-          '(with-commit . "emacs-org-hide-drawers=7f8bdaf7fc70deb4f7fb37cf0fd42fdf2ba77e3d")))
+    '((with-branch . "emacs-org-hide-drawers=devel")
+      (with-commit . "emacs-org-hide-drawers=7f8bdaf7fc70deb4f7fb37cf0fd42fdf2ba77e3d")))
    emacs-org-hide-drawers))
-(define emacs-org-hide-drawers-head
-  (package/inherit
-      emacs-org-hide-drawers-transform
-    (name "emacs-org-hide-drawers-head")))
 #+end_src
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-package
-emacs-org-hide-drawers-head
+emacs-org-hide-drawers
 #+end_src
 
 #+begin_src emacs-lisp
@@ -9442,8 +9429,18 @@ Each block holds the request and the response of a tool call in `gptel'."
 
 [[https://github.com/karthink/gptel][gptel]] is decent AI frontend in Emacs as of [2025-01-08 Wed]. It supports a large number of services (LLM models) and offers elaborate usage options.
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-gptel-latest"
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
+(define gptel-commit "b907507d0e417218a9a1c372d72354c23c096036")
+
+(define emacs-gptel
+  ((options->transformation
+    (list `(with-commit . ,(format #f "emacs-gptel=~a"
+                                   gptel-commit))))
+   emacs-gptel))
+#+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-package
+emacs-gptel
 #+end_src
 
 #+NAME: config/emacs-gptel
@@ -9564,19 +9561,14 @@ Each block holds the request and the response of a tool call in `gptel'."
 #+end_src
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
-(define emacs-mcp-transform
+(define emacs-mcp
   ((options->transformation
-    (list '(with-git-url . "emacs-mcp=https://github.com/p-snow/mcp.el")))
+    '((with-git-url . "emacs-mcp=https://github.com/p-snow/mcp.el")))
    emacs-mcp))
-(define emacs-mcp-latest
-  (package/inherit
-      emacs-mcp-transform
-    (name "emacs-mcp-latest")
-    (version "0.1.0")))
 #+end_src
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-package
-emacs-mcp-latest
+emacs-mcp
 #+end_src
 
 #+begin_src emacs-lisp
@@ -9612,8 +9604,17 @@ emacs-mcp-latest
 - Refiled on [2026-04-13 Mon 17:19]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-gptel-agent-latest"
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
+(define emacs-gptel-agent
+  ((options->transformation
+    (list `(with-commit . ,(format #f "emacs-gptel=~a"
+                                   gptel-commit))
+          '(with-commit . "emacs-gptel-agent=326e0abb8c6db0e5c4c421bd9af495932ae94b62")))
+   emacs-gptel-agent))
+#+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-package
+emacs-gptel-agent
 #+end_src
 
 #+begin_src emacs-lisp
@@ -9623,7 +9624,7 @@ emacs-mcp-latest
               ("a" . gptel-agent)))
 #+end_src
 
-***** gptel-prompt
+***** gptel-prompts
 :PROPERTIES:
 :CREATED:  [2025-07-04 Fri 19:35]
 :END:
@@ -9631,8 +9632,17 @@ emacs-mcp-latest
 - Refiled on [2026-04-13 Mon 17:20]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-gptel-prompts-latest"
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
+(define emacs-gptel-prompts
+  ((options->transformation
+    (list `(with-commit . ,(format #f "emacs-gptel=~a"
+                                   gptel-commit))
+          '(with-commit . "emacs-gptel-prompts=be29a9aa471e5f398cb5e1c2ce9f40a9f2b36281")))
+   emacs-gptel-prompts))
+#+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-package
+emacs-gptel-prompts
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle
@@ -9658,8 +9668,17 @@ emacs-mcp-latest
 - Refiled on [2026-04-13 Mon 17:20]
 :END:
 
-#+begin_src scheme :tangle no :noweb-ref guix-emacs
-"emacs-ob-gptel-latest"
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
+(define emacs-ob-gptel
+  ((options->transformation
+    (list `(with-commit . ,(format #f "emacs-gptel=~a"
+                                   gptel-commit))
+          '(with-commit . "emacs-ob-gptel=db030ea033e9cce0db6457ba530d6f29e5d181f2")))
+   emacs-ob-gptel))
+#+end_src
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs-package
+emacs-ob-gptel
 #+end_src
 
 #+begin_src emacs-lisp :noweb tangle
@@ -11018,18 +11037,14 @@ A GNU Emacs library to ensure environment variables inside Emacs look the same a
 :END:
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
-(define emacs-denote-menu-transform
+(define emacs-denote-menu
   ((options->transformation
-    (list '(with-git-url . "emacs-denote-menu=https://github.com/p-snow/denote-menu")))
+    '((with-git-url . "emacs-denote-menu=https://github.com/p-snow/denote-menu")))
    emacs-denote-menu))
-(define emacs-denote-menu-patched
-  (package/inherit
-      emacs-denote-menu-transform
-    (name "emacs-denote-menu-patched")))
 #+end_src
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-package
-emacs-denote-menu-patched
+emacs-denote-menu
 #+end_src
 
 #+NAME: config/emacs-denote-menu
@@ -23507,17 +23522,12 @@ XRandR is a command line utility for changing display options without restarting
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-preface
 (use-modules (guix-jp packages migemo))
 
-(define cmigemo-dict-transform
-  ((options->transformation
-    '((with-branch . "cmigemo-dict=azik-dict")
-      (with-git-url . "cmigemo-dict=https://github.com/p-snow/cmigemo")))
-   cmigemo-dict))
-
 (define cmigemo-dict-azik
-  (package/inherit
-      cmigemo-dict-transform
-    (name "cmigemo-dict-azik")
-    (version "1.5.2")))
+  (let ((t ((options->transformation
+             '((with-branch . "cmigemo-dict=azik-dict")
+               (with-git-url . "cmigemo-dict=https://github.com/p-snow/cmigemo")))
+            cmigemo-dict)))
+    (package/inherit t (name "cmigemo-dict-azik") (version "1.5.2"))))
 #+end_src
 
 #+begin_src scheme :tangle no :noweb-ref guix-emacs-package
