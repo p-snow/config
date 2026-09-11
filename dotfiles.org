@@ -5378,6 +5378,7 @@ In ARGS, execution file paths are abbreviated using their base names."
 :CREATED:  [2024-04-13 Sat 16:14]
 :END:
 
+#+NAME: config/emacs-shell
 #+begin_src emacs-lisp
 (use-package shell
   :after my-launch-app
@@ -5387,8 +5388,9 @@ In ARGS, execution file paths are abbreviated using their base names."
   :custom
   (shell-command-prompt-show-cwd t)
   (shell-has-auto-cd t)
-  (async-shell-command-buffer 'new-buffer)
   (shell-command-dont-erase-buffer 'erase)
+  (async-shell-command-buffer 'new-buffer)
+  (async-shell-command-display-buffer nil)
   :config
   (bind-keys :map shell-mode-map
              ("C-j" . comint-send-input)))
@@ -5791,6 +5793,7 @@ Charles Choi explained how to reference a capability for the command history in 
   (eshell-prompt-regexp "[#$] ")
   (eshell-visual-subcommands '(("git" "log" "diff" "show")))
   (eshell-scroll-to-bottom-on-input 'this)
+  (eshell-command-async-buffer 'new-buffer)
   (eshell-history-size 2500)
   (eshell-hist-ignoredups t)
   :config
@@ -8462,7 +8465,7 @@ The following excerpt is important when trying finer control for git-wip-*-mode.
                 '("H" "C-H" "H-M" "C-H-M"))))
 #+end_src
 
-***** detached
+***** detached                                :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2022-12-27 Tue 15:35]
 :END:
@@ -8478,9 +8481,9 @@ How to use detached.el
 - with shell-command
   - invoke/call detached-shell-command
 
-#+begin_src scheme :noweb-ref guix-emacs :tangle no
-"emacs-detached"
-#+end_src
+# #+begin_src scheme :noweb-ref guix-emacs :tangle no
+# "emacs-detached"
+# #+end_src
 
 #+NAME: config/emacs-detached
 #+begin_src emacs-lisp
@@ -12170,7 +12173,7 @@ Interactively prompts for the backend using completion from available options."
                            (string-trim
                             (shell-command-to-string comm))))))
       (my/yt-dlp-command url :duration t)
-      (call-interactively (kmacro "! ! !"))
+      (call-interactively (kmacro "!"))
       (my/tsc-execute-macro))))
 #+end_src
 
@@ -18538,7 +18541,6 @@ I'd share this babel config between literate configuration and main Emacs sessio
 #+name: my/tsc
 #+begin_src emacs-lisp
 (require 'transient)
-(require 'detached)
 
 (defvar my/tsc-shell-command-buffer "*Shell Command*")
 
@@ -18557,11 +18559,15 @@ I'd share this babel config between literate configuration and main Emacs sessio
    (my/tsc-execution-method)])
 
 (defvar my/tsc-execution-method-alist
-  '(("detached" . detached-shell-command) ("async" . async-shell-command)
-    ("shell" . shell-command)
+  '(("shell" . shell-command)
+    ("async" . async-shell-command)
+    ("nohup" .
+     (lambda (comm)
+       (shell-command (concat "nohup " comm
+                              " > /dev/null 2>&1 &" ; suppress to create nohup.out
+                              ))))
     ("string" . (lambda (comm)
-                  (princ (string-trim (shell-command-to-string comm)))))
-    ("eshell" . eshell-command) ))
+                  (princ (string-trim (shell-command-to-string comm)))))))
 
 (transient-define-infix my/tsc-execution-method ()
   "Which function responsible for executing command."
@@ -18629,17 +18635,21 @@ I'd share this babel config between literate configuration and main Emacs sessio
 
 (defun my/tsc-infix-values (keys)
   "Return the concatenated values of all infixes whose keys are included in KEYS."
-  (mapconcat
-   (lambda (obj)
-     (let ((val (transient-infix-value obj)))
-       (pcase val
-         ((and (pred consp) multi-value)
-          (cdr multi-value))
-         ((and (pred consp) normal-value)
-          normal-value)
-         (t val))))
-   (delq nil (mapcar #'my/tsc-suffix keys))
-   " "))
+  (string-join (delq nil (mapcar
+                          (lambda (key)
+                            (when-let* ((obj (my/tsc-suffix key))
+                                        (val (transient-infix-value obj))
+                                        (val-str (pcase val
+                                                   ((and (pred consp) multi-value)
+                                                    (cdr multi-value))
+                                                   ((and (pred consp) normal-value)
+                                                    normal-value)
+                                                   (t val))))
+                              (when (and (stringp val-str)
+                                         (not (string-blank-p val-str)))
+                                val-str)))
+                          keys))
+               " "))
 
 (defmacro my/tsc-determine-file (&optional multi)
   ""
@@ -18823,7 +18833,11 @@ Otherwise prompt with PROMPT."
     :choices ("--pause" "--no-pause"))
    ("-v" "volume" "--volume=" :prompt "Volume: ")
    ("t" "thumbnail" "--vid=2")]
-  my/tsc-optional-menu
+  ["Misc"
+   (my/tsc-insert)
+   (my/tsc-execution-method
+    :init-value
+    (lambda (obj) (oset obj value "nohup")))]
   [(my/tsc-execute
     ;; options surrounded by --{  --} are set locally
     ;; -R option does not work locally
@@ -18874,7 +18888,8 @@ Otherwise prompt with PROMPT."
                           (with-current-buffer my/tsc-shell-command-buffer
                             (goto-char (point-min))
                             (replace-regexp ";mpv " " ")
-                            (my/detached-shell-command-region (point-min) (point-max))
+                            (replace-regexp ";$" "")
+                            (async-shell-command (concat "nohup " (buffer-substring-no-properties (point-min) (point-max)) " > /dev/null 2>&1 &"))
                             (kill-buffer)))))
           (list embark-org-plain-list-map embark-region-map))))
 #+end_src
@@ -18917,7 +18932,11 @@ Otherwise prompt with PROMPT."
     :reader my/tsc-output-reader
     :always-read t
     :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}.opus"))))]
-  my/tsc-optional-menu
+  ["Misc"
+   (my/tsc-insert)
+   (my/tsc-execution-method
+    :init-value
+    (lambda (obj) (oset obj value "nohup")))]
   [(my/tsc-execute
     :command-format
     "ffmpeg %i -map_metadata 0 %O%f %o"
@@ -18968,7 +18987,11 @@ Otherwise prompt with PROMPT."
     :reader my/tsc-output-reader
     :always-read t
     :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}_vp9.mkv"))))]
-  my/tsc-optional-menu
+  ["Misc"
+   (my/tsc-insert)
+   (my/tsc-execution-method
+    :init-value
+    (lambda (obj) (oset obj value "nohup")))]
   [(my/tsc-execute
     :command-format
     (concat "ffmpeg %i %O %o /dev/null && ffmpeg %i"
@@ -19022,7 +19045,11 @@ Otherwise prompt with PROMPT."
     :reader my/tsc-output-reader
     :always-read t
     :init-value (lambda (obj) (oset obj value (my/tsc-output-reader nil "${f%.*}_av1.mkv"))))]
-  my/tsc-optional-menu
+  ["Misc"
+   (my/tsc-insert)
+   (my/tsc-execution-method
+    :init-value
+    (lambda (obj) (oset obj value "nohup")))]
   [(my/tsc-execute
     :command-format
     "ffmpeg %i -c:v libsvtav1 -map_metadata 0 %O %o"
@@ -19104,7 +19131,11 @@ Otherwise prompt with PROMPT."
     :argument-format "--%s"
     :argument-regexp "\\(--\\(all-subtitles\\|first-subtitles\\)\\)"
     :choices ("all-subtitles" "first-subtitles"))]
-  [my/tsc-optional-menu
+  [["Misc"
+    (my/tsc-insert)
+    (my/tsc-execution-method
+     :init-value
+     (lambda (obj) (oset obj value "nohup")))]
    [(my/tsc-execute
      :command-format "/usr/bin/HandBrakeCLI %a")]]
   (interactive `(,(my/tsc-determine-file)))
@@ -19488,7 +19519,11 @@ Otherwise prompt with PROMPT."
     :class my/tsc-literal-option
     :prompt "Contents URL: "
     :init-value ,(my/tsc-build-init-value :url input-value))]
-  my/tsc-optional-menu
+  ["Misc"
+   (my/tsc-insert)
+   (my/tsc-execution-method
+    :init-value
+    (lambda (obj) (oset obj value "nohup")))]
   [(my/tsc-execute
     :command-format
     "yt-dlp --embed-chapters --live-from-start %a")]
@@ -19548,13 +19583,7 @@ Otherwise prompt with PROMPT."
    ("f" "files" ""
     :class my/tsc-file :multi-value rest
     :init-value ,(my/tsc-build-init-value :infile-orig (ensure-list input-value)))]
-  ["Misc"
-   (my/tsc-insert)
-   (my/tsc-execution-method
-    :init-value
-    ;; WORK AROUND: Use shell-command since detached fails to process command line with nested quotes
-    (lambda (obj)
-      (oset obj value "async")))]
+  my/tsc-optional-menu
   [(my/tsc-execute
     :description "Set picture"
     :command-format "kid3-cli -c 'set picture:\"%p\" \"\"' %f"
@@ -19589,11 +19618,7 @@ Otherwise prompt with PROMPT."
     :multi-value t
     :init-value
     ,(my/tsc-build-init-value :infile-orig input-value))]
-  ["Misc"
-   (my/tsc-insert)
-   (my/tsc-execution-method
-    :init-value
-    (lambda (obj) (oset obj value "async")))]
+  my/tsc-optional-menu
   [(my/tsc-execute
     :command-format
     "ionice -c2 -n7 nice -n19 du %a")]
@@ -19621,11 +19646,7 @@ Otherwise prompt with PROMPT."
     :multi-value t
     :init-value
     ,(my/tsc-build-init-value :infile-orig input-value))]
-  ["Misc"
-   (my/tsc-insert)
-   (my/tsc-execution-method
-    :init-value
-    (lambda (obj) (oset obj value "async")))]
+  my/tsc-optional-menu
   [(my/tsc-execute
     :command-format "wc %a")]
   (interactive `(,(my/tsc-determine-file t)))
