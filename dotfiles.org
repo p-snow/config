@@ -7546,6 +7546,17 @@ Selector
  [.p-prdInfoLowprice_entity])
 #+end_src
 
+******* Stock prices
+:PROPERTIES:
+:CREATED:  [2026-09-13 Sun 13:28]
+:END:
+
+Selector
+#+begin_src emacs-lisp :tangle no :noweb-ref org-web-track-selector
+(,(regexp-quote "query1.finance.yahoo.com/v8/finance/chart")
+ "jq -r '.chart.result[0].meta | \"\\(.regularMarketPrice)\"'")
+#+end_src
+
 ****** contents fetcher
 :PROPERTIES:
 :CREATED:  [2025-05-08 Thu 15:54]
