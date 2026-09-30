@@ -10187,7 +10187,7 @@ Currently, the `emacs-avy-migemo` Guix package is unusable due to a conflict bet
 (use-package pcre2el)
 #+end_src
 
-***** app-launcher
+***** app-launcher                            :ARCHIVE:
 :PROPERTIES:
 :CREATED:  [2023-03-15 Wed 21:42]
 :END:
@@ -10195,9 +10195,11 @@ Currently, the `emacs-avy-migemo` Guix package is unusable due to a conflict bet
 - Refiled on [2026-04-13 Mon 10:55]
 :END:
 
-#+begin_src scheme :noweb-ref guix-emacs :tangle no
-"emacs-app-launcher"
-#+end_src
+This package is no longer maintained, and its author advises using [[id:3124002b-c291-4ea8-88b1-6b129371d61d][xdg-launcher]] instead.
+
+# #+begin_src scheme :noweb-ref guix-emacs :tangle no
+# "emacs-app-launcher"
+# #+end_src
 
 #+begin_src emacs-lisp
 (use-package app-launcher
@@ -10410,6 +10412,23 @@ INDIVIDUAL-CAPFS to the list."
              ("&" . cape-sgml)
              ("r" . cape-rfc1345)
              ("8" . cape-emoji)))
+#+end_src
+
+***** xdg-launcher
+:PROPERTIES:
+:CREATED:  [2026-09-30 Wed 10:25]
+:ID:       3124002b-c291-4ea8-88b1-6b129371d61d
+:END:
+
+#+begin_src scheme :noweb-ref guix-emacs :tangle no
+"emacs-xdg-launcher"
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package xdg-launcher
+  :after my-launch-app
+  :bind (:map my/launch-app-map
+              ("a" . xdg-launcher-run-app)))
 #+end_src
 
 **** Help Packages
