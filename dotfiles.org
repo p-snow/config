@@ -8875,6 +8875,20 @@ This function is supposed to be used for `embark-target-finders`."
         (abbreviate-file-name (file-name-concat user-emacs-directory "var"))))
 #+end_src
 
+***** docker
+:PROPERTIES:
+:CREATED:  [2026-09-30 Wed 17:03]
+:END:
+
+#+begin_src scheme :tangle no :noweb-ref guix-emacs
+"emacs-docker"
+#+end_src
+
+#+NAME: config/emacs-no-littering
+#+begin_src emacs-lisp :noweb tangle
+(use-package docker)
+#+end_src
+
 **** Communications Packages
 :PROPERTIES:
 :CREATED:  [2026-04-12 Sun 16:50]
@@ -20944,7 +20958,7 @@ My workflow for acquiring English words is:
 2. Review my English word list with my/org-english-drill everyday
    - Org-drill ask questions to level up my vocabulary
 
-#+begin_src emacs-lisp  :tangle (expand-file-name "org-english.el" tangle/emacs-sitelisp-dir) :comments no
+#+begin_src emacs-lisp :tangle (expand-file-name "org-english.el" tangle/emacs-sitelisp-dir) :comments no
 (require 'define-word)
 (require 'org)
 (require 'org-drill)
