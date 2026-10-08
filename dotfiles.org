@@ -18513,6 +18513,380 @@ Like C-o (M-x open-line), it is useful open single space ahead of point.
                               (denote-directory-files))))))
 #+end_src
 
+***** Open Reddit in EWW using Redlib
+:PROPERTIES:
+:CREATED:  [2026-09-30 Wed 11:33]
+:END:
+
+Reddit is no longer available without JavaScript, which means it cannot be read in EWW. However, we have [[https://github.com/redlib-org/redlib][Redlib]], a private Reddit front end that enables us to read Reddit posts in EWW. These lines of code manage a Redlib Docker container, redirect Reddit URLs to their local counterparts in EWW, and build the latest Redlib image because the current official Redlib image has a bug that prevents the aforementioned functionality.
+
+#+begin_src emacs-lisp
+(use-package redlib
+  :custom
+  (my/redlib-image-strategy 'build))
+#+end_src
+
+#+begin_src emacs-lisp :tangle (expand-file-name "redlib.el" tangle/emacs-sitelisp-dir) :comments no
+;;; Redlib integration for EWW (pull official image or build from source)
+
+(defgroup my/redlib nil
+  "Browse Reddit through a local Redlib instance."
+  :group 'eww)
+
+(defcustom my/redlib-host "http://127.0.0.1:8080"
+  "Base URL of the local Redlib instance."
+  :type 'string :group 'my/redlib)
+
+(defcustom my/redlib-container "redlib"
+  "Name of the Docker container that runs Redlib."
+  :type 'string :group 'my/redlib)
+
+(defcustom my/redlib-official-image "quay.io/redlib/redlib:latest"
+  "Official published Redlib image to pull from the registry."
+  :type 'string :group 'my/redlib)
+
+(defcustom my/redlib-local-image "redlib-local:latest"
+  "Local Docker image tag produced when building Redlib from source."
+  :type 'string :group 'my/redlib)
+
+(defcustom my/redlib-image "quay.io/redlib/redlib:latest"
+  "Docker image tag currently used to run Redlib.
+It starts as the official image and is switched to
+=my/redlib-local-image' after a local build.  Use
+=my/redlib-pull-image' or =my/redlib-build-image' to switch."
+  :type 'string :group 'my/redlib)
+
+(defcustom my/redlib-image-strategy 'auto
+  "How to obtain the Redlib image when it is not present locally.
+auto  - pull the official image, and build from source if the pull fails.
+pull  - pull the official image only.
+build - build from source only."
+  :type '(choice (const :tag "Auto" auto)
+                 (const :tag "Pull official" pull)
+                 (const :tag "Build from source" build))
+  :group 'my/redlib)
+
+(defcustom my/redlib-source-url "https://github.com/redlib-org/redlib.git"
+  "Git URL used to clone the Redlib source."
+  :type 'string :group 'my/redlib)
+
+(defcustom my/redlib-build-dir (expand-file-name "redlib" "~/.cache")
+  "Directory where the Redlib source is cloned."
+  :type 'directory :group 'my/redlib)
+
+(defcustom my/redlib-dockerfile "Dockerfile.ubuntu"
+  "Dockerfile used to build Redlib from source."
+  :type 'string :group 'my/redlib)
+
+(defcustom my/redlib-port 8080
+  "Host TCP port where Redlib listens."
+  :type 'integer :group 'my/redlib)
+
+(defcustom my/redlib-start-timeout 60
+  "Seconds to wait for Redlib to become healthy after starting."
+  :type 'integer :group 'my/redlib)
+
+(defcustom my/redlib-refresh-interval 30
+  "Seconds between automatic status refreshes."
+  :type 'integer :group 'my/redlib)
+
+(defconst my/redlib-reddit-url-regexp
+  "\\=\\(?:https?://\\)?\\(?:[[:alnum:]-]+\\.\\)?reddit\\.com"
+  "Regexp matching a Reddit URL at the start of a string.")
+
+(defvar my/redlib--status-cache 'unknown)
+(defvar my/redlib--timer nil)
+
+;; --- URL handling ---------------------------------------------------
+
+(defun my/redlib-reddit-url-p (url)
+  "Return non-nil if URL points at Reddit."
+  (and (stringp url)
+       (string-match-p my/redlib-reddit-url-regexp url)))
+
+(defun my/redlib-rewrite-url (url)
+  "Replace a Reddit URL with the local Redlib URL."
+  (if (my/redlib-reddit-url-p url)
+      (replace-regexp-in-string my/redlib-reddit-url-regexp
+                                my/redlib-host url t t)
+    url))
+
+;; --- Docker helpers -------------------------------------------------
+
+(defun my/redlib--docker (&rest args)
+  "Run docker ARGS and return trimmed stdout, signaling on failure."
+  (with-temp-buffer
+    (let ((status (apply #'call-process "docker" nil t nil args)))
+      (unless (and (integerp status) (zerop status))
+        (user-error "docker %s failed: %s"
+                    (string-join args " ")
+                    (string-trim (buffer-string))))
+      (string-trim (buffer-string)))))
+
+(defun my/redlib--docker-available-p ()
+  "Return non-nil if the docker executable and daemon are usable."
+  (and (executable-find "docker")
+       (condition-case nil
+           (progn (process-lines "docker" "info") t)
+         (error nil))))
+
+(defun my/redlib--inspect (fmt)
+  "Return =docker inspect -f FMT' for the Redlib container, or nil."
+  (condition-case nil
+      (car (process-lines "docker" "inspect" "-f" fmt my/redlib-container))
+    (error nil)))
+
+(defun my/redlib-container-exists-p ()
+  "Return non-nil if the Redlib container exists."
+  (and (my/redlib--inspect "{{.Id}}") t))
+
+(defun my/redlib-container-running-p ()
+  "Return non-nil if the Redlib container is running."
+  (equal "true" (my/redlib--inspect "{{.State.Running}}")))
+
+(defun my/redlib--container-image ()
+  "Return the image the existing container was created from, or nil."
+  (my/redlib--inspect "{{.Config.Image}}"))
+
+(defun my/redlib--image-exists-p (&optional image)
+  "Return non-nil if IMAGE (default =my/redlib-image') exists locally."
+  (and (executable-find "docker")
+       (condition-case nil
+           (progn (process-lines "docker" "image" "inspect"
+                                 (or image my/redlib-image))
+                  t)
+         (error nil))))
+
+;; --- Obtain the image: pull or build --------------------------------
+
+(defun my/redlib-pull-image ()
+  "Pull the official Redlib image and use it as =my/redlib-image'."
+  (interactive)
+  (unless (executable-find "docker")
+    (user-error "docker executable not found"))
+  (message "Pulling Redlib image %s..." my/redlib-official-image)
+  (my/redlib--docker "pull" my/redlib-official-image)
+  (setq my/redlib-image my/redlib-official-image)
+  (message "Redlib image %s is ready" my/redlib-image)
+  my/redlib-image)
+
+(defun my/redlib-build-image ()
+  "Clone or update the Redlib source and build the local Docker image.
+Also switches =my/redlib-image' to =my/redlib-local-image'."
+  (interactive)
+  (unless (executable-find "docker")
+    (user-error "docker executable not found"))
+  (make-directory my/redlib-build-dir t)
+  (unless (file-directory-p (expand-file-name ".git" my/redlib-build-dir))
+    (message "Cloning Redlib source into %s..." my/redlib-build-dir)
+    (unless (zerop (call-process "git" nil "*redlib-build/" t
+                                 "clone" "--depth" "1"
+                                 my/redlib-source-url my/redlib-build-dir))
+      (user-error "git clone failed; see buffer /redlib-build/")))
+  (let ((default-directory (file-name-as-directory my/redlib-build-dir)))
+    (call-process "git" nil "*redlib-build/" t "pull" "--ff-only")
+    (message "Building Redlib image %s (this can take a few minutes)..."
+             my/redlib-local-image)
+    (unless (zerop (call-process "docker" nil "*redlib-build/" t
+                                 "build" "-f" my/redlib-dockerfile
+                                 "-t" my/redlib-local-image "."))
+      (user-error "docker build failed; see buffer /redlib-build/")))
+  (setq my/redlib-image my/redlib-local-image)
+  (message "Redlib image %s is ready" my/redlib-image)
+  my/redlib-image)
+
+(defun my/redlib--ensure-image ()
+  "Make sure a usable Redlib image is present and return its tag.
+Honors =my/redlib-image-strategy'."
+  (cond
+   ((my/redlib--image-exists-p my/redlib-image)
+    my/redlib-image)
+   ((eq my/redlib-image-strategy 'build)
+    (my/redlib-build-image))
+   ((eq my/redlib-image-strategy 'pull)
+    (my/redlib-pull-image))
+   (t ;; auto: try pull first, fall back to building from source
+    (if (condition-case nil (progn (my/redlib-pull-image) t) (error nil))
+        my/redlib-image
+      (message "Pull failed; building Redlib from source instead...")
+      (my/redlib-build-image)))))
+
+;; --- Health check ---------------------------------------------------
+
+(defun my/redlib--http-status (url)
+  "Return the HTTP status code for URL, or nil when unreachable."
+  (condition-case nil
+      (let ((buf (url-retrieve-synchronously url t t 8)))
+        (when buf
+          (unwind-protect
+              (with-current-buffer buf
+                (goto-char (point-min))
+                (when (re-search-forward "HTTP/[0-9.]+ +\\([0-9]+\\)" nil t)
+                  (string-to-number (match-string 1))))
+            (kill-buffer buf))))
+    (error nil)))
+
+(defun my/redlib--healthy-p ()
+  "Return non-nil when Redlib answers HTTP 200 on /settings.
+A running-but-broken Redlib resets the connection instead of answering,
+so a plain TCP probe is not enough."
+  (equal 200 (my/redlib--http-status (concat my/redlib-host "/settings"))))
+
+(defun my/redlib--wait-until-healthy ()
+  "Wait until Redlib is healthy or the timeout elapses."
+  (let ((deadline (+ (float-time) my/redlib-start-timeout)))
+    (while (and (< (float-time) deadline)
+                (not (my/redlib--healthy-p)))
+      (sleep-for 1))
+    (my/redlib--healthy-p)))
+
+;; --- Lifecycle commands ---------------------------------------------
+
+(defun my/redlib--run ()
+  "Create and start a fresh Redlib container from the current image."
+  (my/redlib--docker "run" "-d" "--name" my/redlib-container
+                     "--restart" "unless-stopped"
+                     "-p" (format "%d:8080" my/redlib-port)
+                     my/redlib-image))
+
+(defun my/redlib--start-container ()
+  "Start the container, recreating it when the image changed."
+  (cond
+   ((not (my/redlib-container-exists-p))
+    (message "Creating and starting Redlib container from %s..." my/redlib-image)
+    (my/redlib--run))
+   ((not (equal (my/redlib--container-image) my/redlib-image))
+    (message "Image changed to %s; recreating container..." my/redlib-image)
+    (my/redlib--docker "rm" "-f" my/redlib-container)
+    (my/redlib--run))
+   ((my/redlib-container-running-p)
+    (message "Redlib container is already running"))
+   (t
+    (message "Starting existing Redlib container...")
+    (my/redlib--docker "start" my/redlib-container))))
+
+(defun my/redlib-start ()
+  "Start Redlib, pulling or building the image first if needed."
+  (interactive)
+  (cond
+   ((not (executable-find "docker"))
+    (user-error "docker executable not found"))
+   ((not (my/redlib--docker-available-p))
+    (user-error "Docker daemon is not reachable"))
+   (t
+    (my/redlib--ensure-image)
+    (my/redlib--start-container)))
+  (my/redlib-refresh-status))
+
+(defun my/redlib-ensure-running ()
+  "Ensure Redlib is healthy, building from source if a pull does not serve."
+  (if (my/redlib--healthy-p)
+      t
+    (ignore-errors (my/redlib-start))
+    (if (my/redlib--wait-until-healthy)
+        (progn (message "Redlib is ready on %s" my/redlib-host) t)
+      (if (and (eq my/redlib-image-strategy 'auto)
+               (not (equal my/redlib-image my/redlib-local-image)))
+          (progn
+            (message "Image %s did not serve; building from source..."
+                     my/redlib-image)
+            (my/redlib-build-image)
+            (my/redlib--start-container)
+            (if (my/redlib--wait-until-healthy)
+                (progn
+                  (message "Redlib is ready on %s (built from source)"
+                           my/redlib-host)
+                  t)
+              (message "Redlib is still unhealthy after a source build.")
+              nil))
+        (message (concat "Redlib did not become healthy within %d seconds. "
+                         "Try M-x my/redlib-pull-image or "
+                         "M-x my/redlib-build-image.")
+                 my/redlib-start-timeout)
+        nil))))
+
+(defun my/redlib-stop ()
+  "Stop the Redlib Docker container."
+  (interactive)
+  (cond
+   ((not (my/redlib-container-exists-p))
+    (message "No Redlib container found"))
+   ((not (my/redlib-container-running-p))
+    (message "Redlib container is already stopped"))
+   (t
+    (message "Stopping Redlib...")
+    (my/redlib--docker "stop" my/redlib-container)
+    (my/redlib-refresh-status)
+    (message "Redlib stopped"))))
+
+(defun my/redlib-remove ()
+  "Remove the Redlib Docker container."
+  (interactive)
+  (if (my/redlib-container-exists-p)
+      (progn
+        (my/redlib--docker "rm" "-f" my/redlib-container)
+        (my/redlib-refresh-status)
+        (message "Redlib container removed"))
+    (message "No Redlib container to remove")))
+
+(defun my/redlib-open (sub)
+  "Open SUB in EWW through Redlib.  SUB may be a name or a Reddit URL."
+  (interactive "sSubreddit or Reddit URL: ")
+  (unless (my/redlib-ensure-running)
+    (user-error "Redlib is not available; try M-x my/redlib-pull-image"))
+  (eww (if (my/redlib-reddit-url-p sub)
+           (my/redlib-rewrite-url sub)
+         (format "%s/r/%s" my/redlib-host
+                 (string-remove-prefix "r/" sub)))))
+
+;; --- Status ---------------------------------------------------------
+
+(defun my/redlib-refresh-status ()
+  "Refresh and return the cached Redlib status symbol."
+  (interactive)
+  (setq my/redlib--status-cache
+        (cond
+         ((not (executable-find "docker")) 'no-docker)
+         ((not (my/redlib--docker-available-p)) 'no-daemon)
+         ((not (my/redlib--image-exists-p)) 'no-image)
+         ((my/redlib--healthy-p) 'running)
+         ((my/redlib-container-running-p) 'starting)
+         ((my/redlib-container-exists-p) 'stopped)
+         (t 'missing)))
+  (when (called-interactively-p 'interactive)
+    (message "Redlib status: %s"
+             (my/redlib--status-string my/redlib--status-cache)))
+  my/redlib--status-cache)
+
+(defun my/redlib--status-string (status)
+  "Return a human readable string for STATUS."
+  (pcase status
+    ('running (format "running (%s, image %s)" my/redlib-host my/redlib-image))
+    ('starting "starting (container up, not answering yet)")
+    ('stopped "stopped (container exists)")
+    ('missing "not created")
+    ('no-image (format "image %s not available locally" my/redlib-image))
+    ('no-docker "docker command not found")
+    ('no-daemon "docker daemon not reachable")
+    (_ "unknown")))
+
+(defun my/redlib-status ()
+  "Show the Redlib status in the echo area."
+  (interactive)
+  (message "Redlib status: %s"
+           (my/redlib--status-string (my/redlib-refresh-status))))
+
+;; --- EWW redirection -------------------------------------------------
+
+(add-to-list 'browse-url-handlers
+             `(,(eval (rx (seq bol "https://www.reddit.com")))
+               . (lambda (url &optional same-window)
+                   (eww (concat my/redlib-host
+                                (string-remove-prefix "https://www.reddit.com" url))))))
+
+(provide 'redlib)
+#+end_src
+
 **** Functions for dotfiles.org
 :PROPERTIES:
 :CREATED:  [2023-10-27 Fri 17:44]
@@ -19957,8 +20331,6 @@ QUERY must comply to RFC 822 format, which holds attribute/value pairs."
                                         (my/open-pdf-as-html url)))
           ("\\.epub\\'" . (lambda (url &optional same-window)
                             (my/open-epub-as-html url)))
-          (,(eval (rx (seq bol "http" (opt "s") "://www.reddit.com")))
-           . my/open-reddit-with-reddigg)
           (,(eval `(rx "." (or ,@my/open-file-media-extensions
                                ,@my/open-file-compressed-media-extensions)
                        (opt ".gpg")))
